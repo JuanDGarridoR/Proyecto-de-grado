@@ -218,17 +218,6 @@
   font-size: 0.92rem;
 }
 
-.ficha__llamar {
-  border: 1px solid var(--vita-border);
-  background: var(--vita-white);
-  color: var(--vita-navy);
-}
-
-.ficha__llamar:hover {
-  border-color: var(--vita-green);
-  background: color-mix(in srgb, var(--vita-green) 10%, white);
-}
-
 /* Resumen: tres tarjetas */
 
 .resumen {

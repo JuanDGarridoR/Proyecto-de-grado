@@ -16,11 +16,14 @@
 --   - historial de signos vitales de los últimos 6 meses (~5.000
 --     mediciones), con algunos valores fuera de rango y unos pocos
 --     errores de digitación para probar los reportes
---   - citas médicas pasadas y futuras
+--   - citas médicas: cada persona tiene una próxima cita en las
+--     siguientes 2 semanas (la mitad, otra más adelante) y un historial
+--     de citas pasadas, con lugar y consultorio
 --   - 48 actividades con inscripciones y asistencia
 --   - actividades propuestas por voluntarios a sus organizaciones
 --     (pendientes, aceptadas y rechazadas)
---   - notificaciones del panel (recordatorios y alertas de emergencia)
+--   - notificaciones del panel (recordatorios de medicamentos, citas y
+--     actividades, y alertas de emergencia)
 --
 -- Cómo correrlo:
 --   - Todos los servicios apuntan a la misma base de datos Postgres en
@@ -584,7 +587,7 @@ SELECT b.*,
        CASE WHEN random() < 0.4 THEN 2 ELSE 1 END AS n_hta_meds,
        CASE WHEN random() < 0.3 THEN 2 ELSE 1 END AS n_dm_meds,
        floor(random() * 3)::int                    AS n_otros_meds,
-       2 + floor(random() * 5)::int                AS n_citas
+       3 + floor(random() * 5)::int                AS n_citas
 FROM base b;
 
 -- 12. Medicamentos según el perfil de salud.
@@ -716,10 +719,17 @@ SELECT v.id_usuario, v.fecha_hora,
             ELSE NULL END
 FROM valores v;
 
--- 14. Citas médicas (pasadas y futuras, entre -150 y +75 días).
+-- 14. Citas médicas. Cada persona tiene entre 3 y 7 citas:
+--     - la primera es su próxima cita, en los próximos 1 a 14 días (así
+--       la página de citas y el seguimiento del acompañante siempre
+--       muestran algo en "Próximas");
+--     - la mitad tiene una segunda cita próxima, entre 15 y 75 días;
+--     - el resto (al menos una) son citas pasadas de los últimos 150
+--       días (historial).
 --     Los títulos dependen del perfil de salud; los controles y la
 --     medicina general son en la IPS de la persona y las especialidades
---     en un hospital. Horas entre 7:00 y 16:00 cada media hora.
+--     en un hospital. ~70% tiene consultorio. Horas entre 7:00 y 16:00
+--     cada media hora. Los recordatorios quedan marcados como enviados.
 WITH catalogo AS (
     SELECT row_number() OVER () AS id, * FROM (VALUES
         ('general', 'Medicina general',                         false, NULL),
@@ -741,7 +751,8 @@ WITH catalogo AS (
     ) AS v(condicion, titulo, especialista, recomendacion)
 ),
 opciones AS (
-    SELECT p.id_usuario, p.ips, p.n_citas, array_agg(c.id) AS ids
+    SELECT p.id_usuario, p.ips, p.n_citas, array_agg(c.id) AS ids,
+           random() < 0.5 AS segunda_proxima
     FROM seed_tmp.seed_perfil p
     JOIN catalogo c
       ON c.condicion = 'general'
@@ -753,7 +764,9 @@ opciones AS (
 citas AS (
     SELECT o.id_usuario, o.ips,
            o.ids[1 + floor(random() * array_length(o.ids, 1))::int] AS id_catalogo,
-           r.hoy + (floor(random() * 226)::int - 150) AS fecha,
+           CASE WHEN k = 1 THEN r.hoy + 1 + floor(random() * 14)::int
+                WHEN k = 2 AND o.segunda_proxima THEN r.hoy + 15 + floor(random() * 61)::int
+                ELSE r.hoy - 1 - floor(random() * 150)::int END AS fecha,
            time '07:00' + make_interval(mins => 30 * floor(random() * 19)::int) AS hora,
            random() AS r_obs
     FROM opciones o
@@ -939,6 +952,8 @@ ON CONFLICT DO NOTHING;
 --     los mismos textos que mandan los servicios:
 --     - recordatorios de medicamentos a la persona mayor y a sus
 --       acompañantes ACEPTADOS;
+--     - recordatorios de citas médicas (un día antes y una hora antes)
+--       a la persona mayor y a sus acompañantes ACEPTADOS;
 --     - recordatorios de actividades a la que asistió la persona;
 --     - alertas de emergencia de ~5% de las personas mayores a sus
 --       acompañantes.
@@ -974,6 +989,39 @@ JOIN usuario ua ON ua.id_usuario = pma.id_acompanante
 CROSS JOIN seed_tmp.seed_reloj r
 CROSS JOIN LATERAL (SELECT generate_series(1, 21) AS d) dias
 WHERE m.activo AND random() < 0.10;
+
+-- Citas médicas pasadas de los últimos 21 días: aviso del día antes y
+-- de una hora antes, a la persona mayor y a sus acompañantes aceptados.
+-- Mismos textos que CitaMedicaReminderScheduler.
+WITH avisos AS (
+    SELECT c.id_persona_mayor, u.nombre_usuario, u.celular,
+           seed_tmp.hora_sms(c.hora) AS hora,
+           'cita médica: ' || c.titulo || ' en ' || c.lugar
+               || coalesce(', ' || c.consultorio, '') || '.' AS detalle,
+           coalesce(' Recuerda: ' || c.observaciones, '') AS indicaciones,
+           c.fecha + c.hora AS inicio
+    FROM cita_medica c
+    JOIN usuario u ON u.id_usuario = c.id_persona_mayor AND u.correo LIKE 'pm%@vitaplus.test'
+    CROSS JOIN seed_tmp.seed_reloj r
+    WHERE c.fecha BETWEEN r.hoy - 21 AND r.hoy - 1
+),
+destinatarios AS (
+    SELECT a.*, a.celular AS para, 'tienes ' AS verbo FROM avisos a
+    UNION ALL
+    SELECT a.*, ua.celular, a.nombre_usuario || ' tiene '
+    FROM avisos a
+    JOIN persona_mayor_acompanante pma
+      ON pma.id_persona_mayor = a.id_persona_mayor AND pma.estado = 'ACEPTADA'
+    JOIN usuario ua ON ua.id_usuario = pma.id_acompanante
+)
+INSERT INTO seed_tmp.seed_notif
+SELECT d.para, 'Mañana, a las ' || d.hora || ', ' || d.verbo || d.detalle || d.indicaciones,
+       d.inicio - interval '1 day'
+FROM destinatarios d
+UNION ALL
+SELECT d.para, 'En 1 hora, a las ' || d.hora || ', ' || d.verbo || d.detalle,
+       d.inicio - interval '1 hour'
+FROM destinatarios d;
 
 -- Actividades -> persona mayor (1 hora antes)
 INSERT INTO seed_tmp.seed_notif
@@ -1045,6 +1093,9 @@ UNION ALL SELECT 'signos_vitales', count(*) FROM signo_vital
     WHERE id_persona_mayor IN (SELECT id_usuario FROM usuario WHERE correo LIKE 'pm%@vitaplus.test')
 UNION ALL SELECT 'citas_medicas', count(*) FROM cita_medica
     WHERE id_persona_mayor IN (SELECT id_usuario FROM usuario WHERE correo LIKE 'pm%@vitaplus.test')
+UNION ALL SELECT 'personas_mayores_con_cita_proxima', count(DISTINCT id_persona_mayor) FROM cita_medica
+    WHERE fecha > (now() AT TIME ZONE 'America/Bogota')::date
+      AND id_persona_mayor IN (SELECT id_usuario FROM usuario WHERE correo LIKE 'pm%@vitaplus.test')
 UNION ALL SELECT 'actividades', count(*) FROM actividad
     WHERE id_organizacion IN (SELECT id_organizacion FROM usuario WHERE correo LIKE 'org%@vitaplus.test')
 UNION ALL SELECT 'propuestas_de_voluntarios', count(*) FROM actividad
@@ -1052,3 +1103,26 @@ UNION ALL SELECT 'propuestas_de_voluntarios', count(*) FROM actividad
 UNION ALL SELECT 'participaciones_en_actividades', count(*) FROM participacion
     WHERE id_persona_mayor IN (SELECT id_usuario FROM usuario WHERE correo LIKE 'pm%@vitaplus.test')
 UNION ALL SELECT 'notificaciones', count(*) FROM notificacion WHERE celular LIKE '+570000%';
+
+-- Cuántas personas mayores (con vínculo ACEPTADO) tiene cada
+-- organización y cada acompañante: mínimo, promedio y máximo.
+SELECT 'personas_por_organizacion' AS vinculo,
+       min(n) AS minimo, round(avg(n), 1) AS promedio, max(n) AS maximo
+FROM (
+    SELECT u.id_organizacion, count(pmo.id_persona_mayor) AS n
+    FROM usuario u
+    LEFT JOIN persona_mayor_organizacion pmo
+      ON pmo.id_organizacion = u.id_organizacion AND pmo.estado = 'ACEPTADA'
+    WHERE u.correo LIKE 'org%@vitaplus.test'
+    GROUP BY u.id_organizacion
+) t
+UNION ALL
+SELECT 'personas_por_acompanante', min(n), round(avg(n), 1), max(n)
+FROM (
+    SELECT u.id_usuario, count(pma.id_persona_mayor) AS n
+    FROM usuario u
+    LEFT JOIN persona_mayor_acompanante pma
+      ON pma.id_acompanante = u.id_usuario AND pma.estado = 'ACEPTADA'
+    WHERE u.correo LIKE 'acomp%@vitaplus.test'
+    GROUP BY u.id_usuario
+) t;

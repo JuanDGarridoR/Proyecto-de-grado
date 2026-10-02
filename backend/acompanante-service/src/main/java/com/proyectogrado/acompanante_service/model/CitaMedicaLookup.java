@@ -2,6 +2,8 @@ package com.proyectogrado.acompanante_service.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -17,7 +19,10 @@ import java.time.LocalTime;
 @Table(name = "cita_medica")
 public class CitaMedicaLookup {
 
+    // Igual que en salud-service: si este servicio arranca primero en una
+    // base nueva y crea la tabla, el id debe quedar autogenerado.
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_cita")
     private Integer idCita;
 

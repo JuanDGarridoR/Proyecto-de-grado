@@ -67,13 +67,6 @@
               <span class="ficha__celular"><app-icon name="phone" /> {{ persona.celular }}</span>
             }
           </div>
-
-          @if (persona.celular) {
-            <a class="btn ficha__llamar" [href]="'tel:' + persona.celular">
-              <app-icon name="phone" />
-              Llamar
-            </a>
-          }
         </div>
 
         <div class="resumen">
