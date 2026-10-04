@@ -192,6 +192,7 @@ export class Analitica implements OnInit {
         titulo: s.titulo,
         descripcion: s.descripcion,
         imagen: s.opciones ? imagenGrafica(s.opciones) : null,
+        explicacion: s.explicacion ?? null,
         tabla: { columnas: s.tabla.columnas, filas: s.tabla.filas.map((f) => f.map(String)) }
       })),
       nota: contenido.nota ?? null

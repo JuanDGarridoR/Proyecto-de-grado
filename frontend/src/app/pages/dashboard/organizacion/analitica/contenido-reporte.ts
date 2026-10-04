@@ -8,6 +8,8 @@ export interface SeccionReporte {
   descripcion: string;
   opciones: OpcionesGrafica | null;
   tabla: TablaGrafica;
+  /** Párrafo que interpreta la gráfica; en el PDF va debajo de ella. */
+  explicacion?: string;
 }
 
 /** Lo que un reporte entrega para exportarlo a PDF. */

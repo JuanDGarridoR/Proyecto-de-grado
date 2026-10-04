@@ -72,6 +72,7 @@ export interface ReportePdf {
     titulo: string;
     descripcion: string;
     imagen: string | null;   // PNG en base64 (data URL)
+    explicacion: string | null;
     tabla: { columnas: string[]; filas: string[][] };
   }[];
   nota: string | null;

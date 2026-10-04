@@ -254,6 +254,91 @@ export class ReportePoblacion implements ReporteExportable {
     ];
   });
 
+  // ---------- Explicaciones de las gráficas (PDF) ----------
+
+  private readonly sinPersonas = 'Aún no hay personas mayores asociadas a la organización, por eso la gráfica '
+    + 'no muestra datos. Cuando se acepten las primeras asociaciones, aquí se verá ';
+
+  private explicacionEdad(): string {
+    const total = this.datos().personas.length;
+    if (total === 0) {
+      return `${this.sinPersonas}cuántas personas hay en cada rango de edad.`;
+    }
+
+    const edades = this.edades();
+    if (edades.length === 0) {
+      return 'Ninguna de las personas asociadas tiene fecha de nacimiento registrada, por eso no es posible '
+        + 'agruparlas por edad. Completar ese dato en sus perfiles permitirá conocer la distribución por edad '
+        + 'de la población que atiende la organización.';
+    }
+
+    const mayor = this.porEdad().reduce((a, b) => (b.personas > a.personas ? b : a));
+    const sinFecha = total - edades.length;
+
+    return 'La gráfica agrupa a las personas mayores asociadas según su edad. El rango con más personas es '
+      + `"${mayor.etiqueta}" (${mayor.personas}, el ${pct(mayor.personas, edades.length)} %) y la edad promedio `
+      + `es de ${this.kpis().edadPromedio}. `
+      + (sinFecha > 0
+        ? `${sinFecha} ${sinFecha === 1 ? 'persona no tiene' : 'personas no tienen'} fecha de nacimiento registrada y no se incluyen. `
+        : '')
+      + 'Conocer esta distribución ayuda a planear actividades acordes a las capacidades y necesidades de cada grupo.';
+  }
+
+  private explicacionGenero(): string {
+    const total = this.datos().personas.length;
+    if (total === 0) {
+      return `${this.sinPersonas}su distribución por género.`;
+    }
+
+    const partes = this.porGenero().map((g) => `${g.valor}: ${g.porcentaje} % (${g.personas})`);
+    const lista = partes.length > 1
+      ? `${partes.slice(0, -1).join(', ')} y ${partes[partes.length - 1]}`
+      : partes[0];
+
+    return 'La dona muestra la proporción de personas asociadas según su género; el número del centro es '
+      + `el total de personas (${total}). La distribución es la siguiente: ${lista}. Tenerla en cuenta `
+      + 'permite diseñar actividades y campañas de salud que respondan a las necesidades de cada grupo.';
+  }
+
+  private explicacionEps(): string {
+    const total = this.datos().personas.length;
+    if (total === 0) {
+      return `${this.sinPersonas}a qué entidades de salud están afiliadas.`;
+    }
+
+    const conEps = this.porEps().filter((e) => e.eps !== 'Sin EPS registrada' && e.eps !== 'Otras');
+    const sinEps = this.porEps().find((e) => e.eps === 'Sin EPS registrada')?.personas ?? 0;
+    const principal = conEps.length > 0
+      ? `"${conEps[0].eps}" es la más común, con ${conEps[0].personas} `
+        + `${conEps[0].personas === 1 ? 'persona' : 'personas'} (${pct(conEps[0].personas, total)} %). `
+      : '';
+    const faltantes = sinEps > 0
+      ? `${sinEps} ${sinEps === 1 ? 'persona no tiene' : 'personas no tienen'} EPS registrada; completar `
+        + 'ese dato facilita la gestión de citas y servicios de salud.'
+      : 'Todas las personas tienen su EPS registrada, lo que facilita la gestión de citas y servicios de salud.';
+
+    return 'Cada barra indica cuántas personas mayores están afiliadas a cada EPS (si hay más de ocho, '
+      + `las menos frecuentes se agrupan en "Otras"). ${principal}${faltantes}`;
+  }
+
+  private explicacionIntereses(): string {
+    const total = this.datos().personas.length;
+    const conIntereses = this.datos().personasConIntereses;
+    const top = this.topIntereses();
+    if (top.length === 0) {
+      return 'Ninguna persona asociada ha registrado sus gustos, talentos o hobbies, por eso la gráfica no '
+        + 'muestra datos. Invitar a las personas mayores a completar sus intereses ayudará a proponer '
+        + 'actividades que respondan a lo que disfrutan y saben hacer.';
+    }
+
+    const primero = top[0];
+    return 'La gráfica muestra los intereses más frecuentes entre las personas asociadas (hasta 10); el '
+      + 'color indica si se trata de un gusto, un talento o un hobby. El más común es '
+      + `"${primero.nombre}", con ${primero.personas} ${primero.personas === 1 ? 'persona' : 'personas'}, y `
+      + `${conIntereses} de ${total} personas han registrado sus intereses. Estos datos sirven para `
+      + 'proponer actividades que respondan a lo que las personas mayores disfrutan y saben hacer.';
+  }
+
   // ---------- PDF ----------
 
   contenidoPdf(): ContenidoReporte {
@@ -262,15 +347,19 @@ export class ReportePoblacion implements ReporteExportable {
       indicadores: this.tarjetas(),
       secciones: [
         { titulo: 'Rangos de edad', descripcion: 'Cuántas personas mayores hay en cada rango de edad.',
-          opciones: hayPersonas ? this.graficaEdad() : null, tabla: this.tablaEdad() },
+          opciones: hayPersonas ? this.graficaEdad() : null, tabla: this.tablaEdad(),
+          explicacion: this.explicacionEdad() },
         { titulo: 'Género', descripcion: 'Distribución por género de las personas asociadas.',
-          opciones: hayPersonas ? this.graficaGenero() : null, tabla: this.tablaGenero() },
+          opciones: hayPersonas ? this.graficaGenero() : null, tabla: this.tablaGenero(),
+          explicacion: this.explicacionGenero() },
         { titulo: 'EPS', descripcion: 'Entidades de salud de las personas asociadas.',
-          opciones: hayPersonas ? this.graficaEps() : null, tabla: this.tablaEps() },
+          opciones: hayPersonas ? this.graficaEps() : null, tabla: this.tablaEps(),
+          explicacion: this.explicacionEps() },
         { titulo: 'Intereses más comunes',
           descripcion: 'Los 10 gustos, talentos y hobbies más frecuentes.',
           opciones: this.datos().intereses.length > 0 ? this.graficaIntereses() : null,
-          tabla: this.tablaIntereses() }
+          tabla: this.tablaIntereses(),
+          explicacion: this.explicacionIntereses() }
       ]
     };
   }

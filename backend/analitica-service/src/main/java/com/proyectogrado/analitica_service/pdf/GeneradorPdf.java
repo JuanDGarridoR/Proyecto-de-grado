@@ -33,7 +33,8 @@ import java.util.Locale;
 
 /**
  * Arma el PDF de un reporte de analítica con OpenPDF: encabezado con la
- * organización y el período, indicadores, y cada gráfica con su tabla.
+ * organización y el período, indicadores, y cada gráfica con su
+ * explicación y su tabla.
  */
 @Component
 public class GeneradorPdf {
@@ -58,6 +59,7 @@ public class GeneradorPdf {
     private static final Font TABLA_ENCABEZADO = new Font(Font.HELVETICA, 8, Font.BOLD, NAVY);
     private static final Font TABLA_CELDA = new Font(Font.HELVETICA, 8, Font.NORMAL, GRIS_TEXTO);
     private static final Font NOTA = new Font(Font.HELVETICA, 8, Font.ITALIC, GRIS_TEXTO);
+    private static final Font EXPLICACION = new Font(Font.HELVETICA, 9.5f, Font.NORMAL, GRIS_TEXTO);
 
     private static final DateTimeFormatter FORMATO_GENERADO =
             DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy, h:mm a", new Locale("es", "CO"));
@@ -161,12 +163,13 @@ public class GeneradorPdf {
         return tabla;
     }
 
-    // ---------- Secciones (gráfica + tabla) ----------
+    // ---------- Secciones (gráfica + explicación + tabla) ----------
 
     private void seccion(Document documento, Seccion seccion) throws DocumentException, IOException {
-        // Título, descripción y gráfica van en un solo bloque: si no caben en
-        // lo que queda de la página, pasan juntos a la siguiente (así el
-        // título nunca queda separado de su gráfica).
+        // Título, descripción, gráfica y explicación van en un solo bloque:
+        // si no caben en lo que queda de la página, pasan juntos a la
+        // siguiente (así el título nunca queda separado de su gráfica, ni la
+        // gráfica de su explicación).
         PdfPTable bloque = new PdfPTable(1);
         bloque.setWidthPercentage(100);
         bloque.setSpacingBefore(14);
@@ -188,6 +191,14 @@ public class GeneradorPdf {
             imagen.setAlignment(Element.ALIGN_CENTER);
             imagen.setSpacingBefore(6);
             celda.addElement(imagen);
+        }
+
+        if (seccion.explicacion() != null && !seccion.explicacion().isBlank()) {
+            Paragraph explicacion = new Paragraph(texto(seccion.explicacion()), EXPLICACION);
+            explicacion.setAlignment(Element.ALIGN_JUSTIFIED);
+            explicacion.setLeading(13.5f);
+            explicacion.setSpacingBefore(8);
+            celda.addElement(explicacion);
         }
 
         bloque.addCell(celda);

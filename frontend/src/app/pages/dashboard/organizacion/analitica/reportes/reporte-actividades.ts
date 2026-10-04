@@ -201,6 +201,69 @@ export class ReporteActividades implements ReporteExportable {
     ];
   });
 
+  // ---------- Explicaciones de las gráficas (PDF) ----------
+
+  private explicacionMeses(): string {
+    const datos = this.porMes();
+    if (datos.length === 0) {
+      return 'No hay actividades en el período, por eso la gráfica no muestra datos. Cuando se programen '
+        + 'actividades y las personas mayores se inscriban, aquí se verá mes a mes cuántas se inscribieron '
+        + 'y cuántas asistieron.';
+    }
+
+    const inscritos = datos.reduce((s, d) => s + d.inscritos, 0);
+    const asistentes = datos.reduce((s, d) => s + d.asistentes, 0);
+    const mayor = datos.reduce((a, b) => (b.inscritos > a.inscritos ? b : a));
+
+    return 'La gráfica compara, para cada mes, las personas mayores inscritas en las actividades con las que '
+      + `efectivamente asistieron. En el período hubo ${inscritos} inscripciones y ${asistentes} asistencias, `
+      + `y el mes con más inscritos fue ${mayor.etiqueta} (${mayor.inscritos}). Una diferencia grande entre `
+      + 'las dos barras indica inscripciones que no se tradujeron en asistencia, o actividades a las que aún '
+      + 'no se les ha tomado asistencia.';
+  }
+
+  private explicacionTipos(): string {
+    const datos = this.porTipo();
+    if (datos.length === 0) {
+      return 'No hay actividades en el período, por eso la gráfica no muestra datos. Cuando se registren '
+        + 'actividades, aquí se verá qué tipos de actividad reúnen más inscripciones.';
+    }
+
+    const total = datos.reduce((s, d) => s + d.inscritos, 0);
+    const mayor = datos[0];
+    const resumen = datos.length === 1
+      ? `Todas las actividades del período son de tipo "${mayor.tipo}", con ${mayor.inscritos} inscripciones en total.`
+      : `"${mayor.tipo}" es el tipo con más participación: ${mayor.inscritos} inscripciones en `
+        + `${mayor.actividades} ${mayor.actividades === 1 ? 'actividad' : 'actividades'}, `
+        + `el ${pct(mayor.inscritos, total)} % del total.`;
+
+    return 'Cada barra muestra el total de inscripciones según el tipo de actividad, de mayor a menor. '
+      + `${resumen} Esta información ayuda a identificar qué actividades prefieren las personas mayores `
+      + 'y a orientar la programación de las próximas.';
+  }
+
+  private explicacionOcupacion(): string {
+    const datos = this.ocupacion();
+    if (datos.length === 0) {
+      return 'Ninguna actividad del período tiene cupos definidos, por eso no es posible calcular su '
+        + 'ocupación. Al definir el número de cupos de las actividades, aquí se verá qué tan llenas quedan '
+        + 'y cuántos lugares quedan libres.';
+    }
+
+    const llenas = datos.filter((d) => d.porcentaje >= 100).length;
+    const menor = datos[datos.length - 1];
+    const resumen = llenas === datos.length
+      ? `Todas las actividades mostradas llenaron sus cupos.`
+      : `${llenas === 0 ? 'Ninguna' : llenas} de las ${datos.length} actividades mostradas `
+        + `${llenas <= 1 ? 'llenó' : 'llenaron'} todos sus cupos, y la de menor ocupación fue `
+        + `"${menor.nombre}" (${menor.porcentaje} %).`;
+
+    return 'Cada barra representa una actividad con cupos definidos: la parte de color son los cupos '
+      + 'ocupados y la parte gris los que quedaron libres; el porcentaje indica la ocupación. '
+      + `${resumen} Una ocupación baja puede indicar que conviene reforzar la difusión de la actividad `
+      + 'o ajustar su número de cupos.';
+  }
+
   // ---------- PDF ----------
 
   contenidoPdf(): ContenidoReporte {
@@ -210,14 +273,17 @@ export class ReporteActividades implements ReporteExportable {
       secciones: [
         { titulo: 'Inscritos y asistentes por mes',
           descripcion: 'Cuántas personas mayores se inscribieron a las actividades de cada mes y cuántas asistieron.',
-          opciones: hayActividades ? this.graficaMeses() : null, tabla: this.tablaMeses() },
+          opciones: hayActividades ? this.graficaMeses() : null, tabla: this.tablaMeses(),
+          explicacion: this.explicacionMeses() },
         { titulo: 'Participación por tipo de actividad',
           descripcion: 'Inscripciones según el tipo de actividad.',
-          opciones: hayActividades ? this.graficaTipos() : null, tabla: this.tablaTipos() },
+          opciones: hayActividades ? this.graficaTipos() : null, tabla: this.tablaTipos(),
+          explicacion: this.explicacionTipos() },
         { titulo: 'Ocupación de cupos',
           descripcion: 'Actividades con cupos definidos, de la más llena a la menos llena (máx. 10).',
           opciones: this.tablaOcupacion().filas.length > 0 ? this.graficaOcupacion() : null,
-          tabla: this.tablaOcupacion() }
+          tabla: this.tablaOcupacion(),
+          explicacion: this.explicacionOcupacion() }
       ]
     };
   }

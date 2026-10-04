@@ -20,8 +20,11 @@ public record ReportePdfRequest(
     public record Indicador(String etiqueta, String valor, String detalle, String tono) {
     }
 
-    /** Una gráfica (o solo una tabla, si imagen es null) con su título. */
-    public record Seccion(String titulo, String descripcion, String imagen, Tabla tabla) {
+    /**
+     * Una gráfica (o solo una tabla, si imagen es null) con su título.
+     * explicacion es un párrafo que la interpreta (puede ser null).
+     */
+    public record Seccion(String titulo, String descripcion, String imagen, String explicacion, Tabla tabla) {
     }
 
     public record Tabla(List<String> columnas, List<List<String>> filas) {

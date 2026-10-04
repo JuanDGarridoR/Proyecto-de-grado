@@ -533,6 +533,87 @@ export class ReporteSalud implements ReporteExportable {
     ];
   });
 
+  // ---------- Explicaciones de las gráficas (PDF) ----------
+
+  private explicacionEstado(): string {
+    const datos = this.estadoActual();
+    const evaluadas = datos.reduce((s, d) => s + d.normal + d.revisar + d.error, 0);
+    if (evaluadas === 0) {
+      return 'Todavía no hay mediciones de presión, pulso u oxígeno, por eso la gráfica no muestra datos. '
+        + 'Cuando se registren signos vitales, aquí se verá cuántas personas tienen su última medición '
+        + 'dentro del rango normal y cuántas conviene revisar.';
+    }
+
+    const hayErrores = datos.some((d) => d.error > 0);
+    const peor = datos.reduce((a, b) => (b.revisar > a.revisar ? b : a));
+    const medidas = peor.normal + peor.revisar + peor.error;
+    const resumen = peor.revisar === 0
+      ? 'Todas las últimas mediciones están dentro de los rangos normales de referencia.'
+      : `${NOMBRE_INDICADOR[peor.indicador]} es el indicador con más personas por revisar: `
+        + `${peor.revisar} de ${medidas} ${medidas === 1 ? 'medida' : 'medidas'}.`;
+
+    return 'Para cada indicador (presión, pulso y oxígeno), la barra divide a las personas según su última '
+      + 'medición: en verde las que están dentro del rango normal y en amarillo las que conviene revisar'
+      + (hayErrores ? ', y en gris los valores que parecen un error de registro. ' : '. ')
+      + `${resumen} Los casos por revisar se detallan en la tabla "Personas que requieren atención".`;
+  }
+
+  private explicacionTiempo(): string {
+    const { porMes, puntos } = this.medicionesEnElTiempo();
+    const unidad = porMes ? 'mes' : 'semana';
+    const total = puntos.reduce((s, p) => s + p.total, 0);
+    if (total === 0) {
+      return 'No se registraron mediciones de signos vitales en el período, por eso la línea se mantiene '
+        + 'en cero. Registrar los signos vitales de forma periódica permite detectar a tiempo cambios en '
+        + 'la salud de las personas mayores.';
+    }
+
+    const mayor = puntos.reduce((a, b) => (b.total > a.total ? b : a));
+    const vacios = puntos.filter((p) => p.total === 0).length;
+    const promedio = Math.round((total / puntos.length) * 10) / 10;
+
+    return `La línea muestra cuántas mediciones de signos vitales se registraron cada ${unidad} del período: `
+      + `${total} en total, con un promedio de ${String(promedio).replace('.', ',')} por ${unidad}. `
+      + `${porMes ? 'El mes' : 'La semana'} con más registros fue ${porMes ? '' : 'la del '}${mayor.etiqueta} `
+      + `(${mayor.total})`
+      + (vacios > 0
+        ? `, y hubo ${vacios} ${vacios === 1 ? unidad : (porMes ? 'meses' : 'semanas')} sin ninguna medición. `
+        : '. ')
+      + 'Las caídas en la línea pueden indicar momentos en que se descuidó el seguimiento de la salud.';
+  }
+
+  private explicacionEvolucion(nombre: string): string {
+    const indicador = this.indicadorEvolucion();
+    const rango = indicador === 'presion'
+      ? `${RANGOS.sistolica.min}–${RANGOS.sistolica.max} / ${RANGOS.diastolica.min}–${RANGOS.diastolica.max} mmHg`
+      : indicador === 'pulso'
+        ? `${RANGOS.pulso.min}–${RANGOS.pulso.max} lpm`
+        : `${RANGOS.oxigeno.min} % o más`;
+
+    // Mediciones válidas del indicador (sin valores imposibles)
+    const validas = this.serieEvolucion().filter((m) =>
+      evaluarIndicador(m, indicador) !== null && !indicadoresConError(m).includes(indicador));
+
+    const inicio = `La gráfica sigue las mediciones de ${NOMBRE_INDICADOR[indicador].toLowerCase()} de `
+      + `${nombre} a lo largo del período; la franja gris marca el rango normal de referencia (${rango}). `;
+
+    if (validas.length === 0) {
+      return `${inicio}No hay mediciones válidas de este indicador en el período, por eso no se dibuja `
+        + 'ninguna línea. Conviene programar una nueva medición para conocer su estado actual.';
+    }
+
+    const fuera = validas.filter((m) => evaluarIndicador(m, indicador) === false).length;
+    const ultima = validas[validas.length - 1];
+    const ultimaNormal = evaluarIndicador(ultima, indicador);
+
+    return inicio
+      + `Se registraron ${validas.length} ${validas.length === 1 ? 'medición válida' : 'mediciones válidas'}, `
+      + `de las cuales ${fuera} ${fuera === 1 ? 'quedó' : 'quedaron'} fuera del rango normal. La más reciente, `
+      + `del ${this.fecha(ultima.fechaHora)}, fue de ${this.valor(ultima, indicador)}, `
+      + `${ultimaNormal ? 'dentro del rango normal' : 'fuera del rango normal'}. Los puntos que salen de la `
+      + 'franja son los que conviene revisar con el personal de salud.';
+  }
+
   // ---------- PDF ----------
 
   contenidoPdf(): ContenidoReporte {
@@ -544,14 +625,17 @@ export class ReporteSalud implements ReporteExportable {
       secciones: [
         { titulo: 'Estado actual por indicador',
           descripcion: 'Según la última medición de cada persona.',
-          opciones: hayMediciones ? this.graficaEstado() : null, tabla: this.tablaEstado() },
+          opciones: hayMediciones ? this.graficaEstado() : null, tabla: this.tablaEstado(),
+          explicacion: this.explicacionEstado() },
         { titulo: this.tituloTiempo(),
           descripcion: 'Cuántas mediciones de signos vitales se registraron en el período.',
-          opciones: this.tablaTiempo().filas.length > 0 ? this.graficaTiempo() : null, tabla: this.tablaTiempo() },
+          opciones: this.tablaTiempo().filas.length > 0 ? this.graficaTiempo() : null, tabla: this.tablaTiempo(),
+          explicacion: this.explicacionTiempo() },
         ...(persona
           ? [{ titulo: `Evolución de ${persona.nombre}: ${this.nombreIndicador[this.indicadorEvolucion()].toLowerCase()}`,
                descripcion: this.descripcionEvolucion(),
-               opciones: this.graficaEvolucion(), tabla: this.tablaEvolucion() }]
+               opciones: this.graficaEvolucion(), tabla: this.tablaEvolucion(),
+               explicacion: this.explicacionEvolucion(persona.nombre) }]
           : []),
         { titulo: 'Personas que requieren atención',
           descripcion: 'Última medición fuera de rango, sin medición en los últimos 30 días o con posibles errores de registro.',
