@@ -22,7 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
  * "Mi información": nombre, correo, celular, fecha de nacimiento, género y
  * dirección del usuario, para cualquier rol. Los paneles de todos los roles
  * usan este endpoint en lugar de repetir la lógica en cada servicio. A la
- * persona mayor también se le guardan aquí la EPS y la IPS.
+ * persona mayor también se le guardan aquí la EPS, la IPS y la dirección
+ * de la IPS.
  *
  * El celular no se edita aquí porque es con el que se inicia sesión por OTP.
  */
@@ -32,6 +33,9 @@ public class UsuarioInformacionController {
 
     /** Largo máximo del nombre de la EPS o la IPS. */
     private static final int MAX_SALUD = 120;
+
+    /** Largo máximo de la dirección de la IPS. */
+    private static final int MAX_DIRECCION_IPS = 200;
 
     private final UsuarioRepository usuarioRepository;
     private final PersonaMayorRepository personaMayorRepository;
@@ -80,6 +84,13 @@ public class UsuarioInformacionController {
                     .body("El nombre de la EPS o IPS no puede tener más de " + MAX_SALUD + " caracteres");
         }
 
+        String direccionIps = textoOpcional(request.getDireccionIps());
+
+        if (direccionIps != null && direccionIps.length() > MAX_DIRECCION_IPS) {
+            return ResponseEntity.badRequest()
+                    .body("La dirección de la IPS no puede tener más de " + MAX_DIRECCION_IPS + " caracteres");
+        }
+
         String correo = request.getCorreo() == null || request.getCorreo().isBlank()
                 ? null
                 : request.getCorreo().trim().toLowerCase();
@@ -114,11 +125,12 @@ usuario.setDireccion(request.getDireccion());
 
 usuario = usuarioRepository.save(usuario);
 
-        // La EPS y la IPS están en la tabla persona_mayor: solo se guardan si
+        // La EPS y la IPS (con su dirección) están en la tabla persona_mayor: solo se guardan si
         // el usuario es persona mayor. Para los demás roles se ignoran.
         personaMayorRepository.findById(usuario.getIdUsuario()).ifPresent(personaMayor -> {
             personaMayor.setEps(eps);
             personaMayor.setIps(ips);
+            personaMayor.setDireccionIps(direccionIps);
             personaMayorRepository.save(personaMayor);
         });
 
@@ -155,6 +167,7 @@ usuario = usuarioRepository.save(usuario);
                 usuario.getDireccion(),
                 personaMayor != null ? personaMayor.getEps() : null,
                 personaMayor != null ? personaMayor.getIps() : null,
+                personaMayor != null ? personaMayor.getDireccionIps() : null,
                 tieneContrasena
         );
     }

@@ -18,6 +18,7 @@ public class InformacionUsuarioResponse {
     // Solo para personas mayores; null en los demás roles.
     private String eps;
     private String ips;
+    private String direccionIps;
 
     /** Si es false, el usuario entra solo con OTP y puede crear una contraseña sin dar la actual. */
     private boolean tieneContrasena;
@@ -32,6 +33,7 @@ public class InformacionUsuarioResponse {
             String direccion,
             String eps,
             String ips,
+            String direccionIps,
             boolean tieneContrasena
     ) {
         this.idUsuario = idUsuario;
@@ -43,6 +45,7 @@ public class InformacionUsuarioResponse {
         this.direccion = direccion;
         this.eps = eps;
         this.ips = ips;
+        this.direccionIps = direccionIps;
         this.tieneContrasena = tieneContrasena;
     }
 
@@ -80,6 +83,10 @@ public class InformacionUsuarioResponse {
 
     public String getIps() {
         return ips;
+    }
+
+    public String getDireccionIps() {
+        return direccionIps;
     }
 
     public boolean isTieneContrasena() {

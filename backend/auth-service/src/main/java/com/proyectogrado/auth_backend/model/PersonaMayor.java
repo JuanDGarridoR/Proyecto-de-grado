@@ -27,6 +27,10 @@ public class PersonaMayor {
     @Column(name = "ips")
     private String ips;
 
+    /** Dirección de la IPS. */
+    @Column(name = "direccion_ips")
+    private String direccionIps;
+
     public PersonaMayor() {
     }
 
@@ -64,5 +68,13 @@ public class PersonaMayor {
 
     public void setIps(String ips) {
         this.ips = ips;
+    }
+
+    public String getDireccionIps() {
+        return direccionIps;
+    }
+
+    public void setDireccionIps(String direccionIps) {
+        this.direccionIps = direccionIps;
     }
 }

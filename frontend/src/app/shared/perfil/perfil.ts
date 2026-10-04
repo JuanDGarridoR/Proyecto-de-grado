@@ -36,6 +36,7 @@ interface PerfilInformacion {
   // Solo para la persona mayor.
   eps?: string;
   ips?: string;
+  direccionIps?: string;
   tieneContrasena: boolean;
 }
 
@@ -149,6 +150,7 @@ export class Perfil implements OnInit {
             direccion: data.direccion,
             eps: data.eps,
             ips: data.ips,
+            direccionIps: data.direccionIps,
             tieneContrasena: data.tieneContrasena,
           };
 
@@ -286,6 +288,7 @@ export class Perfil implements OnInit {
           direccion: this.formulario.direccion || null,
           eps: this.formulario.eps || null,
           ips: this.formulario.ips || null,
+          direccionIps: this.formulario.direccionIps || null,
         })
         .pipe(timeout(10000))
         .subscribe({
@@ -300,6 +303,7 @@ export class Perfil implements OnInit {
               direccion: data.direccion,
               eps: data.eps,
               ips: data.ips,
+              direccionIps: data.direccionIps,
               tieneContrasena: data.tieneContrasena,
             };
 

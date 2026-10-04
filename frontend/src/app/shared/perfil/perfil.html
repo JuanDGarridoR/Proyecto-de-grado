@@ -73,6 +73,10 @@
               <label> IPS </label>
               <p>{{ informacion?.ips || 'No registrada' }}</p>
             </div>
+            <div class="informacion__field">
+              <label> Dirección de la IPS </label>
+              <p>{{ informacion?.direccionIps || 'No registrada' }}</p>
+            </div>
           }
         </div>
       </div>
@@ -206,6 +210,16 @@
                 maxlength="120"
                 [(ngModel)]="formulario.ips"
                 placeholder="Ej.: Hospital San Ignacio"
+              />
+            </div>
+            <div class="informacion__field">
+              <label for="direccionIps"> Dirección de la IPS </label>
+              <input
+                id="direccionIps"
+                type="text"
+                maxlength="200"
+                [(ngModel)]="formulario.direccionIps"
+                placeholder="Ej.: Carrera 7 # 40-62"
               />
             </div>
           }
