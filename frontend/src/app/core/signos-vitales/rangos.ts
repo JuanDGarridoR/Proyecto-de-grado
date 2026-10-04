@@ -19,7 +19,7 @@ export type Indicador = 'presion' | 'pulso' | 'temperatura' | 'oxigeno';
 export const NOMBRE_INDICADOR: Record<Indicador, string> = {
   presion: 'Presión',
   pulso: 'Pulso',
-  temperatura: 'Temperatura',
+  temperatura: 'Temperatura corporal',
   oxigeno: 'Oxígeno'
 };
 
@@ -75,7 +75,7 @@ export const LIMITES = {
   presionSistolica: { min: 60, max: 260, nombre: 'Presión sistólica', unidad: 'mmHg' },
   presionDiastolica: { min: 30, max: 160, nombre: 'Presión diastólica', unidad: 'mmHg' },
   frecuenciaCardiaca: { min: 30, max: 220, nombre: 'Frecuencia cardíaca', unidad: 'lpm' },
-  temperatura: { min: 32, max: 43, nombre: 'Temperatura', unidad: '°C' },
+  temperatura: { min: 32, max: 43, nombre: 'Temperatura corporal', unidad: '°C' },
   saturacionOxigeno: { min: 50, max: 100, nombre: 'Saturación de oxígeno', unidad: '%' },
   frecuenciaRespiratoria: { min: 5, max: 60, nombre: 'Frecuencia respiratoria', unidad: 'rpm' },
   peso: { min: 20, max: 250, nombre: 'Peso', unidad: 'kg' }

@@ -1,48 +1,22 @@
 <div class="login-page">
-
   <div class="login-card">
-
     <!-- Marca -->
     <div class="login-brand">
+      <img src="logo.png" alt="Logo VITA+" class="login-brand__logo" />
 
-      <img
-        src="logo.png"
-        alt="Logo VITA+"
-        class="login-brand__logo"
-      />
-
-      <span class="login-brand__name">
-        VITA+
-      </span>
-
+      <span class="login-brand__name"> VITA+ </span>
     </div>
 
-    <a
-      routerLink="/"
-      class="login-back"
-    >
-      ← Volver al inicio
-    </a>
+    <a routerLink="/" class="login-back"> ← Volver al inicio </a>
 
-    <h1 class="login-title">
-      Crear cuenta
-    </h1>
+    <h1 class="login-title">Crear cuenta</h1>
 
-    <p class="login-subtitle">
-      Regístrate para acceder a tu panel
-    </p>
+    <p class="login-subtitle">Regístrate para acceder a tu panel</p>
 
-    <form
-      (ngSubmit)="onSubmit()"
-      class="login-form"
-    >
+    <form (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Rol -->
 
-<!-- Rol -->
-
-      <label
-        class="login-label"
-        for="rol"
-      >
+      <label class="login-label" for="rol">
         Tipo de usuario <span class="required-mark">*</span>
       </label>
 
@@ -54,64 +28,41 @@
         (ngModelChange)="onCambioRol()"
         required
       >
-
-        <option
-          value=""
-          disabled
-        >
-          Selecciona una opción
-        </option>
+        <option value="" disabled>Selecciona una opción</option>
 
         @for (opcion of roles; track opcion.valor) {
-
           <option [value]="opcion.valor">
             {{ opcion.etiqueta }}
           </option>
-
         }
-
       </select>
 
       <!-- Nombre de la persona o de la organización -->
 
-<label
-  class="login-label"
-  for="nombreUsuario"
->
-  {{ rol === 'ORGANIZACION' ? 'Nombre de la organización' : 'Nombre' }}
-<span class="required-mark">*</span>
-</label>
+      <label class="login-label" for="nombreUsuario">
+        {{ rol === 'ORGANIZACION' ? 'Nombre de la organización' : 'Nombre' }}
+        <span class="required-mark">*</span>
+      </label>
 
-<input
-  id="nombreUsuario"
-  name="nombreUsuario"
-  type="text"
-  class="login-input"
-  [(ngModel)]="nombreUsuario"
-  required
-  [placeholder]="rol === 'ORGANIZACION'
-    ? 'Nombre de la organización'
-    : 'Tu nombre'"
-/>
-
-      
+      <input
+        id="nombreUsuario"
+        name="nombreUsuario"
+        type="text"
+        class="login-input"
+        [(ngModel)]="nombreUsuario"
+        required
+        [placeholder]="rol === 'ORGANIZACION' ? 'Nombre de la organización' : 'Tu nombre'"
+      />
 
       <!-- El resto de campos aparece al elegir un rol -->
 
       @if (rol) {
-
-        <label
-          class="login-label"
-          for="celular"
-        >
+        <label class="login-label" for="celular">
           Número de celular <span class="required-mark">*</span>
         </label>
 
         <div class="login-phone-row">
-
-          <span class="login-phone-prefix">
-            +57
-          </span>
+          <span class="login-phone-prefix"> +57 </span>
 
           <input
             id="celular"
@@ -124,17 +75,11 @@
             maxlength="10"
             placeholder="3001234567"
           />
-
         </div>
 
         <!-- Correo (opcional) -->
 
-        <label
-          class="login-label"
-          for="correoCelular"
-        >
-          Correo electrónico (opcional)
-        </label>
+        <label class="login-label" for="correoCelular"> Correo electrónico (opcional) </label>
 
         <input
           id="correoCelular"
@@ -147,12 +92,7 @@
 
         <!-- Contraseña (opcional; va junto con el correo) -->
 
-        <label
-          class="login-label"
-          for="contrasenaCelular"
-        >
-          Contraseña (opcional)
-        </label>
+        <label class="login-label" for="contrasenaCelular"> Contraseña (opcional) </label>
 
         <app-campo-contrasena>
           <input
@@ -166,12 +106,7 @@
           />
         </app-campo-contrasena>
 
-        <label
-          class="login-label"
-          for="confirmarContrasena"
-        >
-          Confirmar contraseña
-        </label>
+        <label class="login-label" for="confirmarContrasena"> Confirmar contraseña </label>
 
         <app-campo-contrasena>
           <input
@@ -186,22 +121,13 @@
         </app-campo-contrasena>
 
         <p class="login-info">
-          Si ingresas una contraseña, también debes ingresar
-          un correo electrónico.
+          Si ingresas una contraseña, también debes ingresar un correo electrónico.
         </p>
 
         <!-- Datos personales: persona mayor, acompañante y voluntario -->
 
-        @if (
-          rol === 'PERSONA_MAYOR' ||
-          rol === 'ACOMPANANTE' ||
-          rol === 'VOLUNTARIO'
-        ) {
-
-          <label
-            class="login-label"
-            for="fechaNacimiento"
-          >
+        @if (rol === 'PERSONA_MAYOR' || rol === 'ACOMPANANTE' || rol === 'VOLUNTARIO') {
+          <label class="login-label" for="fechaNacimiento">
             Fecha de nacimiento <span class="required-mark">*</span>
           </label>
 
@@ -214,44 +140,23 @@
             required
           />
 
-          <label
-            class="login-label"
-            for="genero"
-          >
+          <label class="login-label" for="genero">
             Género <span class="required-mark">*</span>
           </label>
 
-          <select
-            id="genero"
-            name="genero"
-            class="login-input"
-            [(ngModel)]="genero"
-            required
-          >
-
-            <option
-              value=""
-              disabled
-            >
-              Selecciona una opción
-            </option>
+          <select id="genero" name="genero" class="login-input" [(ngModel)]="genero" required>
+            <option value="" disabled>Selecciona una opción</option>
 
             @for (opcion of generos; track opcion.valor) {
-
               <option [value]="opcion.valor">
                 {{ opcion.etiqueta }}
               </option>
-
             }
-
           </select>
         }
-                <label
-          class="login-label"
-          for="direccion"
-        >
+        <label class="login-label" for="direccion">
           {{ rol === 'ORGANIZACION' ? 'Dirección / sede' : 'Dirección' }}
-<span class="required-mark">*</span>
+          <span class="required-mark">*</span>
         </label>
 
         <input
@@ -261,151 +166,105 @@
           class="login-input"
           [(ngModel)]="direccion"
           required
-          [placeholder]="rol === 'ORGANIZACION'
-            ? 'Dirección de la organización'
-            : 'Tu dirección'"
+          [placeholder]="rol === 'ORGANIZACION' ? 'Dirección de la organización' : 'Tu dirección'"
         />
-
-        }
-
-      
-
-
-
-
+      }
 
       <!-- Mensajes -->
 
       @if (infoMensaje()) {
-
         <p class="login-info">
           {{ infoMensaje() }}
         </p>
-
       }
 
       @if (errorMensaje()) {
-
         <p class="login-error">
           {{ errorMensaje() }}
         </p>
-
       }
-
 
       <!-- Términos y condiciones -->
       <div class="login-terms">
-  <label class="login-terms__label">
-    <input
-      type="checkbox"
-      name="aceptaTerminos"
-      [(ngModel)]="aceptaTerminos"
-    />
+        <label class="login-terms__label">
+          <input type="checkbox" name="aceptaTerminos" [(ngModel)]="aceptaTerminos" />
 
-    <span>
-      Acepto los
-<a
-  href="#"
-  (click)="abrirTerminos(); $event.preventDefault()"
->
-  términos y condiciones
-</a>
-    </span>
-  </label>
-</div>
+          <span>
+            Acepto los
+            <a href="#" (click)="abrirTerminos(); $event.preventDefault()">
+              términos y condiciones
+            </a>
+          </span>
+        </label>
+      </div>
 
       <!-- Botón de crear cuenta (aparece al elegir un rol) -->
 
       @if (rol) {
-
-        <button
-          type="submit"
-          class="btn btn-primary login-submit"
-          [disabled]="cargando()"
-        >
-
-          {{
-            cargando()
-              ? 'Creando cuenta...'
-              : 'Crear cuenta'
-          }}
-
+        <button type="submit" class="btn btn-primary login-submit" [disabled]="cargando()">
+          {{ cargando() ? 'Creando cuenta...' : 'Crear cuenta' }}
         </button>
-
       }
-
-      
-
     </form>
 
     <p class="login-footer">
-
       ¿Ya tienes cuenta?
 
-      <a routerLink="/login">
-        Inicia sesión
-      </a>
-
+      <a routerLink="/login"> Inicia sesión </a>
     </p>
-
   </div>
 
   <!-- Modal con los términos y condiciones -->
   @if (mostrarTerminos) {
+    <div class="terms-modal">
+      <div class="terms-modal__content">
+        <button
+          type="button"
+          class="terms-modal__close"
+          (click)="cerrarTerminos()"
+          aria-label="Cerrar"
+        >
+          ×
+        </button>
 
-  <div class="terms-modal">
+        <h2>Términos y condiciones</h2>
 
-    <div class="terms-modal__content">
+        <p>
+          Al crear una cuenta en VITA+, aceptas utilizar la plataforma de manera responsable y
+          proporcionar información verdadera, completa y actualizada. La información registrada será
+          utilizada para las funcionalidades propias de la plataforma y para apoyar la gestión y
+          atención de las personas mayores.
+        </p>
 
-      <button
-        type="button"
-        class="terms-modal__close"
-        (click)="cerrarTerminos()"
-        aria-label="Cerrar"
-      >
-        ×
-      </button>
+        <p>
+          El usuario es responsable de mantener la confidencialidad de sus credenciales y de la
+          información proporcionada durante el registro y uso de VITA+. Este es un proyecto
+          académico desarrollado en el marco del Proyecto de Grado de Ingeniería de Sistemas de la
+          Pontificia Universidad Javeriana, por lo que la plataforma tiene un alcance principalmente
+          académico, de desarrollo y demostración de las funcionalidades propuestas. La información
+          registrada en la aplicación será utilizada exclusivamente para permitir el funcionamiento
+          de las funcionalidades implementadas en VITA+ y para los fines propios del proyecto, como
+          la gestión, consulta y organización de la información necesaria para prestar los servicios
+          de la plataforma. El tratamiento de esta información se limita al entorno de la aplicación
+          y no implica su comercialización, venta o divulgación pública. La información almacenada
+          solo podrá ser consultada por el usuario al que pertenece y por las personas u
+          organizaciones que este haya autorizado o a las que haya otorgado los permisos
+          correspondientes dentro de la plataforma. Dichos permisos tienen como finalidad facilitar
+          las funcionalidades de acompañamiento, gestión y colaboración contempladas por VITA+, y el
+          acceso estará sujeto a las restricciones definidas para cada tipo de usuario. Al continuar
+          con el registro, manifiestas que has leído, comprendido y aceptado estos términos y
+          condiciones, así como el alcance del tratamiento de la información que proporciones dentro
+          de VITA+ para las finalidades descritas.
+        </p>
 
-      <h2>Términos y condiciones</h2>
-
-      <p>
-        Al crear una cuenta en VITA+, aceptas utilizar la plataforma
-        de manera responsable y proporcionar información verdadera,
-        completa y actualizada. La información registrada será utilizada
-        para las funcionalidades propias de la plataforma y para apoyar
-        la gestión y atención de las personas mayores.
-      </p>
-
-      <p>
-        El usuario es responsable de mantener la confidencialidad de sus credenciales y de la información proporcionada 
-        durante el registro y uso de VITA+. Este es un proyecto académico desarrollado en el marco del Proyecto de Grado 
-        de Ingeniería de Sistemas, por lo que la plataforma tiene un alcance principalmente académico, de desarrollo y 
-        demostración de las funcionalidades propuestas. La información registrada en la aplicación será utilizada 
-        exclusivamente para permitir el funcionamiento de las funcionalidades implementadas en VITA+ y para los fines 
-        propios del proyecto, como la gestión, consulta y organización de la información necesaria para prestar los servicios
-         de la plataforma. El tratamiento de esta información se limita al entorno de la aplicación y no implica su 
-         comercialización, venta o divulgación pública. La información almacenada solo podrá ser consultada por el usuario al 
-         que pertenece y por las personas u organizaciones que este haya autorizado o a las que haya otorgado los permisos 
-         correspondientes dentro de la plataforma. Dichos permisos tienen como finalidad facilitar las funcionalidades de 
-         acompañamiento, gestión y colaboración contempladas por VITA+, y el acceso estará sujeto a las restricciones definidas 
-         para cada tipo de usuario. Al continuar con el registro, manifiestas que has leído, comprendido y aceptado estos 
-         términos y condiciones, así como el alcance del tratamiento de la información que proporciones dentro de VITA+ para 
-         las finalidades descritas.
-      </p>
-
-      <button
-        type="button"
-        class="btn btn-primary terms-modal__button"
-        (click)="cerrarTerminos()"
-      >
-        Cerrar
-      </button>
-
+        <button
+          type="button"
+          class="btn btn-primary terms-modal__button"
+          (click)="cerrarTerminos()"
+        >
+          Cerrar
+        </button>
+      </div>
     </div>
-
-  </div>
-
-}
-
+  }
 </div>
-

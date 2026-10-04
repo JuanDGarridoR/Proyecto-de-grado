@@ -310,7 +310,7 @@ export class PersonaMayorDashboard implements OnInit, OnDestroy {
         normal: evaluarIndicador(s, 'pulso')! });
     }
     if (s.temperatura !== null) {
-      lista.push({ etiqueta: 'Temperatura', valor: `${s.temperatura}`, unidad: RANGOS.temperatura.unidad,
+      lista.push({ etiqueta: 'Temperatura corporal', valor: `${s.temperatura}`, unidad: RANGOS.temperatura.unidad,
         normal: evaluarIndicador(s, 'temperatura')! });
     }
     if (s.saturacionOxigeno !== null) {
