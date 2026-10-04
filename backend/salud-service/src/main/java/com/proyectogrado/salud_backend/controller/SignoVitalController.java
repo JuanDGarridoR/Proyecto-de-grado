@@ -161,6 +161,10 @@ public class SignoVitalController {
                 request.getPeso()
         );
 
+        signoVital.setEstatura(
+                request.getEstatura()
+        );
+
         signoVital.setObservaciones(
                 request.getObservaciones()
         );
@@ -183,6 +187,7 @@ public class SignoVitalController {
                 signoVital.getSaturacionOxigeno(),
                 signoVital.getFrecuenciaRespiratoria(),
                 signoVital.getPeso(),
+                signoVital.getEstatura(),
                 signoVital.getObservaciones()
         );
     }

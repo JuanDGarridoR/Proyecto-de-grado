@@ -114,6 +114,10 @@ public class SignoVitalOrganizacionController {
                 request.getPeso()
         );
 
+        signoVital.setEstatura(
+                request.getEstatura()
+        );
+
         signoVital.setObservaciones(
                 request.getObservaciones()
         );
@@ -176,6 +180,7 @@ signoVital = signoVitalRepository.saveAndFlush(signoVital);
                 signoVital.getSaturacionOxigeno(),
                 signoVital.getFrecuenciaRespiratoria(),
                 signoVital.getPeso(),
+                signoVital.getEstatura(),
                 signoVital.getObservaciones()
         );
     }

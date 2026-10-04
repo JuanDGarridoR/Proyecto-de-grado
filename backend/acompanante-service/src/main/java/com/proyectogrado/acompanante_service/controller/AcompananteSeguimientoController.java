@@ -87,6 +87,7 @@ public class AcompananteSeguimientoController {
                         s.getSaturacionOxigeno(),
                         s.getFrecuenciaRespiratoria(),
                         s.getPeso(),
+                        s.getEstatura(),
                         s.getObservaciones()
                 ))
                 .toList();

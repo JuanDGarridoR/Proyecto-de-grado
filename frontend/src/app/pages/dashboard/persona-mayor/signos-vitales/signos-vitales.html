@@ -96,6 +96,24 @@
           <span class="valor__unidad">kg</span>
         </div>
       }
+
+      @if (ultimo.estatura !== null) {
+        <div class="valor valor--estatura">
+          <div class="valor__icon"><app-icon name="stretch" /></div>
+          <span class="valor__label">Estatura</span>
+          <strong class="valor__numero">{{ ultimo.estatura }}</strong>
+          <span class="valor__unidad">cm</span>
+        </div>
+      }
+
+      @if (imcUltimo(); as imc) {
+        <div class="valor valor--imc">
+          <div class="valor__icon"><app-icon name="target" /></div>
+          <span class="valor__label">Índice de masa corporal</span>
+          <strong class="valor__numero">{{ imc.valor }}</strong>
+          <span class="valor__unidad">{{ imc.categoria }}</span>
+        </div>
+      }
     </div>
 
     @if (ultimo.observaciones) {

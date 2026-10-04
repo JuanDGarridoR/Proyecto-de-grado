@@ -145,6 +145,23 @@
       </div>
     </div>
 
+    <div class="campo">
+      <label for="estatura">Estatura</label>
+
+      <div class="input-unidad">
+        <input
+          id="estatura"
+          type="number"
+          step="0.1"
+          min="0"
+          [(ngModel)]="estatura"
+          [disabled]="guardando"
+          placeholder="Ej. 162"
+        />
+        <span>cm</span>
+      </div>
+    </div>
+
     <div class="campo campo-completo">
       <label for="observaciones"> Observaciones </label>
 
@@ -251,6 +268,18 @@
         <div class="resumen-item">
           <span>Peso</span>
           <strong> {{ peso ?? '-' }} kg </strong>
+        </div>
+
+        <div class="resumen-item">
+          <span>Estatura</span>
+          <strong>{{ estatura ?? '-' }} cm</strong>
+        </div>
+
+        <div class="resumen-item">
+          <span>IMC</span>
+          <strong>
+            @if (imc(); as i) { {{ i.valor }} · {{ i.categoria }} } @else { - }
+          </strong>
         </div>
       </div>
 

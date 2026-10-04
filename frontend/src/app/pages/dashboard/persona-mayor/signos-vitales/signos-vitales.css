@@ -139,6 +139,8 @@
 .valor--oxigeno     { --valor-color: var(--vita-secundario); }
 .valor--respiracion { --valor-color: var(--vita-complemento); }
 .valor--peso        { --valor-color: var(--vita-navy); }
+.valor--estatura    { --valor-color: var(--vita-navy-light); }
+.valor--imc         { --valor-color: var(--vita-secundario); }
 
 .valor__icon {
   width: 40px;

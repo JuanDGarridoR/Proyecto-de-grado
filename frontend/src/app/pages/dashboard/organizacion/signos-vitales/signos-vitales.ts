@@ -9,6 +9,7 @@ import {
 } from '../../../../core/signos-vitales/signos-vitales.services';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { validarMedicion } from '../../../../core/signos-vitales/rangos';
+import { Imc, calcularImc } from '../../../../core/signos-vitales/imc';
 import { Icon } from '../../../../shared/icon/icon';
 
 /**
@@ -38,6 +39,7 @@ export class SignosVitales implements OnInit {
   saturacionOxigeno: number | null = null;
   frecuenciaRespiratoria: number | null = null;
   peso: number | null = null;
+  estatura: number | null = null;
 
   observaciones = '';
 
@@ -111,7 +113,8 @@ registrarSignosVitales(): void {
     temperatura: this.temperatura,
     saturacionOxigeno: this.saturacionOxigeno,
     frecuenciaRespiratoria: this.frecuenciaRespiratoria,
-    peso: this.peso
+    peso: this.peso,
+    estatura: this.estatura
   });
 
   if (errorMedicion) {
@@ -146,6 +149,7 @@ confirmarRegistro(): void {
     saturacionOxigeno: this.saturacionOxigeno,
     frecuenciaRespiratoria: this.frecuenciaRespiratoria,
     peso: this.peso,
+    estatura: this.estatura,
     observaciones: this.observaciones
   };
 
@@ -209,6 +213,11 @@ cancelarConfirmacion(): void {
   this.guardando = false;
 }
 
+  /** IMC con el peso y la estatura ingresados, para el resumen. */
+  protected imc(): Imc | null {
+    return calcularImc(this.peso, this.estatura);
+  }
+
   limpiarFormulario(): void {
     this.idPersonaMayor = null;
 
@@ -219,6 +228,7 @@ cancelarConfirmacion(): void {
     this.saturacionOxigeno = null;
     this.frecuenciaRespiratoria = null;
     this.peso = null;
+    this.estatura = null;
 
     this.observaciones = '';
   }

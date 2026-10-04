@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 /**
  * Medición de signos vitales de una persona mayor. Cada valor es opcional.
  * Unidades: presión en mmHg, frecuencias por minuto, temperatura en °C,
- * saturación en % y peso en kg.
+ * saturación en %, peso en kg y estatura en cm.
  */
 @Entity
 @Table(name = "signo_vital")
@@ -44,6 +44,9 @@ public class SignoVital {
 
     @Column(name = "peso")
     private Double peso;
+
+    @Column(name = "estatura")
+    private Double estatura;
 
     @Column(name = "observaciones")
     private String observaciones;
@@ -129,6 +132,14 @@ public class SignoVital {
 
     public void setPeso(Double peso) {
         this.peso = peso;
+    }
+
+    public Double getEstatura() {
+        return estatura;
+    }
+
+    public void setEstatura(Double estatura) {
+        this.estatura = estatura;
     }
 
     public String getObservaciones() {

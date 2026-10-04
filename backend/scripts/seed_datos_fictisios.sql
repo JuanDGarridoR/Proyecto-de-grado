@@ -98,6 +98,9 @@ CREATE TABLE IF NOT EXISTS voluntario_organizacion (
 -- Columnas de las propuestas de actividades de voluntarios; las agrega
 -- actividad-service al arrancar, y aquí igual por la misma razón.
 ALTER TABLE actividad ADD COLUMN IF NOT EXISTS id_voluntario integer;
+
+-- Estatura de los signos vitales; la agrega salud-service al arrancar.
+ALTER TABLE signo_vital ADD COLUMN IF NOT EXISTS estatura double precision;
 ALTER TABLE actividad ADD COLUMN IF NOT EXISTS estado varchar(255);
 
 -- Quién envió la solicitud de acompañamiento; la agregan
@@ -579,6 +582,7 @@ SELECT b.*,
        66 + random() * 18                                                      AS base_fc,
        CASE WHEN b.epoc THEN 91 + random() * 3  ELSE 95 + random() * 3 END   AS base_spo2,
        CASE WHEN b.genero = 'Masculino' THEN 60 + random() * 25 ELSE 50 + random() * 25 END AS base_peso,
+       CASE WHEN b.genero = 'Masculino' THEN 158 + random() * 20 ELSE 147 + random() * 18 END AS base_estatura,
        -- ~85% registra signos vitales; quienes tienen alguna condición
        -- se miden más seguido
        b.r_signos < 0.85 AS con_signos,
@@ -657,7 +661,8 @@ FROM elegidos e CROSS JOIN seed_tmp.seed_reloj r;
 --     - La primera medición de cada persona es de los últimos 3 días,
 --       para que los paneles muestren una "última medición" reciente.
 --     - No todas las mediciones traen todos los campos (como pasa en la
---       vida real): presión y pulso casi siempre, peso pocas veces.
+--       vida real): presión y pulso casi siempre, peso pocas veces. La
+--       estatura se toma junto con el peso, para poder calcular el IMC.
 --     - ~1.5% trae un error de digitación imposible (sistólica de 1300,
 --       saturación de 9, temperatura de 3.6) para probar cómo los
 --       reportes marcan "posible error de registro".
@@ -693,12 +698,15 @@ valores AS (
            END AS fr,
            CASE WHEN m.r_peso < 0.25
                 THEN round((m.base_peso + (random() - 0.5) * 3)::numeric, 1)
-           END AS peso
+           END AS peso,
+           CASE WHEN m.r_peso < 0.25
+                THEN round(m.base_estatura::numeric, 1)
+           END AS estatura
     FROM mediciones m
 )
 INSERT INTO signo_vital (id_persona_mayor, fecha_hora, presion_sistolica, presion_diastolica,
                          frecuencia_cardiaca, temperatura, saturacion_oxigeno,
-                         frecuencia_respiratoria, peso, observaciones)
+                         frecuencia_respiratoria, peso, estatura, observaciones)
 SELECT v.id_usuario, v.fecha_hora,
        CASE WHEN v.r_error < 0.005 AND v.sis IS NOT NULL THEN v.sis * 10 ELSE v.sis END,
        v.dia,
@@ -709,6 +717,7 @@ SELECT v.id_usuario, v.fecha_hora,
             THEN v.spo2 / 10 ELSE v.spo2 END,
        v.fr,
        v.peso,
+       v.estatura,
        CASE WHEN v.sis >= 150 AND v.r_obs < 0.6 THEN 'Refiere dolor de cabeza leve'
             WHEN v.temp >= 37.5 AND v.r_obs < 0.7 THEN 'Se siente con escalofríos'
             WHEN v.spo2 < 93 AND v.r_obs < 0.6 THEN 'Se fatiga al caminar'

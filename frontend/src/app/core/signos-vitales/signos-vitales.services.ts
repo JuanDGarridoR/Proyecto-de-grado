@@ -11,6 +11,7 @@ export interface SignoVitalRequest {
   saturacionOxigeno: number | null;
   frecuenciaRespiratoria: number | null;
   peso: number | null;
+  estatura: number | null;
   observaciones: string;
 }
 
@@ -25,6 +26,7 @@ export interface SignoVitalResponse {
   saturacionOxigeno: number | null;
   frecuenciaRespiratoria: number | null;
   peso: number | null;
+  estatura: number | null;
   observaciones: string | null;
 }
 

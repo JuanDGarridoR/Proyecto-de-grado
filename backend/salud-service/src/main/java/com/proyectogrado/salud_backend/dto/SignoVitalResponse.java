@@ -15,6 +15,7 @@ public class SignoVitalResponse {
     private Integer saturacionOxigeno;
     private Integer frecuenciaRespiratoria;
     private Double peso;
+    private Double estatura;
     private String observaciones;
 
     public SignoVitalResponse(
@@ -27,6 +28,7 @@ public class SignoVitalResponse {
             Integer saturacionOxigeno,
             Integer frecuenciaRespiratoria,
             Double peso,
+            Double estatura,
             String observaciones
     ) {
         this.idSignoVital = idSignoVital;
@@ -38,6 +40,7 @@ public class SignoVitalResponse {
         this.saturacionOxigeno = saturacionOxigeno;
         this.frecuenciaRespiratoria = frecuenciaRespiratoria;
         this.peso = peso;
+        this.estatura = estatura;
         this.observaciones = observaciones;
     }
 
@@ -75,6 +78,10 @@ public class SignoVitalResponse {
 
     public Double getPeso() {
         return peso;
+    }
+
+    public Double getEstatura() {
+        return estatura;
     }
 
     public String getObservaciones() {

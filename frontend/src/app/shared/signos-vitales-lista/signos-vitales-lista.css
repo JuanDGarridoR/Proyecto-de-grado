@@ -135,6 +135,18 @@
   font-size: 0.9rem;
 }
 
+.signo-item__imc {
+  margin-left: 4px;
+
+  color: var(--vita-text-gray);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.signo-item__imc--revisar {
+  color: #b7791f;
+}
+
 .signo-item__observaciones {
   margin: 0;
 

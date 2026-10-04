@@ -1,7 +1,8 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { DatePipe } from '@angular/common';
 
 import { SignoVitalResponse } from '../../core/signos-vitales/signos-vitales.services';
+import { imcPorRegistro } from '../../core/signos-vitales/imc';
 import { Icon } from '../icon/icon';
 
 /**
@@ -29,4 +30,7 @@ export class SignosVitalesLista {
   readonly textoVacio = input(
     'Cuando se registren signos vitales de esta persona mayor, aparecerán aquí.'
   );
+
+  /** IMC de cada registro, en el mismo orden que registros(). */
+  protected readonly imcs = computed(() => imcPorRegistro(this.registros()));
 }

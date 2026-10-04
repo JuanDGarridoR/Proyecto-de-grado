@@ -7,6 +7,7 @@ import {
   SignoVitalRequest
 } from '../../../../../core/signos-vitales/signos-vitales.services';
 import { validarMedicion } from '../../../../../core/signos-vitales/rangos';
+import { Imc, calcularImc } from '../../../../../core/signos-vitales/imc';
 import { Icon } from '../../../../../shared/icon/icon';
 
 /**
@@ -35,6 +36,7 @@ export class RegistrarSignosModal {
   saturacionOxigeno: number | null = null;
   frecuenciaRespiratoria: number | null = null;
   peso: number | null = null;
+  estatura: number | null = null;
 
   observaciones = '';
 
@@ -105,6 +107,11 @@ export class RegistrarSignosModal {
     this.cerrar.emit();
   }
 
+  /** IMC con el peso y la estatura ingresados, para el resumen. */
+  protected imc(): Imc | null {
+    return calcularImc(this.peso, this.estatura);
+  }
+
   limpiarFormulario(): void {
     this.presionSistolica = null;
     this.presionDiastolica = null;
@@ -113,6 +120,7 @@ export class RegistrarSignosModal {
     this.saturacionOxigeno = null;
     this.frecuenciaRespiratoria = null;
     this.peso = null;
+    this.estatura = null;
 
     this.observaciones = '';
     this.mensajeError.set('');
@@ -127,6 +135,7 @@ export class RegistrarSignosModal {
       saturacionOxigeno: this.saturacionOxigeno,
       frecuenciaRespiratoria: this.frecuenciaRespiratoria,
       peso: this.peso,
+      estatura: this.estatura,
       observaciones: this.observaciones
     };
   }

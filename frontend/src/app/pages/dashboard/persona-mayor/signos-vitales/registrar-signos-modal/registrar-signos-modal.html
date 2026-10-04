@@ -125,6 +125,21 @@
           </div>
         </div>
 
+        <div class="campo">
+          <label for="pmEstatura">Estatura</label>
+          <div class="input-unidad">
+            <input
+              id="pmEstatura"
+              type="number"
+              step="0.1"
+              min="0"
+              [(ngModel)]="estatura"
+              placeholder="Ej. 162"
+            />
+            <span>cm</span>
+          </div>
+        </div>
+
         <div class="campo campo-completo">
           <label for="pmObservaciones">Observaciones</label>
           <textarea
@@ -191,6 +206,18 @@
         <div class="resumen-item">
           <span>Peso</span>
           <strong>{{ peso ?? '-' }} kg</strong>
+        </div>
+
+        <div class="resumen-item">
+          <span>Estatura</span>
+          <strong>{{ estatura ?? '-' }} cm</strong>
+        </div>
+
+        <div class="resumen-item">
+          <span>IMC</span>
+          <strong>
+            @if (imc(); as i) { {{ i.valor }} · {{ i.categoria }} } @else { - }
+          </strong>
         </div>
       </div>
 

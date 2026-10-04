@@ -18,6 +18,7 @@ public final class SignoVitalValidador {
     private static final double[] OXIGENO = {50, 100};
     private static final double[] RESPIRACION = {5, 60};
     private static final double[] PESO = {20, 250};
+    private static final double[] ESTATURA = {100, 220};
 
     private SignoVitalValidador() {
     }
@@ -29,7 +30,8 @@ public final class SignoVitalValidador {
 
         if (sis == null && dia == null && r.getFrecuenciaCardiaca() == null
                 && r.getTemperatura() == null && r.getSaturacionOxigeno() == null
-                && r.getFrecuenciaRespiratoria() == null && r.getPeso() == null) {
+                && r.getFrecuenciaRespiratoria() == null && r.getPeso() == null
+                && r.getEstatura() == null) {
             return "Ingresa al menos un signo vital.";
         }
 
@@ -44,6 +46,7 @@ public final class SignoVitalValidador {
         if (error == null) error = fueraDeLimite("Saturación de oxígeno", r.getSaturacionOxigeno(), OXIGENO, "%");
         if (error == null) error = fueraDeLimite("Frecuencia respiratoria", r.getFrecuenciaRespiratoria(), RESPIRACION, "rpm");
         if (error == null) error = fueraDeLimite("Peso", r.getPeso(), PESO, "kg");
+        if (error == null) error = fueraDeLimite("Estatura", r.getEstatura(), ESTATURA, "cm");
         if (error != null) {
             return error;
         }

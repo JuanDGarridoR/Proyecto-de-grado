@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 
 import {
@@ -7,6 +7,7 @@ import {
 } from '../../../../core/signos-vitales/signos-vitales.services';
 import { SignosVitalesLista } from '../../../../shared/signos-vitales-lista/signos-vitales-lista';
 import { RegistrarSignosModal } from './registrar-signos-modal/registrar-signos-modal';
+import { imcPorRegistro } from '../../../../core/signos-vitales/imc';
 import { Icon } from '../../../../shared/icon/icon';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 
@@ -28,6 +29,12 @@ export class SignosVitalesPersonaMayor implements OnInit {
   protected readonly registros = signal<SignoVitalResponse[]>([]);
   protected readonly cargando = signal(true);
   protected readonly error = signal<string | null>(null);
+
+  /**
+   * IMC del último registro. Si ese registro no trae la estatura se usa la
+   * más reciente del historial.
+   */
+  protected readonly imcUltimo = computed(() => imcPorRegistro(this.registros())[0] ?? null);
 
   protected readonly mostrarRegistro = signal(false);
   protected readonly mensajeExito = signal('');

@@ -13,6 +13,7 @@ public class SignoVitalRequest {
     private Integer saturacionOxigeno;      // %
     private Integer frecuenciaRespiratoria; // respiraciones por minuto
     private Double peso;                    // kg
+    private Double estatura;                // cm
     private String observaciones;
 
     public SignoVitalRequest() {
@@ -72,6 +73,14 @@ public class SignoVitalRequest {
 
     public void setPeso(Double peso) {
         this.peso = peso;
+    }
+
+    public Double getEstatura() {
+        return estatura;
+    }
+
+    public void setEstatura(Double estatura) {
+        this.estatura = estatura;
     }
 
     public String getObservaciones() {

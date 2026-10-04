@@ -14,6 +14,7 @@ public record SignoVitalSeguimientoResponse(
         Integer saturacionOxigeno,
         Integer frecuenciaRespiratoria,
         Double peso,
+        Double estatura,
         String observaciones
 ) {
 }

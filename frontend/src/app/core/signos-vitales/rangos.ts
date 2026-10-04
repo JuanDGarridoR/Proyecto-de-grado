@@ -78,7 +78,8 @@ export const LIMITES = {
   temperatura: { min: 32, max: 43, nombre: 'Temperatura corporal', unidad: '°C' },
   saturacionOxigeno: { min: 50, max: 100, nombre: 'Saturación de oxígeno', unidad: '%' },
   frecuenciaRespiratoria: { min: 5, max: 60, nombre: 'Frecuencia respiratoria', unidad: 'rpm' },
-  peso: { min: 20, max: 250, nombre: 'Peso', unidad: 'kg' }
+  peso: { min: 20, max: 250, nombre: 'Peso', unidad: 'kg' },
+  estatura: { min: 100, max: 220, nombre: 'Estatura', unidad: 'cm' }
 } as const;
 
 export type CampoSigno = keyof typeof LIMITES;

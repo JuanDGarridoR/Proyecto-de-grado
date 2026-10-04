@@ -52,6 +52,9 @@ public class SignoVitalLookup {
     @Column(name = "peso")
     private Double peso;
 
+    @Column(name = "estatura")
+    private Double estatura;
+
     @Column(name = "observaciones")
     private String observaciones;
 
@@ -98,6 +101,10 @@ public class SignoVitalLookup {
 
     public Double getPeso() {
         return peso;
+    }
+
+    public Double getEstatura() {
+        return estatura;
     }
 
     public String getObservaciones() {
