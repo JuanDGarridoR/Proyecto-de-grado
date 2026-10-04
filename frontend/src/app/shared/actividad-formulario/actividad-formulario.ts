@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActividadRequest, fechaHoy } from '../../core/actividades/actividad.service';
 import { Icon } from '../icon/icon';
 
-/** Organización que se puede elegir en el formulario (propuestas de voluntarios). */
+/** Organización que se puede elegir en el formulario (propuestas). */
 export interface OpcionOrganizacion {
   idOrganizacion: number;
   nombre: string;
@@ -17,9 +17,9 @@ export interface ActividadFormularioDatos extends ActividadRequest {
 
 /**
  * Modal para crear una actividad: formulario, validación y confirmación
- * con el resumen. Lo usa la organización para crear sus actividades y el
- * voluntario para proponerlas; en ese caso recibe las organizaciones y
- * pide elegir a cuál se presenta.
+ * con el resumen. Lo usa la organización para crear sus actividades, y el
+ * voluntario y la persona mayor para proponerlas; en ese caso recibe las
+ * organizaciones y pide elegir a cuál se presenta.
  *
  * La página decide qué hacer con los datos (emitidos en guardar) y lo
  * cierra quitándolo del template cuando se guardan bien.

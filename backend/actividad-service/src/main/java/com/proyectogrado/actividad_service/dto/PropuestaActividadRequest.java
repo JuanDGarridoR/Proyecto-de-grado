@@ -1,8 +1,9 @@
 package com.proyectogrado.actividad_service.dto;
 
 /**
- * Formulario de actividad que envía un voluntario: los mismos campos que
- * crea una organización, más la organización a la que la presenta.
+ * Formulario de actividad que envía un voluntario o una persona mayor: los
+ * mismos campos que crea una organización, más la organización a la que la
+ * presenta.
  */
 public class PropuestaActividadRequest extends ActividadRequest {
 

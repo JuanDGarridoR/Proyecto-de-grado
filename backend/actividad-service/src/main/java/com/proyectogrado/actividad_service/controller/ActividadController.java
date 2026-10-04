@@ -39,8 +39,9 @@ import java.util.stream.Collectors;
 /**
  * Actividades de las organizaciones: la organización las crea y registra la
  * asistencia, la persona mayor se inscribe y el acompañante consulta las de
- * las personas que acompaña. Un voluntario puede proponer actividades a sus
- * organizaciones; mientras la organización no las acepte, nadie más las ve.
+ * las personas que acompaña. Un voluntario o una persona mayor pueden
+ * proponer actividades a sus organizaciones; mientras la organización no
+ * las acepte, nadie más las ve.
  *
  * El id del usuario autenticado llega en el encabezado X-User-Id, que pone
  * el gateway después de validar el token. Este servicio no recibe el rol:
@@ -84,8 +85,8 @@ public class ActividadController {
     @GetMapping
     public ResponseEntity<?> listar(@RequestHeader("X-User-Id") Integer idUsuario) {
 
-        // Organización: solo ve sus propias actividades (las propuestas de
-        // voluntarios aparecen aquí cuando las acepta).
+        // Organización: solo ve sus propias actividades (las propuestas
+        // aparecen aquí cuando las acepta).
         Integer idOrganizacion = resolverIdOrganizacion(idUsuario);
 
         if (idOrganizacion != null) {
@@ -413,23 +414,27 @@ public class ActividadController {
     }
 
     // =========================================================
-    // PROPUESTAS DE VOLUNTARIOS
+    // PROPUESTAS DE VOLUNTARIOS Y PERSONAS MAYORES
     // =========================================================
 
     /**
-     * El voluntario propone una actividad a una organización a la que está
-     * vinculado. Usa las mismas validaciones que la creación de la
-     * organización y queda PENDIENTE hasta que la organización responda.
+     * Un voluntario o una persona mayor propone una actividad a una
+     * organización con la que tiene vínculo aceptado. Usa las mismas
+     * validaciones que la creación de la organización y queda PENDIENTE
+     * hasta que la organización responda.
      */
     @PostMapping("/propuestas")
     public ResponseEntity<?> proponer(
             @RequestBody PropuestaActividadRequest request,
-            @RequestHeader("X-User-Id") Integer idVoluntario
+            @RequestHeader("X-User-Id") Integer idUsuario
     ) {
 
-        if (!esVoluntario(idVoluntario)) {
+        boolean voluntario = esVoluntario(idUsuario);
+        boolean personaMayor = !voluntario && esPersonaMayor(idUsuario);
+
+        if (!voluntario && !personaMayor) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Solo un voluntario puede proponer actividades");
+                    .body("Solo un voluntario o una persona mayor puede proponer actividades");
         }
 
         if (request.getIdOrganizacion() == null) {
@@ -437,7 +442,11 @@ public class ActividadController {
                     .body("Selecciona la organización a la que quieres presentar la actividad");
         }
 
-        if (!usuarioLookupRepository.voluntarioVinculado(idVoluntario, request.getIdOrganizacion())) {
+        boolean vinculado = voluntario
+                ? usuarioLookupRepository.voluntarioVinculado(idUsuario, request.getIdOrganizacion())
+                : organizacionesAceptadasDe(idUsuario).contains(request.getIdOrganizacion());
+
+        if (!vinculado) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Solo puedes proponer actividades a organizaciones a las que estás vinculado");
         }
@@ -449,7 +458,11 @@ public class ActividadController {
 
         Actividad actividad = new Actividad();
         actividad.setIdOrganizacion(request.getIdOrganizacion());
-        actividad.setIdVoluntario(idVoluntario);
+        if (voluntario) {
+            actividad.setIdVoluntario(idUsuario);
+        } else {
+            actividad.setIdPersonaMayorProponente(idUsuario);
+        }
         actividad.setEstado(Actividad.PENDIENTE);
         aplicarDatos(actividad, request);
 
@@ -458,25 +471,30 @@ public class ActividadController {
         return ResponseEntity.status(HttpStatus.CREATED).body(aPropuesta(actividad));
     }
 
-    /** Propuestas del voluntario en todos sus estados, de la más nueva a la más vieja. */
+    /** Propuestas del voluntario o la persona mayor en todos sus estados, de la más nueva a la más vieja. */
     @GetMapping("/propuestas/mias")
-    public ResponseEntity<?> listarPropuestasMias(@RequestHeader("X-User-Id") Integer idVoluntario) {
+    public ResponseEntity<?> listarPropuestasMias(@RequestHeader("X-User-Id") Integer idUsuario) {
 
-        if (!esVoluntario(idVoluntario)) {
+        List<Actividad> propuestas;
+
+        if (esVoluntario(idUsuario)) {
+            propuestas = actividadRepository.findByIdVoluntario(idUsuario);
+        } else if (esPersonaMayor(idUsuario)) {
+            propuestas = actividadRepository.findByIdPersonaMayorProponente(idUsuario);
+        } else {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Solo un voluntario tiene propuestas de actividades");
+                    .body("Solo un voluntario o una persona mayor tiene propuestas de actividades");
         }
 
         return ResponseEntity.ok(
-                actividadRepository.findByIdVoluntario(idVoluntario)
-                        .stream()
+                propuestas.stream()
                         .sorted(Comparator.comparing(Actividad::getIdActividad).reversed())
                         .map(this::aPropuesta)
                         .toList()
         );
     }
 
-    /** Propuestas pendientes que los voluntarios le presentaron a la organización. */
+    /** Propuestas pendientes que los voluntarios y las personas mayores le presentaron a la organización. */
     @GetMapping("/propuestas")
     public ResponseEntity<?> listarPropuestasPendientes(@RequestHeader("X-User-Id") Integer idUsuario) {
 
@@ -525,7 +543,7 @@ public class ActividadController {
 
         Actividad actividad = actividadRepository.findById(id).orElse(null);
 
-        if (actividad == null || actividad.getIdVoluntario() == null) {
+        if (actividad == null || !actividad.esPropuesta()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("No se encontró la propuesta");
         }
@@ -634,7 +652,7 @@ public class ActividadController {
                 .orElse(null);
     }
 
-    /** Mismas reglas para la actividad de una organización y la propuesta de un voluntario. */
+    /** Mismas reglas para la actividad de una organización y una propuesta. */
     private String validarNueva(ActividadRequest request) {
         if (request.getNombre() == null || request.getNombre().isBlank()) {
             return "El nombre es obligatorio";
@@ -703,10 +721,8 @@ public class ActividadController {
                 .map(OrganizacionLookup::getNombre)
                 .orElse(null);
 
-        String nombreVoluntario = a.getIdVoluntario() == null ? null
-                : usuarioLookupRepository.findById(a.getIdVoluntario())
-                        .map(UsuarioLookup::getNombreUsuario)
-                        .orElse(null);
+        String nombreVoluntario = nombreDe(a.getIdVoluntario());
+        String nombrePersonaMayor = nombreDe(a.getIdPersonaMayorProponente());
 
         return new PropuestaActividadResponse(
                 a.getIdActividad(),
@@ -714,6 +730,8 @@ public class ActividadController {
                 nombreOrganizacion,
                 a.getIdVoluntario(),
                 nombreVoluntario,
+                a.getIdPersonaMayorProponente(),
+                nombrePersonaMayor,
                 a.getEstado(),
                 a.getNombre(),
                 a.getDescripcion(),
@@ -724,6 +742,14 @@ public class ActividadController {
                 a.getCupos(),
                 a.getResponsable()
         );
+    }
+
+    /** Nombre del usuario, o null si no hay id. */
+    private String nombreDe(Integer idUsuario) {
+        return idUsuario == null ? null
+                : usuarioLookupRepository.findById(idUsuario)
+                        .map(UsuarioLookup::getNombreUsuario)
+                        .orElse(null);
     }
 
     private ActividadResponse aResponse(Actividad a) {

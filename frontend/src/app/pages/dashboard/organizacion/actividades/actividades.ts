@@ -24,7 +24,8 @@ import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
  * Actividades de la organización: crear, editar y borrar (siempre con
  * confirmación), ver los inscritos y registrar su asistencia. Las
  * actividades que ya pasaron no se pueden editar. Arriba aparecen las
- * propuestas de voluntarios pendientes, para aceptarlas o rechazarlas.
+ * propuestas pendientes de voluntarios y personas mayores, para aceptarlas
+ * o rechazarlas.
  */
 @Component({
   selector: 'app-actividades',
@@ -48,7 +49,7 @@ export class Actividades implements OnInit {
 
   protected readonly nombreUsuario = signal('');
 
-  // Propuestas de voluntarios pendientes de respuesta
+  // Propuestas de voluntarios y personas mayores pendientes de respuesta
   protected readonly propuestas = signal<PropuestaActividad[]>([]);
   protected readonly propuestaProcesando = signal<number | null>(null);
   protected readonly mensajePropuesta = signal<string | null>(null);
@@ -165,7 +166,7 @@ ngOnInit(): void {
   private cargarPropuestas(): void {
     this.actividadService.listarPropuestasPendientes().subscribe({
       next: (propuestas) => this.propuestas.set(propuestas),
-      error: (error) => console.error('Error al cargar las propuestas de voluntarios:', error)
+      error: (error) => console.error('Error al cargar las propuestas de actividades:', error)
     });
   }
 

@@ -4,9 +4,39 @@
   <header class="page-header">
     <div>
       <h1>Actividades</h1>
-      <p>Explora las actividades disponibles y apúntate a las que te interesen.</p>
+      <p>
+        Explora las actividades disponibles y apúntate a las que te interesen.
+        También puedes proponerle una actividad a tus organizaciones.
+      </p>
     </div>
+
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="abrirFormulario()"
+      [disabled]="organizaciones().length === 0"
+    >
+      <app-icon name="plus" />
+      Proponer actividad
+    </button>
   </header>
+
+  @if (organizacionesCargadas() && organizaciones().length === 0) {
+    <div class="propuestas-aviso">
+      <app-icon name="info" />
+      <span>
+        Para proponer actividades primero debes estar asociado a una organización.
+        <a routerLink="/panel/persona-mayor/organizaciones">Ver organizaciones</a>
+      </span>
+    </div>
+  }
+
+  @if (mensaje()) {
+    <div class="propuestas-exito" role="status">
+      <app-icon name="check-circle" />
+      {{ mensaje() }}
+    </div>
+  }
 
   @if (error()) {
     <div class="error-message">
@@ -75,6 +105,43 @@
 
     </section>
 
+    <!-- Mis propuestas (solo si ha propuesto alguna) -->
+
+    @if (propuestas().length > 0) {
+      <section class="activities-section">
+
+        <div class="section-header">
+          <div>
+            <h2>Mis propuestas</h2>
+            <p>
+              Actividades que les propusiste a tus organizaciones y su estado.
+              @if (pendientes() > 0) {
+                {{ pendientes() }} {{ pendientes() === 1 ? 'está esperando' : 'están esperando' }} respuesta.
+              }
+            </p>
+          </div>
+        </div>
+
+        <div class="activities-list">
+          @for (propuesta of propuestas(); track propuesta.idActividad) {
+            <app-actividad-card [actividad]="propuesta">
+              <div class="propuesta-estado">
+                <span class="propuesta-organizacion">
+                  <app-icon name="building" />
+                  {{ propuesta.nombreOrganizacion ?? 'Organización' }}
+                </span>
+
+                <span [class]="'propuesta-badge propuesta-badge--' + propuesta.estado.toLowerCase()">
+                  {{ textoEstado[propuesta.estado] }}
+                </span>
+              </div>
+            </app-actividad-card>
+          }
+        </div>
+
+      </section>
+    }
+
     <!-- Historial (sin acciones: ya pasaron) -->
 
     <section class="activities-section history-section">
@@ -109,3 +176,17 @@
   }
 
 </div>
+
+@if (mostrarFormulario()) {
+  <app-actividad-formulario
+    titulo="Proponer actividad"
+    subtitulo="Elige la organización y describe la actividad. La organización decidirá si la publica."
+    textoEnviar="Enviar propuesta"
+    preguntaConfirmacion="¿Enviar esta propuesta?"
+    textoConfirmar="Confirmar y enviar"
+    [organizaciones]="organizaciones()"
+    [errorServidor]="errorFormulario()"
+    (guardar)="proponer($event)"
+    (cerrar)="mostrarFormulario.set(false)"
+  />
+}

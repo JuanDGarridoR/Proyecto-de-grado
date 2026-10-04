@@ -41,19 +41,23 @@ export interface ActividadRequest {
   responsable: string | null;
 }
 
-/** Estado de una actividad propuesta por un voluntario. */
+/** Estado de una actividad propuesta por un voluntario o una persona mayor. */
 export type EstadoPropuesta = 'PENDIENTE' | 'ACEPTADA' | 'RECHAZADA';
 
 /**
- * Actividad que un voluntario propuso a una organización. El voluntario ve
- * a qué organización la presentó y la organización ve quién la propuso.
+ * Actividad que un voluntario o una persona mayor propuso a una
+ * organización. Quien la propuso ve a qué organización la presentó y la
+ * organización ve quién la propuso (voluntario o persona mayor; el otro
+ * queda en null).
  */
 export interface PropuestaActividad {
   idActividad: number;
   idOrganizacion: number;
   nombreOrganizacion: string | null;
-  idVoluntario: number;
+  idVoluntario: number | null;
   nombreVoluntario: string | null;
+  idPersonaMayor: number | null;
+  nombrePersonaMayor: string | null;
   estado: EstadoPropuesta;
   nombre: string;
   descripcion: string | null;
@@ -183,15 +187,15 @@ export class ActividadService {
   }
 
   // =========================================================
-  // PROPUESTAS DE VOLUNTARIOS
+  // PROPUESTAS DE VOLUNTARIOS Y PERSONAS MAYORES
   // =========================================================
 
-  /** El voluntario presenta una actividad a una de sus organizaciones; queda PENDIENTE. */
+  /** El voluntario o la persona mayor presenta una actividad a una de sus organizaciones; queda PENDIENTE. */
   proponer(request: ActividadRequest & { idOrganizacion: number | null }): Observable<PropuestaActividad> {
     return this.http.post<PropuestaActividad>(`${this.apiUrl}/propuestas`, request);
   }
 
-  /** Propuestas del voluntario en todos sus estados. */
+  /** Propuestas del voluntario o la persona mayor en todos sus estados. */
   listarPropuestasMias(): Observable<PropuestaActividad[]> {
     return this.http.get<PropuestaActividad[]>(`${this.apiUrl}/propuestas/mias`);
   }

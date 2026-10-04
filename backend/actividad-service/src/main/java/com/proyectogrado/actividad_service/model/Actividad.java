@@ -8,10 +8,11 @@ import java.time.LocalDate;
  * actividad-service: aquí sí se crea, edita y borra, a diferencia de las
  * entidades Lookup de este servicio, que solo leen tablas de otros servicios.
  *
- * Un voluntario también puede proponer una actividad a una de sus
- * organizaciones: queda con idVoluntario y estado PENDIENTE, y solo la ven
- * las personas mayores cuando la organización la acepta. Las que crea la
- * organización tienen estado null.
+ * Un voluntario o una persona mayor también pueden proponer una actividad
+ * a una de sus organizaciones: queda con idVoluntario o
+ * idPersonaMayorProponente y estado PENDIENTE, y solo la ven las personas
+ * mayores cuando la organización la acepta. Las que crea la organización
+ * tienen estado null.
  */
 @Entity
 @Table(name = "actividad")
@@ -60,7 +61,11 @@ public class Actividad {
     @Column(name = "id_voluntario")
     private Integer idVoluntario;
 
-    /** Estado de la propuesta del voluntario; null si la creó la organización. */
+    /** Persona mayor que propuso la actividad; null si no la propuso una persona mayor. */
+    @Column(name = "id_persona_mayor_proponente")
+    private Integer idPersonaMayorProponente;
+
+    /** Estado de la propuesta; null si la creó la organización. */
     @Column(name = "estado")
     private String estado;
 
@@ -153,6 +158,19 @@ public class Actividad {
 
     public void setIdVoluntario(Integer idVoluntario) {
         this.idVoluntario = idVoluntario;
+    }
+
+    public Integer getIdPersonaMayorProponente() {
+        return idPersonaMayorProponente;
+    }
+
+    public void setIdPersonaMayorProponente(Integer idPersonaMayorProponente) {
+        this.idPersonaMayorProponente = idPersonaMayorProponente;
+    }
+
+    /** true si la propuso un voluntario o una persona mayor (no la organización). */
+    public boolean esPropuesta() {
+        return idVoluntario != null || idPersonaMayorProponente != null;
     }
 
     public String getEstado() {

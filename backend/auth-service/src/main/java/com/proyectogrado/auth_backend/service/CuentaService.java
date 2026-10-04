@@ -41,6 +41,14 @@ public class CuentaService {
 
         // Datos como persona mayor
         ejecutar("DELETE FROM participacion WHERE id_persona_mayor = :id", idUsuario);
+
+        // Propuestas de actividades de la persona mayor que nadie ve
+        // (pendientes o rechazadas). Las aceptadas son actividades de la
+        // organización y se quedan.
+        if (existeColumna("actividad", "id_persona_mayor_proponente")) {
+            ejecutar("DELETE FROM actividad WHERE id_persona_mayor_proponente = :id"
+                    + " AND estado IN ('PENDIENTE', 'RECHAZADA')", idUsuario);
+        }
         ejecutar("DELETE FROM medicamento WHERE id_persona_mayor = :id", idUsuario);
         ejecutar("DELETE FROM persona_mayor_gusto WHERE id_persona_mayor = :id", idUsuario);
         ejecutar("DELETE FROM persona_mayor_organizacion WHERE id_persona_mayor = :id", idUsuario);
@@ -117,7 +125,7 @@ public class CuentaService {
         }
     }
 
-    // id_voluntario y estado los agrega actividad-service al arrancar.
+    // id_voluntario, id_persona_mayor_proponente y estado los agrega actividad-service al arrancar.
     private boolean existeColumna(String tabla, String columna) {
         Object existe = entityManager
                 .createNativeQuery("SELECT EXISTS (SELECT 1 FROM information_schema.columns"

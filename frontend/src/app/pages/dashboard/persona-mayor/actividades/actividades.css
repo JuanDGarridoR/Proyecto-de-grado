@@ -12,3 +12,17 @@
   font-weight: 700;
   white-space: nowrap;
 }
+
+/* Botón "Proponer actividad" del encabezado */
+
+.page-header .btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-header .btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

@@ -29,6 +29,7 @@ import {
   styleUrls: [
     '../../../../shared/actividad-card/actividades-pagina.css',
     '../../../../shared/actividad-card/actividades-modales.css',
+    '../../../../shared/actividad-card/actividades-propuestas.css',
     './actividades.css'
   ]
 })

@@ -27,7 +27,7 @@
 
   @if (!cargando()) {
 
-    <!-- Propuestas de voluntarios pendientes -->
+    <!-- Propuestas pendientes de voluntarios y personas mayores -->
 
     @if (mensajePropuesta()) {
       <div class="propuesta-mensaje" role="status">
@@ -42,8 +42,8 @@
 
         <div class="section-header">
           <div>
-            <h2>Propuestas de voluntarios</h2>
-            <p>Actividades que te propusieron tus voluntarios. Si las aceptas, tus personas mayores podrán inscribirse.</p>
+            <h2>Propuestas de actividades</h2>
+            <p>Actividades que te propusieron tus voluntarios y tus personas mayores. Si las aceptas, tus personas mayores podrán inscribirse.</p>
           </div>
         </div>
 
@@ -54,7 +54,11 @@
             <app-actividad-card [actividad]="propuesta">
               <span class="propuesta-autor">
                 <app-icon name="star" />
-                Propuesta por {{ propuesta.nombreVoluntario ?? 'un voluntario' }}
+                @if (propuesta.idPersonaMayor !== null) {
+                  Propuesta por {{ propuesta.nombrePersonaMayor ?? 'una persona mayor' }} (persona mayor)
+                } @else {
+                  Propuesta por {{ propuesta.nombreVoluntario ?? 'un voluntario' }} (voluntario)
+                }
               </span>
 
               <button
@@ -217,7 +221,7 @@
 
 
 
-<!-- Modal para crear una actividad (formulario compartido con las propuestas de voluntarios) -->
+<!-- Modal para crear una actividad (formulario compartido con las propuestas) -->
 
 @if (mostrarFormulario()) {
   <app-actividad-formulario

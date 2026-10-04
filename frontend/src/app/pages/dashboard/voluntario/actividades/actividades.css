@@ -1,80 +1,9 @@
-/* Lo propio de la página del voluntario; el resto viene de actividades-pagina.css y actividades-modales.css */
+/*
+ * Lo propio de la página del voluntario; el resto viene de
+ * actividades-pagina.css, actividades-modales.css y actividades-propuestas.css
+ */
 
 .btn-primary:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-}
-
-.propuestas-aviso,
-.propuestas-exito {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 1.25rem;
-  padding: 0.85rem 1rem;
-  border-radius: 10px;
-  font-size: 0.95rem;
-}
-
-.propuestas-aviso {
-  background: #eef6fb;
-  color: var(--vita-navy);
-}
-
-.propuestas-aviso a {
-  margin-left: 4px;
-  color: var(--vita-navy);
-  font-weight: 700;
-}
-
-.propuestas-exito {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-/* Estado de cada propuesta, en el espacio de acciones de la tarjeta */
-
-.propuesta-estado {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.propuesta-organizacion {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--vita-navy);
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-
-.propuesta-badge {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.propuesta-badge--pendiente {
-  background: rgba(178, 106, 0, 0.10);
-  color: #b26a00;
-}
-
-.propuesta-badge--aceptada {
-  background: rgba(45, 197, 191, 0.12);
-  color: var(--vita-green);
-}
-
-.propuesta-badge--rechazada {
-  background: rgba(180, 35, 24, 0.08);
-  color: #b42318;
-}
-
-@media (max-width: 600px) {
-  .propuesta-estado {
-    align-items: flex-start;
-  }
 }
