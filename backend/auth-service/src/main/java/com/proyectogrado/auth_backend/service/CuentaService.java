@@ -60,6 +60,10 @@ public class CuentaService {
                     + " AND estado IN ('PENDIENTE', 'RECHAZADA')", idUsuario);
         }
 
+        // Preferencias de notificación (tabla de messaging-service)
+        ejecutarSiExisteTabla("preferencia_notificacion",
+                "DELETE FROM preferencia_notificacion WHERE id_usuario = :id", idUsuario);
+
         // Perfiles de rol
         ejecutar("DELETE FROM persona_mayor WHERE id_usuario = :id", idUsuario);
         ejecutar("DELETE FROM acompanante WHERE id_usuario = :id", idUsuario);
@@ -97,8 +101,9 @@ public class CuentaService {
     }
 
     /**
-     * Ejecuta el DELETE solo si la tabla existe. voluntario_organizacion la
-     * crea voluntario-service al arrancar; si nunca ha arrancado, la tabla no
+     * Ejecuta el DELETE solo si la tabla existe. voluntario_organizacion y
+     * preferencia_notificacion las crean voluntario-service y
+     * messaging-service al arrancar; si nunca han arrancado, la tabla no
      * existe y el DELETE abortaría todo.
      */
     private void ejecutarSiExisteTabla(String tabla, String sql, Integer id) {

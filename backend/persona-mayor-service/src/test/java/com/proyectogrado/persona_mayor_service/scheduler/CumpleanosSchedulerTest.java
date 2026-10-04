@@ -101,7 +101,7 @@ class CumpleanosSchedulerTest {
         });
 
         MessagingClient messagingClient = mock(MessagingClient.class);
-        when(messagingClient.enviarMensaje(anyString(), anyString())).thenAnswer(inv -> {
+        when(messagingClient.enviarMensaje(anyString(), anyString(), anyString())).thenAnswer(inv -> {
             envios.add(new Envio(inv.getArgument(0), inv.getArgument(1)));
             return true;
         });

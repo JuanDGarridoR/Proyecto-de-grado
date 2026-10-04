@@ -1,0 +1,52 @@
+<section class="gestor" aria-labelledby="gestorNotificacionesTitle">
+  <div class="gestor__encabezado">
+    <h2 id="gestorNotificacionesTitle">Gestor de notificaciones</h2>
+    <p>
+      Elige qué notificaciones quieres recibir por mensaje de texto. Las que
+      desactives dejarán de llegarte.
+    </p>
+  </div>
+
+  @if (cargando()) {
+    <p class="gestor__estado">Cargando tus preferencias...</p>
+  } @else if (errorCarga()) {
+    <div class="gestor__estado gestor__estado--error">
+      No se pudieron cargar tus preferencias de notificación.
+      <button type="button" class="gestor__reintentar" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else {
+    <ul class="gestor__lista">
+      @for (opcion of opciones(); track opcion.tipo) {
+        @let encendida = activa(opcion.tipo);
+
+        <li class="gestor__item">
+          <div class="gestor__texto">
+            <span class="gestor__titulo" [id]="'notif-' + opcion.tipo">{{ opcion.titulo }}</span>
+            <span class="gestor__descripcion">{{ opcion.descripcion }}</span>
+
+            @if (!encendida && opcion.advertencia) {
+              <span class="gestor__advertencia">{{ opcion.advertencia }}</span>
+            }
+          </div>
+
+          <button
+            type="button"
+            role="switch"
+            class="gestor__switch"
+            [class.gestor__switch--on]="encendida"
+            [attr.aria-checked]="encendida"
+            [attr.aria-labelledby]="'notif-' + opcion.tipo"
+            [disabled]="guardando() === opcion.tipo"
+            (click)="cambiar(opcion.tipo)"
+          >
+            <span class="gestor__switch-perilla"></span>
+          </button>
+        </li>
+      }
+    </ul>
+
+    @if (errorGuardado()) {
+      <p class="gestor__estado gestor__estado--error" role="alert">{{ errorGuardado() }}</p>
+    }
+  }
+</section>

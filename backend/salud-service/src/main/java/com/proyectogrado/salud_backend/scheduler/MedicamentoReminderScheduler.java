@@ -219,7 +219,7 @@ public class MedicamentoReminderScheduler {
     }
 
     private void intentarEnviar(String celular, String mensaje) {
-        boolean enviado = messagingClient.enviarMensaje(celular, mensaje);
+        boolean enviado = messagingClient.enviarMensaje(celular, mensaje, "MEDICAMENTO");
         log("  Envio a " + celular + ": " + (enviado ? "OK" : "FALLO") + " -> \"" + mensaje + "\"");
     }
 

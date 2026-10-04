@@ -135,7 +135,7 @@ public class ActividadReminderScheduler {
                         : "")
                 + ".";
 
-        boolean enviado = messagingClient.enviarMensaje(celular, mensaje);
+        boolean enviado = messagingClient.enviarMensaje(celular, mensaje, "ACTIVIDAD");
         System.out.println("[RECORDATORIO ACTIVIDAD] Actividad " + actividad.getIdActividad()
                 + " -> persona mayor " + idPersonaMayor + ": " + (enviado ? "OK" : "FALLO")
                 + " -> \"" + mensaje + "\"");

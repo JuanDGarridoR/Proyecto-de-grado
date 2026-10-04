@@ -73,7 +73,7 @@ public class EmergenciaController {
                 continue;
             }
 
-            if (messagingClient.enviarMensaje(celular, mensaje)) {
+            if (messagingClient.enviarMensaje(celular, mensaje, "EMERGENCIA")) {
                 enviadosAcompanantes++;
             }
         }
@@ -97,7 +97,7 @@ public class EmergenciaController {
                 continue;
             }
 
-            if (messagingClient.enviarMensaje(celular, mensaje)) {
+            if (messagingClient.enviarMensaje(celular, mensaje, "EMERGENCIA")) {
                 enviadosOrganizaciones++;
             }
         }

@@ -125,7 +125,7 @@ public class CumpleanosScheduler {
         }
 
         for (String celular : celulares) {
-            enviar(idPersonaMayor, celular, recordatorio);
+            enviar(idPersonaMayor, celular, recordatorio, "CUMPLEANOS_PERSONA_MAYOR");
         }
     }
 
@@ -140,11 +140,12 @@ public class CumpleanosScheduler {
         }
         enviar(usuario.getIdUsuario(), celular,
                 "¡Feliz cumpleaños, " + usuario.getNombreUsuario()
-                        + "! Todo el equipo de VITA+ te desea un día lleno de alegría y salud.");
+                        + "! Todo el equipo de VITA+ te desea un día lleno de alegría y salud.",
+                "CUMPLEANOS");
     }
 
-    private void enviar(Integer idUsuario, String celular, String mensaje) {
-        boolean enviado = messagingClient.enviarMensaje(celular, mensaje);
+    private void enviar(Integer idUsuario, String celular, String mensaje, String tipo) {
+        boolean enviado = messagingClient.enviarMensaje(celular, mensaje, tipo);
         System.out.println("[CUMPLEAÑOS] Usuario " + idUsuario + " -> " + celular
                 + ": " + (enviado ? "OK" : "FALLO"));
     }

@@ -180,7 +180,7 @@ public class CitaMedicaReminderScheduler {
     }
 
     private void intentarEnviar(CitaMedica cita, String celular, String mensaje) {
-        boolean enviado = messagingClient.enviarMensaje(celular, mensaje);
+        boolean enviado = messagingClient.enviarMensaje(celular, mensaje, "CITA_MEDICA");
         log("Cita " + cita.getIdCita() + " -> " + celular + ": " + (enviado ? "OK" : "FALLO")
                 + " -> \"" + mensaje + "\"");
     }

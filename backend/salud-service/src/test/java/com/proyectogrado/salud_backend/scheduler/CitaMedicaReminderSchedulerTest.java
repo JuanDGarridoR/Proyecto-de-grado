@@ -104,7 +104,7 @@ class CitaMedicaReminderSchedulerTest {
                 .thenReturn(List.of(relacion));
 
         MessagingClient messagingClient = mock(MessagingClient.class);
-        when(messagingClient.enviarMensaje(anyString(), anyString()))
+        when(messagingClient.enviarMensaje(anyString(), anyString(), anyString()))
                 .thenAnswer(inv -> {
                     envios.add(new Envio(reloj, inv.getArgument(0), inv.getArgument(1)));
                     return true;
