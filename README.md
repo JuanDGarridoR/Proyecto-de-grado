@@ -230,6 +230,30 @@ La aplicación queda disponible en [http://localhost:4200](http://localhost:4200
 
 ---
 
+# Pruebas
+
+Cada servicio del backend tiene sus pruebas en `src/test/java` (JUnit, Mockito y MockMvc). Las que necesitan base de datos usan **H2 en memoria**: ninguna prueba se conecta a Supabase ni envía SMS por TextBee.
+
+Desde la carpeta de un servicio, por ejemplo `backend/salud-service`:
+
+```bash
+.\mvnw.cmd test
+```
+
+Las pruebas del frontend (Vitest) se corren desde la carpeta `frontend`:
+
+```bash
+npm test -- --watch=false
+```
+
+Los hallazgos del control de calidad (QC) que aún no se corrigen están escritos como pruebas deshabilitadas con `@Disabled("Hallazgo CP-...")`, que describen el comportamiento esperado. Al corregir el código se quita el `@Disabled` y la prueba debe pasar. Para ver cómo fallan hoy:
+
+```bash
+.\mvnw.cmd test "-Djunit.jupiter.conditions.deactivate=org.junit.*DisabledCondition"
+```
+
+---
+
 # Configuración
 
 La conexión a la base de datos y las demás credenciales de cada servicio se configuran en su archivo:
