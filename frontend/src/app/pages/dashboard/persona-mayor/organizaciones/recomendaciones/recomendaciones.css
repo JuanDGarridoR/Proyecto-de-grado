@@ -1,0 +1,199 @@
+:host {
+  display: block;
+  margin-top: 36px;
+}
+
+/* Encabezado de la sección */
+
+.recomendaciones__header {
+  margin-bottom: 18px;
+}
+
+.recomendaciones__header h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--vita-navy);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.recomendaciones__header p {
+  margin: 6px 0 0;
+  color: var(--vita-text-gray);
+  font-size: 1.05rem;
+}
+
+.recomendaciones__estado {
+  margin: 0;
+  color: var(--vita-text-gray);
+  font-size: 1.05rem;
+}
+
+/* Avisos (sin intereses / barrio no reconocido) */
+
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-sm);
+  background: #edf5fc;
+  color: var(--vita-navy);
+  font-size: 1rem;
+}
+
+.aviso p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.aviso a {
+  margin-left: 4px;
+  font-weight: 700;
+  color: var(--vita-navy);
+  text-decoration: underline;
+}
+
+/* Tarjetas */
+
+.recomendaciones__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.tarjeta__encabezado {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.tarjeta__encabezado h3 {
+  margin: 0;
+  color: var(--vita-navy);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.tarjeta__direccion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  color: var(--vita-text-gray);
+  font-size: 1rem;
+}
+
+/* Coincidencia */
+
+.coincidencia {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 170px;
+}
+
+.coincidencia strong {
+  color: var(--vita-navy);
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.coincidencia__barra {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: #cde2fb;
+}
+
+.coincidencia__barra span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: #2a78d6;
+}
+
+.coincidencia__texto {
+  color: var(--vita-text-gray);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Razones */
+
+.tarjeta__razones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tarjeta__razones li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--vita-navy);
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+.tarjeta__razones app-icon {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: #2a78d6;
+}
+
+/* Acciones */
+
+.tarjeta__acciones {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.tarjeta__acciones .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 22px;
+  font-size: 1rem;
+}
+
+.tarjeta__ayuda {
+  color: var(--vita-text-gray);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+  .tarjeta__encabezado {
+    flex-direction: column;
+  }
+
+  .coincidencia {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .tarjeta__acciones .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -8,6 +8,7 @@ import {
 
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { Icon } from '../../../../shared/icon/icon';
+import { RecomendacionesOrganizacionesComponent } from './recomendaciones/recomendaciones';
 
 /**
  * Organizaciones de la persona mayor: solicitudes pendientes para aceptar o
@@ -17,7 +18,7 @@ import { Icon } from '../../../../shared/icon/icon';
 @Component({
   selector: 'app-organizaciones',
   standalone: true,
-  imports: [Icon, CommonModule],
+  imports: [Icon, CommonModule, RecomendacionesOrganizacionesComponent],
   templateUrl: './organizaciones.html',
   styleUrl: './organizaciones.css'
 })

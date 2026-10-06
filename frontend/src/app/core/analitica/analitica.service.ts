@@ -62,6 +62,29 @@ export interface PoblacionAnalitica {
   personasConIntereses: number;
 }
 
+/** Organización recomendada a la persona mayor (puntaje de 0 a 100). */
+export interface OrganizacionRecomendada {
+  idOrganizacion: number;
+  nombre: string;
+  direccion: string | null;
+  barrio: string | null;
+  distanciaKm: number | null;
+  celular: string | null;
+  correo: string | null;
+  puntaje: number;
+  razones: string[];
+  gustosCoincidentes: string[];
+  actividadesCoincidentes: string[];
+  personasAfines: number;
+}
+
+/** Respuesta de /recomendaciones/organizaciones. */
+export interface RecomendacionesOrganizaciones {
+  conGustos: boolean;            // si la persona registró intereses
+  direccionReconocida: boolean;  // si se pudo ubicar su dirección (para la cercanía)
+  recomendaciones: OrganizacionRecomendada[];
+}
+
 /** Contenido de un reporte para el PDF (ver ReportePdfRequest en el backend). */
 export interface ReportePdf {
   titulo: string;
@@ -104,6 +127,11 @@ export class AnaliticaService {
   /** Edad, género, EPS e intereses de las personas vinculadas. */
   poblacion(): Observable<PoblacionAnalitica> {
     return this.http.get<PoblacionAnalitica>(`${this.apiUrl}/poblacion`);
+  }
+
+  /** Persona mayor: organizaciones recomendadas según sus gustos y la cercanía. */
+  recomendacionesOrganizaciones(): Observable<RecomendacionesOrganizaciones> {
+    return this.http.get<RecomendacionesOrganizaciones>(`${this.apiUrl}/recomendaciones/organizaciones`);
   }
 
   /** Arma el PDF de un reporte en analitica-service y lo devuelve como archivo. */

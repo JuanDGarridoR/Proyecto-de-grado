@@ -1,0 +1,92 @@
+<section class="recomendaciones" aria-labelledby="recomendacionesTitulo">
+  <header class="recomendaciones__header">
+    <h2 id="recomendacionesTitulo">
+      <app-icon name="sparkles" /> Organizaciones que te pueden interesar
+    </h2>
+    <p>Te las recomendamos según tus gustos, las actividades que ofrecen y qué tan cerca te quedan.</p>
+  </header>
+
+  @if (cargando()) {
+    <p class="recomendaciones__estado">Buscando organizaciones para ti...</p>
+  } @else if (error()) {
+    <p class="recomendaciones__estado">No pudimos cargar las recomendaciones en este momento.</p>
+  } @else if (datos(); as d) {
+
+    <!-- Avisos para mejorar las recomendaciones -->
+    @if (!d.conGustos) {
+      <div class="aviso">
+        <app-icon name="info" />
+        <p>
+          Registra tus intereses para recibir mejores recomendaciones.
+          <a routerLink="/panel/persona-mayor/intereses">Ir a mis intereses</a>
+        </p>
+      </div>
+    }
+    @if (!d.direccionReconocida) {
+      <div class="aviso">
+        <app-icon name="map" />
+        <p>
+          No pudimos ubicar tu dirección, así que no sabemos qué tan cerca te quedan las organizaciones.
+          Revisa que esté escrita como en un recibo, por ejemplo "Calle 76 Sur # 4-20".
+          <a routerLink="/panel/persona-mayor/perfil">Ir a mi perfil</a>
+        </p>
+      </div>
+    }
+
+    @let lista = conRazones(d.recomendaciones);
+
+    @if (lista.length === 0) {
+      <p class="recomendaciones__estado">
+        Por ahora no tenemos organizaciones para recomendarte.
+      </p>
+    } @else {
+      <div class="recomendaciones__lista">
+        @for (org of lista; track org.idOrganizacion) {
+          <article class="tarjeta card">
+            <div class="tarjeta__encabezado">
+              <div>
+                <h3>{{ org.nombre }}</h3>
+                @if (org.direccion) {
+                  <p class="tarjeta__direccion"><app-icon name="map" /> {{ org.direccion }}</p>
+                }
+              </div>
+
+              <!-- Coincidencia: número + barra + texto (no solo color) -->
+              <div class="coincidencia" [attr.aria-label]="'Coincidencia ' + org.puntaje + ' por ciento'">
+                <strong>{{ org.puntaje }}%</strong>
+                <span class="coincidencia__barra"><span [style.width.%]="org.puntaje"></span></span>
+                <span class="coincidencia__texto">{{ nivel(org.puntaje) }}</span>
+              </div>
+            </div>
+
+            <ul class="tarjeta__razones">
+              @for (razon of org.razones; track razon) {
+                <li>
+                  <app-icon
+                    [name]="razon.startsWith('Queda') ? 'map' : razon.startsWith('Tiene') ? 'activity' : 'users'"
+                  />
+                  {{ razon }}
+                </li>
+              }
+            </ul>
+
+            <div class="tarjeta__acciones">
+              @if (org.celular) {
+                <a class="btn btn-gold" [href]="'tel:' + org.celular">
+                  <app-icon name="phone" /> Llamar a la organización
+                </a>
+              } @else if (org.correo) {
+                <a class="btn btn-secondary" [href]="'mailto:' + org.correo">
+                  <app-icon name="mail" /> Escribir un correo
+                </a>
+              }
+              <span class="tarjeta__ayuda">
+                Si te interesa, comunícate con ellos para que te inviten a unirte.
+              </span>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  }
+</section>
