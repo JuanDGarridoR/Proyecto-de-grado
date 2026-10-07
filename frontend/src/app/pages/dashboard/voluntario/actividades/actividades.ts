@@ -16,6 +16,7 @@ import {
   OpcionOrganizacion
 } from '../../../../shared/actividad-formulario/actividad-formulario';
 import { mensajeDeError } from '../../../../core/formato/formato';
+import { Cargando } from '../../../../shared/cargando/cargando';
 
 /**
  * Actividades del voluntario: propone actividades a las organizaciones en
@@ -25,7 +26,7 @@ import { mensajeDeError } from '../../../../core/formato/formato';
 @Component({
   selector: 'app-voluntario-actividades',
   standalone: true,
-  imports: [RouterLink, Icon, ActividadCard, ActividadFormulario],
+  imports: [RouterLink, Icon, ActividadCard, ActividadFormulario, Cargando],
   templateUrl: './actividades.html',
   styleUrls: [
     '../../../../shared/actividad-card/actividades-pagina.css',

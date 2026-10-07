@@ -39,6 +39,12 @@ export class PersonasMayores implements OnInit {
   protected readonly personasMayores =
     signal<PersonaMayorOrganizacion[]>([]);
 
+  /** true hasta que llega la primera respuesta (así no se muestra "No tienes personas" mientras carga). */
+  protected readonly cargandoPersonas = signal(true);
+
+  /** true si no se pudo cargar la lista. */
+  protected readonly errorPersonas = signal(false);
+
   /** Búsqueda rápida en la lista de personas mayores vinculadas. */
   protected readonly busqueda = signal('');
 
@@ -177,6 +183,8 @@ ngOnInit(): void {
     this.organizacionService.obtenerPersonasMayores().subscribe({
       next: (personas) => {
         this.personasMayores.set(personas);
+        this.errorPersonas.set(false);
+        this.cargandoPersonas.set(false);
       },
 
       error: (error) => {
@@ -186,6 +194,8 @@ ngOnInit(): void {
         );
 
         this.personasMayores.set([]);
+        this.errorPersonas.set(true);
+        this.cargandoPersonas.set(false);
       }
     });
   }

@@ -13,6 +13,7 @@ import { CancelarAsociacion } from '../../../../shared/cancelar-asociacion/cance
 import { BuscadorNombre, filtrarPorNombre } from '../../../../shared/buscador-nombre/buscador-nombre';
 import { RecomendacionesOrganizacionesComponent } from '../../../../shared/recomendaciones-organizaciones/recomendaciones-organizaciones';
 import { mensajeDeError } from '../../../../core/formato/formato';
+import { Cargando } from '../../../../shared/cargando/cargando';
 
 /**
  * Organizaciones del voluntario: a cuáles está vinculado, sus solicitudes
@@ -24,7 +25,7 @@ import { mensajeDeError } from '../../../../core/formato/formato';
 @Component({
   selector: 'app-voluntario-organizaciones',
   standalone: true,
-  imports: [FormsModule, Icon, PersonCard, CancelarAsociacion, RecomendacionesOrganizacionesComponent, BuscadorNombre],
+  imports: [FormsModule, Icon, PersonCard, CancelarAsociacion, RecomendacionesOrganizacionesComponent, BuscadorNombre, Cargando],
   templateUrl: './organizaciones.html',
   styleUrls: ['../../../../shared/person-card/vinculos-pagina.css', './organizaciones.css']
 })

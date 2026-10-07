@@ -292,3 +292,23 @@ button {
 .person-card-remove:active {
   transform: translateY(0);
 }
+
+/* Reloj de arena que gira mientras algo carga (ver shared/cargando). Va
+   aquí para poder usarlo también en íconos que ya están en una tarjeta. */
+
+.icono-cargando {
+  display: inline-flex;
+  animation: girar-reloj 1.6s ease-in-out infinite;
+}
+
+@keyframes girar-reloj {
+  0%, 20% { transform: rotate(0deg); }
+  50%, 70% { transform: rotate(180deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icono-cargando {
+    animation: none;
+  }
+}

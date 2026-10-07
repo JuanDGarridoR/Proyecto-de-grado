@@ -4,6 +4,7 @@ import { DatePipe } from '@angular/common';
 import { SignoVitalResponse } from '../../core/signos-vitales/signos-vitales.services';
 import { imcPorRegistro } from '../../core/signos-vitales/imc';
 import { Icon } from '../icon/icon';
+import { Cargando } from '../cargando/cargando';
 
 /**
  * Lista de registros de signos vitales, con sus estados de cargando, error y
@@ -13,7 +14,7 @@ import { Icon } from '../icon/icon';
  */
 @Component({
   selector: 'app-signos-vitales-lista',
-  imports: [Icon, DatePipe],
+  imports: [Icon, DatePipe, Cargando],
   templateUrl: './signos-vitales-lista.html',
   styleUrl: './signos-vitales-lista.css'
 })

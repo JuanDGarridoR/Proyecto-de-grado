@@ -18,7 +18,7 @@
   <!-- Cargando -->
   @if (cargando) {
     <div class="informacion__loading">
-      <p>{{ textoCarga }}</p>
+      <app-cargando [texto]="textoCarga" />
     </div>
   } @else {
     <!-- Información -->

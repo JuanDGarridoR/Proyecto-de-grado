@@ -9,7 +9,7 @@
 <!-- Cargando y error -->
 @if (cargando()) {
   <div class="estado-card">
-    <span class="estado-card__icon"><app-icon name="hourglass" /></span>
+    <span class="estado-card__icon"><app-icon name="hourglass" class="icono-cargando" /></span>
     <div>
       <h2>{{ paraAcompanante() ? 'Cargando los medicamentos...' : 'Cargando tus medicamentos...' }}</h2>
     </div>

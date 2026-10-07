@@ -20,6 +20,7 @@ import { ActividadCard } from '../../../../shared/actividad-card/actividad-card'
 import { ActividadFormulario } from '../../../../shared/actividad-formulario/actividad-formulario';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { mensajeDeError } from '../../../../core/formato/formato';
+import { Cargando } from '../../../../shared/cargando/cargando';
 
 /**
  * Actividades de la organización: crear, editar y borrar (siempre con
@@ -37,7 +38,8 @@ import { mensajeDeError } from '../../../../core/formato/formato';
     DatePipe,
     Icon,
     ActividadCard,
-    ActividadFormulario
+    ActividadFormulario,
+    Cargando
   ],
   templateUrl: './actividades.html',
   styleUrls: ['../../../../shared/actividad-card/actividades-pagina.css', '../../../../shared/actividad-card/actividades-modales.css']

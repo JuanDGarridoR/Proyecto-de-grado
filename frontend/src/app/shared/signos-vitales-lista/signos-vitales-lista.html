@@ -1,6 +1,6 @@
 <!-- Estados: cargando, error o sin registros -->
 @if (cargando()) {
-  <div class="signos-loading">Cargando signos vitales...</div>
+  <div class="signos-loading"><app-cargando texto="Cargando signos vitales..." /></div>
 } @else if (error(); as errorActual) {
   <div class="signos-error">
     <app-icon name="alert-circle" />

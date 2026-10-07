@@ -11,7 +11,7 @@
 
   <!-- Cargando, error o sin personas -->
   @if (cargando()) {
-    <div class="gestion__mensaje">Cargando personas mayores...</div>
+    <div class="gestion__mensaje"><app-cargando texto="Cargando personas mayores..." /></div>
   } @else if (error()) {
     <div class="gestion__error" role="alert">
       <app-icon name="alert-circle" />

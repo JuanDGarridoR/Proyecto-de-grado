@@ -48,7 +48,7 @@
   <!-- Cargando -->
   @if (cargando()) {
     <div class="empty-state">
-      <p>Cargando propuestas...</p>
+      <app-cargando texto="Cargando propuestas..." />
     </div>
   } @else if (!error()) {
 

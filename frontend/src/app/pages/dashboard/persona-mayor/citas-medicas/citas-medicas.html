@@ -19,7 +19,7 @@
 <!-- Cargando y error -->
 @if (cargando()) {
   <div class="estado-card">
-    <span class="estado-card__icon"><app-icon name="hourglass" /></span>
+    <span class="estado-card__icon"><app-icon name="hourglass" class="icono-cargando" /></span>
     <h2>{{ paraAcompanante() ? 'Cargando las citas médicas...' : 'Cargando tus citas médicas...' }}</h2>
   </div>
 }

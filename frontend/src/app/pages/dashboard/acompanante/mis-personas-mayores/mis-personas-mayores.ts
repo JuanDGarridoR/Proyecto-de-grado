@@ -17,6 +17,7 @@ import {
   SolicitudAcompanamientoModal,
   DatosSolicitudAcompanamiento
 } from '../../../../shared/solicitud-acompanamiento/solicitud-acompanamiento';
+import { Cargando } from '../../../../shared/cargando/cargando';
 
 /**
  * Personas mayores del acompañante: solicitudes pendientes para aceptar o
@@ -25,7 +26,7 @@ import {
  */
 @Component({
   selector: 'app-mis-personas-mayores',
-  imports: [RouterLink, Icon, PersonCard, CancelarAsociacion, SignosVitalesModal, AcompanantesModal, SolicitudAcompanamientoModal, BuscadorNombre],
+  imports: [RouterLink, Icon, PersonCard, CancelarAsociacion, SignosVitalesModal, AcompanantesModal, SolicitudAcompanamientoModal, BuscadorNombre, Cargando],
   templateUrl: './mis-personas-mayores.html',
   styleUrl: './mis-personas-mayores.css'
 })

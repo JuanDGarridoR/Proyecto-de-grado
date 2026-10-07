@@ -12,6 +12,7 @@ import { Recordatorios } from '../../persona-mayor/recordatorios/recordatorios';
 import { CitasMedicas } from '../../persona-mayor/citas-medicas/citas-medicas';
 import { PerfilPersona } from './perfil-persona/perfil-persona';
 import { iniciales } from '../../../../core/formato/formato';
+import { Cargando } from '../../../../shared/cargando/cargando';
 
 /** Pestañas de la persona seleccionada. */
 type Pestana = 'perfil' | 'salud' | 'medicamentos' | 'citas';
@@ -37,7 +38,7 @@ const COLORES_AVATAR = ['#12355b', '#2ec4b6', '#8e7cc3', '#e0a526', '#d1665a', '
  */
 @Component({
   selector: 'app-gestion-cuidado',
-  imports: [Icon, PerfilPersona, DatosSalud, Recordatorios, CitasMedicas],
+  imports: [Icon, PerfilPersona, DatosSalud, Recordatorios, CitasMedicas, Cargando],
   templateUrl: './gestion.html',
   styleUrl: './gestion.css'
 })

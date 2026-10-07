@@ -77,11 +77,12 @@
     </div>
 
     <div class="people-section__actions">
-      <div class="people-count">
-        {{ personasMayores().length }}
-
-        {{ personasMayores().length === 1 ? 'persona asociada' : 'personas asociadas' }}
-      </div>
+      @if (!cargandoPersonas()) {
+        <div class="people-count">
+          {{ personasMayores().length }}
+          {{ personasMayores().length === 1 ? 'persona asociada' : 'personas asociadas' }}
+        </div>
+      }
 
       <button type="button" class="add-button" (click)="mostrarFormulario()">
         <app-icon name="users" />
@@ -91,9 +92,29 @@
     </div>
   </div>
 
-  <!-- Estado vacío -->
+  <!-- Cargando, error o estado vacío -->
 
-  @if (personasMayores().length === 0) {
+  @if (cargandoPersonas()) {
+    <div class="empty-state" role="status" aria-live="polite">
+      <div class="empty-state__icon">
+        <app-icon name="hourglass" class="icono-cargando" />
+      </div>
+
+      <h3>Cargando personas mayores...</h3>
+
+      <p>Estamos trayendo las personas mayores de tu organización.</p>
+    </div>
+  } @else if (errorPersonas()) {
+    <div class="empty-state" role="alert">
+      <div class="empty-state__icon empty-state__icon--error">
+        <app-icon name="alert-circle" />
+      </div>
+
+      <h3>No se pudieron cargar las personas mayores</h3>
+
+      <p>Revisa tu conexión e inténtalo de nuevo en un momento.</p>
+    </div>
+  } @else if (personasMayores().length === 0) {
     <div class="empty-state">
       <div class="empty-state__icon">
         <app-icon name="users" />

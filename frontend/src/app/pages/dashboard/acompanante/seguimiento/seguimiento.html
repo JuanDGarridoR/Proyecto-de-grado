@@ -14,7 +14,7 @@
 
   <!-- Cargando, error o sin personas -->
   @if (cargandoPersonas()) {
-    <div class="seguimiento__mensaje">Cargando personas mayores...</div>
+    <div class="seguimiento__mensaje"><app-cargando texto="Cargando personas mayores..." /></div>
   } @else if (errorPersonas()) {
     <div class="seguimiento__error">
       <app-icon name="alert-circle" />
@@ -173,7 +173,7 @@
           <!-- Medicamentos -->
           @case ('medicamentos') {
             @if (cargandoMedicamentos()) {
-              <div class="seguimiento__mensaje">Cargando medicamentos...</div>
+              <div class="seguimiento__mensaje"><app-cargando texto="Cargando medicamentos..." /></div>
             } @else if (errorMedicamentos()) {
               <div class="seguimiento__error"><app-icon name="alert-circle" /> {{ errorMedicamentos() }}</div>
             } @else if (medicamentos().length === 0) {
@@ -220,7 +220,7 @@
           <!-- Citas médicas -->
           @case ('citas') {
             @if (cargandoCitas()) {
-              <div class="seguimiento__mensaje">Cargando citas médicas...</div>
+              <div class="seguimiento__mensaje"><app-cargando texto="Cargando citas médicas..." /></div>
             } @else if (errorCitas()) {
               <div class="seguimiento__error"><app-icon name="alert-circle" /> {{ errorCitas() }}</div>
             } @else {

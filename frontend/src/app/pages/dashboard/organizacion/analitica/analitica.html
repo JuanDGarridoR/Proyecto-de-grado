@@ -83,21 +83,21 @@
       @if (actividades().datos; as datos) {
         <app-reporte-actividades [actividades]="datos" />
       } @else if (actividades().cargando) {
-        <p class="cargando">Cargando reporte...</p>
+        <app-cargando class="cargando" texto="Cargando reporte..." />
       }
     }
     @case ('salud') {
       @if (salud().datos; as datos) {
         <app-reporte-salud [datos]="datos" [desde]="desde()" />
       } @else if (salud().cargando) {
-        <p class="cargando">Cargando reporte...</p>
+        <app-cargando class="cargando" texto="Cargando reporte..." />
       }
     }
     @case ('poblacion') {
       @if (poblacion().datos; as datos) {
         <app-reporte-poblacion [datos]="datos" />
       } @else if (poblacion().cargando) {
-        <p class="cargando">Cargando reporte...</p>
+        <app-cargando class="cargando" texto="Cargando reporte..." />
       }
     }
   }

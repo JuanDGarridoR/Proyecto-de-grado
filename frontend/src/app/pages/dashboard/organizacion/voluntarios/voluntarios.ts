@@ -10,6 +10,7 @@ import { Icon } from '../../../../shared/icon/icon';
 import { PersonCard } from '../../../../shared/person-card/person-card';
 import { CancelarAsociacion } from '../../../../shared/cancelar-asociacion/cancelar-asociacion';
 import { mensajeDeError } from '../../../../core/formato/formato';
+import { Cargando } from '../../../../shared/cargando/cargando';
 
 /**
  * Voluntarios de la organización: solicitudes de vinculación pendientes
@@ -18,7 +19,7 @@ import { mensajeDeError } from '../../../../core/formato/formato';
 @Component({
   selector: 'app-organizacion-voluntarios',
   standalone: true,
-  imports: [Icon, PersonCard, CancelarAsociacion],
+  imports: [Icon, PersonCard, CancelarAsociacion, Cargando],
   templateUrl: './voluntarios.html',
   styleUrls: ['../../../../shared/person-card/vinculos-pagina.css']
 })

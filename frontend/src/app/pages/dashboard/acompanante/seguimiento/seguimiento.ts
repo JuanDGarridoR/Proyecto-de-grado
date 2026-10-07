@@ -31,6 +31,7 @@ import { SignosVitalesLista } from '../../../../shared/signos-vitales-lista/sign
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { haceDias } from '../../../../core/fechas/fechas';
 import { iniciales } from '../../../../core/formato/formato';
+import { Cargando } from '../../../../shared/cargando/cargando';
 
 /** Pestañas con la información de la persona seleccionada. */
 type Pestana = 'medicamentos' | 'citas' | 'signos';
@@ -59,7 +60,7 @@ interface ValorSigno {
 @Component({
   selector: 'app-seguimiento',
   standalone: true,
-  imports: [Icon, SignosVitalesLista],
+  imports: [Icon, SignosVitalesLista, Cargando],
   templateUrl: './seguimiento.html',
   styleUrl: './seguimiento.css'
 })

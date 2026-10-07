@@ -15,6 +15,7 @@ import { ReporteExportable } from './contenido-reporte';
 import { ReporteActividades } from './reportes/reporte-actividades';
 import { ReportePoblacion } from './reportes/reporte-poblacion';
 import { ReporteSalud } from './reportes/reporte-salud';
+import { Cargando } from '../../../../shared/cargando/cargando';
 
 /** Pestañas del informe. */
 type Reporte = 'actividades' | 'salud' | 'poblacion';
@@ -39,7 +40,7 @@ const vacio = <T>(): Estado<T> => ({ datos: null, cargando: false, error: null, 
  */
 @Component({
   selector: 'app-analitica',
-  imports: [Icon, ReporteActividades, ReporteSalud, ReportePoblacion],
+  imports: [Icon, ReporteActividades, ReporteSalud, ReportePoblacion, Cargando],
   templateUrl: './analitica.html',
   styleUrl: './analitica.css'
 })

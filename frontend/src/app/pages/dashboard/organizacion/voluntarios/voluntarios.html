@@ -86,7 +86,7 @@
   <section class="vinculos__section" aria-label="Voluntarios vinculados">
     @if (cargando()) {
       <div class="vinculos__loading">
-        <p>Cargando voluntarios...</p>
+        <app-cargando texto="Cargando voluntarios..." />
       </div>
     } @else if (voluntarios().length === 0) {
       <div class="vinculos__empty">

@@ -143,7 +143,7 @@
     @if (cargando) {
 
       <div class="mis-personas__loading">
-        <p>Cargando información...</p>
+        <app-cargando texto="Cargando personas mayores..." />
       </div>
 
     } @else if (personasMayores.length === 0) {

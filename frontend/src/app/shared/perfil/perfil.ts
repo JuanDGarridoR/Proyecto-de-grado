@@ -22,6 +22,7 @@ import {
   OrganizacionResponse,
 } from '../../core/organizacion/organizacion.service';
 import { API_URL } from '../../core/api';
+import { Cargando } from '../cargando/cargando';
 
 /** Rol del perfil que se muestra; llega en data.tipoPerfil de la ruta. */
 export type TipoPerfil = 'PERSONA_MAYOR' | 'ACOMPANANTE' | 'VOLUNTARIO' | 'ORGANIZACION';
@@ -54,7 +55,7 @@ interface PerfilInformacion {
  */
 @Component({
   selector: 'app-perfil',
-  imports: [FormsModule, CampoContrasena, EliminarCuenta, GestorNotificaciones, DatosSalud],
+  imports: [FormsModule, CampoContrasena, EliminarCuenta, GestorNotificaciones, DatosSalud, Cargando],
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })

@@ -8,6 +8,7 @@ import {
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { ActividadCard } from '../../../../shared/actividad-card/actividad-card';
 import { Icon } from '../../../../shared/icon/icon';
+import { Cargando } from '../../../../shared/cargando/cargando';
 
 /**
  * Actividades que ve el acompañante: las de las organizaciones de las
@@ -16,7 +17,7 @@ import { Icon } from '../../../../shared/icon/icon';
 @Component({
   selector: 'app-actividades-acompanante',
   standalone: true,
-  imports: [ActividadCard, Icon],
+  imports: [ActividadCard, Icon, Cargando],
   templateUrl: './actividades.html',
   styleUrls: ['../../../../shared/actividad-card/actividades-pagina.css']
 })
