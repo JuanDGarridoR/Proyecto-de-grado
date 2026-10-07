@@ -163,9 +163,15 @@
 
     } @else {
 
+      <app-buscador-nombre class="buscador" [(texto)]="busqueda" placeholder="Buscar persona mayor por nombre..." />
+
+      @if (personasFiltradas.length === 0) {
+        <p class="sin-resultados">Ninguna persona mayor coincide con "{{ busqueda }}".</p>
+      }
+
       <div class="mis-personas__list">
 
-        @for (persona of personasMayores; track persona.idUsuario) {
+        @for (persona of personasFiltradas; track persona.idUsuario) {
 
           <app-person-card
             etiqueta="Persona mayor"

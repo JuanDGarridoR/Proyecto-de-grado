@@ -194,3 +194,17 @@
     flex: 1;
   }
 }
+
+/* Búsqueda rápida por nombre */
+
+.buscador {
+  margin-bottom: 16px;
+}
+
+.sin-resultados {
+  margin: 0 0 16px;
+  padding: 16px 18px;
+  border: 1px dashed var(--vita-border);
+  border-radius: var(--radius-md);
+  color: var(--vita-text-gray);
+}

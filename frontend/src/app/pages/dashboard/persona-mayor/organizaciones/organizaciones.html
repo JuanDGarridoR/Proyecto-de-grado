@@ -283,6 +283,14 @@
 
     <h2>Mis organizaciones</h2>
 
+    @if (organizaciones().length > 0) {
+      <app-buscador-nombre
+        [(texto)]="busquedaOrganizaciones"
+        [grande]="true"
+        placeholder="Buscar en mis organizaciones..."
+      />
+    }
+
   </div>
 
 
@@ -312,7 +320,7 @@
     <div class="organizations-list">
 
       @for (
-        organizacion of organizaciones();
+        organizacion of organizacionesFiltradas();
         track organizacion.idOrganizacion
       ) {
 
@@ -446,6 +454,12 @@
 
         </div>
 
+      }
+
+      @if (organizacionesFiltradas().length === 0) {
+        <p class="sin-resultados">
+          Ninguna de tus organizaciones coincide con "{{ busquedaOrganizaciones() }}".
+        </p>
       }
 
     </div>

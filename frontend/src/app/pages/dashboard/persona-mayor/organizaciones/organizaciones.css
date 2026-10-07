@@ -1329,3 +1329,18 @@
     width: 100%;
   }
 }
+
+/* Búsqueda rápida en Mis organizaciones */
+
+.section-title--organizations {
+  flex-wrap: wrap;
+}
+
+.sin-resultados {
+  margin: 0;
+  padding: 18px 20px;
+  border: 1px dashed var(--vita-border);
+  border-radius: var(--radius-md);
+  color: var(--vita-text-gray);
+  font-size: 1.05rem;
+}

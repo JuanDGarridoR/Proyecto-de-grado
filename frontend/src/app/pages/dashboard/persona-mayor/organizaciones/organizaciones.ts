@@ -9,6 +9,7 @@ import {
 
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { Icon } from '../../../../shared/icon/icon';
+import { BuscadorNombre, filtrarPorNombre } from '../../../../shared/buscador-nombre/buscador-nombre';
 import { RecomendacionesOrganizacionesComponent } from '../../../../shared/recomendaciones-organizaciones/recomendaciones-organizaciones';
 
 /**
@@ -21,7 +22,7 @@ import { RecomendacionesOrganizacionesComponent } from '../../../../shared/recom
 @Component({
   selector: 'app-organizaciones',
   standalone: true,
-  imports: [Icon, CommonModule, FormsModule, RecomendacionesOrganizacionesComponent],
+  imports: [Icon, CommonModule, FormsModule, RecomendacionesOrganizacionesComponent, BuscadorNombre],
   templateUrl: './organizaciones.html',
   styleUrl: './organizaciones.css'
 })
@@ -29,6 +30,13 @@ export class Organizaciones implements OnInit {
 
   protected readonly organizaciones =
     signal<OrganizacionSolicitud[]>([]);
+
+  /** Búsqueda rápida en "Mis organizaciones". */
+  protected readonly busquedaOrganizaciones = signal('');
+
+  protected readonly organizacionesFiltradas = computed(() =>
+    filtrarPorNombre(this.organizaciones(), this.busquedaOrganizaciones())
+  );
 
   protected readonly solicitudes =
     signal<OrganizacionSolicitud[]>([]);

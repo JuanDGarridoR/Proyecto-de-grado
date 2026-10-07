@@ -7,6 +7,7 @@ import {
 } from '../../../../core/acompanantes/acompanante.service';
 import { SignoVitalResponse } from '../../../../core/signos-vitales/signos-vitales.services';
 import { Icon } from '../../../../shared/icon/icon';
+import { BuscadorNombre, filtrarPorNombre } from '../../../../shared/buscador-nombre/buscador-nombre';
 import { PersonCard } from '../../../../shared/person-card/person-card';
 import { CancelarAsociacion } from '../../../../shared/cancelar-asociacion/cancelar-asociacion';
 import { SignosVitalesModal } from '../../../../shared/signos-vitales-modal/signos-vitales-modal';
@@ -24,13 +25,20 @@ import {
  */
 @Component({
   selector: 'app-mis-personas-mayores',
-  imports: [RouterLink, Icon, PersonCard, CancelarAsociacion, SignosVitalesModal, AcompanantesModal, SolicitudAcompanamientoModal],
+  imports: [RouterLink, Icon, PersonCard, CancelarAsociacion, SignosVitalesModal, AcompanantesModal, SolicitudAcompanamientoModal, BuscadorNombre],
   templateUrl: './mis-personas-mayores.html',
   styleUrl: './mis-personas-mayores.css'
 })
 export class MisPersonasMayores implements OnInit {
 
   personasMayores: PersonaMayorAcompanada[] = [];
+
+  /** Búsqueda rápida en la lista de personas mayores que acompaña. */
+  busqueda = '';
+
+  get personasFiltradas(): PersonaMayorAcompanada[] {
+    return filtrarPorNombre(this.personasMayores, this.busqueda);
+  }
   solicitudes: SolicitudAcompanamiento[] = [];
   enviadas: SolicitudAcompanamiento[] = [];
 

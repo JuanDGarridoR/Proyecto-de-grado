@@ -10,6 +10,7 @@ import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { Icon } from '../../../../shared/icon/icon';
 import { PersonCard } from '../../../../shared/person-card/person-card';
 import { CancelarAsociacion } from '../../../../shared/cancelar-asociacion/cancelar-asociacion';
+import { BuscadorNombre, filtrarPorNombre } from '../../../../shared/buscador-nombre/buscador-nombre';
 import { RecomendacionesOrganizacionesComponent } from '../../../../shared/recomendaciones-organizaciones/recomendaciones-organizaciones';
 
 /**
@@ -22,7 +23,7 @@ import { RecomendacionesOrganizacionesComponent } from '../../../../shared/recom
 @Component({
   selector: 'app-voluntario-organizaciones',
   standalone: true,
-  imports: [FormsModule, Icon, PersonCard, CancelarAsociacion, RecomendacionesOrganizacionesComponent],
+  imports: [FormsModule, Icon, PersonCard, CancelarAsociacion, RecomendacionesOrganizacionesComponent, BuscadorNombre],
   templateUrl: './organizaciones.html',
   styleUrls: ['../../../../shared/person-card/vinculos-pagina.css', './organizaciones.css']
 })
@@ -45,6 +46,13 @@ export class VoluntarioOrganizaciones implements OnInit {
 
   protected readonly vinculadas = computed(() =>
     this.organizaciones().filter((o) => o.estado === 'ACEPTADA')
+  );
+
+  /** Búsqueda rápida en "Mis organizaciones". */
+  protected readonly busquedaVinculadas = signal('');
+
+  protected readonly vinculadasFiltradas = computed(() =>
+    filtrarPorNombre(this.vinculadas(), this.busquedaVinculadas())
   );
 
   protected readonly solicitudes = computed(() =>

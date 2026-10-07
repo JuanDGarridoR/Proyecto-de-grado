@@ -39,7 +39,10 @@
         </div>
 
         @if (vinculadas().length > 0) {
-          <span class="vinculos__badge">{{ vinculadas().length }}</span>
+          <div class="mis-organizaciones__acciones">
+            <app-buscador-nombre [(texto)]="busquedaVinculadas" placeholder="Buscar en mis organizaciones..." />
+            <span class="vinculos__badge">{{ vinculadas().length }}</span>
+          </div>
         }
       </div>
 
@@ -53,8 +56,12 @@
           </p>
         </div>
       } @else {
+        @if (vinculadasFiltradas().length === 0) {
+          <p class="sin-resultados">Ninguna de tus organizaciones coincide con "{{ busquedaVinculadas() }}".</p>
+        }
+
         <div class="vinculos__list">
-          @for (organizacion of vinculadas(); track organizacion.idOrganizacion) {
+          @for (organizacion of vinculadasFiltradas(); track organizacion.idOrganizacion) {
             <app-person-card
               etiqueta="Organización"
               icono="building"

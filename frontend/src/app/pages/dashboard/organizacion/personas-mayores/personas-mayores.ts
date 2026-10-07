@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
@@ -18,6 +18,7 @@ import { PersonCard } from '../../../../shared/person-card/person-card';
 import { CancelarAsociacion } from '../../../../shared/cancelar-asociacion/cancelar-asociacion';
 import { SignosVitalesModal } from '../../../../shared/signos-vitales-modal/signos-vitales-modal';
 import { AcompanantesModal } from '../../../../shared/acompanantes-modal/acompanantes-modal';
+import { BuscadorNombre, filtrarPorNombre } from '../../../../shared/buscador-nombre/buscador-nombre';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 
 /**
@@ -28,7 +29,7 @@ import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 @Component({
   selector: 'app-personas-mayores',
   standalone: true,
-  imports: [Icon, FormsModule, PersonCard, CancelarAsociacion, SignosVitalesModal, AcompanantesModal],
+  imports: [Icon, FormsModule, PersonCard, CancelarAsociacion, SignosVitalesModal, AcompanantesModal, BuscadorNombre],
   templateUrl: './personas-mayores.html',
   styleUrl: './personas-mayores.css'
 })
@@ -36,6 +37,13 @@ export class PersonasMayores implements OnInit {
 
   protected readonly personasMayores =
     signal<PersonaMayorOrganizacion[]>([]);
+
+  /** Búsqueda rápida en la lista de personas mayores vinculadas. */
+  protected readonly busqueda = signal('');
+
+  protected readonly personasFiltradas = computed(() =>
+    filtrarPorNombre(this.personasMayores(), this.busqueda())
+  );
 
   /** Personas mayores que pidieron unirse a la organización. */
   protected readonly solicitudes =

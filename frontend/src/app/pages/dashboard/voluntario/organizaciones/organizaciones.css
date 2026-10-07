@@ -23,3 +23,21 @@
   margin: 0;
   padding: 18px 20px 20px;
 }
+
+/* Búsqueda rápida en Mis organizaciones */
+
+.mis-organizaciones__acciones {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.sin-resultados {
+  margin: 0 0 16px;
+  padding: 16px 18px;
+  border: 1px dashed var(--vita-border);
+  border-radius: var(--radius-md);
+  color: var(--vita-text-gray);
+}
