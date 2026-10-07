@@ -22,6 +22,16 @@
   color: var(--vita-navy);
 }
 
+.btn-secondary {
+  border: 1px solid var(--vita-border);
+  background: var(--vita-white);
+  color: var(--vita-navy);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #f7f9fb;
+}
+
 /* Saludo y emergencia */
 
 .inicio-header {
@@ -46,6 +56,19 @@
 
 .inicio-header__fecha::first-letter {
   text-transform: uppercase;
+}
+
+.cumpleanos {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--vita-gold) 35%, white);
+  color: var(--vita-navy-darker);
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .emergencia-boton {
@@ -135,15 +158,175 @@
   color: #9e2929;
 }
 
+/* Pendientes */
+
+.pendientes {
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  border: 2px solid var(--vita-gold);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--vita-gold) 12%, white);
+}
+
+.pendientes__titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--vita-navy);
+}
+
+.pendientes__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pendiente {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--vita-white);
+}
+
+.pendiente__icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #edf5fc;
+  color: var(--vita-navy);
+  font-size: 1.3rem;
+}
+
+.pendiente__texto {
+  flex: 1;
+  font-weight: 600;
+  color: var(--vita-navy);
+}
+
+.pendiente__boton {
+  padding: 12px 20px;
+  font-size: 1rem;
+  background: var(--vita-navy);
+  color: var(--vita-white);
+}
+
+.pendiente__boton:hover {
+  background: var(--vita-navy-light);
+}
+
+.pendiente--urgente .pendiente__icono {
+  background: color-mix(in srgb, var(--rojo) 15%, white);
+  color: var(--rojo);
+}
+
+.pendiente--urgente .pendiente__boton {
+  background: var(--rojo);
+}
+
+.pendiente--urgente .pendiente__boton:hover {
+  background: var(--rojo-oscuro);
+}
+
+/* Dos columnas: agenda a la izquierda, personas y salud a la derecha */
+
+.inicio-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.inicio-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+/* Tarjetas */
+
+.resumen {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+}
+
+.resumen__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.resumen__link {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--vita-navy);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.resumen__boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  align-self: flex-start;
+  margin-top: 16px;
+  padding: 14px 22px;
+  font-size: 1.05rem;
+}
+
 /* Agenda de hoy */
 
 .agenda {
-  margin-bottom: 24px;
   padding: 26px 28px;
 }
 
-.agenda .bloque-titulo {
+.progreso {
   margin-bottom: 18px;
+}
+
+.progreso__texto {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  font-size: 1rem;
+  color: var(--vita-text-gray);
+}
+
+.progreso__texto strong {
+  color: var(--vita-navy);
+}
+
+.progreso__barra {
+  height: 14px;
+  border-radius: var(--radius-pill);
+  background: #edf1f6;
+  overflow: hidden;
+}
+
+.progreso__barra span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--verde);
+  transition: width 0.4s ease;
 }
 
 .agenda__lista {
@@ -263,8 +446,23 @@
   color: var(--vita-text-gray);
 }
 
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin: 16px 0 0;
+  font-size: 0.9rem;
+  color: var(--vita-text-gray);
+}
+
+.leyenda span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .agenda__vacia {
-  padding: 12px 0 4px;
+  padding: 4px 0;
 }
 
 .agenda__vacia-titulo {
@@ -273,71 +471,179 @@
   color: var(--vita-navy);
 }
 
-/* Acompañante y salud */
+/* Próximos días */
 
-.resumen-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
-  margin-bottom: 24px;
-}
-
-.resumen {
+.proximos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  padding: 24px;
-}
-
-.resumen__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.resumen__link {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--vita-navy);
-  text-decoration: underline;
-  white-space: nowrap;
-}
-
-.resumen__boton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   gap: 10px;
-  align-self: flex-start;
-  margin-top: auto;
-  padding: 16px 24px;
-  font-size: 1.05rem;
 }
 
-.acompanante {
+.proximo {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-md);
+  color: inherit;
+  text-decoration: none;
 }
 
-.acompanante__avatar {
+.proximo:hover {
+  border-color: var(--vita-navy);
+}
+
+.proximo__icono {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 60px;
-  height: 60px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: #edf5fc;
   color: var(--vita-navy);
-  font-size: 1.6rem;
+  font-size: 1.3rem;
+}
+
+.proximo__icono--cita {
+  background: color-mix(in srgb, var(--vita-lavender) 30%, white);
+}
+
+.proximo__cuerpo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.proximo__cuerpo strong {
+  font-size: 1.1rem;
+  color: var(--vita-navy);
+}
+
+.proximo__dia {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--verde) 55%, var(--vita-navy));
+}
+
+.proximo__dia::first-letter {
+  text-transform: uppercase;
+}
+
+.proximo__tipo {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: #edf1f6;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--vita-text-gray);
+}
+
+/* Actividades para ti */
+
+.sugeridas__intro {
+  margin: 0 0 14px;
+}
+
+.sugeridas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.sugerida {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-md);
+  background: var(--vita-cream-soft);
+}
+
+.sugerida strong {
+  font-size: 1.1rem;
+  color: var(--vita-navy);
+}
+
+.sugerida .texto-suave {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* El botón queda abajo aunque las tarjetas tengan distinto alto */
+.sugerida__info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 4px;
+}
+
+.sugerida__boton {
+  align-self: flex-start;
+  padding: 10px 18px;
+  font-size: 1rem;
+}
+
+/* Acompañantes y organizaciones */
+
+.personas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.persona {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.persona + .persona {
+  padding-top: 12px;
+  border-top: 1px solid var(--vita-border);
+}
+
+.persona__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #edf5fc;
+  color: var(--vita-navy);
+  font-size: 1.5rem;
   font-weight: 700;
 }
 
-.acompanante__nombre {
-  font-size: 1.35rem;
+.persona__avatar--org {
+  background: color-mix(in srgb, var(--verde) 15%, white);
+}
+
+.persona__datos {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona__nombre {
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--vita-navy);
 }
@@ -405,40 +711,142 @@
   color: #8a5a00;
 }
 
-/* Próximamente */
+/* Datos de salud */
 
-.proximamente__lista {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+.condiciones {
+  display: flex;
+  flex-direction: column;
   gap: 14px;
 }
 
-.proximamente__lista li {
+.condiciones__titulo {
   display: flex;
-  flex-direction: column;
-  padding: 14px 16px;
-  border: 1px solid var(--vita-border);
-  border-radius: var(--radius-sm);
-}
-
-.proximamente__dia {
-  font-size: 0.85rem;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 1rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: color-mix(in srgb, var(--verde) 55%, var(--vita-navy));
-}
-
-.proximamente__lista strong {
-  margin-top: 4px;
-  font-size: 1.1rem;
   color: var(--vita-navy);
 }
 
+.condiciones__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.condiciones__lista li {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: #edf5fc;
+  font-size: 1rem;
+  color: var(--vita-navy);
+}
+
+/* Las alergias se resaltan: es lo primero que hay que saber en una emergencia */
+.condiciones__grupo--alergia .condiciones__titulo {
+  color: #9e2929;
+}
+
+.condiciones__grupo--alergia .condiciones__lista li {
+  background: color-mix(in srgb, var(--rojo) 10%, white);
+  color: #9e2929;
+  font-weight: 600;
+}
+
+/*
+ * Pantallas grandes: la página ocupa justo el alto de la ventana y no se
+ * desplaza. --alto-disponible lo calcula el componente. Las tarjetas se
+ * reparten el alto de cada columna según su contenido y, si algo no cabe,
+ * se desplaza dentro de la tarjeta (el encabezado queda fijo).
+ */
+@media (min-width: 1101px) and (min-height: 700px) {
+  :host {
+    display: flex;
+    flex-direction: column;
+    height: var(--alto-disponible, auto);
+    overflow: hidden;
+  }
+
+  .inicio-header,
+  .emergencia-confirmacion,
+  .aviso,
+  .pendientes {
+    flex-shrink: 0;
+    margin-bottom: 16px;
+  }
+
+  .pendientes {
+    padding: 14px 20px;
+  }
+
+  .pendientes__titulo {
+    margin-bottom: 10px;
+  }
+
+  /* Los avisos van uno al lado del otro para ocupar menos alto */
+  .pendientes__lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+
+  .inicio-grid {
+    flex: 1;
+    min-height: 0;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .inicio-col {
+    gap: 20px;
+    min-height: 0;
+    /* Último recurso en ventanas bajas: la columna se desplaza en vez de cortar */
+    overflow-y: auto;
+    /* Margen para que la sombra de las tarjetas no se corte a los lados */
+    margin-inline: -10px;
+    padding-inline: 10px;
+  }
+
+  .agenda,
+  .resumen {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 100px;
+    padding: 20px 22px;
+  }
+
+  /* La agenda de hoy es lo principal: se le da prioridad de espacio */
+  .agenda {
+    flex-grow: 2;
+    min-height: 180px;
+  }
+
+  .resumen__header {
+    flex-shrink: 0;
+    margin-bottom: 12px;
+  }
+
+  .resumen__cuerpo {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    /* Espacio para que la barra de desplazamiento no tape el contenido */
+    margin-right: -10px;
+    padding-right: 10px;
+  }
+}
+
 /* Responsive */
+
+@media (max-width: 1100px) {
+  .inicio-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 @media (max-width: 700px) {
   .emergencia-boton {
@@ -464,8 +872,16 @@
     justify-self: start;
   }
 
-  .resumen-grid {
-    grid-template-columns: 1fr;
+  .pendiente {
+    flex-wrap: wrap;
+  }
+
+  .pendiente__boton {
+    width: 100%;
+  }
+
+  .proximo__tipo {
+    display: none;
   }
 
   .resumen__boton,
