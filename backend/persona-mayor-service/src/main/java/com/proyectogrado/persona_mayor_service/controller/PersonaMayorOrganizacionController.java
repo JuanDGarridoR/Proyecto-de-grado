@@ -302,7 +302,7 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
         relacion.setSolicitadaPor(PersonaMayorOrganizacion.PERSONA_MAYOR);
         relacionRepository.saveAndFlush(relacion);
 
-        return ResponseEntity.ok("Solicitud enviada. La organización te responderá pronto");
+        return ResponseEntity.ok("Solicitud enviada. La organización te responderá pronto.");
     }
 
     @PutMapping("/api/persona-mayor/organizaciones/solicitudes/{idOrganizacion}/aceptar")

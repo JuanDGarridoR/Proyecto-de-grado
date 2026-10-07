@@ -162,6 +162,13 @@ export const routes: Routes = [
       },
 
       {
+        path: 'intereses',
+        loadComponent: () =>
+          import('./shared/intereses/intereses').then((m) => m.Intereses),
+        data: { rol: 'VOLUNTARIO' },
+      },
+
+      {
         path: 'perfil',
         loadComponent: () => import('./shared/perfil/perfil').then((m) => m.Perfil),
         data: {
@@ -256,7 +263,8 @@ export const routes: Routes = [
       {
         path: 'intereses',
         loadComponent: () =>
-          import('./pages/dashboard/persona-mayor/intereses/intereses').then((m) => m.Intereses),
+          import('./shared/intereses/intereses').then((m) => m.Intereses),
+        data: { rol: 'PERSONA_MAYOR' },
       },
 
       {

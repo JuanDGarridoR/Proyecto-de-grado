@@ -488,7 +488,58 @@
 }
 
 <!-- Recomendaciones según gustos y cercanía (analitica-service) -->
-<app-recomendaciones-organizaciones />
+<app-recomendaciones-organizaciones (solicitada)="alSolicitar()" />
+
+<!-- Todas las demás, por si quiere unirse a una que no le recomendamos -->
+
+@if (disponibles().length > 0) {
+  <details class="todas">
+    <summary>Ver todas las organizaciones</summary>
+
+    <div class="todas__contenido">
+      <p class="todas__ayuda">Elige cualquier organización y envíale una solicitud para unirte.</p>
+
+      <input
+        type="search"
+        class="todas__buscar"
+        placeholder="Buscar por nombre..."
+        aria-label="Buscar organización por nombre"
+        [(ngModel)]="busqueda"
+        (ngModelChange)="filtro.set($event)"
+      />
+
+      @if (disponiblesFiltradas().length === 0) {
+        <p class="todas__ayuda">Ninguna organización coincide con "{{ filtro() }}".</p>
+      } @else {
+        <ul class="enviadas__lista">
+          @for (organizacion of disponiblesFiltradas(); track organizacion.idOrganizacion) {
+            <li class="enviada">
+              <span class="organization-icon" aria-hidden="true"><app-icon name="building" /></span>
+              <div class="enviada__datos">
+                <strong>{{ organizacion.nombre }}</strong>
+                @if (organizacion.direccion) {
+                  <span class="todas__direccion"><app-icon name="map" /> {{ organizacion.direccion }}</span>
+                }
+              </div>
+              <button
+                type="button"
+                class="btn btn-primary todas__solicitar"
+                (click)="solicitarVinculacion(organizacion)"
+                [disabled]="solicitando() === organizacion.idOrganizacion"
+              >
+                @if (solicitando() === organizacion.idOrganizacion) {
+                  Enviando...
+                } @else {
+                  <app-icon name="plus" /> Solicitar vinculación
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </details>
+}
 
 <!-- Modal de confirmación -->
 

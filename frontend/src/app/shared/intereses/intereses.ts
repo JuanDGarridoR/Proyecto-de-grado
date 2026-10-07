@@ -1,14 +1,17 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { Observable } from 'rxjs';
 
-import { AuthService } from '../../../../core/auth/auth.service';
+import { AuthService } from '../../core/auth/auth.service';
 import {
   GustoService,
   Gusto,
   CategoriaGusto
-} from '../../../../core/gustos/gusto.service';
-import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
-import { Icon } from '../../../../shared/icon/icon';
+} from '../../core/gustos/gusto.service';
+import { VoluntarioService } from '../../core/voluntario/voluntario.service';
+import { alCambiar } from '../../core/tiempo-real/tiempo-real.service';
+import { Icon } from '../icon/icon';
 
 /** Pestaña de categoría. */
 interface CategoriaTab {
@@ -68,8 +71,10 @@ const ICONO_POR_DEFECTO: Record<CategoriaGusto, string> = {
 };
 
 /**
- * Intereses de la persona mayor: marca sus gustos, talentos y pasatiempos
- * en tres pestañas y los guarda todos de una vez.
+ * Intereses de la persona mayor o del voluntario (data.rol de la ruta):
+ * marca sus gustos, talentos y pasatiempos del mismo catálogo, en tres
+ * pestañas, y los guarda todos de una vez. Con ellos se le recomiendan
+ * organizaciones.
  */
 @Component({
   selector: 'app-intereses',
@@ -100,6 +105,11 @@ export class Intereses implements OnInit {
     )
   );
 
+  private voluntarioService = inject(VoluntarioService);
+
+  /** El voluntario guarda sus gustos en voluntario-service; la persona mayor, en persona-mayor-service. */
+  private readonly esVoluntario = inject(ActivatedRoute).snapshot.data['rol'] === 'VOLUNTARIO';
+
   constructor(
     private authService: AuthService,
     private gustoService: GustoService
@@ -112,19 +122,33 @@ export class Intereses implements OnInit {
   }
 
   ngOnInit(): void {
-    const idPersonaMayor = this.authService.getIdUsuario();
+    const idUsuario = this.authService.getIdUsuario();
 
-    if (idPersonaMayor === null) {
+    if (idUsuario === null) {
       this.errorGustos.set('No se pudo identificar al usuario.');
       this.cargando.set(false);
       return;
     }
 
-    this.cargarIntereses(idPersonaMayor);
+    this.cargarIntereses(idUsuario);
+  }
+
+  /** Gustos que ya tiene marcados el usuario. */
+  private gustosAsignados(idUsuario: number): Observable<Gusto[]> {
+    return this.esVoluntario
+      ? this.voluntarioService.listarGustos()
+      : this.gustoService.listarAsignados(idUsuario);
+  }
+
+  /** Reemplaza los gustos del usuario por los de la lista. */
+  private guardarAsignados(idUsuario: number, idsGustos: number[]): Observable<Gusto[]> {
+    return this.esVoluntario
+      ? this.voluntarioService.guardarGustos(idsGustos)
+      : this.gustoService.asignar(idUsuario, idsGustos);
   }
 
   /** Carga el catálogo y después los gustos que ya tenía marcados. */
-  private cargarIntereses(idPersonaMayor: number): void {
+  private cargarIntereses(idUsuario: number): void {
     this.cargando.set(true);
     this.errorGustos.set(null);
 
@@ -132,7 +156,7 @@ export class Intereses implements OnInit {
       next: (gustos) => {
         this.gustosDisponibles.set(gustos);
 
-        this.gustoService.listarAsignados(idPersonaMayor).subscribe({
+        this.gustosAsignados(idUsuario).subscribe({
           next: (gustosAsignados) => {
             this.gustosSeleccionados.set(
               new Set(gustosAsignados.map(gusto => gusto.idGusto))
@@ -182,8 +206,8 @@ export class Intereses implements OnInit {
 
   /** Reemplaza en el backend todos los gustos marcados por la selección actual. */
   guardarGustos(): void {
-    const idPersonaMayor = this.authService.getIdUsuario();
-    if (idPersonaMayor === null) {
+    const idUsuario = this.authService.getIdUsuario();
+    if (idUsuario === null) {
       return;
     }
 
@@ -192,7 +216,7 @@ export class Intereses implements OnInit {
 
     const idsGustos = Array.from(this.gustosSeleccionados());
 
-    this.gustoService.asignar(idPersonaMayor, idsGustos).subscribe({
+    this.guardarAsignados(idUsuario, idsGustos).subscribe({
       next: () => {
         this.guardandoGustos.set(false);
       },

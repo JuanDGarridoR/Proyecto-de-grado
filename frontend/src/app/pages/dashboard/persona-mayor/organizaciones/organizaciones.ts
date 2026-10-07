@@ -1,5 +1,6 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 import {
   OrganizacionService,
@@ -8,18 +9,19 @@ import {
 
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { Icon } from '../../../../shared/icon/icon';
-import { RecomendacionesOrganizacionesComponent } from './recomendaciones/recomendaciones';
+import { RecomendacionesOrganizacionesComponent } from '../../../../shared/recomendaciones-organizaciones/recomendaciones-organizaciones';
 
 /**
  * Organizaciones de la persona mayor: invitaciones pendientes para aceptar o
  * rechazar, organizaciones con vínculo aceptado, solicitudes que ella envió
- * (puede cancelarlas) y recomendaciones desde donde puede solicitar unirse.
+ * (puede cancelarlas), recomendaciones desde donde puede solicitar unirse y,
+ * en un desplegable, todas las demás organizaciones.
  * Aceptar, rechazar o desvincularse pasa por un modal de confirmación.
  */
 @Component({
   selector: 'app-organizaciones',
   standalone: true,
-  imports: [Icon, CommonModule, RecomendacionesOrganizacionesComponent],
+  imports: [Icon, CommonModule, FormsModule, RecomendacionesOrganizacionesComponent],
   templateUrl: './organizaciones.html',
   styleUrl: './organizaciones.css'
 })
@@ -38,6 +40,22 @@ export class Organizaciones implements OnInit {
   /** Solicitud enviada que se está cancelando; deshabilita su botón. */
   protected readonly cancelandoEnviada =
     signal<number | null>(null);
+
+  /** Organizaciones a las que puede pedir unirse ("Ver todas las organizaciones"). */
+  protected readonly disponibles =
+    signal<OrganizacionSolicitud[]>([]);
+
+  /** Organización a la que se le está enviando la solicitud; deshabilita su botón. */
+  protected readonly solicitando =
+    signal<number | null>(null);
+
+  protected busqueda = '';
+  protected readonly filtro = signal('');
+
+  protected readonly disponiblesFiltradas = computed(() => {
+    const filtro = this.filtro().trim().toLowerCase();
+    return this.disponibles().filter((o) => !filtro || o.nombre.toLowerCase().includes(filtro));
+  });
 
   /** Organización cuya solicitud se está enviando; deshabilita sus botones. */
   protected readonly procesandoSolicitud =
@@ -66,6 +84,7 @@ protected readonly accionPendiente =
       this.cargarOrganizaciones();
       this.cargarSolicitudes();
       this.cargarEnviadas();
+      this.cargarDisponibles();
     });
   }
 
@@ -73,6 +92,40 @@ protected readonly accionPendiente =
     this.cargarOrganizaciones();
     this.cargarSolicitudes();
     this.cargarEnviadas();
+    this.cargarDisponibles();
+  }
+
+  cargarDisponibles(): void {
+    this.organizacionService.obtenerOrganizacionesDisponibles().subscribe({
+      next: (organizaciones) => this.disponibles.set(organizaciones),
+      error: () => this.disponibles.set([])
+    });
+  }
+
+  /** Al enviar una solicitud (desde aquí o desde las recomendadas) cambian las dos listas. */
+  alSolicitar(): void {
+    this.cargarEnviadas();
+    this.cargarDisponibles();
+  }
+
+  /** Pide unirse a una organización de "Ver todas las organizaciones". */
+  solicitarVinculacion(organizacion: OrganizacionSolicitud): void {
+    this.solicitando.set(organizacion.idOrganizacion);
+    this.mensaje.set(null);
+    this.error.set(null);
+
+    this.organizacionService.solicitarVinculacionOrganizacion(organizacion.idOrganizacion).subscribe({
+      next: (respuesta) => {
+        this.solicitando.set(null);
+        this.mensaje.set(`${organizacion.nombre}: ${respuesta}`);
+        this.cargarOrganizaciones();
+        this.alSolicitar();
+      },
+      error: (error) => {
+        this.solicitando.set(null);
+        this.error.set(typeof error?.error === 'string' && error.error ? error.error : 'No se pudo enviar la solicitud.');
+      }
+    });
   }
 
   cargarEnviadas(): void {
@@ -92,7 +145,7 @@ protected readonly accionPendiente =
       next: () => {
         this.cancelandoEnviada.set(null);
         this.mensaje.set(`Cancelaste tu solicitud a ${organizacion.nombre}.`);
-        this.cargarEnviadas();
+        this.alSolicitar();
       },
       error: () => {
         this.cancelandoEnviada.set(null);

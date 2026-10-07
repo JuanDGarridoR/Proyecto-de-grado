@@ -10,18 +10,21 @@ import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { Icon } from '../../../../shared/icon/icon';
 import { PersonCard } from '../../../../shared/person-card/person-card';
 import { CancelarAsociacion } from '../../../../shared/cancelar-asociacion/cancelar-asociacion';
+import { RecomendacionesOrganizacionesComponent } from '../../../../shared/recomendaciones-organizaciones/recomendaciones-organizaciones';
 
 /**
  * Organizaciones del voluntario: a cuáles está vinculado, sus solicitudes
- * (pendientes o rechazadas) y las demás organizaciones, a las que puede
- * pedir vincularse. Puede estar vinculado a varias a la vez.
+ * (pendientes o rechazadas), las recomendadas según sus gustos y su
+ * dirección (las mismas tarjetas que ve la persona mayor) y, en un
+ * desplegable, todas las demás. Puede pedir vincularse a cualquiera y estar
+ * vinculado a varias a la vez.
  */
 @Component({
   selector: 'app-voluntario-organizaciones',
   standalone: true,
-  imports: [FormsModule, Icon, PersonCard, CancelarAsociacion],
+  imports: [FormsModule, Icon, PersonCard, CancelarAsociacion, RecomendacionesOrganizacionesComponent],
   templateUrl: './organizaciones.html',
-  styleUrls: ['../../../../shared/person-card/vinculos-pagina.css']
+  styleUrls: ['../../../../shared/person-card/vinculos-pagina.css', './organizaciones.css']
 })
 export class VoluntarioOrganizaciones implements OnInit {
   private voluntarioService = inject(VoluntarioService);
@@ -117,7 +120,7 @@ export class VoluntarioOrganizaciones implements OnInit {
     });
   }
 
-  private cargar(): void {
+  protected cargar(): void {
     this.voluntarioService.listarOrganizaciones().subscribe({
       next: (organizaciones) => {
         this.organizaciones.set(organizaciones);

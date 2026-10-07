@@ -20,8 +20,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Recomienda a una persona mayor organizaciones a las que todavía no
- * pertenece, según tres criterios (cada uno de 0 a 1):
+ * Recomienda a una persona mayor o a un voluntario organizaciones a las que
+ * todavía no pertenece, según tres criterios (cada uno de 0 a 1):
  *
  *  - Actividades (40 %): cuántos de sus gustos tienen actividades en la
  *    organización (últimos 6 meses y próximas).
@@ -58,11 +58,24 @@ public class RecomendadorOrganizaciones {
     private record Actividad(Integer idOrganizacion, String nombre, String texto) {
     }
 
-    /** null si el usuario no es una persona mayor. */
-    public RecomendacionesResponse recomendar(Integer idPersonaMayor) {
-        MapSqlParameterSource params = new MapSqlParameterSource("id", idPersonaMayor);
+    /**
+     * De dónde salen los datos de quien pide recomendaciones: sus gustos y
+     * sus vínculos (aceptados o pendientes) con organizaciones.
+     */
+    private record Tablas(String gustos, String columnaGustos, String vinculos, String columnaVinculos) {
+    }
 
-        // ---------- Persona: dirección y gustos ----------
+    private static final Tablas PERSONA_MAYOR =
+            new Tablas("persona_mayor_gusto", "id_persona_mayor", "persona_mayor_organizacion", "id_persona_mayor");
+
+    private static final Tablas VOLUNTARIO =
+            new Tablas("voluntario_gusto", "id_voluntario", "voluntario_organizacion", "id_voluntario");
+
+    /** null si el usuario no es una persona mayor ni un voluntario. */
+    public RecomendacionesResponse recomendar(Integer idUsuario) {
+        MapSqlParameterSource params = new MapSqlParameterSource("id", idUsuario);
+
+        // ---------- Quién es: dirección y de qué tablas salen sus datos ----------
 
         List<String> direcciones = jdbc.query("""
                 SELECT COALESCE(NULLIF(TRIM(pm.direccion), ''), u.direccion) AS direccion
@@ -70,19 +83,33 @@ public class RecomendadorOrganizaciones {
                   JOIN usuario u ON u.id_usuario = pm.id_usuario
                  WHERE pm.id_usuario = :id
                 """, params, (rs, i) -> rs.getString("direccion"));
+        Tablas tablas = PERSONA_MAYOR;
+
+        if (direcciones.isEmpty()) {
+            // Se mira el rol: hay cuentas viejas con rol VOLUNTARIO sin fila en la tabla voluntario.
+            direcciones = jdbc.query("""
+                    SELECT u.direccion
+                      FROM usuario u
+                      JOIN usuario_rol ur ON ur.id_usuario = u.id_usuario
+                      JOIN rol r ON r.id_rol = ur.id_rol
+                     WHERE u.id_usuario = :id AND r.nombre = 'VOLUNTARIO'
+                    """, params, (rs, i) -> rs.getString("direccion"));
+            tablas = VOLUNTARIO;
+        }
         if (direcciones.isEmpty()) {
             return null;
         }
+        boolean esVoluntario = tablas == VOLUNTARIO;
         Ubicacion ubicacionPersona = Ubicacion.de(direcciones.get(0));
 
         Map<Integer, String> gustosPersona = new LinkedHashMap<>();
         jdbc.query("""
                 SELECT g.id_gusto, g.nombre
-                  FROM persona_mayor_gusto pg
-                  JOIN gusto g ON g.id_gusto = pg.id_gusto
-                 WHERE pg.id_persona_mayor = :id
+                  FROM %s x
+                  JOIN gusto g ON g.id_gusto = x.id_gusto
+                 WHERE x.%s = :id
                  ORDER BY g.nombre
-                """, params, (rs) -> {
+                """.formatted(tablas.gustos(), tablas.columnaGustos()), params, (rs) -> {
             gustosPersona.put(rs.getInt("id_gusto"), rs.getString("nombre"));
         });
 
@@ -99,12 +126,12 @@ public class RecomendadorOrganizaciones {
                          LIMIT 1
                   ) cuenta ON TRUE
                  WHERE o.id_organizacion NOT IN (
-                        SELECT po.id_organizacion
-                          FROM persona_mayor_organizacion po
-                         WHERE po.id_persona_mayor = :id
-                           AND po.estado IN ('ACEPTADA', 'PENDIENTE'))
+                        SELECT v.id_organizacion
+                          FROM %s v
+                         WHERE v.%s = :id
+                           AND v.estado IN ('ACEPTADA', 'PENDIENTE'))
                  ORDER BY o.nombre
-                """, params, (rs, i) -> new Organizacion(
+                """.formatted(tablas.vinculos(), tablas.columnaVinculos()), params, (rs, i) -> new Organizacion(
                 rs.getInt("id_organizacion"), rs.getString("nombre"), rs.getString("direccion"),
                 rs.getString("celular"), rs.getString("correo")));
 
@@ -127,7 +154,8 @@ public class RecomendadorOrganizaciones {
             actividades.computeIfAbsent(a.idOrganizacion(), k -> new ArrayList<>()).add(a);
         });
 
-        // ---------- Gustos de los miembros de cada organización ----------
+        // ---------- Gustos de las personas mayores de cada organización ----------
+        // (también para el voluntario: así ve si comparte gustos con las personas a las que ayudaría)
 
         Map<Integer, Map<Integer, Set<Integer>>> gustosMiembros = new HashMap<>(); // org -> persona -> gustos
         Map<Integer, Integer> totalMiembros = new HashMap<>();
@@ -154,7 +182,8 @@ public class RecomendadorOrganizaciones {
         for (Organizacion org : organizaciones) {
             resultado.add(evaluar(org, ubicacionPersona, gustosPersona,
                     actividades.getOrDefault(org.id(), List.of()),
-                    gustosMiembros.getOrDefault(org.id(), Map.of())));
+                    gustosMiembros.getOrDefault(org.id(), Map.of()),
+                    esVoluntario));
         }
 
         resultado.sort(Comparator.comparingInt(OrganizacionRecomendada::puntaje).reversed()
@@ -172,7 +201,8 @@ public class RecomendadorOrganizaciones {
             Ubicacion ubicacionPersona,
             Map<Integer, String> gustosPersona,
             List<Actividad> actividades,
-            Map<Integer, Set<Integer>> miembros
+            Map<Integer, Set<Integer>> miembros,
+            boolean esVoluntario
     ) {
         List<String> razones = new ArrayList<>();
         double suma = 0;
@@ -255,8 +285,10 @@ public class RecomendadorOrganizaciones {
                         .limit(3)
                         .map(e -> gustosPersona.get(e.getKey()))
                         .toList();
-                razones.add((afines == 1 ? "1 persona de esta organización comparte" : afines + " personas de esta organización comparten")
-                        + " tus gustos (" + unir(masCompartidos, 3) + ")");
+                String quienes = esVoluntario
+                        ? (afines == 1 ? "1 persona mayor de esta organización comparte" : afines + " personas mayores de esta organización comparten")
+                        : (afines == 1 ? "1 persona de esta organización comparte" : afines + " personas de esta organización comparten");
+                razones.add(quienes + " tus gustos (" + unir(masCompartidos, 3) + ")");
             }
         }
 

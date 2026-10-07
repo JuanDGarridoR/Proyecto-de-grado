@@ -94,6 +94,13 @@
   gap: 20px;
 }
 
+.tarjeta__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
 .tarjeta__encabezado h3 {
   margin: 0;
   color: var(--vita-navy);

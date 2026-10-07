@@ -126,6 +126,13 @@ export class OrganizacionService {
     );
   }
 
+  /** Lado de la persona mayor: organizaciones a las que puede pedir unirse (sin vínculo ni solicitud pendiente). */
+  obtenerOrganizacionesDisponibles(): Observable<OrganizacionSolicitud[]> {
+    return this.http.get<OrganizacionSolicitud[]>(
+      'http://localhost:8080/api/persona-mayor/organizaciones/disponibles',
+    );
+  }
+
   /** Lado de la persona mayor: solicitudes que envió y la organización aún no responde. */
   obtenerSolicitudesEnviadasOrganizaciones(): Observable<OrganizacionSolicitud[]> {
     return this.http.get<OrganizacionSolicitud[]>(

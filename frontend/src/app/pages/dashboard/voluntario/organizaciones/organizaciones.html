@@ -142,70 +142,71 @@
       </section>
     }
 
-    <!-- Organizaciones disponibles -->
+    <!-- Organizaciones recomendadas según sus gustos (mismas tarjetas que la persona mayor) -->
 
-    <section class="vinculos__section">
-      <div class="vinculos__section-header">
-        <div>
-          <h2>Organizaciones disponibles</h2>
-          <p>Elige una organización y envíale una solicitud de vinculación.</p>
-        </div>
+    <app-recomendaciones-organizaciones rol="VOLUNTARIO" (solicitada)="cargar()" />
 
-        @if (hayDisponibles()) {
-          <input
-            type="search"
-            class="vinculos__search"
-            placeholder="Buscar por nombre..."
-            aria-label="Buscar organización por nombre"
-            [(ngModel)]="busqueda"
-            (ngModelChange)="buscar($event)"
-          />
-        }
-      </div>
+    <!-- Todas las demás, por si quiere escribirle a una que no le recomendamos -->
 
-      @if (!hayDisponibles()) {
-        <div class="vinculos__empty">
-          <div class="vinculos__empty-icon"><app-icon name="check-circle" /></div>
-          <h3>No hay más organizaciones disponibles</h3>
-          <p>Ya enviaste una solicitud o estás vinculado a todas las organizaciones registradas.</p>
-        </div>
-      } @else if (disponibles().length === 0) {
-        <div class="vinculos__empty">
-          <div class="vinculos__empty-icon"><app-icon name="building" /></div>
-          <h3>Sin resultados</h3>
-          <p>Ninguna organización coincide con "{{ filtro() }}".</p>
-        </div>
-      } @else {
-        <div class="vinculos__list">
-          @for (organizacion of disponibles(); track organizacion.idOrganizacion) {
-            <app-person-card
-              etiqueta="Organización"
-              icono="building"
-              [nombre]="organizacion.nombre"
-              [celular]="organizacion.celular ?? ''"
-              [correo]="organizacion.correo"
-              [direccion]="organizacion.direccion"
-            >
-              <div card-actions class="person-card-actions">
-                <button
-                  type="button"
-                  class="vinculos__primary"
-                  (click)="solicitar(organizacion)"
-                  [disabled]="procesando() === organizacion.idOrganizacion"
+    @if (hayDisponibles()) {
+      <details class="todas">
+        <summary>Ver todas las organizaciones</summary>
+
+        <section class="vinculos__section todas__contenido">
+          <div class="vinculos__section-header">
+            <div>
+              <p>Elige cualquier organización y envíale una solicitud de vinculación.</p>
+            </div>
+
+            <input
+              type="search"
+              class="vinculos__search"
+              placeholder="Buscar por nombre..."
+              aria-label="Buscar organización por nombre"
+              [(ngModel)]="busqueda"
+              (ngModelChange)="buscar($event)"
+            />
+          </div>
+
+          @if (disponibles().length === 0) {
+            <div class="vinculos__empty">
+              <div class="vinculos__empty-icon"><app-icon name="building" /></div>
+              <h3>Sin resultados</h3>
+              <p>Ninguna organización coincide con "{{ filtro() }}".</p>
+            </div>
+          } @else {
+            <div class="vinculos__list">
+              @for (organizacion of disponibles(); track organizacion.idOrganizacion) {
+                <app-person-card
+                  etiqueta="Organización"
+                  icono="building"
+                  [nombre]="organizacion.nombre"
+                  [celular]="organizacion.celular ?? ''"
+                  [correo]="organizacion.correo"
+                  [direccion]="organizacion.direccion"
                 >
-                  @if (procesando() === organizacion.idOrganizacion) {
-                    Enviando...
-                  } @else {
-                    <app-icon name="plus" />
-                    Solicitar vinculación
-                  }
-                </button>
-              </div>
-            </app-person-card>
+                  <div card-actions class="person-card-actions">
+                    <button
+                      type="button"
+                      class="vinculos__primary"
+                      (click)="solicitar(organizacion)"
+                      [disabled]="procesando() === organizacion.idOrganizacion"
+                    >
+                      @if (procesando() === organizacion.idOrganizacion) {
+                        Enviando...
+                      } @else {
+                        <app-icon name="plus" />
+                        Solicitar vinculación
+                      }
+                    </button>
+                  </div>
+                </app-person-card>
+              }
+            </div>
           }
-        </div>
-      }
-    </section>
+        </section>
+      </details>
+    }
   }
 
 </div>

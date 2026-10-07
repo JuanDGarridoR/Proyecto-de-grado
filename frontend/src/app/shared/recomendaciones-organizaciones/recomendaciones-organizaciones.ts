@@ -1,34 +1,43 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Observable } from 'rxjs';
 
 import {
   AnaliticaService,
   OrganizacionRecomendada,
   RecomendacionesOrganizaciones
-} from '../../../../../core/analitica/analitica.service';
-import { OrganizacionService } from '../../../../../core/organizacion/organizacion.service';
-import { alCambiar } from '../../../../../core/tiempo-real/tiempo-real.service';
-import { Icon } from '../../../../../shared/icon/icon';
+} from '../../core/analitica/analitica.service';
+import { OrganizacionService } from '../../core/organizacion/organizacion.service';
+import { VoluntarioService } from '../../core/voluntario/voluntario.service';
+import { alCambiar } from '../../core/tiempo-real/tiempo-real.service';
+import { Icon } from '../icon/icon';
 
 /**
  * "Organizaciones que te pueden interesar": recomendaciones de
- * analitica-service según los gustos de la persona mayor (actividades y
- * personas con gustos parecidos) y la cercanía de su barrio. Desde cada
- * tarjeta la persona puede solicitar la vinculación; la organización la
- * acepta o la rechaza. Al enviarla, la organización sale de la lista (el
- * recomendador no muestra las que tienen un vínculo pendiente) y pasa a
- * "Solicitudes que enviaste".
+ * analitica-service según los gustos de la persona mayor o del voluntario
+ * (actividades y personas mayores con gustos parecidos) y la cercanía de
+ * su dirección. Desde cada tarjeta se puede solicitar la vinculación; la
+ * organización la acepta o la rechaza. Al enviarla, la organización sale
+ * de la lista (el recomendador no muestra las que tienen un vínculo
+ * pendiente) y pasa a las solicitudes de la página.
  */
 @Component({
   selector: 'app-recomendaciones-organizaciones',
   imports: [Icon, RouterLink],
-  templateUrl: './recomendaciones.html',
-  styleUrl: './recomendaciones.css'
+  templateUrl: './recomendaciones-organizaciones.html',
+  styleUrl: './recomendaciones-organizaciones.css'
 })
 export class RecomendacionesOrganizacionesComponent implements OnInit {
 
   private analiticaService = inject(AnaliticaService);
   private organizacionService = inject(OrganizacionService);
+  private voluntarioService = inject(VoluntarioService);
+
+  /** Quién ve las recomendaciones: cambia los enlaces y a dónde va la solicitud. */
+  readonly rol = input<'PERSONA_MAYOR' | 'VOLUNTARIO'>('PERSONA_MAYOR');
+
+  /** Se emite al enviar una solicitud, para que la página recargue sus solicitudes. */
+  readonly solicitada = output<void>();
 
   protected readonly datos = signal<RecomendacionesOrganizaciones | null>(null);
   protected readonly cargando = signal(true);
@@ -42,7 +51,7 @@ export class RecomendacionesOrganizacionesComponent implements OnInit {
   constructor() {
     // Cambian si la persona edita sus gustos, se une a una organización o
     // una organización crea actividades.
-    alCambiar(['gustos', 'organizaciones', 'actividades', 'usuarios'], () => this.cargar());
+    alCambiar(['gustos', 'organizaciones', 'voluntarios', 'actividades', 'usuarios'], () => this.cargar());
   }
 
   ngOnInit(): void {
@@ -70,10 +79,15 @@ export class RecomendacionesOrganizacionesComponent implements OnInit {
     this.mensaje.set(null);
     this.errorSolicitud.set(null);
 
-    this.organizacionService.solicitarVinculacionOrganizacion(org.idOrganizacion).subscribe({
+    const peticion: Observable<string> = this.rol() === 'VOLUNTARIO'
+      ? this.voluntarioService.solicitarVinculacion(org.idOrganizacion)
+      : this.organizacionService.solicitarVinculacionOrganizacion(org.idOrganizacion);
+
+    peticion.subscribe({
       next: (respuesta) => {
         this.enviando.set(null);
         this.mensaje.set(`${org.nombre}: ${respuesta}`);
+        this.solicitada.emit();
         this.cargar();
       },
       error: (error) => {
@@ -83,6 +97,11 @@ export class RecomendacionesOrganizacionesComponent implements OnInit {
         );
       }
     });
+  }
+
+  /** Ruta base del panel del rol, para los enlaces a intereses y perfil. */
+  protected panel(): string {
+    return this.rol() === 'VOLUNTARIO' ? '/panel/voluntario' : '/panel/persona-mayor';
   }
 
   /** Texto del nivel de coincidencia (además del porcentaje). */

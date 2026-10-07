@@ -11,8 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Recomendaciones para la persona mayor: organizaciones a las que podría
- * unirse según sus gustos y la cercanía (ver RecomendadorOrganizaciones).
+ * Recomendaciones para la persona mayor y el voluntario: organizaciones a
+ * las que podría unirse según sus gustos y la cercanía (ver
+ * RecomendadorOrganizaciones).
  */
 @RestController
 @RequestMapping("/api/analitica/recomendaciones")
@@ -29,7 +30,7 @@ public class RecomendacionController {
         RecomendacionesResponse respuesta = recomendador.recomendar(idUsuario);
         if (respuesta == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Solo una persona mayor puede ver recomendaciones de organizaciones");
+                    .body("Solo una persona mayor o un voluntario puede ver recomendaciones de organizaciones");
         }
         return ResponseEntity.ok(respuesta);
     }

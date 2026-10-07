@@ -134,7 +134,7 @@ class PersonaMayorOrganizacionControllerTest {
         mockMvc.perform(post("/api/persona-mayor/organizaciones/" + ORGANIZACION + "/solicitud")
                         .header("X-User-Id", PERSONA_MAYOR))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Solicitud enviada. La organización te responderá pronto"));
+                .andExpect(content().string("Solicitud enviada. La organización te responderá pronto."));
 
         ArgumentCaptor<PersonaMayorOrganizacion> guardada = ArgumentCaptor.forClass(PersonaMayorOrganizacion.class);
         verify(relacionRepository).saveAndFlush(guardada.capture());

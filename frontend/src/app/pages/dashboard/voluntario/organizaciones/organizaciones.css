@@ -1,0 +1,25 @@
+/* Desplegable con todas las organizaciones (debajo de las recomendadas) */
+
+.todas {
+  margin-top: 28px;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-md);
+  background: var(--vita-white);
+}
+
+.todas summary {
+  padding: 16px 20px;
+  cursor: pointer;
+  color: var(--vita-navy);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.todas[open] summary {
+  border-bottom: 1px solid var(--vita-border);
+}
+
+.todas__contenido {
+  margin: 0;
+  padding: 18px 20px 20px;
+}
