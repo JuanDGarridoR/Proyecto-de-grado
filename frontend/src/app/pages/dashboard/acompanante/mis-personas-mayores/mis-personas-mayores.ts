@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import {
   AcompananteService,
   PersonaMayorAcompanada,
@@ -23,7 +24,7 @@ import {
  */
 @Component({
   selector: 'app-mis-personas-mayores',
-  imports: [Icon, PersonCard, CancelarAsociacion, SignosVitalesModal, AcompanantesModal, SolicitudAcompanamientoModal],
+  imports: [RouterLink, Icon, PersonCard, CancelarAsociacion, SignosVitalesModal, AcompanantesModal, SolicitudAcompanamientoModal],
   templateUrl: './mis-personas-mayores.html',
   styleUrl: './mis-personas-mayores.css'
 })

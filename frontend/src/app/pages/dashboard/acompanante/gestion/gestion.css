@@ -1,0 +1,275 @@
+.gestion {
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Encabezado */
+
+.gestion__header {
+  margin-bottom: 24px;
+}
+
+.gestion__header h1 {
+  margin: 0 0 8px;
+  color: var(--vita-navy);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.gestion__header p {
+  margin: 0;
+  max-width: 720px;
+  color: var(--vita-text-gray);
+  font-size: 1rem;
+}
+
+/* Mensajes */
+
+.gestion__mensaje {
+  padding: 30px;
+  text-align: center;
+  color: var(--vita-text-gray);
+}
+
+.gestion__error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border: 1px solid #d64545;
+  border-radius: 12px;
+  background: color-mix(in srgb, #d64545 10%, white);
+  color: #9e2929;
+  font-weight: 600;
+}
+
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 24px;
+  border-radius: 20px;
+  background: var(--vita-white);
+  box-shadow: 0 7px 22px rgba(20, 46, 78, 0.06);
+  text-align: center;
+}
+
+.vacio__icono {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  border-radius: 16px;
+  background: #edf5fc;
+  color: var(--vita-navy);
+  font-size: 1.7rem;
+}
+
+.vacio h3 {
+  margin: 0;
+  color: var(--vita-navy);
+  font-size: 1.1rem;
+}
+
+.vacio p {
+  max-width: 480px;
+  margin: 0;
+  color: var(--vita-text-gray);
+  line-height: 1.5;
+}
+
+/* Avatares */
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--vita-white);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.avatar--grande {
+  width: 64px;
+  height: 64px;
+  font-size: 1.35rem;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.9), 0 6px 18px rgba(20, 46, 78, 0.15);
+}
+
+/* Selector de personas */
+
+.personas {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 22px;
+  padding: 4px 2px 10px;
+  overflow-x: auto;
+}
+
+.persona {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 210px;
+  max-width: 280px;
+  padding: 12px 16px 12px 12px;
+  border: 2px solid transparent;
+  border-radius: 18px;
+  background: var(--vita-white);
+  box-shadow: 0 4px 14px rgba(20, 46, 78, 0.06);
+  color: var(--vita-navy);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+
+.persona:hover {
+  transform: translateY(-2px);
+}
+
+.persona:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--role-accent, var(--vita-complemento)) 60%, white);
+  outline-offset: 2px;
+}
+
+.persona--activa {
+  border-color: var(--role-accent, var(--vita-complemento));
+  background: color-mix(in srgb, var(--role-accent, var(--vita-complemento)) 12%, white);
+}
+
+.persona__nombre {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.persona__check {
+  flex-shrink: 0;
+  color: #7a68c0;
+  font-size: 1.2rem;
+}
+
+/* Persona que se está gestionando */
+
+.ficha {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 22px 24px;
+  margin-bottom: 18px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--role-accent, var(--vita-complemento)) 30%, transparent), transparent 55%),
+    var(--vita-white);
+  box-shadow: 0 10px 30px rgba(20, 46, 78, 0.08);
+}
+
+.ficha__datos {
+  flex: 1;
+  min-width: 200px;
+}
+
+.ficha__eyebrow {
+  display: block;
+  color: var(--vita-text-gray);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ficha__datos h2 {
+  margin: 2px 0 4px;
+  color: var(--vita-navy);
+  font-size: 1.5rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.ficha__nota {
+  color: var(--vita-text-gray);
+  font-size: 0.9rem;
+}
+
+/* Pestañas */
+
+.pestanas {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  margin-bottom: 16px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--vita-navy) 6%, white);
+  overflow-x: auto;
+}
+
+.pestana {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--vita-text-gray);
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pestana:hover {
+  color: var(--vita-navy);
+}
+
+.pestana--activa {
+  background: var(--vita-white);
+  color: var(--vita-navy);
+  box-shadow: 0 3px 10px rgba(20, 46, 78, 0.1);
+}
+
+/* Contenido de la pestaña */
+
+.panel {
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--vita-white);
+  box-shadow: 0 7px 22px rgba(20, 46, 78, 0.06);
+}
+
+/* Datos de salud ya trae su propia tarjeta: dentro del panel no se repite el borde */
+.panel ::ng-deep app-datos-salud .salud {
+  margin-top: 0;
+  padding: 0;
+  border: none;
+}
+
+@media (max-width: 720px) {
+  .gestion {
+    padding: 20px 16px;
+  }
+
+  .panel {
+    padding: 18px 14px;
+  }
+
+  .pestana {
+    flex: 0 0 auto;
+  }
+}

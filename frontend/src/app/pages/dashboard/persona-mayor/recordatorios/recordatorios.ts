@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, effect, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   MedicamentoService,
@@ -18,6 +18,10 @@ const INTERVALOS_HORAS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 24];
  * Medicamentos de la persona mayor: lista con la próxima toma y un
  * formulario para agregarlos o editarlos. salud-service envía los
  * recordatorios por SMS antes de cada toma.
+ *
+ * El acompañante usa esta misma vista dentro de "Gestionar cuidado": con
+ * idPersonaMayor gestiona los medicamentos de esa persona y los textos le
+ * hablan de ella en lugar de "tus medicamentos".
  */
 @Component({
   selector: 'app-recordatorios',
@@ -27,6 +31,13 @@ const INTERVALOS_HORAS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 24];
   styleUrl: './recordatorios.css'
 })
 export class Recordatorios implements OnInit, OnDestroy {
+
+  /** Persona mayor que gestiona el acompañante; null si es la persona mayor autenticada. */
+  readonly idPersonaMayor = input<number | null>(null);
+  /** Nombre de esa persona, para los textos del acompañante. */
+  readonly nombrePersona = input('');
+
+  protected readonly paraAcompanante = computed(() => this.idPersonaMayor() !== null);
 
   protected readonly minutosAvisoPrevio = MINUTOS_AVISO_PREVIO;
   protected readonly formatearHora = formatearHora;
@@ -54,6 +65,12 @@ export class Recordatorios implements OnInit, OnDestroy {
 
   constructor(private medicamentoService: MedicamentoService) {
     alCambiar(['medicamentos'], () => this.cargar(false));
+
+    // Carga al iniciar y cada vez que el acompañante cambia de persona.
+    effect(() => {
+      this.idPersonaMayor();
+      untracked(() => this.cargar());
+    });
   }
 
   /**
@@ -79,7 +96,6 @@ export class Recordatorios implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.cargar();
     // Cuando pasa la hora de una toma, el backend la avanza sola a la
     // siguiente; se recarga la lista para mostrar la nueva "Próxima toma".
     this.intervaloReloj = setInterval(() => {
@@ -104,13 +120,21 @@ export class Recordatorios implements OnInit, OnDestroy {
     }
     this.error.set(null);
 
-    this.medicamentoService.listar().subscribe({
+    const idPersonaMayor = this.idPersonaMayor();
+
+    this.medicamentoService.listar(idPersonaMayor).subscribe({
       next: (medicamentos) => {
+        // Si el acompañante cambió de persona mientras llegaba la respuesta, ya no sirve.
+        if (idPersonaMayor !== this.idPersonaMayor()) {
+          return;
+        }
         this.medicamentos.set(medicamentos);
         this.cargando.set(false);
       },
       error: () => {
-        this.error.set('No se pudieron cargar tus medicamentos.');
+        this.error.set(this.paraAcompanante()
+          ? 'No se pudieron cargar los medicamentos.'
+          : 'No se pudieron cargar tus medicamentos.');
         this.cargando.set(false);
       }
     });
@@ -173,7 +197,9 @@ export class Recordatorios implements OnInit, OnDestroy {
   /** Crea o actualiza el medicamento, según si se está editando. */
   guardar(): void {
     if (!this.nombre.trim() || !this.hora.trim() || !this.intervaloHoras) {
-      this.errorFormulario.set('Escribe el nombre, cada cuántas horas y a qué hora te lo tomas.');
+      this.errorFormulario.set(this.paraAcompanante()
+        ? 'Escribe el nombre, cada cuántas horas y a qué hora se lo toma.'
+        : 'Escribe el nombre, cada cuántas horas y a qué hora te lo tomas.');
       return;
     }
 
@@ -192,8 +218,8 @@ export class Recordatorios implements OnInit, OnDestroy {
 
     const idEditando = this.idEditando();
     const peticion = idEditando
-      ? this.medicamentoService.actualizar(idEditando, request)
-      : this.medicamentoService.crear(request);
+      ? this.medicamentoService.actualizar(idEditando, request, this.idPersonaMayor())
+      : this.medicamentoService.crear(request, this.idPersonaMayor());
 
     peticion.subscribe({
       next: () => {
@@ -210,12 +236,13 @@ export class Recordatorios implements OnInit, OnDestroy {
   }
 
   eliminar(medicamento: Medicamento): void {
-    const confirmado = confirm(`¿Eliminar ${medicamento.nombre} de tus medicamentos?`);
+    const deQuien = this.paraAcompanante() ? `los medicamentos de ${this.nombrePersona()}` : 'tus medicamentos';
+    const confirmado = confirm(`¿Eliminar ${medicamento.nombre} de ${deQuien}?`);
     if (!confirmado) {
       return;
     }
 
-    this.medicamentoService.eliminar(medicamento.idMedicamento).subscribe({
+    this.medicamentoService.eliminar(medicamento.idMedicamento, this.idPersonaMayor()).subscribe({
       next: () => this.cargar(),
       error: () => this.error.set('No se pudo eliminar el medicamento.')
     });

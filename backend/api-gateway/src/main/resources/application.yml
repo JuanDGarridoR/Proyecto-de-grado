@@ -64,6 +64,25 @@ spring:
               filters:
                 - JwtAuth
 
+            # Medicamentos, citas médicas y datos de salud que el acompañante
+            # gestiona por una persona mayor (salud-service). Van antes de
+            # acompanante-service porque /api/acompanante/** las capturaría.
+            - id: acompanante-salud
+              uri: http://localhost:8084
+              predicates:
+                - Path=/api/acompanante/personas-mayores/*/medicamentos/**,/api/acompanante/personas-mayores/*/citas-medicas/**,/api/acompanante/personas-mayores/*/condiciones-salud/**
+              filters:
+                - JwtAuth
+
+            # Perfil de una persona mayor editado por su acompañante
+            # (auth-service, dueño de la tabla usuario).
+            - id: acompanante-informacion-persona-mayor
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/acompanante/personas-mayores/*/informacion
+              filters:
+                - JwtAuth
+
             # Personas mayores a cargo del acompañante y su seguimiento.
             - id: acompanante-service
               uri: http://localhost:8086

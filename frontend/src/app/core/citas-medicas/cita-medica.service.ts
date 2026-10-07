@@ -119,27 +119,37 @@ export function tiempoParaCita(cita: CitaMedica, ahora: Date = new Date()): stri
   return `en ${dias} ${dias === 1 ? 'día' : 'días'}`;
 }
 
-/** Citas médicas de la persona mayor autenticada (salud-service). */
+/**
+ * Citas médicas (salud-service). Sin idPersonaMayor son las de la persona
+ * mayor autenticada; con él, las de una persona mayor que gestiona el
+ * acompañante autenticado.
+ */
 @Injectable({ providedIn: 'root' })
 export class CitaMedicaService {
 
-  private readonly apiUrl = 'http://localhost:8080/api/persona-mayor/citas-medicas';
+  private readonly apiUrl = 'http://localhost:8080/api';
 
   constructor(private http: HttpClient) {}
 
-  listar(): Observable<CitaMedica[]> {
-    return this.http.get<CitaMedica[]>(this.apiUrl);
+  private url(idPersonaMayor?: number | null): string {
+    return idPersonaMayor
+      ? `${this.apiUrl}/acompanante/personas-mayores/${idPersonaMayor}/citas-medicas`
+      : `${this.apiUrl}/persona-mayor/citas-medicas`;
   }
 
-  crear(request: CitaMedicaRequest): Observable<CitaMedica> {
-    return this.http.post<CitaMedica>(this.apiUrl, request);
+  listar(idPersonaMayor?: number | null): Observable<CitaMedica[]> {
+    return this.http.get<CitaMedica[]>(this.url(idPersonaMayor));
   }
 
-  actualizar(id: number, request: CitaMedicaRequest): Observable<CitaMedica> {
-    return this.http.put<CitaMedica>(`${this.apiUrl}/${id}`, request);
+  crear(request: CitaMedicaRequest, idPersonaMayor?: number | null): Observable<CitaMedica> {
+    return this.http.post<CitaMedica>(this.url(idPersonaMayor), request);
   }
 
-  eliminar(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  actualizar(id: number, request: CitaMedicaRequest, idPersonaMayor?: number | null): Observable<CitaMedica> {
+    return this.http.put<CitaMedica>(`${this.url(idPersonaMayor)}/${id}`, request);
+  }
+
+  eliminar(id: number, idPersonaMayor?: number | null): Observable<void> {
+    return this.http.delete<void>(`${this.url(idPersonaMayor)}/${id}`);
   }
 }

@@ -219,6 +219,12 @@ export const routes: Routes = [
       },
 
       {
+        path: 'gestion',
+        loadComponent: () =>
+          import('./pages/dashboard/acompanante/gestion/gestion').then((m) => m.GestionCuidado),
+      },
+
+      {
         path: 'actividades',
         loadComponent: () =>
           import('./pages/dashboard/acompanante/actividades/actividades').then(

@@ -1,0 +1,134 @@
+<!-- Cargando y error -->
+@if (cargando()) {
+  <p class="perfil__estado">Cargando el perfil...</p>
+} @else if (errorCarga()) {
+  <div class="perfil__estado perfil__estado--error" role="alert">
+    {{ errorCarga() }}
+    <button type="button" class="perfil__reintentar" (click)="reintentar()">Reintentar</button>
+  </div>
+} @else if (perfil(); as p) {
+
+  <div class="perfil__encabezado">
+    <div>
+      <h2>Datos personales</h2>
+      <p>Completa o corrige los datos de {{ p.nombre }}.</p>
+    </div>
+    @if (!editando()) {
+      <button type="button" class="perfil__boton perfil__boton--primario" (click)="abrirEdicion()">
+        <app-icon name="pen" />
+        Editar perfil
+      </button>
+    }
+  </div>
+
+  @if (guardadoExitoso()) {
+    <p class="perfil__exito" role="status">
+      <app-icon name="check-circle" />
+      Los cambios se guardaron.
+    </p>
+  }
+
+  @if (!editando()) {
+    <!-- Vista de los datos -->
+    <dl class="perfil__grid">
+      <div class="perfil__campo">
+        <dt>Nombre</dt>
+        <dd>{{ p.nombre }}</dd>
+      </div>
+      <div class="perfil__campo">
+        <dt>Celular</dt>
+        <dd>{{ p.celular || 'No registrado' }}</dd>
+      </div>
+      <div class="perfil__campo">
+        <dt>Correo electrónico</dt>
+        <dd>{{ p.correo || 'No registrado' }}</dd>
+      </div>
+      <div class="perfil__campo">
+        <dt>Fecha de nacimiento</dt>
+        <dd [class.perfil__vacio]="!p.fechaNacimiento">{{ fechaConEdad(p.fechaNacimiento) || 'No registrada' }}</dd>
+      </div>
+      <div class="perfil__campo">
+        <dt>Género</dt>
+        <dd [class.perfil__vacio]="!p.genero">{{ p.genero || 'No registrado' }}</dd>
+      </div>
+      <div class="perfil__campo">
+        <dt>Dirección</dt>
+        <dd [class.perfil__vacio]="!p.direccion">{{ p.direccion || 'No registrada' }}</dd>
+      </div>
+      <div class="perfil__campo">
+        <dt>EPS</dt>
+        <dd [class.perfil__vacio]="!p.eps">{{ p.eps || 'No registrada' }}</dd>
+      </div>
+      <div class="perfil__campo">
+        <dt>IPS</dt>
+        <dd [class.perfil__vacio]="!p.ips">{{ p.ips || 'No registrada' }}</dd>
+      </div>
+      <div class="perfil__campo">
+        <dt>Dirección de la IPS</dt>
+        <dd [class.perfil__vacio]="!p.direccionIps">{{ p.direccionIps || 'No registrada' }}</dd>
+      </div>
+    </dl>
+  } @else {
+    <!-- Formulario de edición -->
+    <form class="perfil__form" (ngSubmit)="guardar()">
+      <div class="perfil__grid">
+        <div class="perfil__campo">
+          <label for="perfilNombre">Nombre *</label>
+          <input id="perfilNombre" name="nombre" type="text" maxlength="120" [(ngModel)]="formulario.nombre" />
+        </div>
+        <div class="perfil__campo">
+          <label for="perfilFecha">Fecha de nacimiento</label>
+          <input id="perfilFecha" name="fechaNacimiento" type="date" [(ngModel)]="formulario.fechaNacimiento" />
+        </div>
+        <div class="perfil__campo">
+          <label for="perfilGenero">Género</label>
+          <select id="perfilGenero" name="genero" [(ngModel)]="formulario.genero">
+            <option value="">Selecciona una opción</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="perfil__campo">
+          <label for="perfilDireccion">Dirección</label>
+          <input id="perfilDireccion" name="direccion" type="text" maxlength="200"
+                 [(ngModel)]="formulario.direccion" placeholder="Ej.: Calle 100 Sur # 1-10" />
+        </div>
+        <div class="perfil__campo">
+          <label for="perfilEps">EPS</label>
+          <input id="perfilEps" name="eps" type="text" maxlength="120"
+                 [(ngModel)]="formulario.eps" placeholder="Ej.: Capital Salud, Nueva EPS" />
+        </div>
+        <div class="perfil__campo">
+          <label for="perfilIps">IPS</label>
+          <input id="perfilIps" name="ips" type="text" maxlength="120"
+                 [(ngModel)]="formulario.ips" placeholder="Ej.: USS Usme" />
+        </div>
+        <div class="perfil__campo">
+          <label for="perfilDireccionIps">Dirección de la IPS</label>
+          <input id="perfilDireccionIps" name="direccionIps" type="text" maxlength="200"
+                 [(ngModel)]="formulario.direccionIps" placeholder="Ej.: Calle 137 Sur # 13-50" />
+        </div>
+      </div>
+
+      <p class="perfil__nota">
+        <app-icon name="info" />
+        El celular y el correo solo los puede cambiar {{ p.nombre }}, porque con ellos inicia sesión.
+      </p>
+
+      @if (errorGuardado()) {
+        <p class="perfil__estado perfil__estado--error" role="alert">{{ errorGuardado() }}</p>
+      }
+
+      <div class="perfil__acciones">
+        <button type="button" class="perfil__boton perfil__boton--secundario"
+                [disabled]="guardando()" (click)="cancelarEdicion()">
+          Cancelar
+        </button>
+        <button type="submit" class="perfil__boton perfil__boton--primario" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </form>
+  }
+}

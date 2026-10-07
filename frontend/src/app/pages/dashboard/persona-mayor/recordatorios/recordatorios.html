@@ -1,15 +1,17 @@
-<!-- Encabezado -->
-<div class="page-header">
-  <h1>Recordatorios</h1>
-  <p>Administra tus medicamentos y cada cuánto te avisamos que los tomes.</p>
-</div>
+<!-- Encabezado (el acompañante ya tiene el de "Gestionar cuidado") -->
+@if (!paraAcompanante()) {
+  <div class="page-header">
+    <h1>Recordatorios</h1>
+    <p>Administra tus medicamentos y cada cuánto te avisamos que los tomes.</p>
+  </div>
+}
 
 <!-- Cargando y error -->
 @if (cargando()) {
   <div class="estado-card">
     <span class="estado-card__icon"><app-icon name="hourglass" /></span>
     <div>
-      <h2>Cargando tus medicamentos...</h2>
+      <h2>{{ paraAcompanante() ? 'Cargando los medicamentos...' : 'Cargando tus medicamentos...' }}</h2>
     </div>
   </div>
 }
@@ -26,7 +28,9 @@
 
   <section class="section-block">
     <div class="section-block__header">
-      <h2 class="section-block__title">Tus medicamentos</h2>
+      <h2 class="section-block__title">
+        {{ paraAcompanante() ? 'Medicamentos de ' + nombrePersona() : 'Tus medicamentos' }}
+      </h2>
       <button type="button" class="btn btn-primary" (click)="abrirFormularioNuevo()">
         + Agregar medicamento
       </button>
@@ -99,7 +103,8 @@
           </div>
 
           <p class="medicamento-card__aviso">
-            Te avisaremos {{ minutosAvisoPrevio }} minutos antes y a la hora exacta.
+            {{ paraAcompanante() ? 'Le avisaremos' : 'Te avisaremos' }}
+            {{ minutosAvisoPrevio }} minutos antes y a la hora exacta.
           </p>
 
           <div class="medicamento-card__acciones">
@@ -114,8 +119,13 @@
       } @empty {
         <div class="empty-card">
           <span><app-icon name="pill" /></span>
-          <h3>Aún no tienes medicamentos registrados</h3>
-          <p>Agrega uno para empezar a recibir recordatorios por SMS.</p>
+          @if (paraAcompanante()) {
+            <h3>{{ nombrePersona() }} aún no tiene medicamentos registrados</h3>
+            <p>Agrega uno para que empiece a recibir recordatorios por SMS.</p>
+          } @else {
+            <h3>Aún no tienes medicamentos registrados</h3>
+            <p>Agrega uno para empezar a recibir recordatorios por SMS.</p>
+          }
         </div>
       }
     </div>
@@ -135,11 +145,19 @@
       <label class="form-label" for="dosis">Dosis</label>
       <input id="dosis" name="dosis" type="text" class="form-input" [(ngModel)]="dosis" placeholder="Ej. 50mg" />
 
-      <label class="form-label" for="hora">¿A qué hora te lo tomas?</label>
-      <p class="form-hint" id="hora-ayuda">
-        Si ya lo estás tomando, pon la hora de la última vez que te lo tomaste.
-        Si es nuevo, pon la hora en que te lo vas a tomar por primera vez.
-      </p>
+      @if (paraAcompanante()) {
+        <label class="form-label" for="hora">¿A qué hora se lo toma?</label>
+        <p class="form-hint" id="hora-ayuda">
+          Si ya lo está tomando, pon la hora de la última vez que se lo tomó.
+          Si es nuevo, pon la hora en que se lo va a tomar por primera vez.
+        </p>
+      } @else {
+        <label class="form-label" for="hora">¿A qué hora te lo tomas?</label>
+        <p class="form-hint" id="hora-ayuda">
+          Si ya lo estás tomando, pon la hora de la última vez que te lo tomaste.
+          Si es nuevo, pon la hora en que te lo vas a tomar por primera vez.
+        </p>
+      }
       <input
         id="hora"
         name="hora"
@@ -150,7 +168,9 @@
         (click)="abrirSelectorHora($event)"
       />
 
-      <label class="form-label" for="intervaloHoras">¿Cada cuántas horas te lo tomas?</label>
+      <label class="form-label" for="intervaloHoras">
+        {{ paraAcompanante() ? '¿Cada cuántas horas se lo toma?' : '¿Cada cuántas horas te lo tomas?' }}
+      </label>
       <select
         id="intervaloHoras"
         name="intervaloHoras"
@@ -167,7 +187,7 @@
       </select>
       @if (intervaloHoras && hora) {
         <p class="form-hint form-hint--resumen" id="intervalo-ayuda">
-          Te lo recordaremos cada {{ intervaloHoras }} {{ intervaloHoras === 1 ? 'hora' : 'horas' }}
+          {{ paraAcompanante() ? 'Se lo recordaremos' : 'Te lo recordaremos' }} cada {{ intervaloHoras }} {{ intervaloHoras === 1 ? 'hora' : 'horas' }}
           a partir de las {{ formatearHora(hora) }}.
         </p>
       }

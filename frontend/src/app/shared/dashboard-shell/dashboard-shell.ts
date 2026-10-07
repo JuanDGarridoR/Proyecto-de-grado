@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostListener, Input, OnDestroy, OnInit, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { IsActiveMatchOptions, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { Icon } from '../icon/icon';
 import { alCambiar } from '../../core/tiempo-real/tiempo-real.service';
@@ -48,6 +48,17 @@ export class DashboardShell implements OnInit, OnDestroy {
   @Input() accessible = false;
 
   menuUsuarioAbierto = false;
+
+  /**
+   * La opción del menú se marca solo con la ruta exacta, sin mirar los
+   * parámetros: "Gestionar cuidado" se abre a veces con ?persona=<id>.
+   */
+  protected readonly opcionesEnlaceActivo: IsActiveMatchOptions = {
+    paths: 'exact',
+    queryParams: 'ignored',
+    matrixParams: 'ignored',
+    fragment: 'ignored'
+  };
 
   // Notificaciones (campanita)
   protected readonly notificaciones = signal<Notificacion[]>([]);

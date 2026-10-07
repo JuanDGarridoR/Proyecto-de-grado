@@ -1,18 +1,22 @@
 <section class="salud" aria-labelledby="datosSaludTitle">
   <div class="salud__encabezado">
     <h2 id="datosSaludTitle">Datos de salud</h2>
-    <p>
-      Registra tus enfermedades, alergias y discapacidades. Es opcional: agrega solo lo que
-      quieras compartir.
-    </p>
+    @if (paraAcompanante()) {
+      <p>Registra sus enfermedades, alergias y discapacidades. Ningún dato es obligatorio.</p>
+    } @else {
+      <p>
+        Registra tus enfermedades, alergias y discapacidades. Es opcional: agrega solo lo que
+        quieras compartir.
+      </p>
+    }
   </div>
 
   <!-- Cargando y error -->
   @if (cargando()) {
-    <p class="salud__estado">Cargando tus datos de salud...</p>
+    <p class="salud__estado">Cargando los datos de salud...</p>
   } @else if (errorCarga()) {
     <div class="salud__estado salud__estado--error">
-      No se pudieron cargar tus datos de salud.
+      No se pudieron cargar los datos de salud.
       <button type="button" class="salud__reintentar" (click)="cargar()">Reintentar</button>
     </div>
   } @else {

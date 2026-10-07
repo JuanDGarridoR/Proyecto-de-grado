@@ -31,31 +31,42 @@ export interface CondicionSaludRequest {
   detalle: string | null;
 }
 
-/** Datos de salud de la persona mayor autenticada (salud-service). */
+/**
+ * Datos de salud (salud-service). Sin idPersonaMayor son los de la persona
+ * mayor autenticada; con él, los de una persona mayor que gestiona el
+ * acompañante autenticado.
+ */
 @Injectable({ providedIn: 'root' })
 export class CondicionSaludService {
 
-  private readonly apiUrl = 'http://localhost:8080/api/persona-mayor/condiciones-salud';
+  private readonly apiUrl = 'http://localhost:8080/api';
 
   constructor(private http: HttpClient) {}
 
+  private url(idPersonaMayor?: number | null): string {
+    return idPersonaMayor
+      ? `${this.apiUrl}/acompanante/personas-mayores/${idPersonaMayor}/condiciones-salud`
+      : `${this.apiUrl}/persona-mayor/condiciones-salud`;
+  }
+
+  /** El catálogo es el mismo para todos. */
   catalogo(): Observable<CondicionSalud[]> {
-    return this.http.get<CondicionSalud[]>(`${this.apiUrl}/catalogo`);
+    return this.http.get<CondicionSalud[]>(`${this.apiUrl}/persona-mayor/condiciones-salud/catalogo`);
   }
 
-  listar(): Observable<CondicionSaludRegistrada[]> {
-    return this.http.get<CondicionSaludRegistrada[]>(this.apiUrl);
+  listar(idPersonaMayor?: number | null): Observable<CondicionSaludRegistrada[]> {
+    return this.http.get<CondicionSaludRegistrada[]>(this.url(idPersonaMayor));
   }
 
-  crear(request: CondicionSaludRequest): Observable<CondicionSaludRegistrada> {
-    return this.http.post<CondicionSaludRegistrada>(this.apiUrl, request);
+  crear(request: CondicionSaludRequest, idPersonaMayor?: number | null): Observable<CondicionSaludRegistrada> {
+    return this.http.post<CondicionSaludRegistrada>(this.url(idPersonaMayor), request);
   }
 
-  actualizar(id: number, request: CondicionSaludRequest): Observable<CondicionSaludRegistrada> {
-    return this.http.put<CondicionSaludRegistrada>(`${this.apiUrl}/${id}`, request);
+  actualizar(id: number, request: CondicionSaludRequest, idPersonaMayor?: number | null): Observable<CondicionSaludRegistrada> {
+    return this.http.put<CondicionSaludRegistrada>(`${this.url(idPersonaMayor)}/${id}`, request);
   }
 
-  eliminar(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  eliminar(id: number, idPersonaMayor?: number | null): Observable<void> {
+    return this.http.delete<void>(`${this.url(idPersonaMayor)}/${id}`);
   }
 }

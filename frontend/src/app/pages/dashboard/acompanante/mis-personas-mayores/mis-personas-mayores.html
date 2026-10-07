@@ -173,6 +173,15 @@
             [celular]="persona.celular"
           >
             <div card-actions class="person-card-actions">
+              <a
+                class="person-card-action"
+                routerLink="/panel/acompanante/gestion"
+                [queryParams]="{ persona: persona.idUsuario }"
+              >
+                <app-icon name="clipboard" />
+                Gestionar cuidado
+              </a>
+
               <button
                 type="button"
                 class="person-card-action"

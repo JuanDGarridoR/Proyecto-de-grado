@@ -62,6 +62,31 @@ export interface MedicamentoSeguimiento {
   activo: boolean;
 }
 
+/** Perfil de una persona mayor que el acompañante puede ver y editar (auth-service). */
+export interface PerfilPersonaMayor {
+  idUsuario: number;
+  nombre: string;
+  celular: string;
+  correo: string | null;
+  fechaNacimiento: string | null;
+  genero: string | null;
+  direccion: string | null;
+  eps: string | null;
+  ips: string | null;
+  direccionIps: string | null;
+}
+
+/** El correo y el celular no se envían: solo la persona mayor los cambia. */
+export interface ActualizarPerfilPersonaMayorRequest {
+  nombre: string;
+  fechaNacimiento: string | null;
+  genero: string | null;
+  direccion: string | null;
+  eps: string | null;
+  ips: string | null;
+  direccionIps: string | null;
+}
+
 /** Resumen de una actividad que puede ver el acompañante. */
 export interface Actividad {
   idActividad: number;
@@ -277,6 +302,23 @@ actualizarInformacion(
   ): Observable<AcompananteResumen[]> {
     return this.http.get<AcompananteResumen[]>(
       `${this.apiUrl}/acompanante/seguimiento/${idPersonaMayor}/contactos`
+    );
+  }
+
+  /** Perfil de una persona mayor que el usuario acompaña. */
+  obtenerPerfilPersonaMayor(idPersonaMayor: number): Observable<PerfilPersonaMayor> {
+    return this.http.get<PerfilPersonaMayor>(
+      `${this.apiUrl}/acompanante/personas-mayores/${idPersonaMayor}/informacion`
+    );
+  }
+
+  actualizarPerfilPersonaMayor(
+    idPersonaMayor: number,
+    datos: ActualizarPerfilPersonaMayorRequest
+  ): Observable<PerfilPersonaMayor> {
+    return this.http.put<PerfilPersonaMayor>(
+      `${this.apiUrl}/acompanante/personas-mayores/${idPersonaMayor}/informacion`,
+      datos
     );
   }
 

@@ -1,8 +1,13 @@
 <!-- Encabezado -->
 <header class="page-header">
   <div>
-    <h1>Citas médicas</h1>
-    <p>Registra tus citas y te las recordaremos {{ textoAvisos }}.</p>
+    @if (paraAcompanante()) {
+      <h2 class="page-header__titulo-acompanante">Citas médicas de {{ nombrePersona() }}</h2>
+      <p>Registra sus citas y se las recordaremos {{ textoAvisos }}.</p>
+    } @else {
+      <h1>Citas médicas</h1>
+      <p>Registra tus citas y te las recordaremos {{ textoAvisos }}.</p>
+    }
   </div>
 
   <button type="button" class="btn btn-primary" (click)="abrirFormularioNuevo()">
@@ -15,7 +20,7 @@
 @if (cargando()) {
   <div class="estado-card">
     <span class="estado-card__icon"><app-icon name="hourglass" /></span>
-    <h2>Cargando tus citas médicas...</h2>
+    <h2>{{ paraAcompanante() ? 'Cargando las citas médicas...' : 'Cargando tus citas médicas...' }}</h2>
   </div>
 }
 
@@ -107,8 +112,13 @@
       } @empty {
         <div class="empty-card">
           <span class="empty-card__icon"><app-icon name="stethoscope" /></span>
-          <h3>No tienes citas próximas</h3>
-          <p>Cuando te asignen una cita, regístrala aquí para recibir los recordatorios por SMS.</p>
+          @if (paraAcompanante()) {
+            <h3>{{ nombrePersona() }} no tiene citas próximas</h3>
+            <p>Cuando le asignen una cita, regístrala aquí para que reciba los recordatorios por SMS.</p>
+          } @else {
+            <h3>No tienes citas próximas</h3>
+            <p>Cuando te asignen una cita, regístrala aquí para recibir los recordatorios por SMS.</p>
+          }
           <button type="button" class="btn btn-primary" (click)="abrirFormularioNuevo()">
             <app-icon name="plus" />
             Registrar cita
@@ -273,7 +283,7 @@
       } @else if (fecha && hora) {
         <p class="form-hint">
           <app-icon name="bell" />
-          Te la recordaremos {{ textoAvisos }}.
+          {{ paraAcompanante() ? 'Se la recordaremos' : 'Te la recordaremos' }} {{ textoAvisos }}.
         </p>
       }
 

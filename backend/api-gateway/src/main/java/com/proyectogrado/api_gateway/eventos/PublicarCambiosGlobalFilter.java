@@ -62,6 +62,13 @@ public class PublicarCambiosGlobalFilter implements GlobalFilter, Ordered {
         RECURSOS_POR_RUTA.put("/api/persona-mayor/signos-vitales/**", "signos-vitales");
         RECURSOS_POR_RUTA.put("/api/organizacion/signos-vitales/**", "signos-vitales");
 
+        // Lo que el acompañante gestiona por la persona mayor. Tienen que ir
+        // antes de /api/acompanante/**.
+        RECURSOS_POR_RUTA.put("/api/acompanante/personas-mayores/*/medicamentos/**", "medicamentos");
+        RECURSOS_POR_RUTA.put("/api/acompanante/personas-mayores/*/citas-medicas/**", "citas-medicas");
+        RECURSOS_POR_RUTA.put("/api/acompanante/personas-mayores/*/condiciones-salud/**", "condiciones-salud");
+        RECURSOS_POR_RUTA.put("/api/acompanante/personas-mayores/*/informacion", "usuarios");
+
         RECURSOS_POR_RUTA.put("/api/persona-mayor/acompanantes/**", "acompanamientos");
         RECURSOS_POR_RUTA.put("/api/acompanante/**", "acompanamientos");
 

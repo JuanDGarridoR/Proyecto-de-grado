@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import {
@@ -26,11 +26,11 @@ interface SeccionSalud {
 
 const SECCIONES: SeccionSalud[] = [
   { tipo: 'ENFERMEDAD', titulo: 'Enfermedades', singular: 'enfermedad', etiqueta: 'Enfermedad', icono: 'stethoscope',
-    vacio: 'No has registrado enfermedades.', etiquetaSeveridad: 'Severidad' },
+    vacio: 'Sin enfermedades registradas.', etiquetaSeveridad: 'Severidad' },
   { tipo: 'ALERGIA', titulo: 'Alergias', singular: 'alergia', etiqueta: 'Alergia', icono: 'alert-circle',
-    vacio: 'No has registrado alergias.', etiquetaSeveridad: 'Severidad' },
+    vacio: 'Sin alergias registradas.', etiquetaSeveridad: 'Severidad' },
   { tipo: 'DISCAPACIDAD', titulo: 'Discapacidades', singular: 'discapacidad', etiqueta: 'Discapacidad', icono: 'user',
-    vacio: 'No has registrado discapacidades.', etiquetaSeveridad: 'Grado' }
+    vacio: 'Sin discapacidades registradas.', etiquetaSeveridad: 'Grado' }
 ];
 
 const SEVERIDADES: { valor: SeveridadCondicion; texto: string }[] = [
@@ -50,6 +50,9 @@ interface GrupoOpciones {
  * enfermedades, alergias y discapacidades. Todas son opcionales y se
  * eligen de un catálogo de salud-service, para que la analítica pueda
  * agruparlas; la opción "Otra" permite escribir lo que no esté en la lista.
+ *
+ * El acompañante usa esta misma sección en "Gestionar cuidado", con
+ * idPersonaMayor, para registrar los datos de una persona que acompaña.
  */
 @Component({
   selector: 'app-datos-salud',
@@ -57,9 +60,14 @@ interface GrupoOpciones {
   templateUrl: './datos-salud.html',
   styleUrl: './datos-salud.css'
 })
-export class DatosSalud implements OnInit {
+export class DatosSalud {
 
   private condicionSaludService = inject(CondicionSaludService);
+
+  /** Persona mayor que gestiona el acompañante; null si es la persona mayor autenticada. */
+  readonly idPersonaMayor = input<number | null>(null);
+
+  protected readonly paraAcompanante = computed(() => this.idPersonaMayor() !== null);
 
   protected readonly secciones = SECCIONES;
   protected readonly severidades = SEVERIDADES;
@@ -86,10 +94,12 @@ export class DatosSalud implements OnInit {
 
   constructor() {
     alCambiar(['condiciones-salud'], () => this.cargarRegistros());
-  }
 
-  ngOnInit(): void {
-    this.cargar();
+    // Carga al iniciar y cada vez que el acompañante cambia de persona.
+    effect(() => {
+      this.idPersonaMayor();
+      untracked(() => this.cargar());
+    });
   }
 
   protected cargar(): void {
@@ -106,8 +116,14 @@ export class DatosSalud implements OnInit {
   }
 
   private cargarRegistros(): void {
-    this.condicionSaludService.listar().subscribe({
+    const idPersonaMayor = this.idPersonaMayor();
+
+    this.condicionSaludService.listar(idPersonaMayor).subscribe({
       next: (registros) => {
+        // Si el acompañante cambió de persona mientras llegaba la respuesta, ya no sirve.
+        if (idPersonaMayor !== this.idPersonaMayor()) {
+          return;
+        }
         this.registros.set(registros);
         this.cargando.set(false);
       },
@@ -229,8 +245,8 @@ export class DatosSalud implements OnInit {
     this.errorFormulario.set('');
 
     const peticion = editando
-      ? this.condicionSaludService.actualizar(editando.idPersonaMayorCondicionSalud, request)
-      : this.condicionSaludService.crear(request);
+      ? this.condicionSaludService.actualizar(editando.idPersonaMayorCondicionSalud, request, this.idPersonaMayor())
+      : this.condicionSaludService.crear(request, this.idPersonaMayor());
 
     peticion.subscribe({
       next: (guardado) => {
@@ -260,7 +276,7 @@ export class DatosSalud implements OnInit {
     this.quitando.set(true);
     this.errorLista.set('');
 
-    this.condicionSaludService.eliminar(registro.idPersonaMayorCondicionSalud).subscribe({
+    this.condicionSaludService.eliminar(registro.idPersonaMayorCondicionSalud, this.idPersonaMayor()).subscribe({
       next: () => {
         this.registros.update((registros) =>
           registros.filter((r) => r.idPersonaMayorCondicionSalud !== registro.idPersonaMayorCondicionSalud));

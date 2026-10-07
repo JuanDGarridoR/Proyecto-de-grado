@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, effect, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   CitaMedicaService,
@@ -32,6 +32,9 @@ interface PartesFecha {
  * registran citas futuras, y las pasadas no se editan (sí se pueden
  * borrar). salud-service envía los recordatorios por SMS un día antes y
  * una hora antes.
+ *
+ * El acompañante usa esta misma vista dentro de "Gestionar cuidado": con
+ * idPersonaMayor gestiona las citas de esa persona.
  */
 @Component({
   selector: 'app-citas-medicas',
@@ -41,6 +44,13 @@ interface PartesFecha {
   styleUrl: './citas-medicas.css'
 })
 export class CitasMedicas implements OnInit, OnDestroy {
+
+  /** Persona mayor que gestiona el acompañante; null si es la persona mayor autenticada. */
+  readonly idPersonaMayor = input<number | null>(null);
+  /** Nombre de esa persona, para los textos del acompañante. */
+  readonly nombrePersona = input('');
+
+  protected readonly paraAcompanante = computed(() => this.idPersonaMayor() !== null);
 
   protected readonly textoAvisos = TEXTO_AVISOS_CITA;
   protected readonly formatearHora = formatearHora;
@@ -83,10 +93,15 @@ export class CitasMedicas implements OnInit, OnDestroy {
 
   constructor(private citaMedicaService: CitaMedicaService) {
     alCambiar(['citas-medicas'], () => this.cargar(false));
+
+    // Carga al iniciar y cada vez que el acompañante cambia de persona.
+    effect(() => {
+      this.idPersonaMayor();
+      untracked(() => this.cargar());
+    });
   }
 
   ngOnInit(): void {
-    this.cargar();
     this.intervaloReloj = setInterval(() => this.ahora.set(new Date()), 60_000);
   }
 
@@ -101,13 +116,21 @@ export class CitasMedicas implements OnInit, OnDestroy {
     }
     this.error.set(null);
 
-    this.citaMedicaService.listar().subscribe({
+    const idPersonaMayor = this.idPersonaMayor();
+
+    this.citaMedicaService.listar(idPersonaMayor).subscribe({
       next: (citas) => {
+        // Si el acompañante cambió de persona mientras llegaba la respuesta, ya no sirve.
+        if (idPersonaMayor !== this.idPersonaMayor()) {
+          return;
+        }
         this.citas.set(citas);
         this.cargando.set(false);
       },
       error: () => {
-        this.error.set('No se pudieron cargar tus citas médicas.');
+        this.error.set(this.paraAcompanante()
+          ? 'No se pudieron cargar las citas médicas.'
+          : 'No se pudieron cargar tus citas médicas.');
         this.cargando.set(false);
       }
     });
@@ -219,8 +242,8 @@ export class CitasMedicas implements OnInit, OnDestroy {
 
     const idEditando = this.idEditando();
     const peticion = idEditando
-      ? this.citaMedicaService.actualizar(idEditando, request)
-      : this.citaMedicaService.crear(request);
+      ? this.citaMedicaService.actualizar(idEditando, request, this.idPersonaMayor())
+      : this.citaMedicaService.crear(request, this.idPersonaMayor());
 
     peticion.subscribe({
       next: () => {
@@ -245,7 +268,7 @@ export class CitasMedicas implements OnInit, OnDestroy {
       return;
     }
 
-    this.citaMedicaService.eliminar(cita.idCita).subscribe({
+    this.citaMedicaService.eliminar(cita.idCita, this.idPersonaMayor()).subscribe({
       next: () => this.cargar(false),
       error: () => this.error.set('No se pudo eliminar la cita.')
     });

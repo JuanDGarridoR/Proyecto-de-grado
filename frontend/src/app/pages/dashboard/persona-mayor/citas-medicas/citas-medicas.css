@@ -17,6 +17,13 @@
   color: var(--vita-navy);
 }
 
+/* Dentro de "Gestionar cuidado" (acompañante) el título es de sección */
+.page-header__titulo-acompanante {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--vita-navy);
+}
+
 .page-header p {
   margin-top: 4px;
   color: var(--vita-text-gray);

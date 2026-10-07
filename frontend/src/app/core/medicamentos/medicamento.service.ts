@@ -71,27 +71,37 @@ export function formatearProximaToma(proximaToma: string | null | undefined): st
   return `${fecha.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}, ${hora}`;
 }
 
-/** Medicamentos de la persona mayor autenticada (salud-service). */
+/**
+ * Medicamentos (salud-service). Sin idPersonaMayor son los de la persona
+ * mayor autenticada; con él, los de una persona mayor que gestiona el
+ * acompañante autenticado.
+ */
 @Injectable({ providedIn: 'root' })
 export class MedicamentoService {
 
-  private readonly apiUrl = 'http://localhost:8080/api/persona-mayor/medicamentos';
+  private readonly apiUrl = 'http://localhost:8080/api';
 
   constructor(private http: HttpClient) {}
 
-  listar(): Observable<Medicamento[]> {
-    return this.http.get<Medicamento[]>(this.apiUrl);
+  private url(idPersonaMayor?: number | null): string {
+    return idPersonaMayor
+      ? `${this.apiUrl}/acompanante/personas-mayores/${idPersonaMayor}/medicamentos`
+      : `${this.apiUrl}/persona-mayor/medicamentos`;
   }
 
-  crear(request: MedicamentoRequest): Observable<Medicamento> {
-    return this.http.post<Medicamento>(this.apiUrl, request);
+  listar(idPersonaMayor?: number | null): Observable<Medicamento[]> {
+    return this.http.get<Medicamento[]>(this.url(idPersonaMayor));
   }
 
-  actualizar(id: number, request: MedicamentoRequest): Observable<Medicamento> {
-    return this.http.put<Medicamento>(`${this.apiUrl}/${id}`, request);
+  crear(request: MedicamentoRequest, idPersonaMayor?: number | null): Observable<Medicamento> {
+    return this.http.post<Medicamento>(this.url(idPersonaMayor), request);
   }
 
-  eliminar(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  actualizar(id: number, request: MedicamentoRequest, idPersonaMayor?: number | null): Observable<Medicamento> {
+    return this.http.put<Medicamento>(`${this.url(idPersonaMayor)}/${id}`, request);
+  }
+
+  eliminar(id: number, idPersonaMayor?: number | null): Observable<void> {
+    return this.http.delete<void>(`${this.url(idPersonaMayor)}/${id}`);
   }
 }

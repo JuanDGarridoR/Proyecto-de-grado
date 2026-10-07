@@ -1,0 +1,170 @@
+/* Encabezado */
+
+.perfil__encabezado {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.perfil__encabezado h2 {
+  margin: 0 0 4px;
+  color: var(--vita-navy);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.perfil__encabezado p {
+  margin: 0;
+  color: var(--vita-text-gray);
+}
+
+/* Datos y formulario */
+
+.perfil__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px 28px;
+  margin: 0;
+}
+
+.perfil__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.perfil__campo dt,
+.perfil__campo label {
+  color: var(--vita-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.perfil__campo dd {
+  margin: 0;
+  color: var(--vita-navy);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.perfil__vacio {
+  color: var(--vita-text-gray-light) !important;
+}
+
+.perfil__campo input,
+.perfil__campo select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  border: 1px solid var(--vita-border);
+  border-radius: 9px;
+  background: var(--vita-white);
+  color: var(--vita-navy);
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.perfil__campo input:focus,
+.perfil__campo select:focus {
+  border-color: var(--vita-orange);
+  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.12);
+}
+
+.perfil__nota {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0 0;
+  color: var(--vita-text-gray);
+  font-size: 0.9rem;
+}
+
+/* Botones */
+
+.perfil__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.perfil__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.perfil__boton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.perfil__boton--primario {
+  border: none;
+  background: var(--vita-navy);
+  color: var(--vita-white);
+}
+
+.perfil__boton--secundario {
+  border: 1px solid var(--vita-border);
+  background: var(--vita-white);
+  color: var(--vita-navy);
+}
+
+/* Estados */
+
+.perfil__estado {
+  margin: 16px 0 0;
+  color: var(--vita-text-gray);
+}
+
+.perfil__estado--error {
+  color: #c0392b;
+}
+
+.perfil__reintentar {
+  margin-left: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--vita-navy);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.perfil__exito {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .perfil__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .perfil__grid {
+    grid-template-columns: 1fr;
+  }
+}

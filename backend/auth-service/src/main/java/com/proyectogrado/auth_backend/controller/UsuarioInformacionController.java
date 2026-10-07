@@ -78,17 +78,11 @@ public class UsuarioInformacionController {
 
         String eps = textoOpcional(request.getEps());
         String ips = textoOpcional(request.getIps());
-
-        if ((eps != null && eps.length() > MAX_SALUD) || (ips != null && ips.length() > MAX_SALUD)) {
-            return ResponseEntity.badRequest()
-                    .body("El nombre de la EPS o IPS no puede tener más de " + MAX_SALUD + " caracteres");
-        }
-
         String direccionIps = textoOpcional(request.getDireccionIps());
 
-        if (direccionIps != null && direccionIps.length() > MAX_DIRECCION_IPS) {
-            return ResponseEntity.badRequest()
-                    .body("La dirección de la IPS no puede tener más de " + MAX_DIRECCION_IPS + " caracteres");
+        String errorSalud = validarDatosDeSalud(eps, ips, direccionIps);
+        if (errorSalud != null) {
+            return ResponseEntity.badRequest().body(errorSalud);
         }
 
         String correo = request.getCorreo() == null || request.getCorreo().isBlank()
@@ -172,8 +166,25 @@ usuario = usuarioRepository.save(usuario);
         );
     }
 
+    /**
+     * Revisa el largo de la EPS, la IPS y la dirección de la IPS. Devuelve el
+     * mensaje de error, o null si están bien. También la usa
+     * PersonaMayorAcompananteInformacionController.
+     */
+    static String validarDatosDeSalud(String eps, String ips, String direccionIps) {
+        if ((eps != null && eps.length() > MAX_SALUD) || (ips != null && ips.length() > MAX_SALUD)) {
+            return "El nombre de la EPS o IPS no puede tener más de " + MAX_SALUD + " caracteres";
+        }
+
+        if (direccionIps != null && direccionIps.length() > MAX_DIRECCION_IPS) {
+            return "La dirección de la IPS no puede tener más de " + MAX_DIRECCION_IPS + " caracteres";
+        }
+
+        return null;
+    }
+
     /** Texto sin espacios sobrantes, o null si viene vacío. */
-    private static String textoOpcional(String valor) {
+    static String textoOpcional(String valor) {
         return valor == null || valor.isBlank() ? null : valor.trim();
     }
 }
