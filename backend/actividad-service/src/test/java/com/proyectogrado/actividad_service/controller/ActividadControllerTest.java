@@ -224,6 +224,12 @@ class ActividadControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
 
+        // Voluntario: las de las organizaciones a las que está vinculado.
+        when(usuarioLookupRepository.organizacionesDeVoluntario(VOLUNTARIO)).thenReturn(List.of(ORGANIZACION));
+        mockMvc.perform(get("/api/actividades").header("X-User-Id", VOLUNTARIO))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+
         // Un usuario sin ninguno de esos roles no consulta actividades.
         mockMvc.perform(get("/api/actividades").header("X-User-Id", 77))
                 .andExpect(status().isForbidden());

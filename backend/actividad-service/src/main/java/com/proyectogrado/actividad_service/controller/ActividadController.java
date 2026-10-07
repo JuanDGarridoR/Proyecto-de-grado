@@ -135,6 +135,16 @@ public class ActividadController {
             );
         }
 
+        // Voluntario: actividades de las organizaciones a las que está vinculado.
+        if (esVoluntario(idUsuario)) {
+            return ResponseEntity.ok(
+                    actividadesDe(new HashSet<>(usuarioLookupRepository.organizacionesDeVoluntario(idUsuario)))
+                            .stream()
+                            .map(this::aResponse)
+                            .toList()
+            );
+        }
+
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body("No tienes permisos para consultar actividades");
     }

@@ -18,6 +18,7 @@
   --vita-orange: var(--vita-secundario); /* antiguo acento cálido → secundario */
   --vita-orange-soft: #8fe0d8;
   --vita-gold: var(--vita-acento);
+  --vita-gold-dark: #a16207; /* acento oscurecido: letra blanca legible encima (contraste 4.9:1) */
   --vita-green: var(--vita-secundario); /* estados positivos → teal */
   --vita-teal: var(--vita-secundario);
   --vita-lavender: var(--vita-complemento);

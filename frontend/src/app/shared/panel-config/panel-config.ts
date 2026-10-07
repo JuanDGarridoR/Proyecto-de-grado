@@ -63,7 +63,7 @@ export const PANEL_CONFIG: Record<string, PanelConfig> = {
 
   VOLUNTARIO: {
     roleLabel: 'Voluntario',
-    roleAccent: 'var(--vita-gold)',
+    roleAccent: 'var(--vita-gold-dark)',
     navItems: [
       { icon: 'home', label: 'Inicio', path: '/panel/voluntario' },
       { icon: 'building', label: 'Organizaciones', path: '/panel/voluntario/organizaciones' },
