@@ -26,6 +26,15 @@ INSERT INTO persona_mayor_organizacion VALUES (12, 5, 'PENDIENTE');
 INSERT INTO persona_mayor_organizacion VALUES (14, 5, 'RECHAZADA');
 INSERT INTO persona_mayor_organizacion VALUES (13, 6, 'ACEPTADA');
 
+-- Acompañantes: el 20 acompaña a Rosa y a Luis (cuenta una vez), el 21 a
+-- Luis; el 22 tiene la solicitud pendiente y el 23 acompaña a Pedro (otra
+-- organización).
+INSERT INTO persona_mayor_acompanante VALUES (10, 20, 'ACEPTADA');
+INSERT INTO persona_mayor_acompanante VALUES (11, 20, 'ACEPTADA');
+INSERT INTO persona_mayor_acompanante VALUES (11, 21, 'ACEPTADA');
+INSERT INTO persona_mayor_acompanante VALUES (10, 22, 'PENDIENTE');
+INSERT INTO persona_mayor_acompanante VALUES (13, 23, 'ACEPTADA');
+
 -- Actividades: dos visibles de la organización 5, propuestas pendiente y
 -- rechazada, una sin fecha y una de la organización 6
 INSERT INTO actividad VALUES (100, 5, 'Yoga en el parque', 'Recreativa', '2026-09-10', 20, NULL);

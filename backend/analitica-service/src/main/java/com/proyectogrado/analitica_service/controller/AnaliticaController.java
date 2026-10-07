@@ -206,8 +206,17 @@ public class AnaliticaController {
                  WHERE pg.id_persona_mayor IN (%s)
                 """.formatted(PERSONAS_ASOCIADAS), params, Long.class);
 
+        // Acompañantes distintos con vínculo aceptado a alguna persona de la organización.
+        Long acompanantes = jdbc.queryForObject("""
+                SELECT COUNT(DISTINCT pa.id_acompanante)
+                  FROM persona_mayor_acompanante pa
+                 WHERE pa.estado = 'ACEPTADA'
+                   AND pa.id_persona_mayor IN (%s)
+                """.formatted(PERSONAS_ASOCIADAS), params, Long.class);
+
         return ResponseEntity.ok(new PoblacionAnalitica(
-                personas, intereses, conIntereses != null ? conIntereses : 0));
+                personas, intereses, conIntereses != null ? conIntereses : 0,
+                acompanantes != null ? acompanantes : 0));
     }
 
     /** Organización de la cuenta, o null si el usuario no es una organización. */

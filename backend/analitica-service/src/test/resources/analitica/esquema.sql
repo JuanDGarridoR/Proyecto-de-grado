@@ -25,6 +25,14 @@ CREATE TABLE persona_mayor_organizacion (
     PRIMARY KEY (id_persona_mayor, id_organizacion)
 );
 
+-- acompanante-service
+CREATE TABLE persona_mayor_acompanante (
+    id_persona_mayor INTEGER,
+    id_acompanante   INTEGER,
+    estado           VARCHAR(20),
+    PRIMARY KEY (id_persona_mayor, id_acompanante)
+);
+
 CREATE TABLE gusto (
     id_gusto  INTEGER PRIMARY KEY,
     nombre    VARCHAR(255),

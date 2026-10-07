@@ -65,7 +65,9 @@ class AnaliticaControllerTest {
                 .andExpect(jsonPath("$.personas[1].eps").value("Capital Salud"))
                 .andExpect(jsonPath("$.intereses[*].nombre", contains("Boleros", "Tejer")))
                 .andExpect(jsonPath("$.intereses[0].personas").value(2))
-                .andExpect(jsonPath("$.personasConIntereses").value(2));
+                .andExpect(jsonPath("$.personasConIntereses").value(2))
+                // Acompañantes distintos y aceptados de sus personas (20 y 21).
+                .andExpect(jsonPath("$.acompanantesActivos").value(2));
     }
 
     @Test

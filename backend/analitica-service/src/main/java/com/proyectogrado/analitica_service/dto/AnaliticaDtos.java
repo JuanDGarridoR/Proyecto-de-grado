@@ -68,7 +68,8 @@ public final class AnaliticaDtos {
     public record PoblacionAnalitica(
             List<PersonaPoblacion> personas,
             List<InteresConteo> intereses,
-            long personasConIntereses
+            long personasConIntereses,
+            long acompanantesActivos
     ) {
     }
 }

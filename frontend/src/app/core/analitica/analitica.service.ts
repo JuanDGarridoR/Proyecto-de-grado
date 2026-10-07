@@ -60,6 +60,8 @@ export interface PoblacionAnalitica {
   personas: PersonaPoblacion[];
   intereses: InteresConteo[];
   personasConIntereses: number;
+  /** Acompañantes distintos con vínculo aceptado a alguna persona de la organización. */
+  acompanantesActivos: number;
 }
 
 /** Organización recomendada a la persona mayor (puntaje de 0 a 100). */

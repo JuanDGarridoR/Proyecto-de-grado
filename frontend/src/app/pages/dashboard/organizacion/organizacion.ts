@@ -1,43 +1,63 @@
-import { Component, OnInit, signal } from '@angular/core';
-
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  computed,
+  signal
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { DatePipe, registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es-CO';
 
 import { Icon } from '../../../shared/icon/icon';
-
-import { RouterLink } from '@angular/router';
-
 import {
   ActividadService,
   Actividad,
-  separarPorFecha,
-  ActividadRequest
+  ActividadRequest,
+  PropuestaActividad,
+  separarPorFecha
 } from '../../../core/actividades/actividad.service';
-
+import {
+  ActividadAnalitica,
+  AnaliticaService,
+  MedicionAnalitica,
+  PoblacionAnalitica,
+  SaludAnalitica
+} from '../../../core/analitica/analitica.service';
 import { AuthService } from '../../../core/auth/auth.service';
-import { OrganizacionService } from '../../../core/organizacion/organizacion.service';
+import {
+  OrganizacionService,
+  VoluntarioOrganizacion
+} from '../../../core/organizacion/organizacion.service';
 import { alCambiar } from '../../../core/tiempo-real/tiempo-real.service';
-
-import { PANEL_CONFIG } from '../../../shared/panel-config/panel-config';
-
-import { DatePipe, registerLocaleData } from '@angular/common';
-import localeEs from '@angular/common/locales/es-CO';
+import { NOMBRE_INDICADOR, indicadoresFueraDeRango } from '../../../core/signos-vitales/rangos';
+import { formatearHora } from '../../../core/medicamentos/medicamento.service';
+import { formatearFechaCita } from '../../../core/citas-medicas/cita-medica.service';
 
 registerLocaleData(localeEs);
 
 /** Tarjeta de indicador. */
 interface StatCard {
   icon: string;
-  value: string;
-  delta: string;
+  value: number | null;   // null = cargando o sin datos
   label: string;
+  detalle: string | null;
+  tono: 'normal' | 'alerta';
 }
 
-/** Alerta de la organización. */
+type Prioridad = 'Alta' | 'Media' | 'Baja';
+
+/** Algo que la organización debería atender. */
 interface Alerta {
-  prioridad: 'Alta' | 'Media' | 'Baja';
-  nombre: string;
+  clave: string;
+  prioridad: Prioridad;
+  titulo: string;
   descripcion: string;
-  tiempo: string;
+  enlace: string;
 }
 
 /** Botón de acceso rápido a otra sección del panel. */
@@ -52,33 +72,53 @@ interface AccionRapida {
   abrirFormulario?: boolean;
 }
 
-/** Insumo del inventario. */
-interface Inventario {
+/** Persona que cumple años pronto. */
+interface Cumpleanos {
+  idUsuario: number;
   nombre: string;
-  estado: string;
-  detalle: string;
+  dias: number;
+  edad: number;
+  fecha: string; // YYYY-MM-DD del próximo cumpleaños
 }
 
-/** Donación recibida. */
-interface Donacion {
-  donante: string;
-  tipo: string;
-  valor: string;
-  fecha: string;
-}
+const MINUTO = 60_000;
+const DIA = 24 * 60 * MINUTO;
 
-/** Entrada de la bitácora de cambios. */
-interface Bitacora {
-  usuario: string;
-  accion: string;
-  tiempo: string;
+/** Días hacia atrás del resumen de participación. */
+const DIAS_PARTICIPACION = 30;
+/** Pasados estos días sin medición de signos vitales, se avisa. */
+const DIAS_SIN_MEDICION = 30;
+/** Cumpleaños que se anuncian: los de los próximos días. */
+const DIAS_CUMPLEANOS = 30;
+
+const ORDEN_PRIORIDAD: Record<Prioridad, number> = { Alta: 0, Media: 1, Baja: 2 };
+
+const RUTA = '/panel/organizacion';
+
+/** Formulario vacío de actividad. */
+function actividadVacia(): ActividadRequest {
+  return {
+    nombre: '',
+    descripcion: null,
+    fecha: null,
+    hora: null,
+    lugar: null,
+    tipo: null,
+    cupos: null,
+    responsable: null
+  };
 }
 
 /**
- * Inicio del panel de la organización. Las actividades (con su CRUD rápido)
- * y el nombre de la organización vienen del backend; los indicadores, las
- * alertas, las gráficas, el inventario, las donaciones y la bitácora todavía
- * son datos de ejemplo.
+ * Inicio del panel de la organización:
+ *  1. Saludo e indicadores (personas mayores, acompañantes, voluntarios y
+ *     alertas activas).
+ *  2. Alertas calculadas con sus datos y cumpleaños próximos.
+ *  3. Actividades con registro y edición rápidos.
+ *  4. Acciones rápidas y un resumen de datos (participación del último mes
+ *     e intereses más comunes) que lleva a la Analítica.
+ * Todo sale del backend: analitica-service (población, salud y
+ * participación), voluntario-service y actividad-service.
  */
 @Component({
   selector: 'app-organizacion-dashboard',
@@ -86,171 +126,169 @@ interface Bitacora {
   templateUrl: './organizacion.html',
   styleUrl: './organizacion.css'
 })
-export class OrganizacionDashboard implements OnInit {
+export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
 
-  protected readonly panelConfig = PANEL_CONFIG['ORGANIZACION'];
+  protected readonly ruta = RUTA;
 
-  protected readonly navItems = this.panelConfig.navItems;
-
-  protected readonly fechaActual = new Date();
+  /** Hora actual; se refresca cada minuto (cambio de día, "Hoy"/"Mañana"). */
+  protected readonly ahora = signal(new Date());
+  private intervaloReloj?: ReturnType<typeof setInterval>;
 
   /** Nombre de la organización; se actualiza si lo cambian en "Mi información". */
   protected readonly nombreUsuario = signal('');
 
-  /** Datos de ejemplo. */
-  protected readonly stats: StatCard[] = [
+  protected readonly poblacion = signal<PoblacionAnalitica | null>(null);
+  protected readonly salud = signal<SaludAnalitica | null>(null);
+  /** Actividades de los últimos DIAS_PARTICIPACION días, con inscritos y asistencia. */
+  protected readonly participacion = signal<ActividadAnalitica[] | null>(null);
+  protected readonly voluntarios = signal<VoluntarioOrganizacion[] | null>(null);
+  protected readonly solicitudesVoluntarios = signal<VoluntarioOrganizacion[]>([]);
+  protected readonly propuestas = signal<PropuestaActividad[]>([]);
+
+  protected readonly formatearHora = formatearHora;
+
+  protected readonly accionesRapidas: AccionRapida[] = [
     {
       icon: 'user',
-      value: '2,210',
-      delta: '+12%',
-      label: 'Personas mayores registradas'
+      label: 'Registrar persona mayor',
+      route: `${RUTA}/personas-mayores`,
+      abrirFormulario: true
     },
     {
-      icon: 'users',
-      value: '740',
-      delta: '+8%',
-      label: 'Acompañantes activos'
+      icon: 'activity',
+      label: 'Registrar actividad',
+      route: `${RUTA}/actividades`,
+      abrirFormulario: true
     },
     {
-      icon: 'star',
-      value: '460',
-      delta: '+15%',
-      label: 'Voluntarios en programa'
+      icon: 'heart',
+      label: 'Registrar signos vitales',
+      route: `${RUTA}/signos-vitales`
     },
     {
-      icon: 'bell',
-      value: '12',
-      delta: '3 urgentes',
-      label: 'Alertas activas'
+      icon: 'bar-chart',
+      label: 'Generar reporte',
+      route: `${RUTA}/analitica`
     }
   ];
 
-  /** Datos de ejemplo. */
-  protected readonly alertas: Alerta[] = [
-    {
-      prioridad: 'Alta',
-      nombre: 'Rosa Elvira Gómez',
-      descripcion:
-        'Sin registro de visita hace 15 días. Requiere seguimiento prioritario.',
-      tiempo: 'Hace 2 horas'
-    },
-    {
-      prioridad: 'Alta',
-      nombre: 'Inventario · Losartán 50mg',
-      descripcion:
-        'Stock por debajo del mínimo establecido (4 unidades restantes).',
-      tiempo: 'Hace 5 horas'
-    },
-    {
-      prioridad: 'Media',
-      nombre: 'José Antonio Ruiz',
-      descripcion:
-        'Condición de salud reportada como prioritaria en la última caracterización.',
-      tiempo: 'Ayer'
-    },
-    {
-      prioridad: 'Baja',
-      nombre: 'Kit de vendajes',
-      descripcion:
-        'Próximo a fecha de vencimiento (12 días).',
-      tiempo: 'Ayer'
-    }
-  ];
-
-protected readonly accionesRapidas: AccionRapida[] = [
-  {
-    icon: 'user',
-    label: 'Registrar persona mayor',
-    route: '/panel/organizacion/personas-mayores',
-    abrirFormulario: true
-  },
-  {
-    icon: 'activity',
-    label: 'Registrar actividad',
-    route: '/panel/organizacion/actividades',
-    abrirFormulario: true
-  },
-  {
-    icon: 'heart',
-    label: 'Registrar signos vitales',
-    route: '/panel/organizacion/signos-vitales'
-  },
-  {
-    icon: 'clipboard',
-    label: 'Generar reporte',
-    route: '/panel/organizacion/reportes' // esta ruta todavía no existe
-  }
-];
+  // Actividades (registro y edición rápidos)
 
   protected readonly actividades = signal<Actividad[]>([]);
-
   protected readonly errorActividades = signal<string | null>(null);
 
   /** Formulario rápido de nueva actividad. */
-  protected nuevaActividad: ActividadRequest = {
-  nombre: '',
-  descripcion: null,
-  fecha: null,
-  hora: null,
-  lugar: null,
-  tipo: null,
-  cupos: null,
-  responsable: null
-};
+  protected nuevaActividad: ActividadRequest = actividadVacia();
 
   /** Actividad que se está editando en la lista; null si ninguna. */
   protected actividadEditandoId: number | null = null;
+  protected actividadEditando: ActividadRequest = actividadVacia();
 
-  protected actividadEditando: ActividadRequest = {
-  nombre: '',
-  descripcion: null,
-  fecha: null,
-  hora: null,
-  lugar: null,
-  tipo: null,
-  cupos: null,
-  responsable: null
-};
+  constructor(
+    private elemento: ElementRef<HTMLElement>,
+    private actividadService: ActividadService,
+    private analiticaService: AnaliticaService,
+    private authService: AuthService,
+    private organizacionService: OrganizacionService
+  ) {
+    this.nombreUsuario.set(this.authService.getNombreUsuario());
 
-constructor(
-  private actividadService: ActividadService,
-  private authService: AuthService,
-  private organizacionService: OrganizacionService
-) {
-  this.nombreUsuario.set(this.authService.getNombreUsuario());
+    alCambiar(['actividades'], () => {
+      this.cargarActividades();
+      this.cargarPropuestas();
+      this.cargarParticipacion();
+    });
+    alCambiar(['usuarios'], () => this.cargarInformacionOrganizacion());
+    alCambiar(['organizaciones', 'usuarios', 'acompanamientos', 'gustos'], () => this.cargarPoblacion());
+    alCambiar(['signos-vitales', 'organizaciones'], () => this.cargarSalud());
+    alCambiar(['voluntarios', 'usuarios'], () => this.cargarVoluntarios());
+  }
 
-  alCambiar(['actividades'], () => this.cargarActividades());
-  alCambiar(['usuarios'], () => this.cargarInformacionOrganizacion());
-}
+  ngOnInit(): void {
+    this.intervaloReloj = setInterval(() => this.ahora.set(new Date()), MINUTO);
 
-ngOnInit(): void {
-  this.cargarActividades();
-  this.cargarInformacionOrganizacion();
-}
+    this.cargarInformacionOrganizacion();
+    this.cargarActividades();
+    this.cargarPropuestas();
+    this.cargarParticipacion();
+    this.cargarPoblacion();
+    this.cargarSalud();
+    this.cargarVoluntarios();
+  }
 
+  ngAfterViewInit(): void {
+    this.ajustarAltoPantalla();
+  }
 
-private cargarInformacionOrganizacion(): void {
+  ngOnDestroy(): void {
+    clearInterval(this.intervaloReloj);
+  }
 
-  this.organizacionService.obtenerInformacion().subscribe({
+  /**
+   * En pantallas grandes la página ocupa justo el alto de la ventana (sin
+   * scroll): se calcula cuánto queda debajo de la barra superior y se pasa al
+   * CSS en --alto-disponible. En pantallas pequeñas el CSS no la usa.
+   */
+  @HostListener('window:resize')
+  protected ajustarAltoPantalla(): void {
+    const host = this.elemento.nativeElement;
+    const contenedor = host.parentElement;
+    const inicio = host.getBoundingClientRect().top + window.scrollY;
+    const margenInferior = contenedor ? parseFloat(getComputedStyle(contenedor).paddingBottom) || 0 : 0;
 
-    next: (data) => {
+    host.style.setProperty('--alto-disponible', `${Math.floor(window.innerHeight - inicio - margenInferior)}px`);
+  }
 
-      console.log('NOMBRE DESDE BACKEND:', data.nombre);
+  // Carga de datos
 
-      this.nombreUsuario.set(data.nombre);
+  private cargarInformacionOrganizacion(): void {
+    this.organizacionService.obtenerInformacion().subscribe({
+      next: (data) => this.nombreUsuario.set(data.nombre),
+      error: (error) => console.error('Error al cargar la información de la organización:', error)
+    });
+  }
 
-      console.log('NOMBRE EN DASHBOARD:', this.nombreUsuario);
-    },
+  private cargarPoblacion(): void {
+    this.analiticaService.poblacion().subscribe({
+      next: (poblacion) => this.poblacion.set(poblacion),
+      error: () => this.poblacion.set(null)
+    });
+  }
 
-    error: (error) => {
-      console.error(
-        'Error al cargar la información de la organización:',
-        error
-      );
-    }
+  private cargarSalud(): void {
+    this.analiticaService.salud().subscribe({
+      next: (salud) => this.salud.set(salud),
+      error: () => this.salud.set(null)
+    });
+  }
 
-  });
-}
+  private cargarParticipacion(): void {
+    const hoy = this.ahora();
+    const desde = new Date(hoy.getTime() - DIAS_PARTICIPACION * DIA);
+    this.analiticaService.actividades(this.fechaLocal(desde), this.fechaLocal(hoy)).subscribe({
+      next: (actividades) => this.participacion.set(actividades),
+      error: () => this.participacion.set([])
+    });
+  }
+
+  private cargarVoluntarios(): void {
+    this.organizacionService.obtenerVoluntarios().subscribe({
+      next: (voluntarios) => this.voluntarios.set(voluntarios),
+      error: () => this.voluntarios.set([])
+    });
+
+    this.organizacionService.obtenerSolicitudesVoluntarios().subscribe({
+      next: (solicitudes) => this.solicitudesVoluntarios.set(solicitudes),
+      error: () => this.solicitudesVoluntarios.set([])
+    });
+  }
+
+  private cargarPropuestas(): void {
+    this.actividadService.listarPropuestasPendientes().subscribe({
+      next: (propuestas) => this.propuestas.set(propuestas),
+      error: () => this.propuestas.set([])
+    });
+  }
 
   private cargarActividades(): void {
     this.actividadService.listarMias().subscribe({
@@ -260,12 +298,239 @@ private cargarInformacionOrganizacion(): void {
         this.actividades.set([...proximas, ...pasadas]);
       },
       error: () => {
-        this.errorActividades.set(
-          'No se pudieron cargar las actividades'
-        );
+        this.errorActividades.set('No se pudieron cargar las actividades');
       }
     });
   }
+
+  // Datos derivados
+
+  /** Última medición de cada persona vinculada, por idUsuario. */
+  private readonly ultimaMedicion = computed(() => {
+    const ultimas = new Map<number, MedicionAnalitica>();
+    for (const m of this.salud()?.mediciones ?? []) {
+      const actual = ultimas.get(m.idPersonaMayor);
+      if (!actual || m.fechaHora > actual.fechaHora) {
+        ultimas.set(m.idPersonaMayor, m);
+      }
+    }
+    return ultimas;
+  });
+
+  /**
+   * Alertas calculadas con los datos de la organización:
+   *  - Alta: personas cuya última medición tiene valores fuera de rango.
+   *  - Media: asistencia sin registrar, solicitudes de voluntarios y
+   *    propuestas de actividades por revisar.
+   *  - Baja: personas sin mediciones hace más de DIAS_SIN_MEDICION días.
+   */
+  protected readonly alertas = computed<Alerta[]>(() => {
+    const alertas: Alerta[] = [];
+    const hoy = this.fechaLocal(this.ahora());
+
+    const salud = this.salud();
+    if (salud) {
+      const ultimas = this.ultimaMedicion();
+      const sinMedicion: string[] = [];
+
+      for (const persona of salud.personas) {
+        const ultima = ultimas.get(persona.idUsuario);
+        if (!ultima) {
+          sinMedicion.push(persona.nombre);
+          continue;
+        }
+
+        const fuera = indicadoresFueraDeRango(ultima).map((i) => NOMBRE_INDICADOR[i]);
+        if (fuera.length > 0) {
+          alertas.push({
+            clave: `signos-${persona.idUsuario}`,
+            prioridad: 'Alta',
+            titulo: persona.nombre,
+            descripcion: `${fuera.join(', ')} fuera de lo habitual en su última medición (${this.hace(ultima.fechaHora)}).`,
+            enlace: `${RUTA}/signos-vitales`
+          });
+        }
+
+        if (this.diasDesde(ultima.fechaHora) > DIAS_SIN_MEDICION) {
+          sinMedicion.push(persona.nombre);
+        }
+      }
+
+      // Se agrupan en una sola alerta para no llenar la lista.
+      if (sinMedicion.length > 0) {
+        alertas.push({
+          clave: 'sin-medicion',
+          prioridad: 'Baja',
+          titulo: sinMedicion.length === 1
+            ? `${sinMedicion[0]} no tiene mediciones recientes`
+            : `${sinMedicion.length} personas sin mediciones recientes`,
+          descripcion: `Sin signos vitales registrados en los últimos ${DIAS_SIN_MEDICION} días.`,
+          enlace: `${RUTA}/signos-vitales`
+        });
+      }
+    }
+
+    for (const act of this.participacion() ?? []) {
+      if (act.fecha < hoy && act.inscritos > 0 && act.conRegistro < act.inscritos) {
+        alertas.push({
+          clave: `asistencia-${act.idActividad}`,
+          prioridad: 'Media',
+          titulo: `Asistencia sin registrar: ${act.nombre}`,
+          descripcion: `${this.formatearDia(act.fecha)} · faltan ${act.inscritos - act.conRegistro} de ${act.inscritos} inscritos.`,
+          enlace: `${RUTA}/actividades`
+        });
+      }
+    }
+
+    const solicitudes = this.solicitudesVoluntarios();
+    if (solicitudes.length > 0) {
+      alertas.push({
+        clave: 'solicitudes-voluntarios',
+        prioridad: 'Media',
+        titulo: solicitudes.length === 1
+          ? `${solicitudes[0].nombre} quiere ser voluntario`
+          : `${solicitudes.length} solicitudes de voluntarios`,
+        descripcion: 'Acéptalas o recházalas en la sección Voluntarios.',
+        enlace: `${RUTA}/voluntarios`
+      });
+    }
+
+    const propuestas = this.propuestas();
+    if (propuestas.length > 0) {
+      alertas.push({
+        clave: 'propuestas',
+        prioridad: 'Media',
+        titulo: propuestas.length === 1
+          ? `Propuesta por revisar: ${propuestas[0].nombre}`
+          : `${propuestas.length} propuestas de actividades por revisar`,
+        descripcion: 'Las enviaron voluntarios o personas mayores.',
+        enlace: `${RUTA}/actividades`
+      });
+    }
+
+    return alertas.sort((a, b) => ORDEN_PRIORIDAD[a.prioridad] - ORDEN_PRIORIDAD[b.prioridad]);
+  });
+
+  protected readonly stats = computed<StatCard[]>(() => {
+    const poblacion = this.poblacion();
+    const voluntarios = this.voluntarios();
+    const solicitudes = this.solicitudesVoluntarios().length;
+    const alertas = this.alertas();
+    const urgentes = alertas.filter((a) => a.prioridad === 'Alta').length;
+    const personas = poblacion?.personas.length ?? null;
+
+    return [
+      {
+        icon: 'user',
+        value: personas,
+        label: 'Personas mayores registradas',
+        detalle: poblacion && personas ? `${poblacion.personasConIntereses} con intereses registrados` : null,
+        tono: 'normal'
+      },
+      {
+        icon: 'users',
+        value: poblacion?.acompanantesActivos ?? null,
+        label: 'Acompañantes activos',
+        detalle: null,
+        tono: 'normal'
+      },
+      {
+        icon: 'star',
+        value: voluntarios?.length ?? null,
+        label: 'Voluntarios en el programa',
+        detalle: solicitudes > 0 ? `${solicitudes} ${solicitudes === 1 ? 'solicitud nueva' : 'solicitudes nuevas'}` : null,
+        tono: 'normal'
+      },
+      {
+        icon: 'bell',
+        value: alertas.length,
+        label: 'Alertas activas',
+        detalle: urgentes > 0 ? `${urgentes} ${urgentes === 1 ? 'urgente' : 'urgentes'}` : null,
+        tono: urgentes > 0 ? 'alerta' : 'normal'
+      }
+    ];
+  });
+
+  /** Participación de las actividades ya realizadas en los últimos DIAS_PARTICIPACION días. */
+  protected readonly resumenParticipacion = computed(() => {
+    const hoy = this.fechaLocal(this.ahora());
+    const realizadas = (this.participacion() ?? []).filter((a) => a.fecha <= hoy);
+    const inscritos = realizadas.reduce((t, a) => t + a.inscritos, 0);
+    const conRegistro = realizadas.reduce((t, a) => t + a.conRegistro, 0);
+    const asistentes = realizadas.reduce((t, a) => t + a.asistentes, 0);
+
+    return {
+      actividades: realizadas.length,
+      inscritos,
+      asistencia: conRegistro > 0 ? Math.round((asistentes / conRegistro) * 100) : null
+    };
+  });
+
+  /** Los 5 intereses más comunes, con su porcentaje respecto al más común. */
+  protected readonly interesesTop = computed(() => {
+    const intereses = (this.poblacion()?.intereses ?? []).slice(0, 5);
+    const maximo = intereses[0]?.personas || 1;
+    return intereses.map((i) => ({ ...i, porcentaje: Math.round((i.personas / maximo) * 100) }));
+  });
+
+  /** Personas que cumplen años en los próximos DIAS_CUMPLEANOS días. */
+  protected readonly cumpleanos = computed<Cumpleanos[]>(() => {
+    const hoy = new Date(this.ahora());
+    hoy.setHours(0, 0, 0, 0);
+
+    const lista: Cumpleanos[] = [];
+    for (const p of this.poblacion()?.personas ?? []) {
+      if (!p.fechaNacimiento) {
+        continue;
+      }
+      const [anioNacimiento, mes, dia] = p.fechaNacimiento.split('-').map(Number);
+      let anio = hoy.getFullYear();
+      let proximo = new Date(anio, mes - 1, dia);
+      if (proximo < hoy) {
+        anio++;
+        proximo = new Date(anio, mes - 1, dia);
+      }
+      const dias = Math.round((proximo.getTime() - hoy.getTime()) / DIA);
+      if (dias <= DIAS_CUMPLEANOS) {
+        lista.push({ idUsuario: p.idUsuario, nombre: p.nombre, dias, edad: anio - anioNacimiento, fecha: this.fechaLocal(proximo) });
+      }
+    }
+
+    return lista.sort((a, b) => a.dias - b.dias);
+  });
+
+  // Formatos
+
+  /** "Hoy", "Mañana" o "jueves 2 de octubre"; "Sin fecha" si no tiene. */
+  protected formatearDia(fecha: string | null): string {
+    return fecha ? formatearFechaCita(fecha, this.ahora()) : 'Sin fecha';
+  }
+
+  protected cuandoCumple(c: Cumpleanos): string {
+    if (c.dias === 0) return '¡Hoy!';
+    if (c.dias === 1) return 'Mañana';
+    return this.formatearDia(c.fecha);
+  }
+
+  /** "hoy", "ayer" o "hace N días". */
+  private hace(fechaHora: string): string {
+    const dias = this.diasDesde(fechaHora);
+    if (dias <= 0) return 'hoy';
+    if (dias === 1) return 'ayer';
+    return `hace ${dias} días`;
+  }
+
+  private diasDesde(fechaHora: string): number {
+    const inicio = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    return Math.round((inicio(this.ahora()) - inicio(new Date(fechaHora))) / DIA);
+  }
+
+  /** Fecha YYYY-MM-DD en hora local (toISOString() usaría UTC). */
+  private fechaLocal(fecha: Date): string {
+    return fecha.toLocaleDateString('en-CA');
+  }
+
+  // Registro y edición rápidos de actividades
 
   crearActividad(): void {
     if (!this.nuevaActividad.nombre.trim()) {
@@ -276,24 +541,11 @@ private cargarInformacionOrganizacion(): void {
 
     this.actividadService.crear(this.nuevaActividad).subscribe({
       next: () => {
-this.nuevaActividad = {
-  nombre: '',
-  descripcion: null,
-  fecha: null,
-  hora: null,
-  lugar: null,
-  tipo: null,
-  cupos: null,
-  responsable: null
-};
-
+        this.nuevaActividad = actividadVacia();
         this.cargarActividades();
       },
-
       error: () => {
-        this.errorActividades.set(
-          'No se pudo crear la actividad'
-        );
+        this.errorActividades.set('No se pudo crear la actividad');
       }
     });
   }
@@ -301,166 +553,49 @@ this.nuevaActividad = {
   /** Pasa una fila de la lista a modo edición. */
   editarActividad(actividad: Actividad): void {
     this.actividadEditandoId = actividad.idActividad;
-
-this.actividadEditando = {
-  nombre: actividad.nombre,
-  descripcion: actividad.descripcion,
-  fecha: actividad.fecha,
-  hora: actividad.hora,
-  lugar: actividad.lugar,
-  tipo: actividad.tipo,
-  cupos: actividad.cupos,
-  responsable: actividad.responsable
-};
+    this.actividadEditando = {
+      nombre: actividad.nombre,
+      descripcion: actividad.descripcion,
+      fecha: actividad.fecha,
+      hora: actividad.hora,
+      lugar: actividad.lugar,
+      tipo: actividad.tipo,
+      cupos: actividad.cupos,
+      responsable: actividad.responsable
+    };
   }
 
   cancelarEdicionActividad(): void {
     this.actividadEditandoId = null;
-
-this.actividadEditando = {
-  nombre: '',
-  descripcion: null,
-  fecha: null,
-  hora: null,
-  lugar: null,
-  tipo: null,
-  cupos: null,
-  responsable: null
-};
+    this.actividadEditando = actividadVacia();
   }
 
   guardarActividad(): void {
-    if (
-      this.actividadEditandoId === null ||
-      !this.actividadEditando.nombre.trim()
-    ) {
+    if (this.actividadEditandoId === null || !this.actividadEditando.nombre.trim()) {
       return;
     }
 
     this.errorActividades.set(null);
 
-    this.actividadService
-      .actualizar(
-        this.actividadEditandoId,
-        this.actividadEditando
-      )
-      .subscribe({
-        next: () => {
-          this.cancelarEdicionActividad();
-          this.cargarActividades();
-        },
-
-        error: () => {
-          this.errorActividades.set(
-            'No se pudo actualizar la actividad'
-          );
-        }
-      });
+    this.actividadService.actualizar(this.actividadEditandoId, this.actividadEditando).subscribe({
+      next: () => {
+        this.cancelarEdicionActividad();
+        this.cargarActividades();
+      },
+      error: () => {
+        this.errorActividades.set('No se pudo actualizar la actividad');
+      }
+    });
   }
 
   eliminarActividad(actividad: Actividad): void {
     this.errorActividades.set(null);
 
-    this.actividadService
-      .eliminar(actividad.idActividad)
-      .subscribe({
-        next: () => {
-          this.cargarActividades();
-        },
-
-        error: () => {
-          this.errorActividades.set(
-            'No se pudo eliminar la actividad'
-          );
-        }
-      });
+    this.actividadService.eliminar(actividad.idActividad).subscribe({
+      next: () => this.cargarActividades(),
+      error: () => {
+        this.errorActividades.set('No se pudo eliminar la actividad');
+      }
+    });
   }
-
-  /** Datos de ejemplo. */
-  protected readonly inventario: Inventario[] = [
-    {
-      nombre: 'Losartán 50mg',
-      estado: 'Stock bajo',
-      detalle: '4 unidades disponibles'
-    },
-    {
-      nombre: 'Kit de vendajes',
-      estado: 'Por vencer',
-      detalle: 'Vence en 12 días'
-    },
-    {
-      nombre: 'Metformina 850mg',
-      estado: 'Stock bajo',
-      detalle: '9 unidades disponibles'
-    }
-  ];
-
-  /** Datos de ejemplo. */
-  protected readonly donaciones: Donacion[] = [
-    {
-      donante: 'Fundación Manos Amigas',
-      tipo: 'Monetaria',
-      valor: '$1.200.000',
-      fecha: '08 ago 2026'
-    },
-    {
-      donante: 'Supermercado La Colina',
-      tipo: 'Alimentos',
-      valor: '35 kits',
-      fecha: '06 ago 2026'
-    },
-    {
-      donante: 'Anónimo',
-      tipo: 'Monetaria',
-      valor: '$300.000',
-      fecha: '04 ago 2026'
-    }
-  ];
-
-  /** Datos de ejemplo. */
-  protected readonly bitacora: Bitacora[] = [
-    {
-      usuario: 'Voluntario · Camilo Rey',
-      accion: 'registró asistencia en Fisioterapia grupal',
-      tiempo: 'Hace 34 min'
-    },
-    {
-      usuario: 'Acompañante · Laura Peña',
-      accion:
-        'registró una visita de seguimiento a Rosa Elvira Gómez',
-      tiempo: 'Hace 1 hora'
-    },
-    {
-      usuario: 'Sistema',
-      accion:
-        'generó una alerta por inventario bajo de Losartán 50mg',
-      tiempo: 'Hace 5 horas'
-    },
-    {
-      usuario: 'Organización · Ana Torres',
-      accion:
-        'actualizó la caracterización de José Antonio Ruiz',
-      tiempo: 'Ayer'
-    }
-  ];
-
-  /** Leyenda de la gráfica de dona (datos de ejemplo). */
-  protected readonly donutLegend = [
-    {
-      color: 'var(--vita-navy)',
-      label: 'Movilidad 40%'
-    },
-    {
-      color: 'var(--vita-navy-light)',
-      label: 'Salud mental 25%'
-    },
-    {
-      color: 'var(--vita-orange)',
-      label: 'Salud física 20%'
-    },
-    {
-      color: 'var(--vita-gold)',
-      label: 'Otros 15%'
-    }
-  ];
 }
