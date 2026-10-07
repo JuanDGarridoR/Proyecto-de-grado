@@ -67,8 +67,6 @@ export const PANEL_CONFIG: Record<string, PanelConfig> = {
     navItems: [
       { icon: 'home', label: 'Inicio', path: '/panel/voluntario' },
       { icon: 'building', label: 'Organizaciones', path: '/panel/voluntario/organizaciones' },
-      { icon: 'users', label: 'Personas mayores', path: '/panel/voluntario/personas' },
-      { icon: 'bell', label: 'Alertas', path: '/panel/voluntario/alertas' },
       { icon: 'calendar', label: 'Actividades', path: '/panel/voluntario/actividades' },
       { icon: 'user', label: 'Perfil', path: '/panel/voluntario/perfil' }
     ]

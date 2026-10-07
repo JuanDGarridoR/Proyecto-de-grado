@@ -31,4 +31,12 @@ describe('PANEL_CONFIG', () => {
       expect(rutas).not.toContain(`/panel/organizacion/${seccion}`);
     }
   });
+
+  it('el menú del voluntario no tiene secciones vacías', () => {
+    const rutas = PANEL_CONFIG['VOLUNTARIO'].navItems.map((opcion) => opcion.path);
+
+    for (const seccion of ['personas', 'alertas']) {
+      expect(rutas).not.toContain(`/panel/voluntario/${seccion}`);
+    }
+  });
 });

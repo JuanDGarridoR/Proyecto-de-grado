@@ -162,20 +162,6 @@ export const routes: Routes = [
       },
 
       {
-        path: 'alertas',
-        loadComponent: () =>
-          import('./shared/en-construccion/en-construccion').then((m) => m.EnConstruccion),
-        data: { titulo: 'Alertas' },
-      },
-
-      {
-        path: 'personas',
-        loadComponent: () =>
-          import('./shared/en-construccion/en-construccion').then((m) => m.EnConstruccion),
-        data: { titulo: 'Personas mayores' },
-      },
-
-      {
         path: 'perfil',
         loadComponent: () => import('./shared/perfil/perfil').then((m) => m.Perfil),
         data: {
