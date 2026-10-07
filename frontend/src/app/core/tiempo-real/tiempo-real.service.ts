@@ -13,6 +13,7 @@ export type Recurso =
   | 'medicamentos'
   | 'citas-medicas'
   | 'signos-vitales'
+  | 'condiciones-salud' // enfermedades, alergias y discapacidades de la persona mayor
   | 'acompanamientos'   // persona mayor <-> acompañante, solicitudes, contactos
   | 'organizaciones'    // persona mayor <-> organización, solicitudes
   | 'voluntarios'       // voluntario <-> organización, solicitudes

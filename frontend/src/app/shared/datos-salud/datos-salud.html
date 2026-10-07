@@ -1,0 +1,229 @@
+<section class="salud" aria-labelledby="datosSaludTitle">
+  <div class="salud__encabezado">
+    <h2 id="datosSaludTitle">Datos de salud</h2>
+    <p>
+      Registra tus enfermedades, alergias y discapacidades. Es opcional: agrega solo lo que
+      quieras compartir.
+    </p>
+  </div>
+
+  <!-- Cargando y error -->
+  @if (cargando()) {
+    <p class="salud__estado">Cargando tus datos de salud...</p>
+  } @else if (errorCarga()) {
+    <div class="salud__estado salud__estado--error">
+      No se pudieron cargar tus datos de salud.
+      <button type="button" class="salud__reintentar" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else {
+    <!-- Una columna por tipo: enfermedades, alergias y discapacidades -->
+    <div class="salud__columnas">
+      @for (seccion of secciones; track seccion.tipo) {
+        @let registrosSeccion = registrosDe(seccion.tipo);
+
+        <div class="salud__bloque">
+          <div class="salud__bloque-header">
+            <span class="salud__bloque-icono" aria-hidden="true">
+              <app-icon [name]="seccion.icono" />
+            </span>
+            <h3>{{ seccion.titulo }}</h3>
+            @if (registrosSeccion.length > 0) {
+              <span class="salud__contador">{{ registrosSeccion.length }}</span>
+            }
+          </div>
+
+          @if (registrosSeccion.length === 0) {
+            <p class="salud__vacio">{{ seccion.vacio }}</p>
+          } @else {
+            <ul class="salud__lista">
+              @for (registro of registrosSeccion; track registro.idPersonaMayorCondicionSalud) {
+                <li class="salud__item">
+                  <div class="salud__item-texto">
+                    <span class="salud__item-nombre">{{ nombreDe(registro) }}</span>
+                    <span class="salud__item-meta">
+                      <span class="salud__categoria">{{ registro.categoria }}</span>
+                      @if (registro.severidad) {
+                        <span
+                          class="salud__severidad"
+                          [class]="'salud__severidad--' + registro.severidad.toLowerCase()"
+                        >
+                          {{ seccion.etiquetaSeveridad }}: {{ textoSeveridad(registro.severidad) }}
+                        </span>
+                      }
+                    </span>
+                    @if (registro.detalle && !registro.esOtra) {
+                      <span class="salud__item-detalle">{{ registro.detalle }}</span>
+                    }
+                  </div>
+
+                  @if (idConfirmandoQuitar() === registro.idPersonaMayorCondicionSalud) {
+                    <div class="salud__confirmar">
+                      <span>¿Quitar?</span>
+                      <button
+                        type="button"
+                        class="salud__confirmar-si"
+                        [disabled]="quitando()"
+                        (click)="quitar(registro)"
+                      >
+                        Sí
+                      </button>
+                      <button
+                        type="button"
+                        class="salud__confirmar-no"
+                        [disabled]="quitando()"
+                        (click)="idConfirmandoQuitar.set(null)"
+                      >
+                        No
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="salud__item-acciones">
+                      <button
+                        type="button"
+                        class="salud__icon-btn"
+                        [attr.aria-label]="'Editar ' + nombreDe(registro)"
+                        (click)="abrirEdicion(seccion, registro)"
+                      >
+                        <app-icon name="pen" />
+                      </button>
+                      <button
+                        type="button"
+                        class="salud__icon-btn salud__icon-btn--quitar"
+                        [attr.aria-label]="'Quitar ' + nombreDe(registro)"
+                        (click)="idConfirmandoQuitar.set(registro.idPersonaMayorCondicionSalud)"
+                      >
+                        <app-icon name="x" />
+                      </button>
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          }
+
+          <button type="button" class="salud__agregar" (click)="abrirNuevo(seccion)">
+            <app-icon name="plus" />
+            Agregar {{ seccion.singular }}
+          </button>
+        </div>
+      }
+    </div>
+
+    @if (errorLista()) {
+      <p class="salud__estado salud__estado--error" role="alert">{{ errorLista() }}</p>
+    }
+  }
+
+  <!-- Modal para agregar o editar -->
+  @if (seccionFormulario(); as seccion) {
+    <div class="salud__overlay" (click)="cerrarFormulario()">
+      <div
+        class="salud__modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="datosSaludModalTitle"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="salud__modal-header">
+          <h2 id="datosSaludModalTitle">
+            {{ editando() ? 'Editar ' + seccion.singular : 'Agregar ' + seccion.singular }}
+          </h2>
+          <button
+            type="button"
+            class="salud__modal-cerrar"
+            aria-label="Cerrar"
+            (click)="cerrarFormulario()"
+          >
+            ×
+          </button>
+        </div>
+
+        @if (editando(); as registro) {
+          <div class="salud__campo">
+            <span class="salud__label">{{ seccion.etiqueta }}</span>
+            <p class="salud__valor">{{ nombreDe(registro) }}</p>
+          </div>
+        } @else {
+          <div class="salud__campo">
+            <label class="salud__label" for="condicionSalud">
+              {{ seccion.etiqueta }}
+            </label>
+            <select id="condicionSalud" [(ngModel)]="idCondicionSalud">
+              <option [ngValue]="null" disabled>Selecciona una opción</option>
+              @for (grupo of gruposOpciones(); track grupo.categoria) {
+                <optgroup [label]="grupo.categoria">
+                  @for (opcion of grupo.opciones; track opcion.idCondicionSalud) {
+                    <option [ngValue]="opcion.idCondicionSalud">{{ opcion.nombre }}</option>
+                  }
+                </optgroup>
+              }
+              @if (opcionOtra(); as otra) {
+                <option [ngValue]="otra.idCondicionSalud">Otra (no está en la lista)</option>
+              }
+            </select>
+          </div>
+        }
+
+        <div class="salud__campo">
+          <label class="salud__label" for="detalleSalud">
+            @if (esOtraSeleccionada) {
+              ¿Cuál?
+            } @else {
+              Comentario <span class="salud__opcional">(opcional)</span>
+            }
+          </label>
+          <input
+            id="detalleSalud"
+            type="text"
+            maxlength="500"
+            [(ngModel)]="detalle"
+            [placeholder]="esOtraSeleccionada ? 'Escribe cuál es' : 'Ej.: Me la diagnosticaron hace 5 años'"
+          />
+        </div>
+
+        <div class="salud__campo">
+          <span class="salud__label" id="severidadSaludLabel">
+            {{ seccion.etiquetaSeveridad }} <span class="salud__opcional">(opcional)</span>
+          </span>
+          <div class="salud__chips" role="radiogroup" aria-labelledby="severidadSaludLabel">
+            @for (opcion of severidades; track opcion.valor) {
+              <button
+                type="button"
+                role="radio"
+                class="salud__chip"
+                [class.salud__chip--activo]="severidad === opcion.valor"
+                [attr.aria-checked]="severidad === opcion.valor"
+                (click)="elegirSeveridad(opcion.valor)"
+              >
+                {{ opcion.texto }}
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (errorFormulario()) {
+          <p class="salud__estado salud__estado--error" role="alert">{{ errorFormulario() }}</p>
+        }
+
+        <div class="salud__modal-acciones">
+          <button
+            type="button"
+            class="salud__boton salud__boton--secundario"
+            [disabled]="guardando()"
+            (click)="cerrarFormulario()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="salud__boton salud__boton--primario"
+            [disabled]="guardando()"
+            (click)="guardar()"
+          >
+            {{ guardando() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

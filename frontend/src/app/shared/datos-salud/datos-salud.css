@@ -1,0 +1,477 @@
+/* Datos de salud (perfil de la persona mayor) */
+
+.salud {
+  margin-top: 28px;
+  padding: 24px 28px;
+
+  background: var(--vita-white);
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-md);
+}
+
+.salud__encabezado h2 {
+  margin: 0 0 6px;
+  color: var(--vita-navy);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.salud__encabezado p {
+  margin: 0;
+  max-width: 620px;
+  color: var(--vita-text-gray);
+}
+
+/* Columnas por tipo */
+
+.salud__columnas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.salud__bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  padding: 18px;
+
+  border: 1px solid var(--vita-border);
+  border-top: 3px solid color-mix(in srgb, var(--role-accent, var(--vita-navy)) 60%, white);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--role-accent, var(--vita-navy)) 3%, white);
+}
+
+.salud__bloque-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.salud__bloque-header h3 {
+  margin: 0;
+  color: var(--vita-navy);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.salud__bloque-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 34px;
+  height: 34px;
+
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--role-accent, var(--vita-navy)) 14%, white);
+  color: var(--role-accent, var(--vita-navy));
+  font-size: 1.05rem;
+}
+
+.salud__contador {
+  min-width: 22px;
+  padding: 1px 7px;
+
+  border-radius: var(--radius-pill);
+  background: var(--role-accent, var(--vita-navy));
+  color: var(--vita-white);
+
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.salud__vacio {
+  margin: 0;
+  color: var(--vita-text-gray-light);
+  font-size: 0.9rem;
+}
+
+/* Lista de registros */
+
+.salud__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.salud__item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+
+  padding: 10px 12px;
+
+  border: 1px solid var(--vita-border);
+  border-radius: 10px;
+  background: var(--vita-white);
+}
+
+.salud__item-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0; /* para que los textos largos hagan salto de línea */
+}
+
+.salud__item-nombre {
+  color: var(--vita-navy);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.salud__item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.salud__categoria,
+.salud__severidad {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.salud__categoria {
+  background: var(--vita-cream-soft);
+  color: var(--vita-text-gray);
+}
+
+.salud__severidad--leve {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.salud__severidad--moderada {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.salud__severidad--severa {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.salud__item-detalle {
+  color: var(--vita-text-gray);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.salud__item-acciones {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.salud__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 30px;
+  height: 30px;
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--vita-text-gray);
+
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.salud__icon-btn:hover {
+  background: var(--vita-cream-soft);
+  color: var(--vita-navy);
+}
+
+.salud__icon-btn--quitar:hover {
+  color: #dc2626;
+}
+
+/* Confirmación para quitar */
+
+.salud__confirmar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+
+  color: var(--vita-navy);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.salud__confirmar-si,
+.salud__confirmar-no {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.salud__confirmar-si {
+  border: none;
+  background: #dc2626;
+  color: var(--vita-white);
+}
+
+.salud__confirmar-no {
+  border: 1px solid var(--vita-border);
+  background: var(--vita-white);
+  color: var(--vita-navy);
+}
+
+/* Botón de agregar */
+
+.salud__agregar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: auto;
+
+  padding: 9px 12px;
+
+  border: 1px dashed color-mix(in srgb, var(--role-accent, var(--vita-navy)) 55%, white);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--vita-navy);
+
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.salud__agregar:hover {
+  background: color-mix(in srgb, var(--role-accent, var(--vita-navy)) 10%, white);
+}
+
+/* Estados */
+
+.salud__estado {
+  margin: 16px 0 0;
+  color: var(--vita-text-gray);
+}
+
+.salud__estado--error {
+  color: #c0392b;
+}
+
+.salud__reintentar {
+  margin-left: 8px;
+  padding: 0;
+
+  border: none;
+  background: none;
+  color: var(--vita-navy);
+
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Modal para agregar o editar */
+
+.salud__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.salud__modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+
+  padding: 28px;
+
+  border-radius: 16px;
+  background: var(--vita-white);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+.salud__modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.salud__modal-header h2 {
+  margin: 0;
+  color: var(--vita-navy);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.salud__modal-cerrar {
+  width: 38px;
+  height: 38px;
+
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--vita-text-muted);
+
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.salud__modal-cerrar:hover {
+  background: var(--vita-cream-soft);
+  color: var(--vita-navy);
+}
+
+.salud__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.salud__label {
+  color: var(--vita-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.salud__opcional {
+  font-weight: 400;
+}
+
+.salud__valor {
+  margin: 0;
+  color: var(--vita-navy);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.salud__campo select,
+.salud__campo input {
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 11px 13px;
+
+  border: 1px solid var(--vita-border);
+  border-radius: 9px;
+  background: var(--vita-white);
+  color: var(--vita-navy);
+
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.salud__campo select:focus,
+.salud__campo input:focus {
+  border-color: var(--vita-orange);
+  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.12);
+}
+
+.salud__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.salud__chip {
+  padding: 8px 16px;
+
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-pill);
+  background: var(--vita-white);
+  color: var(--vita-navy);
+
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.salud__chip--activo {
+  border-color: var(--vita-navy);
+  background: var(--vita-navy);
+  color: var(--vita-white);
+}
+
+.salud__modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.salud__boton {
+  padding: 11px 18px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.salud__boton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.salud__boton--secundario {
+  border: 1px solid var(--vita-border);
+  background: var(--vita-white);
+  color: var(--vita-navy);
+}
+
+.salud__boton--primario {
+  border: none;
+  background: var(--vita-navy);
+  color: var(--vita-white);
+}
+
+/* Responsive */
+
+@media (max-width: 1000px) {
+  .salud__columnas {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .salud {
+    padding: 20px 16px;
+  }
+
+  .salud__modal {
+    padding: 22px 18px;
+  }
+}

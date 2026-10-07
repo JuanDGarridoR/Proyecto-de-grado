@@ -107,6 +107,10 @@
         </div>
       </div>
     </div>
+    <!-- Enfermedades, alergias y discapacidades (solo persona mayor) -->
+    @if (esPersonaMayor) {
+      <app-datos-salud />
+    }
     <app-gestor-notificaciones [tipoPerfil]="tipoPerfil" />
     <app-eliminar-cuenta />
   }

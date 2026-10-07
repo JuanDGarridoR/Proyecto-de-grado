@@ -6,6 +6,7 @@ import { timeout } from 'rxjs';
 
 import { EliminarCuenta } from '../eliminar-cuenta/eliminar-cuenta';
 import { GestorNotificaciones } from '../gestor-notificaciones/gestor-notificaciones';
+import { DatosSalud } from '../datos-salud/datos-salud';
 
 import { AuthService } from '../../core/auth/auth.service';
 
@@ -43,7 +44,8 @@ interface PerfilInformacion {
 /**
  * Página "Mi información" de todos los roles: muestra los datos de la cuenta,
  * permite editarlos, cambiar la contraseña, elegir qué notificaciones
- * recibir y eliminar la cuenta. La
+ * recibir y eliminar la cuenta. La persona mayor además registra sus datos
+ * de salud (enfermedades, alergias y discapacidades). La
  * organización además edita su dirección en organizacion-service.
  *
  * Los campos no son signals: después de cada respuesta del backend se llama
@@ -51,7 +53,7 @@ interface PerfilInformacion {
  */
 @Component({
   selector: 'app-perfil',
-  imports: [FormsModule, CampoContrasena, EliminarCuenta, GestorNotificaciones],
+  imports: [FormsModule, CampoContrasena, EliminarCuenta, GestorNotificaciones, DatosSalud],
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })

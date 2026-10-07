@@ -50,6 +50,8 @@ public class CuentaService {
                     + " AND estado IN ('PENDIENTE', 'RECHAZADA')", idUsuario);
         }
         ejecutar("DELETE FROM medicamento WHERE id_persona_mayor = :id", idUsuario);
+        ejecutarSiExisteTabla("persona_mayor_condicion_salud",
+                "DELETE FROM persona_mayor_condicion_salud WHERE id_persona_mayor = :id", idUsuario);
         ejecutar("DELETE FROM persona_mayor_gusto WHERE id_persona_mayor = :id", idUsuario);
         ejecutar("DELETE FROM persona_mayor_organizacion WHERE id_persona_mayor = :id", idUsuario);
 
@@ -109,10 +111,10 @@ public class CuentaService {
     }
 
     /**
-     * Ejecuta el DELETE solo si la tabla existe. voluntario_organizacion y
-     * preferencia_notificacion las crean voluntario-service y
-     * messaging-service al arrancar; si nunca han arrancado, la tabla no
-     * existe y el DELETE abortaría todo.
+     * Ejecuta el DELETE solo si la tabla existe. voluntario_organizacion,
+     * preferencia_notificacion y persona_mayor_condicion_salud las crean
+     * voluntario-service, messaging-service y salud-service al arrancar; si
+     * nunca han arrancado, la tabla no existe y el DELETE abortaría todo.
      */
     private void ejecutarSiExisteTabla(String tabla, String sql, Integer id) {
         Object existe = entityManager

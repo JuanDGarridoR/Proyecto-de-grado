@@ -57,6 +57,8 @@ public class PublicarCambiosGlobalFilter implements GlobalFilter, Ordered {
 
         RECURSOS_POR_RUTA.put("/api/persona-mayor/citas-medicas/**", "citas-medicas");
 
+        RECURSOS_POR_RUTA.put("/api/persona-mayor/condiciones-salud/**", "condiciones-salud");
+
         RECURSOS_POR_RUTA.put("/api/persona-mayor/signos-vitales/**", "signos-vitales");
         RECURSOS_POR_RUTA.put("/api/organizacion/signos-vitales/**", "signos-vitales");
 

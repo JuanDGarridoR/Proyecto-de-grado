@@ -141,6 +141,15 @@ spring:
               filters:
                 - JwtAuth
 
+            # Datos de salud de la persona mayor: enfermedades, alergias y
+            # discapacidades, y el catálogo del que las elige.
+            - id: salud-condiciones-salud
+              uri: http://localhost:8084
+              predicates:
+                - Path=/api/persona-mayor/condiciones-salud,/api/persona-mayor/condiciones-salud/**
+              filters:
+                - JwtAuth
+
             # Signos vitales de la persona mayor: ver su historial y registrar
             # una medición propia. No se exponen el PUT/DELETE de este
             # controlador, porque los registros no se editan ni se borran.
