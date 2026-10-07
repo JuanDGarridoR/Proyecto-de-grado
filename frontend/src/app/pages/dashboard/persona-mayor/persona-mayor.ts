@@ -1,8 +1,5 @@
 import {
-  AfterViewInit,
   Component,
-  ElementRef,
-  HostListener,
   OnDestroy,
   OnInit,
   computed,
@@ -35,7 +32,7 @@ import {
 import {
   CitaMedicaService,
   CitaMedica,
-  formatearConsultorio,
+  lugarDeCita,
   momentoDeCita
 } from '../../../core/citas-medicas/cita-medica.service';
 import {
@@ -43,6 +40,8 @@ import {
   CondicionSaludRegistrada,
   TipoCondicionSalud
 } from '../../../core/condiciones-salud/condicion-salud.service';
+import { AltoPantalla } from '../../../shared/alto-pantalla/alto-pantalla';
+import { fechaLocal, haceDias, proximoCumpleanos } from '../../../core/fechas/fechas';
 
 registerLocaleData(localeEs);
 
@@ -132,8 +131,9 @@ const GRUPOS_CONDICIONES: Omit<GrupoCondiciones, 'nombres'>[] = [
   imports: [Icon, DatePipe, RouterLink],
   templateUrl: './persona-mayor.html',
   styleUrl: './persona-mayor.css',
+  hostDirectives: [AltoPantalla]
 })
-export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
+export class PersonaMayorDashboard implements OnInit, OnDestroy {
 
   protected readonly nombreUsuario: string;
   protected readonly ruta = RUTA;
@@ -174,7 +174,6 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
   protected readonly errorEmergencia = signal<string | null>(null);
 
   constructor(
-    private elemento: ElementRef<HTMLElement>,
     private authService: AuthService,
     private actividadService: ActividadService,
     private acompananteService: AcompananteService,
@@ -211,10 +210,6 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
     this.cargarSignosVitales();
   }
 
-  ngAfterViewInit(): void {
-    this.ajustarAltoPantalla();
-  }
-
   ngOnDestroy(): void {
     clearInterval(this.intervaloReloj);
   }
@@ -226,16 +221,6 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
    * tarjeta. En celulares el CSS no usa la variable y la página se desplaza
    * normalmente.
    */
-  @HostListener('window:resize')
-  protected ajustarAltoPantalla(): void {
-    const host = this.elemento.nativeElement;
-    const contenedor = host.parentElement;
-    const inicio = host.getBoundingClientRect().top + window.scrollY;
-    const margenInferior = contenedor ? parseFloat(getComputedStyle(contenedor).paddingBottom) || 0 : 0;
-
-    host.style.setProperty('--alto-disponible', `${Math.floor(window.innerHeight - inicio - margenInferior)}px`);
-  }
-
   private cargarMedicamentos(): void {
     this.medicamentoService.listar().subscribe({
       next: (medicamentos) => this.medicamentos.set(medicamentos),
@@ -330,7 +315,7 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
    */
   protected readonly agendaHoy = computed<EventoAgenda[]>(() => {
     const ahora = this.ahora();
-    const hoy = this.fechaLocal(ahora);
+    const hoy = fechaLocal(ahora);
 
     const eventos: Omit<EventoAgenda, 'estado'>[] = [];
     const estados = new Map<string, EstadoEvento>();
@@ -382,7 +367,7 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
         tipo: 'cita',
         momento,
         titulo: cita.titulo,
-        detalle: this.lugarDeCita(cita),
+        detalle: lugarDeCita(cita),
         enlace: `${RUTA}/citas-medicas`
       });
       estados.set(clave, momento < ahora ? 'pasado' : 'pendiente');
@@ -461,7 +446,7 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
 
   /** Actividades confirmadas y citas médicas de los próximos días (después de hoy). */
   protected readonly proximosDias = computed<EventoProximo[]>(() => {
-    const hoy = this.fechaLocal(this.ahora());
+    const hoy = fechaLocal(this.ahora());
 
     const actividades: EventoProximo[] = this.inscritas()
       .filter((a) => a.fecha && a.fecha > hoy)
@@ -483,7 +468,7 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
         fecha: c.fecha,
         hora: c.hora,
         titulo: c.titulo,
-        detalle: this.lugarDeCita(c),
+        detalle: lugarDeCita(c),
         enlace: `${RUTA}/citas-medicas`
       }));
 
@@ -514,7 +499,7 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
 
   /** Actividades de hoy en adelante a las que aún no se ha inscrito. */
   protected readonly actividadesSugeridas = computed(() => {
-    const hoy = this.fechaLocal(this.ahora());
+    const hoy = fechaLocal(this.ahora());
     return this.actividades()
       .filter((a) => !a.inscrito && a.fecha && a.fecha >= hoy)
       .sort((a, b) =>
@@ -529,18 +514,8 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
       return null;
     }
 
-    const [anioNacimiento, mes, dia] = fecha.split('-').map(Number);
-    const hoy = this.inicioDelDia(this.ahora());
-
-    let anio = hoy.getFullYear();
-    let proximo = new Date(anio, mes - 1, dia);
-    if (proximo < hoy) {
-      anio++;
-      proximo = new Date(anio, mes - 1, dia);
-    }
-
-    const dias = Math.round((proximo.getTime() - hoy.getTime()) / DIA);
-    return dias <= DIAS_AVISO_CUMPLEANOS ? { dias, edad: anio - anioNacimiento } : null;
+    const cumple = proximoCumpleanos(fecha, this.ahora());
+    return cumple.dias <= DIAS_AVISO_CUMPLEANOS ? cumple : null;
   });
 
   /** Datos de salud agrupados, sin los grupos vacíos. */
@@ -595,14 +570,9 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
     this.signosResumen().some((s) => !s.normal)
   );
 
-  /** "hoy", "ayer" o "hace N días". */
+  /** "hoy", "ayer" o "hace N días" (lo usa la plantilla). */
   protected hace(fechaHora: string): string {
-    const dias = Math.floor(
-      (this.inicioDelDia(this.ahora()).getTime() - this.inicioDelDia(new Date(fechaHora)).getTime()) / DIA
-    );
-    if (dias <= 0) return 'hoy';
-    if (dias === 1) return 'ayer';
-    return `hace ${dias} días`;
+    return haceDias(fechaHora, this.ahora());
   }
 
   protected horaDe(fecha: Date | null): string {
@@ -620,8 +590,8 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
     const hoy = this.ahora();
     const manana = new Date(hoy.getTime() + DIA);
 
-    if (fecha === this.fechaLocal(hoy)) return 'Hoy';
-    if (fecha === this.fechaLocal(manana)) return 'Mañana';
+    if (fecha === fechaLocal(hoy)) return 'Hoy';
+    if (fecha === fechaLocal(manana)) return 'Mañana';
 
     const [anio, mes, dia] = fecha.split('-').map(Number);
     return new Date(anio, mes - 1, dia)
@@ -635,30 +605,12 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
   protected inicial(nombre: string): string {
     return nombre.charAt(0).toUpperCase();
   }
-
-  /** "Hospital San José · Consultorio 204". */
-  private lugarDeCita(cita: CitaMedica): string | null {
-    return [cita.lugar, formatearConsultorio(cita.consultorio)].filter(Boolean).join(' · ') || null;
-  }
-
   /** Une una fecha "yyyy-MM-dd" y una hora "HH:mm" en un Date local. */
   private combinar(fecha: string, hora: string): Date {
     const [anio, mes, dia] = fecha.split('-').map(Number);
     const [h, m] = hora.split(':').map(Number);
     return new Date(anio, mes - 1, dia, h || 0, m || 0);
   }
-
-  private inicioDelDia(fecha: Date): Date {
-    const d = new Date(fecha);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }
-
-  /** Fecha YYYY-MM-DD en hora local (toISOString() usaría UTC). */
-  private fechaLocal(fecha: Date): string {
-    return fecha.toLocaleDateString('en-CA');
-  }
-
   activarConfirmacionEmergencia(): void {
     this.mostrandoConfirmacionEmergencia.set(true);
     this.mensajeEmergencia.set(null);

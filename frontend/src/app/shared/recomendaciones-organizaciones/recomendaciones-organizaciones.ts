@@ -11,6 +11,7 @@ import { OrganizacionService } from '../../core/organizacion/organizacion.servic
 import { VoluntarioService } from '../../core/voluntario/voluntario.service';
 import { alCambiar } from '../../core/tiempo-real/tiempo-real.service';
 import { Icon } from '../icon/icon';
+import { mensajeDeError } from '../../core/formato/formato';
 
 /**
  * "Organizaciones que te pueden interesar": recomendaciones de
@@ -93,7 +94,7 @@ export class RecomendacionesOrganizacionesComponent implements OnInit {
       error: (error) => {
         this.enviando.set(null);
         this.errorSolicitud.set(
-          typeof error?.error === 'string' && error.error ? error.error : 'No se pudo enviar la solicitud.'
+          mensajeDeError(error, 'No se pudo enviar la solicitud.')
         );
       }
     });

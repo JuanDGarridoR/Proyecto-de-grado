@@ -1,8 +1,6 @@
 package com.proyectogrado.persona_mayor_service.controller;
 
-import com.proyectogrado.persona_mayor_service.dto.AsociarPersonaMayorRequest;
 import com.proyectogrado.persona_mayor_service.dto.OrganizacionSolicitudResponse;
-import com.proyectogrado.persona_mayor_service.dto.PersonaMayorResponse;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorOrganizacion;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorOrganizacionId;
 import com.proyectogrado.persona_mayor_service.model.UsuarioLookup;
@@ -21,7 +19,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,10 +31,10 @@ import java.util.List;
  * campo solicitada_por dice quién la envió. Mientras no esté ACEPTADA, la
  * organización no ve a esa persona.
  *
- * Por el gateway solo llegan aquí /api/persona-mayor/organizaciones/** y
+ * Por el gateway llegan aquí /api/persona-mayor/organizaciones/** y
  * /api/organizacion/personas-mayores/{id}/acompanantes. El resto de
- * /api/organizacion/personas-mayores lo atiende organizacion-service, así
- * que los demás endpoints de organización de esta clase no se usan.
+ * /api/organizacion/personas-mayores (ver, invitar y desvincular personas)
+ * lo atiende organizacion-service.
  */
 @RestController
 public class PersonaMayorOrganizacionController {
@@ -59,24 +56,6 @@ public PersonaMayorOrganizacionController(
     this.acompananteLookupRepository = acompananteLookupRepository;
     this.personaMayorAcompananteRepository = personaMayorAcompananteRepository;
 }
-
-    /** Personas mayores con vínculo aceptado con la organización del usuario. */
-    @GetMapping("/api/organizacion/personas-mayores")
-    public ResponseEntity<?> obtenerPersonasMayoresOrganizacion(
-            @RequestHeader("X-User-Id") Integer idUsuarioOrganizacion
-    ) {
-        Integer idOrganizacion = obtenerIdOrganizacion(idUsuarioOrganizacion);
-
-        if (idOrganizacion == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("El usuario no tiene una organización asociada");
-        }
-
-        List<PersonaMayorOrganizacion> relaciones =
-                relacionRepository.findById_IdOrganizacionAndEstado(idOrganizacion, "ACEPTADA");
-
-        return ResponseEntity.ok(mapearAPersonaMayor(relaciones));
-    }
 
     /**
      * Acompañantes aceptados de una persona mayor, para la organización. Solo
@@ -151,82 +130,6 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
 
     return ResponseEntity.ok(acompanantes);
 }
-
-    /**
-     * La organización envía una solicitud de vínculo a la persona mayor con
-     * ese celular. Si antes la rechazó, la solicitud vuelve a PENDIENTE.
-     */
-    @PostMapping("/api/organizacion/personas-mayores")
-    public ResponseEntity<?> asociarPersonaMayor(
-            @RequestHeader("X-User-Id") Integer idUsuarioOrganizacion,
-            @RequestBody AsociarPersonaMayorRequest request
-    ) {
-        Integer idOrganizacion = obtenerIdOrganizacion(idUsuarioOrganizacion);
-
-        if (idOrganizacion == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("El usuario no tiene una organización asociada");
-        }
-
-        UsuarioLookup usuarioPersonaMayor = usuarioLookupRepository
-                .findByCelular(request.celular())
-                .orElse(null);
-
-        if (usuarioPersonaMayor == null) {
-            return ResponseEntity.badRequest()
-                    .body("No existe un usuario registrado con ese celular");
-        }
-
-        Integer idPersonaMayor = usuarioPersonaMayor.getIdUsuario();
-
-        PersonaMayorOrganizacionId idRelacion =
-                new PersonaMayorOrganizacionId(idPersonaMayor, idOrganizacion);
-
-        PersonaMayorOrganizacion relacionExistente =
-                relacionRepository.findById(idRelacion).orElse(null);
-
-        if (relacionExistente != null) {
-
-            if ("ACEPTADA".equals(relacionExistente.getEstado())) {
-                return ResponseEntity.badRequest()
-                        .body("Esta persona mayor ya está asociada a la organización");
-            }
-
-            if ("PENDIENTE".equals(relacionExistente.getEstado())) {
-                return ResponseEntity.badRequest()
-                        .body("Ya existe una solicitud pendiente para esta persona mayor");
-            }
-
-            relacionExistente.setEstado("PENDIENTE");
-            relacionRepository.saveAndFlush(relacionExistente);
-
-            return ResponseEntity.ok("Solicitud de asociación enviada correctamente");
-        }
-
-        PersonaMayorOrganizacion relacion =
-                new PersonaMayorOrganizacion(idPersonaMayor, idOrganizacion);
-
-        relacion.setEstado("PENDIENTE");
-        relacionRepository.saveAndFlush(relacion);
-
-        return ResponseEntity.ok("Solicitud de asociación enviada correctamente");
-    }
-
-    /** La organización deshace el vínculo con una persona mayor. */
-    @DeleteMapping("/api/organizacion/personas-mayores/{idPersonaMayor}")
-    public ResponseEntity<?> cancelarAsociacionDesdeOrganizacion(
-            @RequestHeader("X-User-Id") Integer idUsuarioOrganizacion,
-            @PathVariable Integer idPersonaMayor
-    ) {
-        Integer idOrganizacion = obtenerIdOrganizacion(idUsuarioOrganizacion);
-
-        if (idOrganizacion == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("El usuario no tiene una organización asociada");
-        }
-
-        return eliminarRelacion(new PersonaMayorOrganizacionId(idPersonaMayor, idOrganizacion));
-    }
 
     /** Organizaciones con las que la persona mayor tiene un vínculo aceptado. */
     @GetMapping("/api/persona-mayor/organizaciones")
@@ -417,19 +320,5 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
                 .toList();
     }
 
-    private List<PersonaMayorResponse> mapearAPersonaMayor(List<PersonaMayorOrganizacion> relaciones) {
-        return relaciones.stream()
-                .map(relacion -> {
-                    Integer idPersonaMayor = relacion.getId().getIdPersonaMayor();
-                    UsuarioLookup usuario = usuarioLookupRepository.findById(idPersonaMayor).orElse(null);
 
-                    return new PersonaMayorResponse(
-                            idPersonaMayor,
-                            usuario != null ? usuario.getNombreUsuario() : null,
-                            usuario != null ? usuario.getCelular() : null,
-                            usuario != null ? usuario.getCorreo() : null
-                    );
-                })
-                .toList();
-    }
 }

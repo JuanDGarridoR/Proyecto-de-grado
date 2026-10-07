@@ -9,6 +9,7 @@ import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { Icon } from '../../../../shared/icon/icon';
 import { PersonCard } from '../../../../shared/person-card/person-card';
 import { CancelarAsociacion } from '../../../../shared/cancelar-asociacion/cancelar-asociacion';
+import { mensajeDeError } from '../../../../core/formato/formato';
 
 /**
  * Voluntarios de la organización: solicitudes de vinculación pendientes
@@ -82,7 +83,7 @@ export class Voluntarios implements OnInit {
       error: (error) => {
         console.error('Error gestionando el voluntario:', error);
         this.procesando.set(null);
-        this.error.set(typeof error?.error === 'string' && error.error ? error.error : errorPorDefecto);
+        this.error.set(mensajeDeError(error, errorPorDefecto));
         this.cargar();
       }
     });

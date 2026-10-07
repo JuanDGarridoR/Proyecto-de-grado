@@ -20,6 +20,7 @@ import { SignosVitalesModal } from '../../../../shared/signos-vitales-modal/sign
 import { AcompanantesModal } from '../../../../shared/acompanantes-modal/acompanantes-modal';
 import { BuscadorNombre, filtrarPorNombre } from '../../../../shared/buscador-nombre/buscador-nombre';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
+import { mensajeDeError } from '../../../../core/formato/formato';
 
 /**
  * Personas mayores de la organización: lista de vinculadas, solicitud de
@@ -165,7 +166,7 @@ ngOnInit(): void {
       },
       error: (error) => {
         this.respondiendo.set(null);
-        this.error.set(typeof error?.error === 'string' && error.error ? error.error : 'No se pudo responder la solicitud.');
+        this.error.set(mensajeDeError(error, 'No se pudo responder la solicitud.'));
         this.cargarSolicitudes();
       }
     });

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../api';
 
 /**
  * Cita médica tal como la devuelve salud-service (y acompanante-service en
@@ -44,9 +45,12 @@ export function formatearConsultorio(consultorio: string | null | undefined): st
   return texto.toLowerCase().startsWith('consultorio') ? texto : `Consultorio ${texto}`;
 }
 
-/** Fecha YYYY-MM-DD en hora local (toISOString() usaría UTC). */
-export function fechaLocal(fecha: Date): string {
-  return fecha.toLocaleDateString('en-CA');
+/** Fecha YYYY-MM-DD en hora local; vive en core/fechas y se reexporta aquí por compatibilidad. */
+export { fechaLocal } from '../fechas/fechas';
+
+/** Lugar de la cita para mostrar: "Hospital San José · Consultorio 204". */
+export function lugarDeCita(cita: CitaMedica): string | null {
+  return [cita.lugar, formatearConsultorio(cita.consultorio)].filter(Boolean).join(' · ') || null;
 }
 
 /** Fecha y hora de la cita como Date local. */
@@ -127,7 +131,7 @@ export function tiempoParaCita(cita: CitaMedica, ahora: Date = new Date()): stri
 @Injectable({ providedIn: 'root' })
 export class CitaMedicaService {
 
-  private readonly apiUrl = 'http://localhost:8080/api';
+  private readonly apiUrl = `${API_URL}`;
 
   constructor(private http: HttpClient) {}
 

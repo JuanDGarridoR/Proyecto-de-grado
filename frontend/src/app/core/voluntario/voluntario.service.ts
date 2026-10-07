@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Gusto } from '../gustos/gusto.service';
+import { API_URL } from '../api';
 
 export type EstadoVinculo = 'PENDIENTE' | 'ACEPTADA' | 'RECHAZADA';
 
@@ -26,8 +27,8 @@ export interface OrganizacionVoluntario {
 export class VoluntarioService {
   private http = inject(HttpClient);
 
-  private apiUrl = 'http://localhost:8080/api/voluntario/organizaciones';
-  private gustosUrl = 'http://localhost:8080/api/voluntario/gustos';
+  private apiUrl = `${API_URL}/voluntario/organizaciones`;
+  private gustosUrl = `${API_URL}/voluntario/gustos`;
 
   /** Todas las organizaciones con el estado del vínculo del voluntario. */
   listarOrganizaciones(): Observable<OrganizacionVoluntario[]> {

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../api';
 
 /** Una medición nueva; cada valor es opcional. */
 export interface SignoVitalRequest {
@@ -49,9 +50,9 @@ export interface PersonaMayor {
 export class SignosVitalesService {
   private http = inject(HttpClient);
 
-  private apiUrl = 'http://localhost:8080/api/organizacion/signos-vitales';
-  private personasApiUrl = 'http://localhost:8080/api/organizacion/personas-mayores';
-  private personaMayorApiUrl = 'http://localhost:8080/api/persona-mayor/signos-vitales';
+  private apiUrl = `${API_URL}/organizacion/signos-vitales`;
+  private personasApiUrl = `${API_URL}/organizacion/personas-mayores`;
+  private personaMayorApiUrl = `${API_URL}/persona-mayor/signos-vitales`;
 
   /** Historial completo de la persona mayor autenticada, del más reciente al más antiguo. */
   listarPropios(): Observable<SignoVitalResponse[]> {

@@ -12,6 +12,7 @@ import { PersonCard } from '../../../../shared/person-card/person-card';
 import { CancelarAsociacion } from '../../../../shared/cancelar-asociacion/cancelar-asociacion';
 import { BuscadorNombre, filtrarPorNombre } from '../../../../shared/buscador-nombre/buscador-nombre';
 import { RecomendacionesOrganizacionesComponent } from '../../../../shared/recomendaciones-organizaciones/recomendaciones-organizaciones';
+import { mensajeDeError } from '../../../../core/formato/formato';
 
 /**
  * Organizaciones del voluntario: a cuáles está vinculado, sus solicitudes
@@ -122,7 +123,7 @@ export class VoluntarioOrganizaciones implements OnInit {
       error: (error) => {
         console.error('Error en la vinculación con la organización:', error);
         this.procesando.set(null);
-        this.error.set(typeof error?.error === 'string' && error.error ? error.error : errorPorDefecto);
+        this.error.set(mensajeDeError(error, errorPorDefecto));
         this.cargar();
       }
     });

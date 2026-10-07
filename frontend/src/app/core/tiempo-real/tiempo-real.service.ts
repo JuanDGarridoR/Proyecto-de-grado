@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, Subject, debounceTime, filter, map } from 'rxjs';
 
 import { AuthService } from '../auth/auth.service';
+import { API_URL } from '../api';
 
 /**
  * Tipos de datos compartidos entre usuarios. El api-gateway avisa cuál
@@ -38,7 +39,7 @@ const REINTENTO_MAXIMO_MS = 30_000;
 @Injectable({ providedIn: 'root' })
 export class TiempoRealService {
 
-  private readonly url = 'http://localhost:8080/api/eventos';
+  private readonly url = `${API_URL}/eventos`;
 
   private readonly avisos$ = new Subject<string>();
 

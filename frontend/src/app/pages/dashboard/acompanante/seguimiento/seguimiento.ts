@@ -29,6 +29,8 @@ import {
 import { Icon } from '../../../../shared/icon/icon';
 import { SignosVitalesLista } from '../../../../shared/signos-vitales-lista/signos-vitales-lista';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
+import { haceDias } from '../../../../core/fechas/fechas';
+import { iniciales } from '../../../../core/formato/formato';
 
 /** Pestañas con la información de la persona seleccionada. */
 type Pestana = 'medicamentos' | 'citas' | 'signos';
@@ -306,15 +308,7 @@ export class Seguimiento implements OnInit, OnDestroy {
 
   // ---- Ayudas para la vista ----
 
-  /** Iniciales del nombre: "María Pérez" -> "MP". */
-  protected iniciales(nombre: string): string {
-    return nombre
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((parte) => parte.charAt(0).toUpperCase())
-      .join('');
-  }
+  protected readonly iniciales = iniciales;
 
   /** Color fijo por persona, para reconocerla en las tarjetas. */
   protected colorAvatar(persona: PersonaMayorAcompanada): string {
@@ -339,13 +333,9 @@ export class Seguimiento implements OnInit, OnDestroy {
     };
   }
 
-  /** "hoy", "ayer" o "hace N días". */
+  /** "hoy", "ayer" o "hace N días" (lo usa la plantilla). */
   protected hace(fechaHora: string): string {
-    const inicioDia = (fecha: Date) => new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()).getTime();
-    const dias = Math.round((inicioDia(this.ahora()) - inicioDia(new Date(fechaHora))) / 86_400_000);
-
-    if (dias <= 0) return 'hoy';
-    if (dias === 1) return 'ayer';
-    return `hace ${dias} días`;
+    return haceDias(fechaHora, this.ahora());
   }
 }
+

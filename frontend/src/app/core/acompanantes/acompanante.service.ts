@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { SignoVitalResponse } from '../signos-vitales/signos-vitales.services';
 import { CitaMedica } from '../citas-medicas/cita-medica.service';
 import { AcompananteResumen } from '../../shared/acompanantes-modal/acompanantes-modal';
+import { API_URL } from '../api';
 
 /** Acompañante de una persona mayor, con su parentesco. */
 export interface Acompanante {
@@ -118,8 +119,8 @@ export interface Actividad {
 })
 export class AcompananteService {
 
-  private readonly apiUrl = 'http://localhost:8080/api';
-private readonly authUrl = 'http://localhost:8080/api/auth';
+  private readonly apiUrl = `${API_URL}`;
+private readonly authUrl = `${API_URL}/auth`;
 
   constructor(private http: HttpClient) {}
 

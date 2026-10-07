@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { fechaLocal } from '../fechas/fechas';
+import { API_URL } from '../api';
 
 /** Actividad tal como la devuelve actividad-service. */
 export interface Actividad {
@@ -79,7 +81,7 @@ export interface ParticipanteActividad {
 
 /** Fecha de hoy YYYY-MM-DD en hora local (toISOString() usaría UTC). */
 export function fechaHoy(): string {
-  return new Date().toLocaleDateString('en-CA');
+  return fechaLocal(new Date());
 }
 
 /**
@@ -118,7 +120,7 @@ export function separarPorFecha<T extends { fecha: string | null; hora: string |
 })
 export class ActividadService {
 
-  private readonly apiUrl = 'http://localhost:8080/api/actividades';
+  private readonly apiUrl = `${API_URL}/actividades`;
 
   constructor(private http: HttpClient) {}
 

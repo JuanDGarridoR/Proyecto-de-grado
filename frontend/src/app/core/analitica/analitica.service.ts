@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../api';
 
 /** Una actividad del período con sus inscritos y asistentes. */
 export interface ActividadAnalitica {
@@ -111,7 +112,7 @@ export interface ReportePdf {
 @Injectable({ providedIn: 'root' })
 export class AnaliticaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/analitica';
+  private apiUrl = `${API_URL}/analitica`;
 
   /** Actividades con fecha entre desde y hasta (YYYY-MM-DD; null = sin límite). */
   actividades(desde: string | null, hasta: string | null): Observable<ActividadAnalitica[]> {

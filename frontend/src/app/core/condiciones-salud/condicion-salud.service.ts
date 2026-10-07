@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../api';
 
 export type TipoCondicionSalud = 'ENFERMEDAD' | 'ALERGIA' | 'DISCAPACIDAD';
 
@@ -39,7 +40,7 @@ export interface CondicionSaludRequest {
 @Injectable({ providedIn: 'root' })
 export class CondicionSaludService {
 
-  private readonly apiUrl = 'http://localhost:8080/api';
+  private readonly apiUrl = `${API_URL}`;
 
   constructor(private http: HttpClient) {}
 

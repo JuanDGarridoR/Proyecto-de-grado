@@ -11,6 +11,7 @@ import { DatosSalud } from '../../../../shared/datos-salud/datos-salud';
 import { Recordatorios } from '../../persona-mayor/recordatorios/recordatorios';
 import { CitasMedicas } from '../../persona-mayor/citas-medicas/citas-medicas';
 import { PerfilPersona } from './perfil-persona/perfil-persona';
+import { iniciales } from '../../../../core/formato/formato';
 
 /** Pestañas de la persona seleccionada. */
 type Pestana = 'perfil' | 'salud' | 'medicamentos' | 'citas';
@@ -90,15 +91,7 @@ export class GestionCuidado implements OnInit {
     this.personaSeleccionada.set(persona);
   }
 
-  /** Iniciales del nombre: "María Pérez" -> "MP". */
-  protected iniciales(nombre: string): string {
-    return nombre
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((parte) => parte.charAt(0).toUpperCase())
-      .join('');
-  }
+  protected readonly iniciales = iniciales;
 
   protected colorAvatar(persona: PersonaMayorAcompanada): string {
     return COLORES_AVATAR[persona.idUsuario % COLORES_AVATAR.length];

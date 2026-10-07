@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
+import { API_URL } from '../api';
 
 /** Login con correo y contraseña. */
 export interface LoginRequest {
@@ -155,8 +156,8 @@ const RUTAS_POR_ROL: Record<string, string> = {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private readonly apiUrl = 'http://localhost:8080/api/auth';
-  private readonly otpApiUrl = 'http://localhost:8080/api/otp';
+  private readonly apiUrl = `${API_URL}/auth`;
+  private readonly otpApiUrl = `${API_URL}/otp`;
 
   private readonly autenticadoSignal = signal(restaurarSesion());
 

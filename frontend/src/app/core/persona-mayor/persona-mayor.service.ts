@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, map, switchMap } from 'rxjs';
+import { API_URL } from '../api';
 
 /**
  * Perfil completo de la persona mayor: datos de la cuenta (auth-service) más
@@ -30,9 +31,9 @@ export interface CambiarContrasenaRequest {
 @Injectable({ providedIn: 'root' })
 export class PersonaMayorService {
 
-  private readonly authUrl = 'http://localhost:8080/api/auth/informacion';
-  private readonly perfilUrl = 'http://localhost:8080/api/persona-mayor/perfil';
-  private readonly contrasenaUrl = 'http://localhost:8080/api/auth/contrasena';
+  private readonly authUrl = `${API_URL}/auth/informacion`;
+  private readonly perfilUrl = `${API_URL}/persona-mayor/perfil`;
+  private readonly contrasenaUrl = `${API_URL}/auth/contrasena`;
 
   constructor(private http: HttpClient) {}
 

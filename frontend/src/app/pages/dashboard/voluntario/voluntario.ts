@@ -1,8 +1,5 @@
 import {
-  AfterViewInit,
   Component,
-  ElementRef,
-  HostListener,
   OnDestroy,
   OnInit,
   computed,
@@ -25,6 +22,8 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { alCambiar } from '../../../core/tiempo-real/tiempo-real.service';
 import { formatearHora } from '../../../core/medicamentos/medicamento.service';
 import { formatearFechaCita } from '../../../core/citas-medicas/cita-medica.service';
+import { AltoPantalla } from '../../../shared/alto-pantalla/alto-pantalla';
+import { fechaLocal } from '../../../core/fechas/fechas';
 
 registerLocaleData(localeEs);
 
@@ -64,9 +63,10 @@ const PROPUESTAS_EN_INICIO = 4;
   selector: 'app-voluntario-dashboard',
   imports: [Icon, DatePipe, RouterLink],
   templateUrl: './voluntario.html',
-  styleUrl: './voluntario.css'
+  styleUrl: './voluntario.css',
+  hostDirectives: [AltoPantalla]
 })
-export class VoluntarioDashboard implements OnInit, AfterViewInit, OnDestroy {
+export class VoluntarioDashboard implements OnInit, OnDestroy {
 
   protected readonly nombreUsuario: string;
   protected readonly ruta = '/panel/voluntario';
@@ -93,7 +93,6 @@ export class VoluntarioDashboard implements OnInit, AfterViewInit, OnDestroy {
   };
 
   constructor(
-    private elemento: ElementRef<HTMLElement>,
     private actividadService: ActividadService,
     private voluntarioService: VoluntarioService,
     private authService: AuthService
@@ -119,10 +118,6 @@ export class VoluntarioDashboard implements OnInit, AfterViewInit, OnDestroy {
     this.cargarPropuestas();
   }
 
-  ngAfterViewInit(): void {
-    this.ajustarAltoPantalla();
-  }
-
   ngOnDestroy(): void {
     clearInterval(this.intervaloReloj);
   }
@@ -132,16 +127,6 @@ export class VoluntarioDashboard implements OnInit, AfterViewInit, OnDestroy {
    * scroll): se calcula cuánto queda debajo de la barra superior y se pasa al
    * CSS en --alto-disponible. En celulares el CSS no la usa.
    */
-  @HostListener('window:resize')
-  protected ajustarAltoPantalla(): void {
-    const host = this.elemento.nativeElement;
-    const contenedor = host.parentElement;
-    const inicio = host.getBoundingClientRect().top + window.scrollY;
-    const margenInferior = contenedor ? parseFloat(getComputedStyle(contenedor).paddingBottom) || 0 : 0;
-
-    host.style.setProperty('--alto-disponible', `${Math.floor(window.innerHeight - inicio - margenInferior)}px`);
-  }
-
   private cargarActividades(): void {
     this.actividadService.listar().subscribe({
       next: (actividades) => this.actividades.set(actividades),
@@ -215,9 +200,9 @@ export class VoluntarioDashboard implements OnInit, AfterViewInit, OnDestroy {
 
   /** Las propuestas tienen su propia tarjeta, así que aquí solo van organizaciones y actividades. */
   protected readonly stats = computed<StatCard[]>(() => {
-    const hoy = this.fechaLocal(this.ahora());
+    const hoy = fechaLocal(this.ahora());
     const mes = hoy.slice(0, 7); // "2026-10"
-    const enUnaSemana = this.fechaLocal(new Date(this.ahora().getTime() + 7 * 24 * 60 * MINUTO));
+    const enUnaSemana = fechaLocal(new Date(this.ahora().getTime() + 7 * 24 * 60 * MINUTO));
 
     return [
       { icon: 'building', value: this.vinculadas().length, label: 'Organizaciones donde ayudas' },
@@ -293,10 +278,5 @@ export class VoluntarioDashboard implements OnInit, AfterViewInit, OnDestroy {
     }
     const dia = formatearFechaCita(fecha, this.ahora());
     return hora ? `${dia}, ${formatearHora(hora)}` : dia;
-  }
-
-  /** Fecha YYYY-MM-DD en hora local (toISOString() usaría UTC). */
-  private fechaLocal(fecha: Date): string {
-    return fecha.toLocaleDateString('en-CA');
   }
 }

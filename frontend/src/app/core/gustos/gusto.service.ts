@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../api';
 
 /** Categorías con las que se agrupan los gustos en pantalla. */
 export type CategoriaGusto = 'GUSTO' | 'TALENTO' | 'HOBBY';
@@ -22,7 +23,7 @@ export interface GustoRequest {
 @Injectable({ providedIn: 'root' })
 export class GustoService {
 
-  private readonly apiUrl = 'http://localhost:8080/api/gustos';
+  private readonly apiUrl = `${API_URL}/gustos`;
 
   constructor(private http: HttpClient) {}
 
@@ -44,12 +45,12 @@ export class GustoService {
 
   /** Gustos que tiene marcados una persona mayor. */
   listarAsignados(idPersonaMayor: number): Observable<Gusto[]> {
-    return this.http.get<Gusto[]>(`http://localhost:8080/api/persona-mayor/${idPersonaMayor}/gustos`);
+    return this.http.get<Gusto[]>(`${API_URL}/persona-mayor/${idPersonaMayor}/gustos`);
   }
 
   /** Reemplaza los gustos marcados de la persona mayor por los de la lista. */
   asignar(idPersonaMayor: number, idsGustos: number[]): Observable<Gusto[]> {
-    return this.http.put<Gusto[]>(`http://localhost:8080/api/persona-mayor/${idPersonaMayor}/gustos`, {
+    return this.http.put<Gusto[]>(`${API_URL}/persona-mayor/${idPersonaMayor}/gustos`, {
       idsGustos
     });
   }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../api';
 
 /**
  * Medicamento tal como lo devuelve salud-service. hora va en "HH:mm";
@@ -151,7 +152,7 @@ export function tomasDeHoy(med: DatosTomas, ahora: Date): TomaDelDia[] {
 @Injectable({ providedIn: 'root' })
 export class MedicamentoService {
 
-  private readonly apiUrl = 'http://localhost:8080/api';
+  private readonly apiUrl = `${API_URL}`;
 
   constructor(private http: HttpClient) {}
 

@@ -19,6 +19,7 @@ import { Icon } from '../../../../shared/icon/icon';
 import { ActividadCard } from '../../../../shared/actividad-card/actividad-card';
 import { ActividadFormulario } from '../../../../shared/actividad-formulario/actividad-formulario';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
+import { mensajeDeError } from '../../../../core/formato/formato';
 
 /**
  * Actividades de la organización: crear, editar y borrar (siempre con
@@ -192,9 +193,7 @@ ngOnInit(): void {
       error: (error) => {
         console.error('Error al responder la propuesta:', error);
         this.propuestaProcesando.set(null);
-        this.error.set(typeof error?.error === 'string' && error.error
-          ? error.error
-          : 'No se pudo responder la propuesta.');
+        this.error.set(mensajeDeError(error, 'No se pudo responder la propuesta.'));
         this.cargarPropuestas();
       }
     });

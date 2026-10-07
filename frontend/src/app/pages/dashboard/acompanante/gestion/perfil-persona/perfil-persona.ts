@@ -6,6 +6,7 @@ import {
   PerfilPersonaMayor
 } from '../../../../../core/acompanantes/acompanante.service';
 import { Icon } from '../../../../../shared/icon/icon';
+import { mensajeDeError } from '../../../../../core/formato/formato';
 
 /** Campos que edita el acompañante; el celular y el correo no se tocan. */
 interface FormularioPerfil {
@@ -151,9 +152,7 @@ export class PerfilPersona {
         console.error('Error al guardar el perfil de la persona mayor:', error);
         this.guardando.set(false);
         this.errorGuardado.set(
-          typeof error?.error === 'string' && error.error
-            ? error.error
-            : 'No se pudo guardar. Intenta de nuevo.'
+          mensajeDeError(error, 'No se pudo guardar. Intenta de nuevo.')
         );
       }
     });

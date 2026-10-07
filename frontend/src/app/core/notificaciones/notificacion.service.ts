@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../api';
 
 /** SMS enviado al celular del usuario (emergencias, recordatorios...). */
 export interface Notificacion {
@@ -32,7 +33,7 @@ export type PreferenciasNotificacion = Record<TipoNotificacion, boolean>;
 @Injectable({ providedIn: 'root' })
 export class NotificacionService {
 
-  private readonly apiUrl = 'http://localhost:8080/api/notificaciones';
+  private readonly apiUrl = `${API_URL}/notificaciones`;
 
   constructor(private http: HttpClient) {}
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../api';
 
 /** Botón de emergencia de la persona mayor. */
 @Injectable({
@@ -9,7 +10,7 @@ import { Observable } from 'rxjs';
 export class EmergenciaService {
 
   private readonly apiUrl =
-    'http://localhost:8080/api/persona-mayor/emergencia';
+    `${API_URL}/persona-mayor/emergencia`;
 
   constructor(private http: HttpClient) {}
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, switchMap } from 'rxjs';
+import { API_URL } from '../api';
 
 /** Datos de la organización para "Mi información". */
 export interface OrganizacionResponse {
@@ -51,8 +52,8 @@ export interface AcompanantePersonaMayor {
   providedIn: 'root',
 })
 export class OrganizacionService {
-  private readonly apiUrl = 'http://localhost:8080/api/organizacion';
-  private readonly authInformacionUrl = 'http://localhost:8080/api/auth/informacion';
+  private readonly apiUrl = `${API_URL}/organizacion`;
+  private readonly authInformacionUrl = `${API_URL}/auth/informacion`;
 
   constructor(private http: HttpClient) {}
 
@@ -98,13 +99,13 @@ export class OrganizacionService {
   /** Lado de la persona mayor: solicitudes de organizaciones que no ha respondido. */
   obtenerSolicitudesOrganizaciones(): Observable<OrganizacionSolicitud[]> {
     return this.http.get<OrganizacionSolicitud[]>(
-      'http://localhost:8080/api/persona-mayor/organizaciones/solicitudes',
+      `${API_URL}/persona-mayor/organizaciones/solicitudes`,
     );
   }
 
   aceptarSolicitudOrganizacion(idOrganizacion: number): Observable<string> {
     return this.http.put(
-      `http://localhost:8080/api/persona-mayor/organizaciones/solicitudes/${idOrganizacion}/aceptar`,
+      `${API_URL}/persona-mayor/organizaciones/solicitudes/${idOrganizacion}/aceptar`,
       {},
       { responseType: 'text' },
     );
@@ -112,7 +113,7 @@ export class OrganizacionService {
 
   rechazarSolicitudOrganizacion(idOrganizacion: number): Observable<string> {
     return this.http.put(
-      `http://localhost:8080/api/persona-mayor/organizaciones/solicitudes/${idOrganizacion}/rechazar`,
+      `${API_URL}/persona-mayor/organizaciones/solicitudes/${idOrganizacion}/rechazar`,
       {},
       { responseType: 'text' },
     );
@@ -120,7 +121,7 @@ export class OrganizacionService {
   /** Lado de la persona mayor: pide unirse a una organización (la organización responde). */
   solicitarVinculacionOrganizacion(idOrganizacion: number): Observable<string> {
     return this.http.post(
-      `http://localhost:8080/api/persona-mayor/organizaciones/${idOrganizacion}/solicitud`,
+      `${API_URL}/persona-mayor/organizaciones/${idOrganizacion}/solicitud`,
       {},
       { responseType: 'text' },
     );
@@ -129,14 +130,14 @@ export class OrganizacionService {
   /** Lado de la persona mayor: organizaciones a las que puede pedir unirse (sin vínculo ni solicitud pendiente). */
   obtenerOrganizacionesDisponibles(): Observable<OrganizacionSolicitud[]> {
     return this.http.get<OrganizacionSolicitud[]>(
-      'http://localhost:8080/api/persona-mayor/organizaciones/disponibles',
+      `${API_URL}/persona-mayor/organizaciones/disponibles`,
     );
   }
 
   /** Lado de la persona mayor: solicitudes que envió y la organización aún no responde. */
   obtenerSolicitudesEnviadasOrganizaciones(): Observable<OrganizacionSolicitud[]> {
     return this.http.get<OrganizacionSolicitud[]>(
-      'http://localhost:8080/api/persona-mayor/organizaciones/solicitudes/enviadas',
+      `${API_URL}/persona-mayor/organizaciones/solicitudes/enviadas`,
     );
   }
 
@@ -164,13 +165,13 @@ export class OrganizacionService {
   /** Lado de la persona mayor: organizaciones con vínculo aceptado. */
   obtenerOrganizaciones(): Observable<OrganizacionSolicitud[]> {
     return this.http.get<OrganizacionSolicitud[]>(
-      'http://localhost:8080/api/persona-mayor/organizaciones',
+      `${API_URL}/persona-mayor/organizaciones`,
     );
   }
   /** La persona mayor deshace el vínculo con una organización. */
   cancelarAsociacionOrganizacion(idOrganizacion: number): Observable<string> {
     return this.http.delete(
-      `http://localhost:8080/api/persona-mayor/organizaciones/${idOrganizacion}`,
+      `${API_URL}/persona-mayor/organizaciones/${idOrganizacion}`,
       { responseType: 'text' },
     );
   }

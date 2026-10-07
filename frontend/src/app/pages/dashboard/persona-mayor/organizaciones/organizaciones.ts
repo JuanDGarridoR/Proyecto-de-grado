@@ -11,6 +11,7 @@ import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { Icon } from '../../../../shared/icon/icon';
 import { BuscadorNombre, filtrarPorNombre } from '../../../../shared/buscador-nombre/buscador-nombre';
 import { RecomendacionesOrganizacionesComponent } from '../../../../shared/recomendaciones-organizaciones/recomendaciones-organizaciones';
+import { mensajeDeError } from '../../../../core/formato/formato';
 
 /**
  * Organizaciones de la persona mayor: invitaciones pendientes para aceptar o
@@ -131,7 +132,7 @@ protected readonly accionPendiente =
       },
       error: (error) => {
         this.solicitando.set(null);
-        this.error.set(typeof error?.error === 'string' && error.error ? error.error : 'No se pudo enviar la solicitud.');
+        this.error.set(mensajeDeError(error, 'No se pudo enviar la solicitud.'));
       }
     });
   }

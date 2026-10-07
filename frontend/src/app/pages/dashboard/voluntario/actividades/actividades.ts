@@ -15,6 +15,7 @@ import {
   ActividadFormularioDatos,
   OpcionOrganizacion
 } from '../../../../shared/actividad-formulario/actividad-formulario';
+import { mensajeDeError } from '../../../../core/formato/formato';
 
 /**
  * Actividades del voluntario: propone actividades a las organizaciones en
@@ -89,9 +90,7 @@ export class VoluntarioActividades implements OnInit {
       error: (error) => {
         console.error('Error al proponer la actividad:', error);
         this.errorFormulario.set(
-          typeof error?.error === 'string' && error.error
-            ? error.error
-            : 'No se pudo enviar la propuesta.'
+          mensajeDeError(error, 'No se pudo enviar la propuesta.')
         );
       }
     });

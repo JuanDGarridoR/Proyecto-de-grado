@@ -1,8 +1,5 @@
 import {
-  AfterViewInit,
   Component,
-  ElementRef,
-  HostListener,
   OnDestroy,
   OnInit,
   computed,
@@ -38,6 +35,8 @@ import { alCambiar } from '../../../core/tiempo-real/tiempo-real.service';
 import { NOMBRE_INDICADOR, indicadoresFueraDeRango } from '../../../core/signos-vitales/rangos';
 import { formatearHora } from '../../../core/medicamentos/medicamento.service';
 import { formatearFechaCita } from '../../../core/citas-medicas/cita-medica.service';
+import { AltoPantalla } from '../../../shared/alto-pantalla/alto-pantalla';
+import { diasDesde, fechaLocal, haceDias, proximoCumpleanos } from '../../../core/fechas/fechas';
 
 registerLocaleData(localeEs);
 
@@ -125,9 +124,10 @@ function actividadVacia(): ActividadRequest {
   selector: 'app-organizacion-dashboard',
   imports: [FormsModule, Icon, DatePipe, RouterLink],
   templateUrl: './organizacion.html',
-  styleUrl: './organizacion.css'
+  styleUrl: './organizacion.css',
+  hostDirectives: [AltoPantalla]
 })
-export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
+export class OrganizacionDashboard implements OnInit, OnDestroy {
 
   protected readonly ruta = RUTA;
 
@@ -188,7 +188,6 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
   protected actividadEditando: ActividadRequest = actividadVacia();
 
   constructor(
-    private elemento: ElementRef<HTMLElement>,
     private actividadService: ActividadService,
     private analiticaService: AnaliticaService,
     private authService: AuthService,
@@ -221,10 +220,6 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
     this.cargarSolicitudesPersonas();
   }
 
-  ngAfterViewInit(): void {
-    this.ajustarAltoPantalla();
-  }
-
   ngOnDestroy(): void {
     clearInterval(this.intervaloReloj);
   }
@@ -234,16 +229,6 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
    * scroll): se calcula cuánto queda debajo de la barra superior y se pasa al
    * CSS en --alto-disponible. En pantallas pequeñas el CSS no la usa.
    */
-  @HostListener('window:resize')
-  protected ajustarAltoPantalla(): void {
-    const host = this.elemento.nativeElement;
-    const contenedor = host.parentElement;
-    const inicio = host.getBoundingClientRect().top + window.scrollY;
-    const margenInferior = contenedor ? parseFloat(getComputedStyle(contenedor).paddingBottom) || 0 : 0;
-
-    host.style.setProperty('--alto-disponible', `${Math.floor(window.innerHeight - inicio - margenInferior)}px`);
-  }
-
   // Carga de datos
 
   private cargarInformacionOrganizacion(): void {
@@ -270,7 +255,7 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
   private cargarParticipacion(): void {
     const hoy = this.ahora();
     const desde = new Date(hoy.getTime() - DIAS_PARTICIPACION * DIA);
-    this.analiticaService.actividades(this.fechaLocal(desde), this.fechaLocal(hoy)).subscribe({
+    this.analiticaService.actividades(fechaLocal(desde), fechaLocal(hoy)).subscribe({
       next: (actividades) => this.participacion.set(actividades),
       error: () => this.participacion.set([])
     });
@@ -338,7 +323,7 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
    */
   protected readonly alertas = computed<Alerta[]>(() => {
     const alertas: Alerta[] = [];
-    const hoy = this.fechaLocal(this.ahora());
+    const hoy = fechaLocal(this.ahora());
 
     const salud = this.salud();
     if (salud) {
@@ -358,12 +343,12 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
             clave: `signos-${persona.idUsuario}`,
             prioridad: 'Alta',
             titulo: persona.nombre,
-            descripcion: `${fuera.join(', ')} fuera de lo habitual en su última medición (${this.hace(ultima.fechaHora)}).`,
+            descripcion: `${fuera.join(', ')} fuera de lo habitual en su última medición (${haceDias(ultima.fechaHora, this.ahora())}).`,
             enlace: `${RUTA}/signos-vitales`
           });
         }
 
-        if (this.diasDesde(ultima.fechaHora) > DIAS_SIN_MEDICION) {
+        if (diasDesde(ultima.fechaHora, this.ahora()) > DIAS_SIN_MEDICION) {
           sinMedicion.push(persona.nombre);
         }
       }
@@ -478,7 +463,7 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
 
   /** Participación de las actividades ya realizadas en los últimos DIAS_PARTICIPACION días. */
   protected readonly resumenParticipacion = computed(() => {
-    const hoy = this.fechaLocal(this.ahora());
+    const hoy = fechaLocal(this.ahora());
     const realizadas = (this.participacion() ?? []).filter((a) => a.fecha <= hoy);
     const inscritos = realizadas.reduce((t, a) => t + a.inscritos, 0);
     const conRegistro = realizadas.reduce((t, a) => t + a.conRegistro, 0);
@@ -500,24 +485,14 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
 
   /** Personas que cumplen años en los próximos DIAS_CUMPLEANOS días. */
   protected readonly cumpleanos = computed<Cumpleanos[]>(() => {
-    const hoy = new Date(this.ahora());
-    hoy.setHours(0, 0, 0, 0);
-
     const lista: Cumpleanos[] = [];
     for (const p of this.poblacion()?.personas ?? []) {
       if (!p.fechaNacimiento) {
         continue;
       }
-      const [anioNacimiento, mes, dia] = p.fechaNacimiento.split('-').map(Number);
-      let anio = hoy.getFullYear();
-      let proximo = new Date(anio, mes - 1, dia);
-      if (proximo < hoy) {
-        anio++;
-        proximo = new Date(anio, mes - 1, dia);
-      }
-      const dias = Math.round((proximo.getTime() - hoy.getTime()) / DIA);
-      if (dias <= DIAS_CUMPLEANOS) {
-        lista.push({ idUsuario: p.idUsuario, nombre: p.nombre, dias, edad: anio - anioNacimiento, fecha: this.fechaLocal(proximo) });
+      const cumple = proximoCumpleanos(p.fechaNacimiento, this.ahora());
+      if (cumple.dias <= DIAS_CUMPLEANOS) {
+        lista.push({ idUsuario: p.idUsuario, nombre: p.nombre, ...cumple });
       }
     }
 
@@ -536,30 +511,11 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
     if (c.dias === 1) return 'Mañana';
     return this.formatearDia(c.fecha);
   }
-
-  /** "hoy", "ayer" o "hace N días". */
-  private hace(fechaHora: string): string {
-    const dias = this.diasDesde(fechaHora);
-    if (dias <= 0) return 'hoy';
-    if (dias === 1) return 'ayer';
-    return `hace ${dias} días`;
-  }
-
-  private diasDesde(fechaHora: string): number {
-    const inicio = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-    return Math.round((inicio(this.ahora()) - inicio(new Date(fechaHora))) / DIA);
-  }
-
-  /** Fecha YYYY-MM-DD en hora local (toISOString() usaría UTC). */
-  private fechaLocal(fecha: Date): string {
-    return fecha.toLocaleDateString('en-CA');
-  }
-
   // Registro y edición rápidos de actividades
 
   /** Fecha de hoy (YYYY-MM-DD): no se pueden registrar actividades en días pasados. */
   protected hoy(): string {
-    return this.fechaLocal(this.ahora());
+    return fechaLocal(this.ahora());
   }
 
   /** Nombre, fecha, hora y lugar son obligatorios para registrar o guardar una actividad. */

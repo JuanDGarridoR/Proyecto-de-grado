@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../api';
 
 /** Rol de usuario. */
 export interface Rol {
@@ -19,7 +20,7 @@ export interface RolRequest {
 @Injectable({ providedIn: 'root' })
 export class RolService {
 
-  private readonly apiUrl = 'http://localhost:8080/api/roles';
+  private readonly apiUrl = `${API_URL}/roles`;
 
   constructor(private http: HttpClient) {}
 

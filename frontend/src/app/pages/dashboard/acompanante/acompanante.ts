@@ -1,8 +1,5 @@
 import {
-  AfterViewInit,
   Component,
-  ElementRef,
-  HostListener,
   OnDestroy,
   OnInit,
   computed,
@@ -31,12 +28,15 @@ import { alCambiar } from '../../../core/tiempo-real/tiempo-real.service';
 import { formatearHora, tomasDeHoy } from '../../../core/medicamentos/medicamento.service';
 import {
   CitaMedica,
-  formatearConsultorio,
   formatearFechaCita,
+  lugarDeCita,
   momentoDeCita
 } from '../../../core/citas-medicas/cita-medica.service';
 import { SignoVitalResponse } from '../../../core/signos-vitales/signos-vitales.services';
 import { NOMBRE_INDICADOR, indicadoresFueraDeRango } from '../../../core/signos-vitales/rangos';
+import { AltoPantalla } from '../../../shared/alto-pantalla/alto-pantalla';
+import { diasDesde, fechaLocal, haceDias } from '../../../core/fechas/fechas';
+import { iniciales } from '../../../core/formato/formato';
 
 registerLocaleData(localeEs);
 
@@ -112,9 +112,10 @@ const DATOS_VACIOS: DatosPersona = { medicamentos: [], citas: [], ultimoSigno: n
   selector: 'app-acompanante-dashboard',
   imports: [Icon, DatePipe, RouterLink],
   templateUrl: './acompanante.html',
-  styleUrl: './acompanante.css'
+  styleUrl: './acompanante.css',
+  hostDirectives: [AltoPantalla]
 })
-export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
+export class AcompananteDashboard implements OnInit, OnDestroy {
 
   protected readonly nombreUsuario: string;
   protected readonly ruta = '/panel/acompanante';
@@ -140,7 +141,6 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
   protected readonly formatearHora = formatearHora;
 
   constructor(
-    private elemento: ElementRef<HTMLElement>,
     private actividadService: ActividadService,
     private acompananteService: AcompananteService,
     private authService: AuthService
@@ -163,10 +163,6 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
     this.cargarEmergencias();
   }
 
-  ngAfterViewInit(): void {
-    this.ajustarAltoPantalla();
-  }
-
   ngOnDestroy(): void {
     clearInterval(this.intervaloReloj);
   }
@@ -176,16 +172,6 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
    * scroll): se calcula cuánto queda debajo de la barra superior y se pasa al
    * CSS en --alto-disponible. En celulares el CSS no la usa.
    */
-  @HostListener('window:resize')
-  protected ajustarAltoPantalla(): void {
-    const host = this.elemento.nativeElement;
-    const contenedor = host.parentElement;
-    const inicio = host.getBoundingClientRect().top + window.scrollY;
-    const margenInferior = contenedor ? parseFloat(getComputedStyle(contenedor).paddingBottom) || 0 : 0;
-
-    host.style.setProperty('--alto-disponible', `${Math.floor(window.innerHeight - inicio - margenInferior)}px`);
-  }
-
   private cargarActividades(): void {
     this.actividadService.listar().subscribe({
       // Solo las próximas, de la más cercana a la más lejana.
@@ -262,7 +248,7 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
   /** Tomas de medicamentos y citas de hoy de todas sus personas mayores, en orden de hora. */
   protected readonly agendaHoy = computed<EventoAgenda[]>(() => {
     const ahora = this.ahora();
-    const hoy = this.fechaLocal(ahora);
+    const hoy = fechaLocal(ahora);
     const eventos: EventoAgenda[] = [];
 
     for (const persona of this.personasMayores()) {
@@ -292,7 +278,7 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
           tipo: 'cita',
           momento,
           titulo: cita.titulo,
-          detalle: this.lugarDeCita(cita),
+          detalle: lugarDeCita(cita),
           persona,
           estado: momento < ahora ? 'pasado' : 'pendiente'
         });
@@ -327,7 +313,7 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
         tomasTotal: tomas.length,
         sinTomar: tomas.filter((t) => t.estado === 'atrasado').length,
         ultimaMedicion: ultimoSigno
-          ? { hace: this.hace(ultimoSigno.fechaHora), normal: indicadoresFueraDeRango(ultimoSigno).length === 0 }
+          ? { hace: haceDias(ultimoSigno.fechaHora, this.ahora()), normal: indicadoresFueraDeRango(ultimoSigno).length === 0 }
           : null,
         proximaCita: cita ? this.cuandoCita(cita) : null
       };
@@ -351,8 +337,8 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
    */
   protected readonly alertas = computed<Alerta[]>(() => {
     const ahora = this.ahora();
-    const hoy = this.fechaLocal(ahora);
-    const manana = this.fechaLocal(new Date(ahora.getTime() + DIA));
+    const hoy = fechaLocal(ahora);
+    const manana = fechaLocal(new Date(ahora.getTime() + DIA));
     const alertas: Alerta[] = [];
 
     for (const e of this.emergenciasPorPersona()) {
@@ -389,7 +375,7 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
             clave: `${id}-signos`,
             prioridad: 'Alta',
             persona,
-            texto: `${fuera.join(', ')} fuera de lo habitual en la última medición (${this.hace(ultimoSigno.fechaHora)}).`
+            texto: `${fuera.join(', ')} fuera de lo habitual en la última medición (${haceDias(ultimoSigno.fechaHora, this.ahora())}).`
           });
         }
       }
@@ -405,7 +391,7 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
         }
       }
 
-      const diasSinMedir = ultimoSigno ? this.diasDesde(ultimoSigno.fechaHora) : null;
+      const diasSinMedir = ultimoSigno ? diasDesde(ultimoSigno.fechaHora, this.ahora()) : null;
       if (diasSinMedir === null || diasSinMedir > DIAS_SIN_MEDICION) {
         alertas.push({
           clave: `${id}-sin-medicion`,
@@ -423,7 +409,7 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
 
   /** Citas médicas de los próximos días (las de hoy ya están en la agenda). */
   protected readonly proximasCitas = computed<CitaProxima[]>(() => {
-    const hoy = this.fechaLocal(this.ahora());
+    const hoy = fechaLocal(this.ahora());
 
     return this.personasMayores()
       .flatMap((persona) =>
@@ -448,15 +434,7 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
     return fecha.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' });
   }
 
-  /** Iniciales del nombre: "María Pérez" -> "MP". */
-  protected iniciales(nombre: string): string {
-    return nombre
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((parte) => parte.charAt(0).toUpperCase())
-      .join('');
-  }
+  protected readonly iniciales = iniciales;
 
   /** "Rosa Elvira Díaz" -> "Rosa". */
   protected primerNombre(nombre: string): string {
@@ -473,28 +451,5 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
     if (minutos < 60) return `hace ${minutos} ${minutos === 1 ? 'minuto' : 'minutos'} (${hora})`;
     const horas = Math.floor(minutos / 60);
     return `hace ${horas} ${horas === 1 ? 'hora' : 'horas'} (${hora})`;
-  }
-
-  /** "hoy", "ayer" o "hace N días". */
-  private hace(fechaHora: string): string {
-    const dias = this.diasDesde(fechaHora);
-    if (dias <= 0) return 'hoy';
-    if (dias === 1) return 'ayer';
-    return `hace ${dias} días`;
-  }
-
-  private diasDesde(fechaHora: string): number {
-    const inicio = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-    return Math.round((inicio(this.ahora()) - inicio(new Date(fechaHora))) / DIA);
-  }
-
-  /** "Hospital San José · Consultorio 204". */
-  private lugarDeCita(cita: CitaMedica): string | null {
-    return [cita.lugar, formatearConsultorio(cita.consultorio)].filter(Boolean).join(' · ') || null;
-  }
-
-  /** Fecha YYYY-MM-DD en hora local (toISOString() usaría UTC). */
-  private fechaLocal(fecha: Date): string {
-    return fecha.toLocaleDateString('en-CA');
   }
 }
