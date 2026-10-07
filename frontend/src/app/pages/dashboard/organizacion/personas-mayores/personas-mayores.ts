@@ -37,6 +37,14 @@ export class PersonasMayores implements OnInit {
   protected readonly personasMayores =
     signal<PersonaMayorOrganizacion[]>([]);
 
+  /** Personas mayores que pidieron unirse a la organización. */
+  protected readonly solicitudes =
+    signal<PersonaMayorOrganizacion[]>([]);
+
+  /** Solicitud que se está respondiendo; deshabilita sus botones. */
+  protected readonly respondiendo =
+    signal<number | null>(null);
+
   protected readonly mostrandoFormulario =
     signal(false);
 
@@ -82,7 +90,10 @@ constructor(
   private signosVitalesService: SignosVitalesService,
   private route: ActivatedRoute
 ) {
-  alCambiar(['organizaciones', 'usuarios'], () => this.cargarPersonasMayores());
+  alCambiar(['organizaciones', 'usuarios'], () => {
+    this.cargarPersonasMayores();
+    this.cargarSolicitudes();
+  });
 
   // Si hay un modal abierto, se actualiza en vivo sin mostrar "cargando".
   alCambiar(['acompanamientos', 'usuarios'], () => {
@@ -108,6 +119,7 @@ constructor(
 
 ngOnInit(): void {
   this.cargarPersonasMayores();
+  this.cargarSolicitudes();
 
   // Desde las acciones rápidas del inicio se llega con ?abrir=registrar.
   this.route.queryParams.subscribe(params => {
@@ -116,6 +128,40 @@ ngOnInit(): void {
     }
   });
 }
+
+  cargarSolicitudes(): void {
+    this.organizacionService.obtenerSolicitudesPersonasMayores().subscribe({
+      next: (solicitudes) => this.solicitudes.set(solicitudes),
+      error: () => this.solicitudes.set([])
+    });
+  }
+
+  /** Acepta o rechaza la solicitud de una persona mayor que pidió unirse. */
+  responderSolicitud(persona: PersonaMayorOrganizacion, aceptar: boolean): void {
+    this.respondiendo.set(persona.idUsuario);
+    this.mensaje.set(null);
+    this.error.set(null);
+
+    const peticion = aceptar
+      ? this.organizacionService.aceptarSolicitudPersonaMayor(persona.idUsuario)
+      : this.organizacionService.rechazarSolicitudPersonaMayor(persona.idUsuario);
+
+    peticion.subscribe({
+      next: () => {
+        this.respondiendo.set(null);
+        this.mensaje.set(aceptar
+          ? `${persona.nombre} ahora hace parte de tu organización.`
+          : `Rechazaste la solicitud de ${persona.nombre}.`);
+        this.cargarSolicitudes();
+        this.cargarPersonasMayores();
+      },
+      error: (error) => {
+        this.respondiendo.set(null);
+        this.error.set(typeof error?.error === 'string' && error.error ? error.error : 'No se pudo responder la solicitud.');
+        this.cargarSolicitudes();
+      }
+    });
+  }
 
   cargarPersonasMayores(): void {
 

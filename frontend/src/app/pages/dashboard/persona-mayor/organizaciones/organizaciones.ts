@@ -11,9 +11,10 @@ import { Icon } from '../../../../shared/icon/icon';
 import { RecomendacionesOrganizacionesComponent } from './recomendaciones/recomendaciones';
 
 /**
- * Organizaciones de la persona mayor: solicitudes pendientes para aceptar o
- * rechazar y organizaciones con vínculo aceptado. Toda acción pasa por un
- * modal de confirmación.
+ * Organizaciones de la persona mayor: invitaciones pendientes para aceptar o
+ * rechazar, organizaciones con vínculo aceptado, solicitudes que ella envió
+ * (puede cancelarlas) y recomendaciones desde donde puede solicitar unirse.
+ * Aceptar, rechazar o desvincularse pasa por un modal de confirmación.
  */
 @Component({
   selector: 'app-organizaciones',
@@ -29,6 +30,14 @@ export class Organizaciones implements OnInit {
 
   protected readonly solicitudes =
     signal<OrganizacionSolicitud[]>([]);
+
+  /** Solicitudes que envió la persona mayor y la organización aún no responde. */
+  protected readonly enviadas =
+    signal<OrganizacionSolicitud[]>([]);
+
+  /** Solicitud enviada que se está cancelando; deshabilita su botón. */
+  protected readonly cancelandoEnviada =
+    signal<number | null>(null);
 
   /** Organización cuya solicitud se está enviando; deshabilita sus botones. */
   protected readonly procesandoSolicitud =
@@ -56,12 +65,40 @@ protected readonly accionPendiente =
     alCambiar(['organizaciones', 'usuarios'], () => {
       this.cargarOrganizaciones();
       this.cargarSolicitudes();
+      this.cargarEnviadas();
     });
   }
 
   ngOnInit(): void {
     this.cargarOrganizaciones();
     this.cargarSolicitudes();
+    this.cargarEnviadas();
+  }
+
+  cargarEnviadas(): void {
+    this.organizacionService.obtenerSolicitudesEnviadasOrganizaciones().subscribe({
+      next: (enviadas) => this.enviadas.set(enviadas),
+      error: () => this.enviadas.set([])
+    });
+  }
+
+  /** Retira una solicitud que envió y aún no tiene respuesta. */
+  cancelarEnviada(organizacion: OrganizacionSolicitud): void {
+    this.cancelandoEnviada.set(organizacion.idOrganizacion);
+    this.mensaje.set(null);
+    this.error.set(null);
+
+    this.organizacionService.cancelarAsociacionOrganizacion(organizacion.idOrganizacion).subscribe({
+      next: () => {
+        this.cancelandoEnviada.set(null);
+        this.mensaje.set(`Cancelaste tu solicitud a ${organizacion.nombre}.`);
+        this.cargarEnviadas();
+      },
+      error: () => {
+        this.cancelandoEnviada.set(null);
+        this.error.set('No se pudo cancelar la solicitud.');
+      }
+    });
   }
 
   cargarOrganizaciones(): void {

@@ -117,6 +117,43 @@ export class OrganizacionService {
       { responseType: 'text' },
     );
   }
+  /** Lado de la persona mayor: pide unirse a una organización (la organización responde). */
+  solicitarVinculacionOrganizacion(idOrganizacion: number): Observable<string> {
+    return this.http.post(
+      `http://localhost:8080/api/persona-mayor/organizaciones/${idOrganizacion}/solicitud`,
+      {},
+      { responseType: 'text' },
+    );
+  }
+
+  /** Lado de la persona mayor: solicitudes que envió y la organización aún no responde. */
+  obtenerSolicitudesEnviadasOrganizaciones(): Observable<OrganizacionSolicitud[]> {
+    return this.http.get<OrganizacionSolicitud[]>(
+      'http://localhost:8080/api/persona-mayor/organizaciones/solicitudes/enviadas',
+    );
+  }
+
+  /** Lado de la organización: personas mayores que pidieron unirse y aún no tienen respuesta. */
+  obtenerSolicitudesPersonasMayores(): Observable<PersonaMayorOrganizacion[]> {
+    return this.http.get<PersonaMayorOrganizacion[]>(`${this.apiUrl}/personas-mayores/solicitudes`);
+  }
+
+  aceptarSolicitudPersonaMayor(idPersonaMayor: number): Observable<string> {
+    return this.http.put(
+      `${this.apiUrl}/personas-mayores/solicitudes/${idPersonaMayor}/aceptar`,
+      {},
+      { responseType: 'text' },
+    );
+  }
+
+  rechazarSolicitudPersonaMayor(idPersonaMayor: number): Observable<string> {
+    return this.http.put(
+      `${this.apiUrl}/personas-mayores/solicitudes/${idPersonaMayor}/rechazar`,
+      {},
+      { responseType: 'text' },
+    );
+  }
+
   /** Lado de la persona mayor: organizaciones con vínculo aceptado. */
   obtenerOrganizaciones(): Observable<OrganizacionSolicitud[]> {
     return this.http.get<OrganizacionSolicitud[]>(

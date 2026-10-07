@@ -11,6 +11,7 @@ import com.proyectogrado.persona_mayor_service.repository.PersonaMayorOrganizaci
 import com.proyectogrado.persona_mayor_service.repository.UsuarioLookupRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,8 +34,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Vínculo entre la persona mayor y las organizaciones (RF-14 y RF-03): ella
- * acepta o rechaza las solicitudes, y la organización solo ve los
- * acompañantes de las personas vinculadas a ella.
+ * acepta o rechaza las invitaciones, también puede pedir unirse a una
+ * organización, y la organización solo ve los acompañantes de las personas
+ * vinculadas a ella.
  */
 class PersonaMayorOrganizacionControllerTest {
 
@@ -124,6 +127,69 @@ class PersonaMayorOrganizacionControllerTest {
                 .andExpect(status().isOk());
 
         verify(relacionRepository).delete(aceptado);
+    }
+
+    @Test
+    void laPersonaMayorSolicitaUnirseYQuedaPendienteParaLaOrganizacion() throws Exception {
+        mockMvc.perform(post("/api/persona-mayor/organizaciones/" + ORGANIZACION + "/solicitud")
+                        .header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Solicitud enviada. La organización te responderá pronto"));
+
+        ArgumentCaptor<PersonaMayorOrganizacion> guardada = ArgumentCaptor.forClass(PersonaMayorOrganizacion.class);
+        verify(relacionRepository).saveAndFlush(guardada.capture());
+        assertEquals("PENDIENTE", guardada.getValue().getEstado());
+        assertEquals(PersonaMayorOrganizacion.PERSONA_MAYOR, guardada.getValue().getSolicitadaPor());
+    }
+
+    @Test
+    void siLaOrganizacionYaLaHabiaInvitadoPedirUnirseLaVincula() throws Exception {
+        PersonaMayorOrganizacion invitacion = vinculo("PENDIENTE");
+        when(relacionRepository.findById(new PersonaMayorOrganizacionId(PERSONA_MAYOR, ORGANIZACION)))
+                .thenReturn(Optional.of(invitacion));
+
+        mockMvc.perform(post("/api/persona-mayor/organizaciones/" + ORGANIZACION + "/solicitud")
+                        .header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isOk());
+
+        assertEquals("ACEPTADA", invitacion.getEstado());
+    }
+
+    @Test
+    void noSePuedeSolicitarDosVecesNiAUnaOrganizacionQueNoExiste() throws Exception {
+        PersonaMayorOrganizacion enviada = vinculo("PENDIENTE");
+        enviada.setSolicitadaPor(PersonaMayorOrganizacion.PERSONA_MAYOR);
+        when(relacionRepository.findById(new PersonaMayorOrganizacionId(PERSONA_MAYOR, ORGANIZACION)))
+                .thenReturn(Optional.of(enviada));
+
+        mockMvc.perform(post("/api/persona-mayor/organizaciones/" + ORGANIZACION + "/solicitud")
+                        .header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Ya enviaste una solicitud a esta organización"));
+
+        mockMvc.perform(post("/api/persona-mayor/organizaciones/99/solicitud").header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void lasSolicitudesQueEnvioNoAparecenComoInvitacionesNiLasPuedeResponderElla() throws Exception {
+        PersonaMayorOrganizacion enviada = vinculo("PENDIENTE");
+        enviada.setSolicitadaPor(PersonaMayorOrganizacion.PERSONA_MAYOR);
+        when(relacionRepository.findById_IdPersonaMayorAndEstado(PERSONA_MAYOR, "PENDIENTE"))
+                .thenReturn(List.of(enviada));
+        when(relacionRepository.findById(new PersonaMayorOrganizacionId(PERSONA_MAYOR, ORGANIZACION)))
+                .thenReturn(Optional.of(enviada));
+
+        mockMvc.perform(get("/api/persona-mayor/organizaciones/solicitudes").header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(jsonPath("$.length()").value(0));
+
+        mockMvc.perform(get("/api/persona-mayor/organizaciones/solicitudes/enviadas").header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(jsonPath("$[0].nombre").value("Fundación Entrenubes"));
+
+        mockMvc.perform(put("/api/persona-mayor/organizaciones/solicitudes/" + ORGANIZACION + "/aceptar")
+                        .header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Esta solicitud la responde la organización"));
     }
 
     @Test

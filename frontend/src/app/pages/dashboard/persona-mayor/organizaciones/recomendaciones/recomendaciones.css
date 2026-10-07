@@ -51,6 +51,20 @@
   line-height: 1.5;
 }
 
+.aviso--exito {
+  border-color: var(--vita-green);
+  background: color-mix(in srgb, var(--vita-green) 10%, white);
+  color: var(--vita-navy);
+  font-weight: 600;
+}
+
+.aviso--error {
+  border-color: #d64545;
+  background: color-mix(in srgb, #d64545 10%, white);
+  color: #9e2929;
+  font-weight: 600;
+}
+
 .aviso a {
   margin-left: 4px;
   font-weight: 700;
@@ -162,24 +176,18 @@
 
 /* Acciones */
 
-.tarjeta__acciones {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.tarjeta__acciones .btn {
+.coincidencia__boton {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 22px;
+  margin-top: 8px;
+  padding: 12px 18px;
   font-size: 1rem;
 }
 
-.tarjeta__ayuda {
-  color: var(--vita-text-gray);
-  font-size: 0.95rem;
+.coincidencia__boton:disabled {
+  opacity: 0.7;
+  cursor: wait;
 }
 
 @media (max-width: 640px) {
@@ -192,7 +200,7 @@
     width: 100%;
   }
 
-  .tarjeta__acciones .btn {
+  .coincidencia__boton {
     width: 100%;
     justify-content: center;
   }

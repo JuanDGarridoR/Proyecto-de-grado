@@ -31,6 +31,7 @@ import {
 import { AuthService } from '../../../core/auth/auth.service';
 import {
   OrganizacionService,
+  PersonaMayorOrganizacion,
   VoluntarioOrganizacion
 } from '../../../core/organizacion/organizacion.service';
 import { alCambiar } from '../../../core/tiempo-real/tiempo-real.service';
@@ -144,6 +145,8 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
   protected readonly voluntarios = signal<VoluntarioOrganizacion[] | null>(null);
   protected readonly solicitudesVoluntarios = signal<VoluntarioOrganizacion[]>([]);
   protected readonly propuestas = signal<PropuestaActividad[]>([]);
+  /** Personas mayores que pidieron unirse a la organización. */
+  protected readonly solicitudesPersonas = signal<PersonaMayorOrganizacion[]>([]);
 
   protected readonly formatearHora = formatearHora;
 
@@ -200,6 +203,7 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
     });
     alCambiar(['usuarios'], () => this.cargarInformacionOrganizacion());
     alCambiar(['organizaciones', 'usuarios', 'acompanamientos', 'gustos'], () => this.cargarPoblacion());
+    alCambiar(['organizaciones', 'usuarios'], () => this.cargarSolicitudesPersonas());
     alCambiar(['signos-vitales', 'organizaciones'], () => this.cargarSalud());
     alCambiar(['voluntarios', 'usuarios'], () => this.cargarVoluntarios());
   }
@@ -214,6 +218,7 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
     this.cargarPoblacion();
     this.cargarSalud();
     this.cargarVoluntarios();
+    this.cargarSolicitudesPersonas();
   }
 
   ngAfterViewInit(): void {
@@ -283,6 +288,13 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private cargarSolicitudesPersonas(): void {
+    this.organizacionService.obtenerSolicitudesPersonasMayores().subscribe({
+      next: (solicitudes) => this.solicitudesPersonas.set(solicitudes),
+      error: () => this.solicitudesPersonas.set([])
+    });
+  }
+
   private cargarPropuestas(): void {
     this.actividadService.listarPropuestasPendientes().subscribe({
       next: (propuestas) => this.propuestas.set(propuestas),
@@ -320,8 +332,8 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Alertas calculadas con los datos de la organización:
    *  - Alta: personas cuya última medición tiene valores fuera de rango.
-   *  - Media: asistencia sin registrar, solicitudes de voluntarios y
-   *    propuestas de actividades por revisar.
+   *  - Media: asistencia sin registrar, solicitudes de personas mayores y
+   *    de voluntarios, y propuestas de actividades por revisar.
    *  - Baja: personas sin mediciones hace más de DIAS_SIN_MEDICION días.
    */
   protected readonly alertas = computed<Alerta[]>(() => {
@@ -380,6 +392,19 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
           enlace: `${RUTA}/actividades`
         });
       }
+    }
+
+    const solicitudesPersonas = this.solicitudesPersonas();
+    if (solicitudesPersonas.length > 0) {
+      alertas.push({
+        clave: 'solicitudes-personas',
+        prioridad: 'Media',
+        titulo: solicitudesPersonas.length === 1
+          ? `${solicitudesPersonas[0].nombre} quiere unirse a tu organización`
+          : `${solicitudesPersonas.length} personas mayores quieren unirse`,
+        descripcion: 'Acéptalas o recházalas en la sección Personas mayores.',
+        enlace: `${RUTA}/personas-mayores`
+      });
     }
 
     const solicitudes = this.solicitudesVoluntarios();

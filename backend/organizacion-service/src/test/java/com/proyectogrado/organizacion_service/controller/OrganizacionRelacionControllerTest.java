@@ -25,14 +25,15 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Personas mayores de la organización (RF-04 y RF-14): las consulta, les
- * envía una solicitud de vínculo por celular y cancela el vínculo. Solo ve a
- * las personas que aceptaron.
+ * envía una solicitud de vínculo por celular, responde las que ellas le
+ * enviaron y cancela el vínculo. Solo ve a las personas vinculadas.
  */
 class OrganizacionRelacionControllerTest {
 
@@ -173,5 +174,57 @@ class OrganizacionRelacionControllerTest {
 
         mockMvc.perform(delete("/api/organizacion/personas-mayores/77").header("X-User-Id", CUENTA_ORGANIZACION))
                 .andExpect(status().isNotFound());
+    }
+
+    private PersonaMayorOrganizacion solicitudDeLaPersona() {
+        PersonaMayorOrganizacion relacion = vinculo("PENDIENTE");
+        relacion.setSolicitadaPor(PersonaMayorOrganizacion.PERSONA_MAYOR);
+        return relacion;
+    }
+
+    @Test
+    void laOrganizacionVeYAceptaLasSolicitudesDeLasPersonasMayores() throws Exception {
+        PersonaMayorOrganizacion solicitud = solicitudDeLaPersona();
+        PersonaMayorOrganizacion invitacion = new PersonaMayorOrganizacion(11, ORGANIZACION);
+        invitacion.setEstado("PENDIENTE");
+        invitacion.setSolicitadaPor(PersonaMayorOrganizacion.ORGANIZACION);
+        when(relacionRepository.findById_IdOrganizacionAndEstado(ORGANIZACION, "PENDIENTE"))
+                .thenReturn(List.of(solicitud, invitacion));
+        when(relacionRepository.findById(new PersonaMayorOrganizacionId(PERSONA_MAYOR, ORGANIZACION)))
+                .thenReturn(Optional.of(solicitud));
+
+        // Solo las que enviaron ellas, no las invitaciones de la organización.
+        mockMvc.perform(get("/api/organizacion/personas-mayores/solicitudes").header("X-User-Id", CUENTA_ORGANIZACION))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].nombre").value("Rosa Díaz"));
+
+        mockMvc.perform(put("/api/organizacion/personas-mayores/solicitudes/" + PERSONA_MAYOR + "/aceptar")
+                        .header("X-User-Id", CUENTA_ORGANIZACION))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Solicitud aceptada correctamente"));
+
+        assertEquals("ACEPTADA", solicitud.getEstado());
+    }
+
+    @Test
+    void laOrganizacionNoRespondeSusPropiasInvitaciones() throws Exception {
+        when(relacionRepository.findById(new PersonaMayorOrganizacionId(PERSONA_MAYOR, ORGANIZACION)))
+                .thenReturn(Optional.of(vinculo("PENDIENTE")));
+
+        mockMvc.perform(put("/api/organizacion/personas-mayores/solicitudes/" + PERSONA_MAYOR + "/aceptar")
+                        .header("X-User-Id", CUENTA_ORGANIZACION))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void invitarAQuienYaPidioUnirseLaVincula() throws Exception {
+        PersonaMayorOrganizacion solicitud = solicitudDeLaPersona();
+        when(relacionRepository.findById(new PersonaMayorOrganizacionId(PERSONA_MAYOR, ORGANIZACION)))
+                .thenReturn(Optional.of(solicitud));
+
+        solicitar().andExpect(status().isOk());
+
+        assertEquals("ACEPTADA", solicitud.getEstado());
     }
 }

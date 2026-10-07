@@ -6,6 +6,19 @@
     <p>Te las recomendamos según tus gustos, las actividades que ofrecen y qué tan cerca te quedan.</p>
   </header>
 
+  @if (mensaje(); as m) {
+    <div class="aviso aviso--exito" role="status">
+      <app-icon name="check-circle" />
+      <p>{{ m }}</p>
+    </div>
+  }
+  @if (errorSolicitud(); as e) {
+    <div class="aviso aviso--error" role="alert">
+      <app-icon name="alert-circle" />
+      <p>{{ e }}</p>
+    </div>
+  }
+
   @if (cargando()) {
     <p class="recomendaciones__estado">Buscando organizaciones para ti...</p>
   } @else if (error()) {
@@ -56,6 +69,19 @@
                 <strong>{{ org.puntaje }}%</strong>
                 <span class="coincidencia__barra"><span [style.width.%]="org.puntaje"></span></span>
                 <span class="coincidencia__texto">{{ nivel(org.puntaje) }}</span>
+
+                <button
+                  type="button"
+                  class="btn btn-primary coincidencia__boton"
+                  (click)="solicitar(org)"
+                  [disabled]="enviando() === org.idOrganizacion"
+                >
+                  @if (enviando() === org.idOrganizacion) {
+                    Enviando...
+                  } @else {
+                    <app-icon name="plus" /> Solicitar vinculación
+                  }
+                </button>
               </div>
             </div>
 
@@ -70,20 +96,6 @@
               }
             </ul>
 
-            <div class="tarjeta__acciones">
-              @if (org.celular) {
-                <a class="btn btn-gold" [href]="'tel:' + org.celular">
-                  <app-icon name="phone" /> Llamar a la organización
-                </a>
-              } @else if (org.correo) {
-                <a class="btn btn-secondary" [href]="'mailto:' + org.correo">
-                  <app-icon name="mail" /> Escribir un correo
-                </a>
-              }
-              <span class="tarjeta__ayuda">
-                Si te interesa, comunícate con ellos para que te inviten a unirte.
-              </span>
-            </div>
           </article>
         }
       </div>

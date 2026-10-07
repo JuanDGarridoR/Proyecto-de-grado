@@ -28,9 +28,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * Vínculos entre personas mayores y organizaciones. La organización envía
- * una solicitud y la persona mayor la acepta o la rechaza; mientras no esté
- * ACEPTADA, la organización no ve a esa persona.
+ * Vínculos entre personas mayores y organizaciones. La solicitud la puede
+ * enviar la organización (la persona mayor la acepta o la rechaza aquí) o la
+ * persona mayor (la responde la organización en organizacion-service). El
+ * campo solicitada_por dice quién la envió. Mientras no esté ACEPTADA, la
+ * organización no ve a esa persona.
  *
  * Por el gateway solo llegan aquí /api/persona-mayor/organizaciones/** y
  * /api/organizacion/personas-mayores/{id}/acompanantes. El resto de
@@ -234,12 +236,73 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
         return ResponseEntity.ok(listarOrganizacionesPorEstado(idPersonaMayor, "ACEPTADA"));
     }
 
-    /** Solicitudes de organizaciones que la persona mayor aún no ha respondido. */
+    /** Invitaciones de organizaciones que la persona mayor aún no ha respondido. */
     @GetMapping("/api/persona-mayor/organizaciones/solicitudes")
     public ResponseEntity<List<OrganizacionSolicitudResponse>> obtenerSolicitudes(
             @RequestHeader("X-User-Id") Integer idPersonaMayor
     ) {
-        return ResponseEntity.ok(listarOrganizacionesPorEstado(idPersonaMayor, "PENDIENTE"));
+        return ResponseEntity.ok(listarOrganizaciones(
+                relacionRepository.findById_IdPersonaMayorAndEstado(idPersonaMayor, "PENDIENTE")
+                        .stream()
+                        .filter(relacion -> !relacion.laEnvioLaPersonaMayor())
+                        .toList()));
+    }
+
+    /** Solicitudes que envió la persona mayor y la organización aún no responde. */
+    @GetMapping("/api/persona-mayor/organizaciones/solicitudes/enviadas")
+    public ResponseEntity<List<OrganizacionSolicitudResponse>> obtenerSolicitudesEnviadas(
+            @RequestHeader("X-User-Id") Integer idPersonaMayor
+    ) {
+        return ResponseEntity.ok(listarOrganizaciones(
+                relacionRepository.findById_IdPersonaMayorAndEstado(idPersonaMayor, "PENDIENTE")
+                        .stream()
+                        .filter(PersonaMayorOrganizacion::laEnvioLaPersonaMayor)
+                        .toList()));
+    }
+
+    /**
+     * La persona mayor pide unirse a una organización; la organización la
+     * acepta o la rechaza desde su panel. Si la organización ya la había
+     * invitado, quedan vinculadas de una vez. Si antes la rechazaron, la
+     * solicitud vuelve a PENDIENTE.
+     */
+    @PostMapping("/api/persona-mayor/organizaciones/{idOrganizacion}/solicitud")
+    public ResponseEntity<String> solicitarVinculacion(
+            @RequestHeader("X-User-Id") Integer idPersonaMayor,
+            @PathVariable Integer idOrganizacion
+    ) {
+        if (usuarioLookupRepository.findByIdOrganizacion(idOrganizacion).isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró la organización");
+        }
+
+        PersonaMayorOrganizacion relacion = relacionRepository
+                .findById(new PersonaMayorOrganizacionId(idPersonaMayor, idOrganizacion))
+                .orElse(null);
+
+        if (relacion != null && "ACEPTADA".equals(relacion.getEstado())) {
+            return ResponseEntity.badRequest().body("Ya perteneces a esta organización");
+        }
+
+        if (relacion != null && "PENDIENTE".equals(relacion.getEstado())) {
+            if (relacion.laEnvioLaPersonaMayor()) {
+                return ResponseEntity.badRequest().body("Ya enviaste una solicitud a esta organización");
+            }
+
+            // La organización ya la había invitado: pedir unirse es aceptar.
+            relacion.setEstado("ACEPTADA");
+            relacionRepository.saveAndFlush(relacion);
+            return ResponseEntity.ok("Esta organización ya te había invitado: quedaste vinculado");
+        }
+
+        if (relacion == null) {
+            relacion = new PersonaMayorOrganizacion(idPersonaMayor, idOrganizacion);
+        }
+
+        relacion.setEstado("PENDIENTE");
+        relacion.setSolicitadaPor(PersonaMayorOrganizacion.PERSONA_MAYOR);
+        relacionRepository.saveAndFlush(relacion);
+
+        return ResponseEntity.ok("Solicitud enviada. La organización te responderá pronto");
     }
 
     @PutMapping("/api/persona-mayor/organizaciones/solicitudes/{idOrganizacion}/aceptar")
@@ -294,6 +357,11 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
             return ResponseEntity.badRequest().body("Esta solicitud ya fue procesada");
         }
 
+        // La que envió la persona mayor la responde la organización, no ella.
+        if (relacion.laEnvioLaPersonaMayor()) {
+            return ResponseEntity.badRequest().body("Esta solicitud la responde la organización");
+        }
+
         relacion.setEstado(nuevoEstado);
         relacionRepository.saveAndFlush(relacion);
 
@@ -324,9 +392,11 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
             Integer idPersonaMayor,
             String estado
     ) {
-        List<PersonaMayorOrganizacion> relaciones =
-                relacionRepository.findById_IdPersonaMayorAndEstado(idPersonaMayor, estado);
+        return listarOrganizaciones(relacionRepository.findById_IdPersonaMayorAndEstado(idPersonaMayor, estado));
+    }
 
+    /** Nombre y contacto de las organizaciones de esos vínculos. */
+    private List<OrganizacionSolicitudResponse> listarOrganizaciones(List<PersonaMayorOrganizacion> relaciones) {
         return relaciones.stream()
                 .map(relacion -> {
                     Integer idOrganizacion = relacion.getId().getIdOrganizacion();

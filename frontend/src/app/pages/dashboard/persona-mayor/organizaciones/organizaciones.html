@@ -454,6 +454,39 @@
 
 </section>
 
+<!-- Solicitudes que envió la persona mayor -->
+
+@if (enviadas().length > 0) {
+  <section class="enviadas" aria-labelledby="enviadasTitulo">
+    <div class="section-title">
+      <div>
+        <h2 id="enviadasTitulo">Solicitudes que enviaste</h2>
+        <p>La organización te responderá. Cuando te acepte, aparecerá en "Mis organizaciones".</p>
+      </div>
+    </div>
+
+    <ul class="enviadas__lista">
+      @for (organizacion of enviadas(); track organizacion.idOrganizacion) {
+        <li class="enviada">
+          <span class="organization-icon" aria-hidden="true"><app-icon name="building" /></span>
+          <div class="enviada__datos">
+            <strong>{{ organizacion.nombre }}</strong>
+            <span class="enviada__estado"><app-icon name="hourglass" /> Esperando respuesta</span>
+          </div>
+          <button
+            type="button"
+            class="btn btn-secondary enviada__cancelar"
+            (click)="cancelarEnviada(organizacion)"
+            [disabled]="cancelandoEnviada() === organizacion.idOrganizacion"
+          >
+            Cancelar solicitud
+          </button>
+        </li>
+      }
+    </ul>
+  </section>
+}
+
 <!-- Recomendaciones según gustos y cercanía (analitica-service) -->
 <app-recomendaciones-organizaciones />
 

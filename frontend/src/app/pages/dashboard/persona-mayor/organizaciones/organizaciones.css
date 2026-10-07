@@ -1194,3 +1194,65 @@
   cursor: not-allowed;
   box-shadow: none;
 }
+/* Solicitudes que envió la persona mayor */
+
+.enviadas {
+  margin-top: 42px;
+}
+
+.enviadas__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.enviada {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-md);
+  background: var(--vita-white);
+}
+
+.enviada__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.enviada__datos strong {
+  font-size: 1.15rem;
+  color: var(--vita-navy);
+}
+
+.enviada__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--vita-gold) 45%, var(--vita-navy));
+}
+
+.enviada__cancelar {
+  flex-shrink: 0;
+  padding: 12px 18px;
+  font-size: 1rem;
+}
+
+@media (max-width: 640px) {
+  .enviada {
+    flex-wrap: wrap;
+  }
+
+  .enviada__cancelar {
+    width: 100%;
+  }
+}

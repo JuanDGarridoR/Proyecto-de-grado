@@ -16,6 +16,56 @@
   </div>
 }
 
+<!-- Personas mayores que pidieron unirse -->
+
+@if (solicitudes().length > 0) {
+  <section class="solicitudes-section" aria-labelledby="solicitudesTitulo">
+    <div class="section-title">
+      <div>
+        <h2 id="solicitudesTitulo">Solicitudes para unirse</h2>
+        <p>Estas personas mayores pidieron hacer parte de tu organización.</p>
+      </div>
+
+      <div class="people-count">
+        {{ solicitudes().length }} {{ solicitudes().length === 1 ? 'solicitud' : 'solicitudes' }}
+      </div>
+    </div>
+
+    <div class="people-list">
+      @for (persona of solicitudes(); track persona.idUsuario) {
+        <app-person-card
+          etiqueta="Persona mayor"
+          [nombre]="persona.nombre"
+          [celular]="persona.celular"
+          estado="Solicitud pendiente"
+          estadoTipo="pendiente"
+        >
+          <div card-actions class="person-card-actions">
+            <button
+              type="button"
+              class="solicitud-boton solicitud-boton--rechazar"
+              (click)="responderSolicitud(persona, false)"
+              [disabled]="respondiendo() === persona.idUsuario"
+            >
+              Rechazar
+            </button>
+
+            <button
+              type="button"
+              class="solicitud-boton solicitud-boton--aceptar"
+              (click)="responderSolicitud(persona, true)"
+              [disabled]="respondiendo() === persona.idUsuario"
+            >
+              <app-icon name="check" />
+              Aceptar
+            </button>
+          </div>
+        </app-person-card>
+      }
+    </div>
+  </section>
+}
+
 <!-- Personas mayores vinculadas -->
 
 <section class="people-section">

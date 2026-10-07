@@ -6,13 +6,18 @@ import {
   OrganizacionRecomendada,
   RecomendacionesOrganizaciones
 } from '../../../../../core/analitica/analitica.service';
+import { OrganizacionService } from '../../../../../core/organizacion/organizacion.service';
 import { alCambiar } from '../../../../../core/tiempo-real/tiempo-real.service';
 import { Icon } from '../../../../../shared/icon/icon';
 
 /**
  * "Organizaciones que te pueden interesar": recomendaciones de
  * analitica-service según los gustos de la persona mayor (actividades y
- * personas con gustos parecidos) y la cercanía de su barrio.
+ * personas con gustos parecidos) y la cercanía de su barrio. Desde cada
+ * tarjeta la persona puede solicitar la vinculación; la organización la
+ * acepta o la rechaza. Al enviarla, la organización sale de la lista (el
+ * recomendador no muestra las que tienen un vínculo pendiente) y pasa a
+ * "Solicitudes que enviaste".
  */
 @Component({
   selector: 'app-recomendaciones-organizaciones',
@@ -23,10 +28,16 @@ import { Icon } from '../../../../../shared/icon/icon';
 export class RecomendacionesOrganizacionesComponent implements OnInit {
 
   private analiticaService = inject(AnaliticaService);
+  private organizacionService = inject(OrganizacionService);
 
   protected readonly datos = signal<RecomendacionesOrganizaciones | null>(null);
   protected readonly cargando = signal(true);
   protected readonly error = signal(false);
+
+  /** Organización cuya solicitud se está enviando; deshabilita su botón. */
+  protected readonly enviando = signal<number | null>(null);
+  protected readonly mensaje = signal<string | null>(null);
+  protected readonly errorSolicitud = signal<string | null>(null);
 
   constructor() {
     // Cambian si la persona edita sus gustos, se une a una organización o
@@ -49,6 +60,27 @@ export class RecomendacionesOrganizacionesComponent implements OnInit {
         console.error('Error al cargar las recomendaciones:', error);
         this.error.set(true);
         this.cargando.set(false);
+      }
+    });
+  }
+
+  /** Envía la solicitud de vinculación a la organización. */
+  protected solicitar(org: OrganizacionRecomendada): void {
+    this.enviando.set(org.idOrganizacion);
+    this.mensaje.set(null);
+    this.errorSolicitud.set(null);
+
+    this.organizacionService.solicitarVinculacionOrganizacion(org.idOrganizacion).subscribe({
+      next: (respuesta) => {
+        this.enviando.set(null);
+        this.mensaje.set(`${org.nombre}: ${respuesta}`);
+        this.cargar();
+      },
+      error: (error) => {
+        this.enviando.set(null);
+        this.errorSolicitud.set(
+          typeof error?.error === 'string' && error.error ? error.error : 'No se pudo enviar la solicitud.'
+        );
       }
     });
   }
