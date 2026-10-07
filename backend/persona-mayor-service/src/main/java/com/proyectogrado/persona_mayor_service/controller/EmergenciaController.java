@@ -1,9 +1,12 @@
 package com.proyectogrado.persona_mayor_service.controller;
 
 import com.proyectogrado.persona_mayor_service.client.MessagingClient;
+import com.proyectogrado.persona_mayor_service.config.ZonaHoraria;
+import com.proyectogrado.persona_mayor_service.model.Emergencia;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorAcompanante;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorOrganizacion;
 import com.proyectogrado.persona_mayor_service.model.UsuarioLookup;
+import com.proyectogrado.persona_mayor_service.repository.EmergenciaRepository;
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorAcompananteRepository;
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorOrganizacionRepository;
 import com.proyectogrado.persona_mayor_service.repository.UsuarioLookupRepository;
@@ -14,12 +17,14 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * Botón de emergencia de la persona mayor: envía un SMS a todos sus
  * acompañantes y organizaciones con vínculo aceptado. Este servicio decide
- * a quién avisar; messaging-service solo hace el envío.
+ * a quién avisar; messaging-service solo hace el envío. Además la guarda
+ * (tabla emergencia) para que los acompañantes la vean en su inicio.
  */
 @RestController
 @RequestMapping("/api/persona-mayor/emergencia")
@@ -29,17 +34,20 @@ public class EmergenciaController {
     private final PersonaMayorOrganizacionRepository relacionOrganizacionRepository;
     private final UsuarioLookupRepository usuarioLookupRepository;
     private final MessagingClient messagingClient;
+    private final EmergenciaRepository emergenciaRepository;
 
     public EmergenciaController(
             PersonaMayorAcompananteRepository relacionAcompananteRepository,
             PersonaMayorOrganizacionRepository relacionOrganizacionRepository,
             UsuarioLookupRepository usuarioLookupRepository,
-            MessagingClient messagingClient
+            MessagingClient messagingClient,
+            EmergenciaRepository emergenciaRepository
     ) {
         this.relacionAcompananteRepository = relacionAcompananteRepository;
         this.relacionOrganizacionRepository = relacionOrganizacionRepository;
         this.usuarioLookupRepository = usuarioLookupRepository;
         this.messagingClient = messagingClient;
+        this.emergenciaRepository = emergenciaRepository;
     }
 
     /** Envía la alerta. Responde 400 si no se pudo avisar a nadie. */
@@ -47,6 +55,9 @@ public class EmergenciaController {
     public ResponseEntity<String> enviarEmergencia(
             @RequestHeader("X-User-Id") Integer idPersonaMayor
     ) {
+        // Primero se guarda: aunque ningún SMS salga, la alerta queda en la aplicación.
+        emergenciaRepository.save(new Emergencia(idPersonaMayor, LocalDateTime.now(ZonaHoraria.COLOMBIA)));
+
         UsuarioLookup personaMayor = usuarioLookupRepository.findById(idPersonaMayor).orElse(null);
 
         String nombrePersonaMayor =

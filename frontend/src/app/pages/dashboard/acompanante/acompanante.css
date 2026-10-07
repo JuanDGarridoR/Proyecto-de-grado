@@ -392,6 +392,16 @@
   border-color: var(--vita-navy);
 }
 
+/* La emergencia se distingue del resto de alertas */
+.alerta--emergencia {
+  border: 2px solid var(--rojo);
+  background: color-mix(in srgb, var(--rojo) 6%, white);
+}
+
+.alerta--emergencia:hover {
+  border-color: var(--rojo-texto);
+}
+
 .alerta strong {
   display: block;
   font-size: 0.95rem;
@@ -414,6 +424,11 @@
   font-size: 0.75rem;
   font-weight: 700;
   text-align: center;
+}
+
+.alerta__tag--emergencia {
+  background: var(--rojo);
+  color: var(--vita-white);
 }
 
 .alerta__tag--alta {

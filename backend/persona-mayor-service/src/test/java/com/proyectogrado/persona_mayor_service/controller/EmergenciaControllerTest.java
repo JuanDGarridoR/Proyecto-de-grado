@@ -4,17 +4,22 @@ import com.proyectogrado.persona_mayor_service.client.MessagingClient;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorAcompanante;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorOrganizacion;
 import com.proyectogrado.persona_mayor_service.model.UsuarioLookup;
+import com.proyectogrado.persona_mayor_service.model.Emergencia;
+import com.proyectogrado.persona_mayor_service.repository.EmergenciaRepository;
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorAcompananteRepository;
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorOrganizacionRepository;
 import com.proyectogrado.persona_mayor_service.repository.UsuarioLookupRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -41,6 +46,7 @@ class EmergenciaControllerTest {
     private PersonaMayorOrganizacionRepository relacionOrganizacionRepository;
     private UsuarioLookupRepository usuarioLookupRepository;
     private MessagingClient messagingClient;
+    private EmergenciaRepository emergenciaRepository;
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -49,6 +55,7 @@ class EmergenciaControllerTest {
         relacionOrganizacionRepository = mock(PersonaMayorOrganizacionRepository.class);
         usuarioLookupRepository = mock(UsuarioLookupRepository.class);
         messagingClient = mock(MessagingClient.class);
+        emergenciaRepository = mock(EmergenciaRepository.class);
 
         UsuarioLookup personaMayor = usuario(PERSONA_MAYOR, "Rosa Díaz", "+573001110000");
         when(usuarioLookupRepository.findById(PERSONA_MAYOR)).thenReturn(Optional.of(personaMayor));
@@ -56,7 +63,7 @@ class EmergenciaControllerTest {
 
         mockMvc = MockMvcBuilders.standaloneSetup(new EmergenciaController(
                 relacionAcompananteRepository, relacionOrganizacionRepository,
-                usuarioLookupRepository, messagingClient)).build();
+                usuarioLookupRepository, messagingClient, emergenciaRepository)).build();
     }
 
     private UsuarioLookup usuario(int id, String nombre, String celular) {
@@ -137,5 +144,24 @@ class EmergenciaControllerTest {
                 .andExpect(content().string("No se pudo enviar la alerta a ningún acompañante u organización"));
 
         verify(messagingClient, never()).enviarMensaje(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void laEmergenciaSeGuardaAunqueNoSePuedaAvisarPorSms() throws Exception {
+        acompanantesAceptados(20);
+        UsuarioLookup hijo = usuario(20, "Carlos Díaz", "+573002220000");
+        when(usuarioLookupRepository.findById(20)).thenReturn(Optional.of(hijo));
+        when(relacionOrganizacionRepository.findById_IdPersonaMayorAndEstado(PERSONA_MAYOR, "ACEPTADA"))
+                .thenReturn(List.of());
+        when(messagingClient.enviarMensaje(anyString(), anyString(), anyString())).thenReturn(false);
+
+        mockMvc.perform(post("/api/persona-mayor/emergencia").header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isBadRequest());
+
+        // Así el acompañante la ve en su inicio aunque el SMS no haya salido.
+        ArgumentCaptor<Emergencia> guardada = ArgumentCaptor.forClass(Emergencia.class);
+        verify(emergenciaRepository).save(guardada.capture());
+        assertEquals(PERSONA_MAYOR, guardada.getValue().getIdPersonaMayor());
+        assertNotNull(guardada.getValue().getFechaHora());
     }
 }

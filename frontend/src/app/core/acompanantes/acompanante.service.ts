@@ -87,6 +87,17 @@ export interface ActualizarPerfilPersonaMayorRequest {
   direccionIps: string | null;
 }
 
+/**
+ * Emergencia reciente (últimas 24 horas) de una persona mayor que acompaña
+ * el usuario. fechaHora va en "yyyy-MM-ddTHH:mm".
+ */
+export interface EmergenciaReciente {
+  idEmergencia: number;
+  idPersonaMayor: number;
+  nombre: string | null;
+  fechaHora: string;
+}
+
 /** Resumen de una actividad que puede ver el acompañante. */
 export interface Actividad {
   idActividad: number;
@@ -319,6 +330,13 @@ actualizarInformacion(
     return this.http.put<PerfilPersonaMayor>(
       `${this.apiUrl}/acompanante/personas-mayores/${idPersonaMayor}/informacion`,
       datos
+    );
+  }
+
+  /** Emergencias de las últimas 24 horas de las personas mayores que acompaña, la más reciente primero. */
+  obtenerEmergenciasRecientes(): Observable<EmergenciaReciente[]> {
+    return this.http.get<EmergenciaReciente[]>(
+      `${this.apiUrl}/acompanante/emergencias`
     );
   }
 

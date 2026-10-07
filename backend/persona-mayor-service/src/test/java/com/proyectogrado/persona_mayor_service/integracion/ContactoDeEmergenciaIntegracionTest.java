@@ -4,6 +4,7 @@ import com.proyectogrado.persona_mayor_service.client.MessagingClient;
 import com.proyectogrado.persona_mayor_service.controller.EmergenciaController;
 import com.proyectogrado.persona_mayor_service.controller.PersonaMayorAcompananteController;
 import com.proyectogrado.persona_mayor_service.repository.AcompananteLookupRepository;
+import com.proyectogrado.persona_mayor_service.repository.EmergenciaRepository;
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorAcompananteRepository;
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorOrganizacionRepository;
 import com.proyectogrado.persona_mayor_service.repository.UsuarioLookupRepository;
@@ -55,6 +56,9 @@ class ContactoDeEmergenciaIntegracionTest {
     private PersonaMayorOrganizacionRepository organizacionRepository;
 
     @Autowired
+    private EmergenciaRepository emergenciaRepository;
+
+    @Autowired
     private TestEntityManager entityManager;
 
     private final MessagingClient messagingClient = mock(MessagingClient.class);
@@ -72,7 +76,8 @@ class ContactoDeEmergenciaIntegracionTest {
 
         mockMvc = MockMvcBuilders.standaloneSetup(
                 new PersonaMayorAcompananteController(relacionRepository, usuarioLookupRepository, acompananteLookupRepository),
-                new EmergenciaController(relacionRepository, organizacionRepository, usuarioLookupRepository, messagingClient)
+                new EmergenciaController(relacionRepository, organizacionRepository, usuarioLookupRepository, messagingClient,
+                        emergenciaRepository)
         ).build();
     }
 

@@ -185,7 +185,12 @@
           <ul class="alertas">
             @for (a of alertas(); track a.clave) {
               <li>
-                <a class="alerta" [routerLink]="ruta + '/seguimiento'" [queryParams]="{ persona: a.persona.idUsuario }">
+                <a
+                  class="alerta"
+                  [class.alerta--emergencia]="a.prioridad === 'Emergencia'"
+                  [routerLink]="ruta + '/seguimiento'"
+                  [queryParams]="{ persona: a.persona.idUsuario }"
+                >
                   <span [class]="'alerta__tag alerta__tag--' + a.prioridad.toLowerCase()">{{ a.prioridad }}</span>
                   <span>
                     <strong>{{ a.persona.nombre }}</strong>

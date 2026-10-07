@@ -21,6 +21,7 @@ import {
 } from '../../../core/actividades/actividad.service';
 import {
   AcompananteService,
+  EmergenciaReciente,
   MedicamentoSeguimiento,
   PersonaMayorAcompanada,
   SolicitudAcompanamiento
@@ -69,7 +70,7 @@ interface ResumenPersona {
   proximaCita: string | null;
 }
 
-type Prioridad = 'Alta' | 'Media' | 'Baja';
+type Prioridad = 'Emergencia' | 'Alta' | 'Media' | 'Baja';
 
 /** Algo de una persona mayor que el acompañante debería revisar. */
 interface Alerta {
@@ -92,7 +93,7 @@ const DIA = 24 * 60 * MINUTO;
 /** Pasados estos días sin medición de signos vitales, se avisa. */
 const DIAS_SIN_MEDICION = 30;
 
-const ORDEN_PRIORIDAD: Record<Prioridad, number> = { Alta: 0, Media: 1, Baja: 2 };
+const ORDEN_PRIORIDAD: Record<Prioridad, number> = { Emergencia: 0, Alta: 1, Media: 2, Baja: 3 };
 
 const DATOS_VACIOS: DatosPersona = { medicamentos: [], citas: [], ultimoSigno: null };
 
@@ -102,7 +103,8 @@ const DATOS_VACIOS: DatosPersona = { medicamentos: [], citas: [], ultimoSigno: n
  *  2. Solicitudes de acompañamiento por responder.
  *  3. Columna principal: sus personas mayores con un resumen de cada una
  *     y la agenda de hoy (tomas de medicamentos y citas de todas).
- *  4. Columna lateral: alertas calculadas con sus datos, próximas citas
+ *  4. Columna lateral: alertas (primero las emergencias de las últimas 24
+ *     horas) calculadas con sus datos, próximas citas
  *     médicas y próximas actividades.
  * Todo sale del backend (seguimiento del acompañante y actividades).
  */
@@ -126,6 +128,8 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
   /** Datos de seguimiento de cada persona mayor, por idUsuario. */
   private readonly datos = signal<Record<number, DatosPersona>>({});
   protected readonly solicitudes = signal<SolicitudAcompanamiento[]>([]);
+  /** Emergencias de las últimas 24 horas, la más reciente primero. */
+  protected readonly emergencias = signal<EmergenciaReciente[]>([]);
   /** Próximas actividades de las organizaciones de sus personas mayores. */
   protected readonly actividades = signal<Actividad[]>([]);
 
@@ -147,6 +151,8 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
     alCambiar(['actividades'], () => this.cargarActividades());
     alCambiar(['acompanamientos', 'usuarios'], () => this.cargarPersonasMayores());
     alCambiar(['medicamentos', 'citas-medicas', 'signos-vitales'], () => this.cargarDatos(this.personasMayores()));
+    // El botón de emergencia publica "notificaciones": el aviso aparece sin recargar.
+    alCambiar(['notificaciones', 'acompanamientos'], () => this.cargarEmergencias());
   }
 
   ngOnInit(): void {
@@ -154,6 +160,7 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
 
     this.cargarActividades();
     this.cargarPersonasMayores();
+    this.cargarEmergencias();
   }
 
   ngAfterViewInit(): void {
@@ -185,6 +192,13 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
       next: (actividades) => this.actividades.set(separarPorFecha(actividades).proximas.slice(0, 4)),
       complete: () => this.cargandoActividades.set(false),
       error: () => this.cargandoActividades.set(false)
+    });
+  }
+
+  private cargarEmergencias(): void {
+    this.acompananteService.obtenerEmergenciasRecientes().subscribe({
+      next: (emergencias) => this.emergencias.set(emergencias),
+      error: () => this.emergencias.set([])
     });
   }
 
@@ -322,8 +336,15 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
     return resumenes;
   });
 
+  /** La más reciente emergencia de cada persona (si activó el botón varias veces, cuenta una). */
+  protected readonly emergenciasPorPersona = computed(() => {
+    const vistas = new Set<number>();
+    return this.emergencias().filter((e) => !vistas.has(e.idPersonaMayor) && !!vistas.add(e.idPersonaMayor));
+  });
+
   /**
    * Alertas calculadas con los datos de seguimiento:
+   *  - Emergencia: activó el botón de emergencia en las últimas 24 horas.
    *  - Alta: medicamentos sin tomar o última medición fuera de rango.
    *  - Media: cita médica hoy o mañana.
    *  - Baja: sin mediciones de signos vitales hace más de DIAS_SIN_MEDICION días.
@@ -333,6 +354,17 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
     const hoy = this.fechaLocal(ahora);
     const manana = this.fechaLocal(new Date(ahora.getTime() + DIA));
     const alertas: Alerta[] = [];
+
+    for (const e of this.emergenciasPorPersona()) {
+      const persona = this.personasMayores().find((p) => p.idUsuario === e.idPersonaMayor)
+        ?? { idUsuario: e.idPersonaMayor, nombre: e.nombre ?? 'Persona mayor', celular: '' };
+      alertas.push({
+        clave: `emergencia-${e.idEmergencia}`,
+        prioridad: 'Emergencia',
+        persona,
+        texto: `Activó el botón de emergencia ${this.haceTiempo(e.fechaHora)}. Verifica que se encuentre bien.`
+      });
+    }
 
     for (const persona of this.personasMayores()) {
       const { medicamentos, citas, ultimoSigno } = this.datosDe(persona);
@@ -429,6 +461,18 @@ export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
   /** "Rosa Elvira Díaz" -> "Rosa". */
   protected primerNombre(nombre: string): string {
     return nombre.trim().split(/\s+/)[0] ?? nombre;
+  }
+
+  /** "hace un momento", "hace 5 minutos", "hace 3 horas (10:30 a. m.)". */
+  protected haceTiempo(fechaHora: string): string {
+    const fecha = new Date(fechaHora);
+    const minutos = Math.max(0, Math.round((this.ahora().getTime() - fecha.getTime()) / MINUTO));
+    const hora = this.horaDe(fecha);
+
+    if (minutos < 1) return `hace un momento (${hora})`;
+    if (minutos < 60) return `hace ${minutos} ${minutos === 1 ? 'minuto' : 'minutos'} (${hora})`;
+    const horas = Math.floor(minutos / 60);
+    return `hace ${horas} ${horas === 1 ? 'hora' : 'horas'} (${hora})`;
   }
 
   /** "hoy", "ayer" o "hace N días". */
