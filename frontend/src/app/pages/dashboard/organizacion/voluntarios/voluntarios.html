@@ -1,7 +1,16 @@
 <div class="vinculos">
 
   <div class="vinculos__header">
-    <h1>Voluntarios</h1>
+    <div class="vinculos__titulo">
+      <h1>Voluntarios</h1>
+      @if (voluntarios().length > 0) {
+        <span
+          class="vinculos__badge"
+          [title]="voluntarios().length + ' voluntarios vinculados'"
+          [attr.aria-label]="voluntarios().length + ' voluntarios vinculados'"
+        >{{ voluntarios().length }}</span>
+      }
+    </div>
     <p>
       Responde las solicitudes de los voluntarios que quieren vincularse a tu
       organización y consulta los que ya están vinculados.
@@ -74,18 +83,7 @@
 
   <!-- Voluntarios vinculados -->
 
-  <section class="vinculos__section">
-    <div class="vinculos__section-header">
-      <div>
-        <h2>Voluntarios vinculados</h2>
-        <p>Voluntarios que hacen parte de tu organización.</p>
-      </div>
-
-      @if (voluntarios().length > 0) {
-        <span class="vinculos__badge">{{ voluntarios().length }}</span>
-      }
-    </div>
-
+  <section class="vinculos__section" aria-label="Voluntarios vinculados">
     @if (cargando()) {
       <div class="vinculos__loading">
         <p>Cargando voluntarios...</p>

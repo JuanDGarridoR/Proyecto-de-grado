@@ -25,6 +25,18 @@
   font-weight: 700;
 }
 
+/* Título con un contador al lado (p. ej. "Voluntarios  12") */
+.vinculos__titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.vinculos__titulo h1 {
+  margin: 0;
+}
+
 .vinculos__header p {
   margin: 0;
   max-width: 680px;
