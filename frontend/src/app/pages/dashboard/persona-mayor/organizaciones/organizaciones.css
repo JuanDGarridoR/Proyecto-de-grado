@@ -18,7 +18,7 @@
 
   color: var(--vita-navy);
 
-  font-size: 2.1rem;
+  font-size: 2rem;
   font-weight: 700;
 
   line-height: 1.2;
@@ -149,7 +149,7 @@
 
   width: 100%;
 
-  margin-bottom: 48px;
+  margin-bottom: 32px;
 
   padding: 16px 24px;
 
@@ -206,7 +206,7 @@
 /* Solicitudes */
 
 .requests-section {
-  margin-bottom: 42px;
+  margin-bottom: 32px;
 }
 
 .requests-list {
@@ -1197,7 +1197,7 @@
 /* Solicitudes que envió la persona mayor */
 
 .enviadas {
-  margin-top: 42px;
+  margin-top: 32px;
 }
 
 .enviadas__lista {
