@@ -29,7 +29,8 @@ import {
   MedicamentoService,
   Medicamento,
   formatearHora,
-  formatearProximaToma
+  formatearProximaToma,
+  tomasDeHoy
 } from '../../../core/medicamentos/medicamento.service';
 import {
   CitaMedicaService,
@@ -329,8 +330,6 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
    */
   protected readonly agendaHoy = computed<EventoAgenda[]>(() => {
     const ahora = this.ahora();
-    const inicioHoy = this.inicioDelDia(ahora);
-    const finHoy = new Date(inicioHoy.getTime() + DIA);
     const hoy = this.fechaLocal(ahora);
 
     const eventos: Omit<EventoAgenda, 'estado'>[] = [];
@@ -338,41 +337,16 @@ export class PersonaMayorDashboard implements OnInit, AfterViewInit, OnDestroy {
 
     // Medicamentos: la toma ya hecha hoy y las que faltan hoy.
     for (const med of this.medicamentos()) {
-      if (med.activo === false || (med.fechaFin && med.fechaFin < hoy)) {
-        continue;
-      }
-
-      const enlace = `${RUTA}/recordatorios`;
-
-      if (med.ultimaToma) {
-        const ultima = new Date(med.ultimaToma);
-        if (ultima >= inicioHoy && ultima < finHoy) {
-          const clave = `m${med.idMedicamento}-hecho`;
-          eventos.push({ clave, tipo: 'medicamento', momento: ultima, titulo: med.nombre, detalle: med.dosis || null, enlace });
-          estados.set(clave, 'hecho');
-        }
-      }
-
-      if (!med.proximaToma) {
-        continue;
-      }
-
-      const intervalo = Math.max(1, med.intervaloHoras || 24) * HORA;
-      let toma = new Date(med.proximaToma);
-
-      // Si quedó pendiente desde antes de hoy, se muestra como atrasada.
-      if (toma < inicioHoy) {
-        const clave = `m${med.idMedicamento}-atrasado`;
-        eventos.push({ clave, tipo: 'medicamento', momento: toma, titulo: med.nombre, detalle: med.dosis || null, enlace });
-        estados.set(clave, 'atrasado');
-        continue;
-      }
-
-      for (let i = 0; toma < finHoy && i < 24; i++) {
-        const clave = `m${med.idMedicamento}-${toma.getTime()}`;
-        eventos.push({ clave, tipo: 'medicamento', momento: new Date(toma), titulo: med.nombre, detalle: med.dosis || null, enlace });
-        estados.set(clave, toma <= ahora ? 'atrasado' : 'pendiente');
-        toma = new Date(toma.getTime() + intervalo);
+      for (const toma of tomasDeHoy(med, ahora)) {
+        eventos.push({
+          clave: toma.clave,
+          tipo: 'medicamento',
+          momento: toma.momento,
+          titulo: med.nombre,
+          detalle: med.dosis || null,
+          enlace: `${RUTA}/recordatorios`
+        });
+        estados.set(toma.clave, toma.estado);
       }
     }
 

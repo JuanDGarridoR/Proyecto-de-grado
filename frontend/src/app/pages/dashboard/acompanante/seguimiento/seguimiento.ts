@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
 import {
   AcompananteService,
@@ -149,7 +150,10 @@ export class Seguimiento implements OnInit, OnDestroy {
     return s ? indicadoresFueraDeRango(s).map((i) => NOMBRE_INDICADOR[i]).join(', ') : '';
   });
 
-  constructor(private acompananteService: AcompananteService) {
+  constructor(
+    private acompananteService: AcompananteService,
+    private route: ActivatedRoute
+  ) {
     alCambiar(['acompanamientos', 'usuarios'], () => this.cargarPersonasMayores(false));
     alCambiar(['medicamentos'], () => this.recargarDetalle('medicamentos'));
     alCambiar(['citas-medicas'], () => this.recargarDetalle('citas'));
@@ -180,8 +184,10 @@ export class Seguimiento implements OnInit, OnDestroy {
         this.personasMayores.set(personas);
         this.cargandoPersonas.set(false);
 
+        // La primera vez puede venir elegida desde el inicio (?persona=id).
         const idActual = this.personaSeleccionada()?.idUsuario;
-        const siguiente = personas.find((p) => p.idUsuario === idActual) ?? personas[0] ?? null;
+        const idPedido = idActual ?? Number(this.route.snapshot.queryParamMap.get('persona'));
+        const siguiente = personas.find((p) => p.idUsuario === idPedido) ?? personas[0] ?? null;
 
         if (siguiente?.idUsuario !== idActual) {
           this.seleccionarPersona(siguiente);

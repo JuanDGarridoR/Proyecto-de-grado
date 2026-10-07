@@ -71,6 +71,78 @@ export function formatearProximaToma(proximaToma: string | null | undefined): st
   return `${fecha.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}, ${hora}`;
 }
 
+/** Estado de una toma de hoy. */
+export type EstadoToma =
+  | 'hecho'      // ya la tomó hoy
+  | 'atrasado'   // la hora ya pasó y no la ha tomado
+  | 'pendiente'; // más tarde hoy
+
+/** Toma de un medicamento en el día de hoy. */
+export interface TomaDelDia {
+  clave: string;
+  momento: Date;
+  estado: EstadoToma;
+}
+
+/** Campos que hacen falta para calcular las tomas (Medicamento o MedicamentoSeguimiento). */
+interface DatosTomas {
+  idMedicamento: number;
+  activo: boolean | null;
+  fechaFin: string | null;
+  intervaloHoras: number | null;
+  proximaToma: string | null;
+  ultimaToma: string | null;
+}
+
+/**
+ * Tomas de hoy de un medicamento: la que ya hizo hoy (si la hizo) y las que
+ * faltan, cada una con su estado. Si la próxima toma quedó pendiente desde
+ * antes de hoy, se devuelve una sola, atrasada. Se usa en el inicio de la
+ * persona mayor y en el del acompañante.
+ */
+export function tomasDeHoy(med: DatosTomas, ahora: Date): TomaDelDia[] {
+  const hoy = ahora.toLocaleDateString('en-CA');
+  if (med.activo === false || (med.fechaFin && med.fechaFin < hoy)) {
+    return [];
+  }
+
+  const inicioHoy = new Date(ahora);
+  inicioHoy.setHours(0, 0, 0, 0);
+  const finHoy = new Date(inicioHoy.getTime() + 86_400_000);
+
+  const tomas: TomaDelDia[] = [];
+
+  if (med.ultimaToma) {
+    const ultima = new Date(med.ultimaToma);
+    if (ultima >= inicioHoy && ultima < finHoy) {
+      tomas.push({ clave: `m${med.idMedicamento}-hecho`, momento: ultima, estado: 'hecho' });
+    }
+  }
+
+  if (!med.proximaToma) {
+    return tomas;
+  }
+
+  const intervalo = Math.max(1, med.intervaloHoras || 24) * 3_600_000;
+  let toma = new Date(med.proximaToma);
+
+  if (toma < inicioHoy) {
+    tomas.push({ clave: `m${med.idMedicamento}-atrasado`, momento: toma, estado: 'atrasado' });
+    return tomas;
+  }
+
+  for (let i = 0; toma < finHoy && i < 24; i++) {
+    tomas.push({
+      clave: `m${med.idMedicamento}-${toma.getTime()}`,
+      momento: new Date(toma),
+      estado: toma <= ahora ? 'atrasado' : 'pendiente'
+    });
+    toma = new Date(toma.getTime() + intervalo);
+  }
+
+  return tomas;
+}
+
 /**
  * Medicamentos (salud-service). Sin idPersonaMayor son los de la persona
  * mayor autenticada; con él, los de una persona mayor que gestiona el

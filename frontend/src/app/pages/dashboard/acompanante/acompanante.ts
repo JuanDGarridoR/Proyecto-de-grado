@@ -1,125 +1,456 @@
-import { Component, OnInit, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  computed,
+  signal
+} from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { DatePipe, registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es-CO';
+import { catchError, forkJoin, of } from 'rxjs';
 
 import { Icon } from '../../../shared/icon/icon';
-
 import {
   ActividadService,
   Actividad,
   separarPorFecha
 } from '../../../core/actividades/actividad.service';
-
 import {
   AcompananteService,
-  PersonaMayorAcompanada
+  MedicamentoSeguimiento,
+  PersonaMayorAcompanada,
+  SolicitudAcompanamiento
 } from '../../../core/acompanantes/acompanante.service';
-
 import { AuthService } from '../../../core/auth/auth.service';
 import { alCambiar } from '../../../core/tiempo-real/tiempo-real.service';
+import { formatearHora, tomasDeHoy } from '../../../core/medicamentos/medicamento.service';
+import {
+  CitaMedica,
+  formatearConsultorio,
+  formatearFechaCita,
+  momentoDeCita
+} from '../../../core/citas-medicas/cita-medica.service';
+import { SignoVitalResponse } from '../../../core/signos-vitales/signos-vitales.services';
+import { NOMBRE_INDICADOR, indicadoresFueraDeRango } from '../../../core/signos-vitales/rangos';
 
-import { PANEL_CONFIG } from '../../../shared/panel-config/panel-config';
+registerLocaleData(localeEs);
 
-import { DatePipe, registerLocaleData } from '@angular/common';
-import localeEs from '@angular/common/locales/es-CO';
-
-/** Recordatorio de la lista "Recordatorios de hoy". */
-interface Recordatorio {
-  hora: string;
-  detalle: string;
-  persona: string;
+/** Medicamentos, citas y última medición de una persona mayor. */
+interface DatosPersona {
+  medicamentos: MedicamentoSeguimiento[];
+  citas: CitaMedica[];
+  ultimoSigno: SignoVitalResponse | null;
 }
 
-/** Alerta sobre una persona mayor. */
-interface AlertaConsulta {
-  nombre: string;
-  descripcion: string;
-  prioridad: 'Alta' | 'Media' | 'Baja';
+/** Estado de un elemento de la agenda de hoy. */
+type EstadoEvento = 'hecho' | 'pasado' | 'atrasado' | 'siguiente' | 'pendiente';
+
+/** Toma de medicamento o cita médica de hoy de alguna de sus personas mayores. */
+interface EventoAgenda {
+  clave: string;
+  tipo: 'medicamento' | 'cita';
+  momento: Date;
+  titulo: string;
+  detalle: string | null;
+  persona: PersonaMayorAcompanada;
+  estado: EstadoEvento;
 }
+
+/** Resumen de cómo está una persona mayor (para su tarjeta). */
+interface ResumenPersona {
+  tomasHechas: number;
+  tomasTotal: number;
+  sinTomar: number;
+  ultimaMedicion: { hace: string; normal: boolean } | null;
+  proximaCita: string | null;
+}
+
+type Prioridad = 'Alta' | 'Media' | 'Baja';
+
+/** Algo de una persona mayor que el acompañante debería revisar. */
+interface Alerta {
+  clave: string;
+  prioridad: Prioridad;
+  persona: PersonaMayorAcompanada;
+  texto: string;
+}
+
+/** Cita médica próxima con el nombre de la persona. */
+interface CitaProxima {
+  clave: string;
+  cita: CitaMedica;
+  persona: PersonaMayorAcompanada;
+}
+
+const MINUTO = 60_000;
+const DIA = 24 * 60 * MINUTO;
+
+/** Pasados estos días sin medición de signos vitales, se avisa. */
+const DIAS_SIN_MEDICION = 30;
+
+const ORDEN_PRIORIDAD: Record<Prioridad, number> = { Alta: 0, Media: 1, Baja: 2 };
+
+const DATOS_VACIOS: DatosPersona = { medicamentos: [], citas: [], ultimoSigno: null };
 
 /**
- * Inicio del panel del acompañante: sus personas mayores, recordatorios,
- * alertas y próximas actividades. Las personas y las actividades vienen del
- * backend; los recordatorios y las alertas todavía son datos de ejemplo.
+ * Inicio del panel del acompañante:
+ *  1. Saludo y acceso para agregar una persona mayor.
+ *  2. Solicitudes de acompañamiento por responder.
+ *  3. Columna principal: sus personas mayores con un resumen de cada una
+ *     y la agenda de hoy (tomas de medicamentos y citas de todas).
+ *  4. Columna lateral: alertas calculadas con sus datos, próximas citas
+ *     médicas y próximas actividades.
+ * Todo sale del backend (seguimiento del acompañante y actividades).
  */
 @Component({
   selector: 'app-acompanante-dashboard',
-  imports: [Icon, DatePipe],
+  imports: [Icon, DatePipe, RouterLink],
   templateUrl: './acompanante.html',
   styleUrl: './acompanante.css'
 })
-export class AcompananteDashboard implements OnInit {
-
-  protected readonly panelConfig = PANEL_CONFIG['ACOMPANANTE'];
-
-  protected readonly navItems = this.panelConfig.navItems;
-
-  protected readonly fechaActual = new Date();
+export class AcompananteDashboard implements OnInit, AfterViewInit, OnDestroy {
 
   protected readonly nombreUsuario: string;
+  protected readonly ruta = '/panel/acompanante';
+
+  /** Hora actual; se refresca cada minuto para que la agenda avance sola. */
+  protected readonly ahora = signal(new Date());
+  private intervaloReloj?: ReturnType<typeof setInterval>;
+
+  /** Personas mayores con vínculo aceptado. */
+  protected readonly personasMayores = signal<PersonaMayorAcompanada[]>([]);
+  /** Datos de seguimiento de cada persona mayor, por idUsuario. */
+  private readonly datos = signal<Record<number, DatosPersona>>({});
+  protected readonly solicitudes = signal<SolicitudAcompanamiento[]>([]);
+  /** Próximas actividades de las organizaciones de sus personas mayores. */
+  protected readonly actividades = signal<Actividad[]>([]);
+
+  protected readonly cargandoPersonas = signal(true);
+  protected readonly cargandoDatos = signal(true);
+  protected readonly cargandoActividades = signal(true);
+
+  protected readonly formatearHora = formatearHora;
 
   constructor(
+    private elemento: ElementRef<HTMLElement>,
     private actividadService: ActividadService,
     private acompananteService: AcompananteService,
     private authService: AuthService
   ) {
     this.nombreUsuario = this.authService.getNombreUsuario();
 
-    // Se recarga cuando otro usuario cambia actividades o vínculos.
+    // Se recarga cuando otro usuario cambia actividades, vínculos o datos de salud.
     alCambiar(['actividades'], () => this.cargarActividades());
     alCambiar(['acompanamientos', 'usuarios'], () => this.cargarPersonasMayores());
+    alCambiar(['medicamentos', 'citas-medicas', 'signos-vitales'], () => this.cargarDatos(this.personasMayores()));
   }
 
   ngOnInit(): void {
+    this.intervaloReloj = setInterval(() => this.ahora.set(new Date()), MINUTO);
+
     this.cargarActividades();
     this.cargarPersonasMayores();
   }
 
+  ngAfterViewInit(): void {
+    this.ajustarAltoPantalla();
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.intervaloReloj);
+  }
+
+  /**
+   * En pantallas grandes la página ocupa justo el alto de la ventana (sin
+   * scroll): se calcula cuánto queda debajo de la barra superior y se pasa al
+   * CSS en --alto-disponible. En celulares el CSS no la usa.
+   */
+  @HostListener('window:resize')
+  protected ajustarAltoPantalla(): void {
+    const host = this.elemento.nativeElement;
+    const contenedor = host.parentElement;
+    const inicio = host.getBoundingClientRect().top + window.scrollY;
+    const margenInferior = contenedor ? parseFloat(getComputedStyle(contenedor).paddingBottom) || 0 : 0;
+
+    host.style.setProperty('--alto-disponible', `${Math.floor(window.innerHeight - inicio - margenInferior)}px`);
+  }
+
   private cargarActividades(): void {
-    this.actividadService.listar().subscribe((actividades) =>
+    this.actividadService.listar().subscribe({
       // Solo las próximas, de la más cercana a la más lejana.
-      this.actividades.set(separarPorFecha(actividades).proximas)
-    );
+      next: (actividades) => this.actividades.set(separarPorFecha(actividades).proximas.slice(0, 4)),
+      complete: () => this.cargandoActividades.set(false),
+      error: () => this.cargandoActividades.set(false)
+    });
   }
 
+  /** Personas mayores, sus datos de seguimiento y las solicitudes pendientes. */
   private cargarPersonasMayores(): void {
-    this.acompananteService.obtenerPersonasMayores().subscribe(
-      (personasMayores) =>
-        this.personasMayores.set(personasMayores)
-    );
+    this.acompananteService.obtenerPersonasMayores().subscribe({
+      next: (personas) => {
+        this.personasMayores.set(personas);
+        this.cargandoPersonas.set(false);
+        this.cargarDatos(personas);
+      },
+      error: () => {
+        this.cargandoPersonas.set(false);
+        this.cargandoDatos.set(false);
+      }
+    });
+
+    this.acompananteService.obtenerSolicitudes().subscribe({
+      next: (solicitudes) => this.solicitudes.set(solicitudes),
+      error: () => this.solicitudes.set([])
+    });
   }
 
-  /** Personas mayores con vínculo aceptado. */
-  protected readonly personasMayores =
-    signal<PersonaMayorAcompanada[]>([]);
-
-  /** Datos de ejemplo: todavía no salen del backend. */
-  protected readonly recordatorios: Recordatorio[] = [
-    {
-      hora: '10:00 a.m.',
-      detalle: 'Losartán 50mg',
-      persona: 'Carlos Julio Méndez'
-    },
-    {
-      hora: '2:00 p.m.',
-      detalle: 'Control de presión arterial',
-      persona: 'Rosa Elvira Gómez'
-    },
-    {
-      hora: '6:00 p.m.',
-      detalle: 'Metformina 850mg',
-      persona: 'Carlos Julio Méndez'
+  /**
+   * Pide en paralelo medicamentos, citas y signos vitales de cada persona.
+   * Si una parte falla, esa parte queda vacía y el resto se muestra igual.
+   */
+  private cargarDatos(personas: PersonaMayorAcompanada[]): void {
+    if (personas.length === 0) {
+      this.datos.set({});
+      this.cargandoDatos.set(false);
+      return;
     }
-  ];
 
-  /** Datos de ejemplo: todavía no salen del backend. */
-  protected readonly alertas: AlertaConsulta[] = [
-    {
-      nombre: 'Rosa Elvira Gómez',
-      descripcion:
-        'Sin registro de visita hace 15 días. Requiere seguimiento prioritario.',
-      prioridad: 'Alta'
+    forkJoin(
+      personas.map((p) =>
+        forkJoin({
+          medicamentos: this.acompananteService.obtenerMedicamentosSeguimiento(p.idUsuario)
+            .pipe(catchError(() => of([] as MedicamentoSeguimiento[]))),
+          citas: this.acompananteService.obtenerCitasMedicasSeguimiento(p.idUsuario)
+            .pipe(catchError(() => of([] as CitaMedica[]))),
+          signos: this.acompananteService.obtenerSignosVitalesSeguimiento(p.idUsuario)
+            .pipe(catchError(() => of([] as SignoVitalResponse[])))
+        })
+      )
+    ).subscribe((respuestas) => {
+      const datos: Record<number, DatosPersona> = {};
+      respuestas.forEach((r, i) => {
+        // Los signos llegan del más reciente al más antiguo.
+        datos[personas[i].idUsuario] = { medicamentos: r.medicamentos, citas: r.citas, ultimoSigno: r.signos[0] ?? null };
+      });
+      this.datos.set(datos);
+      this.cargandoDatos.set(false);
+    });
+  }
+
+  private datosDe(persona: PersonaMayorAcompanada): DatosPersona {
+    return this.datos()[persona.idUsuario] ?? DATOS_VACIOS;
+  }
+
+  /** Tomas de medicamentos y citas de hoy de todas sus personas mayores, en orden de hora. */
+  protected readonly agendaHoy = computed<EventoAgenda[]>(() => {
+    const ahora = this.ahora();
+    const hoy = this.fechaLocal(ahora);
+    const eventos: EventoAgenda[] = [];
+
+    for (const persona of this.personasMayores()) {
+      const { medicamentos, citas } = this.datosDe(persona);
+
+      for (const med of medicamentos) {
+        for (const toma of tomasDeHoy(med, ahora)) {
+          eventos.push({
+            clave: `${persona.idUsuario}-${toma.clave}`,
+            tipo: 'medicamento',
+            momento: toma.momento,
+            titulo: med.nombre,
+            detalle: med.dosis,
+            persona,
+            estado: toma.estado
+          });
+        }
+      }
+
+      for (const cita of citas) {
+        if (cita.fecha !== hoy) {
+          continue;
+        }
+        const momento = momentoDeCita(cita);
+        eventos.push({
+          clave: `${persona.idUsuario}-c${cita.idCita}`,
+          tipo: 'cita',
+          momento,
+          titulo: cita.titulo,
+          detalle: this.lugarDeCita(cita),
+          persona,
+          estado: momento < ahora ? 'pasado' : 'pendiente'
+        });
+      }
     }
-  ];
 
-  /** Próximas actividades de las organizaciones de sus personas mayores. */
-  protected readonly actividades = signal<Actividad[]>([]);
+    eventos.sort((a, b) => a.momento.getTime() - b.momento.getTime());
+
+    // El primer pendiente es "lo siguiente".
+    const siguiente = eventos.find((e) => e.estado === 'pendiente');
+    if (siguiente) {
+      siguiente.estado = 'siguiente';
+    }
+
+    return eventos;
+  });
+
+  /** Resumen de cada persona mayor, por idUsuario. */
+  protected readonly resumenes = computed<Record<number, ResumenPersona>>(() => {
+    const ahora = this.ahora();
+    const resumenes: Record<number, ResumenPersona> = {};
+
+    for (const persona of this.personasMayores()) {
+      const { medicamentos, citas, ultimoSigno } = this.datosDe(persona);
+      const tomas = medicamentos.flatMap((m) => tomasDeHoy(m, ahora));
+      const cita = citas
+        .filter((c) => momentoDeCita(c) > ahora)
+        .sort((a, b) => momentoDeCita(a).getTime() - momentoDeCita(b).getTime())[0];
+
+      resumenes[persona.idUsuario] = {
+        tomasHechas: tomas.filter((t) => t.estado === 'hecho').length,
+        tomasTotal: tomas.length,
+        sinTomar: tomas.filter((t) => t.estado === 'atrasado').length,
+        ultimaMedicion: ultimoSigno
+          ? { hace: this.hace(ultimoSigno.fechaHora), normal: indicadoresFueraDeRango(ultimoSigno).length === 0 }
+          : null,
+        proximaCita: cita ? this.cuandoCita(cita) : null
+      };
+    }
+
+    return resumenes;
+  });
+
+  /**
+   * Alertas calculadas con los datos de seguimiento:
+   *  - Alta: medicamentos sin tomar o última medición fuera de rango.
+   *  - Media: cita médica hoy o mañana.
+   *  - Baja: sin mediciones de signos vitales hace más de DIAS_SIN_MEDICION días.
+   */
+  protected readonly alertas = computed<Alerta[]>(() => {
+    const ahora = this.ahora();
+    const hoy = this.fechaLocal(ahora);
+    const manana = this.fechaLocal(new Date(ahora.getTime() + DIA));
+    const alertas: Alerta[] = [];
+
+    for (const persona of this.personasMayores()) {
+      const { medicamentos, citas, ultimoSigno } = this.datosDe(persona);
+      const id = persona.idUsuario;
+
+      const sinTomar = medicamentos
+        .filter((m) => tomasDeHoy(m, ahora).some((t) => t.estado === 'atrasado'))
+        .map((m) => m.nombre);
+      if (sinTomar.length > 0) {
+        alertas.push({
+          clave: `${id}-medicamentos`,
+          prioridad: 'Alta',
+          persona,
+          texto: `No ha tomado: ${sinTomar.join(', ')}.`
+        });
+      }
+
+      if (ultimoSigno) {
+        const fuera = indicadoresFueraDeRango(ultimoSigno).map((i) => NOMBRE_INDICADOR[i]);
+        if (fuera.length > 0) {
+          alertas.push({
+            clave: `${id}-signos`,
+            prioridad: 'Alta',
+            persona,
+            texto: `${fuera.join(', ')} fuera de lo habitual en la última medición (${this.hace(ultimoSigno.fechaHora)}).`
+          });
+        }
+      }
+
+      for (const cita of citas) {
+        if ((cita.fecha === hoy && momentoDeCita(cita) > ahora) || cita.fecha === manana) {
+          alertas.push({
+            clave: `${id}-cita-${cita.idCita}`,
+            prioridad: 'Media',
+            persona,
+            texto: `Cita médica ${this.cuandoCita(cita).toLowerCase()}: ${cita.titulo}.`
+          });
+        }
+      }
+
+      const diasSinMedir = ultimoSigno ? this.diasDesde(ultimoSigno.fechaHora) : null;
+      if (diasSinMedir === null || diasSinMedir > DIAS_SIN_MEDICION) {
+        alertas.push({
+          clave: `${id}-sin-medicion`,
+          prioridad: 'Baja',
+          persona,
+          texto: diasSinMedir === null
+            ? 'Aún no tiene signos vitales registrados.'
+            : `No se le miden los signos vitales hace ${diasSinMedir} días.`
+        });
+      }
+    }
+
+    return alertas.sort((a, b) => ORDEN_PRIORIDAD[a.prioridad] - ORDEN_PRIORIDAD[b.prioridad]);
+  });
+
+  /** Citas médicas de los próximos días (las de hoy ya están en la agenda). */
+  protected readonly proximasCitas = computed<CitaProxima[]>(() => {
+    const hoy = this.fechaLocal(this.ahora());
+
+    return this.personasMayores()
+      .flatMap((persona) =>
+        this.datosDe(persona).citas
+          .filter((c) => c.fecha > hoy)
+          .map((cita) => ({ clave: `${persona.idUsuario}-${cita.idCita}`, cita, persona })))
+      .sort((a, b) => momentoDeCita(a.cita).getTime() - momentoDeCita(b.cita).getTime())
+      .slice(0, 4);
+  });
+
+  /** "Hoy, 9:00 a. m.", "Mañana, ..." o "jueves 2 de octubre, ...". */
+  protected cuandoCita(cita: CitaMedica): string {
+    return `${formatearFechaCita(cita.fecha, this.ahora())}, ${formatearHora(cita.hora)}`;
+  }
+
+  /** "Hoy", "Mañana" o "jueves 2 de octubre"; "Sin fecha" si no tiene. */
+  protected formatearDia(fecha: string | null): string {
+    return fecha ? formatearFechaCita(fecha, this.ahora()) : 'Sin fecha';
+  }
+
+  protected horaDe(fecha: Date): string {
+    return fecha.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  /** Iniciales del nombre: "María Pérez" -> "MP". */
+  protected iniciales(nombre: string): string {
+    return nombre
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((parte) => parte.charAt(0).toUpperCase())
+      .join('');
+  }
+
+  /** "Rosa Elvira Díaz" -> "Rosa". */
+  protected primerNombre(nombre: string): string {
+    return nombre.trim().split(/\s+/)[0] ?? nombre;
+  }
+
+  /** "hoy", "ayer" o "hace N días". */
+  private hace(fechaHora: string): string {
+    const dias = this.diasDesde(fechaHora);
+    if (dias <= 0) return 'hoy';
+    if (dias === 1) return 'ayer';
+    return `hace ${dias} días`;
+  }
+
+  private diasDesde(fechaHora: string): number {
+    const inicio = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    return Math.round((inicio(this.ahora()) - inicio(new Date(fechaHora))) / DIA);
+  }
+
+  /** "Hospital San José · Consultorio 204". */
+  private lugarDeCita(cita: CitaMedica): string | null {
+    return [cita.lugar, formatearConsultorio(cita.consultorio)].filter(Boolean).join(' · ') || null;
+  }
+
+  /** Fecha YYYY-MM-DD en hora local (toISOString() usaría UTC). */
+  private fechaLocal(fecha: Date): string {
+    return fecha.toLocaleDateString('en-CA');
+  }
 }
