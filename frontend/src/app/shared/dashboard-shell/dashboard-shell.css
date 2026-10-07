@@ -17,8 +17,14 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--vita-white);
-  border-right: 1px solid var(--vita-border);
+  /* Tinte muy leve del color del rol y franja de su color en el borde. */
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--role-accent) 7%, white) 0%,
+    color-mix(in srgb, var(--role-accent) 3%, white) 100%
+  );
+  border-right: 4px solid color-mix(in srgb, var(--role-accent) 70%, white);
+  box-shadow: 2px 0 12px color-mix(in srgb, var(--role-accent) 10%, transparent);
   padding: 24px 16px;
 }
 
@@ -27,7 +33,7 @@
   align-items: center;
   gap: 12px;
   padding: 4px 8px 24px;
-  border-bottom: 1px solid var(--vita-border);
+  border-bottom: 2px solid color-mix(in srgb, var(--role-accent) 30%, white);
   margin-bottom: 20px;
 }
 
@@ -78,14 +84,19 @@
 }
 
 .shell__nav-link:hover {
-  background: var(--vita-cream-soft);
+  background: color-mix(in srgb, var(--role-accent) 8%, white);
   color: var(--vita-navy);
 }
 
 .shell__nav-link--active {
-  background: color-mix(in srgb, var(--role-accent) 12%, white);
+  background: color-mix(in srgb, var(--role-accent) 16%, white);
+  box-shadow: inset 4px 0 0 var(--role-accent);
   color: var(--vita-navy);
   font-weight: 700;
+}
+
+.shell__nav-link--active .shell__nav-icon {
+  color: var(--role-accent);
 }
 
 .shell__nav-icon {
@@ -466,11 +477,18 @@
     align-items: center;
     overflow-x: auto;
     padding: 16px;
+    border-right: none;
+    border-bottom: 4px solid color-mix(in srgb, var(--role-accent) 70%, white);
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--role-accent) 10%, transparent);
+  }
+
+  .shell__nav-link--active {
+    box-shadow: inset 0 -3px 0 var(--role-accent);
   }
 
   .shell__brand {
     border-bottom: none;
-    border-right: 1px solid var(--vita-border);
+    border-right: 2px solid color-mix(in srgb, var(--role-accent) 30%, white);
     padding: 0 16px 0 0;
     margin: 0 16px 0 0;
   }
