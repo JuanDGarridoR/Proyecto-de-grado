@@ -332,6 +332,13 @@
   padding: 9px 16px;
 }
 
+.activity-form .btn:disabled,
+.activity-item__actions .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .activity-error {
   margin: 0 0 12px;
   padding: 8px 12px;

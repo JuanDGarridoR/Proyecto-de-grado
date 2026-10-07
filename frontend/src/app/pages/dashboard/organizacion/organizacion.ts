@@ -557,8 +557,18 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
 
   // Registro y edición rápidos de actividades
 
+  /** Fecha de hoy (YYYY-MM-DD): no se pueden registrar actividades en días pasados. */
+  protected hoy(): string {
+    return this.fechaLocal(this.ahora());
+  }
+
+  /** Nombre, fecha, hora y lugar son obligatorios para registrar o guardar una actividad. */
+  protected esValida(actividad: ActividadRequest): boolean {
+    return !!actividad.nombre?.trim() && !!actividad.fecha && !!actividad.hora && !!actividad.lugar?.trim();
+  }
+
   crearActividad(): void {
-    if (!this.nuevaActividad.nombre.trim()) {
+    if (!this.esValida(this.nuevaActividad)) {
       return;
     }
 
@@ -596,7 +606,7 @@ export class OrganizacionDashboard implements OnInit, AfterViewInit, OnDestroy {
   }
 
   guardarActividad(): void {
-    if (this.actividadEditandoId === null || !this.actividadEditando.nombre.trim()) {
+    if (this.actividadEditandoId === null || !this.esValida(this.actividadEditando)) {
       return;
     }
 

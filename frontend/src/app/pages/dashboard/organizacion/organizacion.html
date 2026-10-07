@@ -104,12 +104,13 @@
       </div>
 
       <!-- Formulario rápido para crear una actividad -->
+      <!-- Nombre, fecha, hora y lugar son obligatorios -->
       <form class="activity-form" (ngSubmit)="crearActividad()">
         <input
           type="text"
           name="nuevaActividadNombre"
           class="activity-input"
-          placeholder="Nombre de la actividad"
+          placeholder="Nombre de la actividad *"
           aria-label="Nombre de la actividad"
           [(ngModel)]="nuevaActividad.nombre"
           required
@@ -121,31 +122,35 @@
             name="nuevaActividadFecha"
             class="activity-input"
             aria-label="Fecha"
+            title="Fecha de la actividad"
+            [min]="hoy()"
             [(ngModel)]="nuevaActividad.fecha"
+            required
           />
           <input
-            type="text"
-            name="nuevaActividadLugar"
+            type="time"
+            name="nuevaActividadHora"
             class="activity-input"
-            placeholder="Lugar"
-            aria-label="Lugar"
-            [(ngModel)]="nuevaActividad.lugar"
+            aria-label="Hora"
+            title="Hora de la actividad"
+            [(ngModel)]="nuevaActividad.hora"
+            required
           />
         </div>
 
-        <div class="activity-form__row">
-          <input
-            type="text"
-            name="nuevaActividadTipo"
-            class="activity-input"
-            placeholder="Tipo (ej. salud, recreación)"
-            aria-label="Tipo"
-            [(ngModel)]="nuevaActividad.tipo"
-          />
-          <button type="submit" class="btn btn-primary">
-            <app-icon name="plus" /> Registrar
-          </button>
-        </div>
+        <input
+          type="text"
+          name="nuevaActividadLugar"
+          class="activity-input"
+          placeholder="Lugar *"
+          aria-label="Lugar"
+          [(ngModel)]="nuevaActividad.lugar"
+          required
+        />
+
+        <button type="submit" class="btn btn-primary" [disabled]="!esValida(nuevaActividad)">
+          <app-icon name="plus" /> Registrar actividad
+        </button>
       </form>
 
       @if (errorActividades()) {
@@ -165,6 +170,7 @@
                     class="activity-input"
                     aria-label="Nombre de la actividad"
                     [(ngModel)]="actividadEditando.nombre"
+                    required
                   />
                   <input
                     type="date"
@@ -172,26 +178,35 @@
                     class="activity-input"
                     aria-label="Fecha"
                     [(ngModel)]="actividadEditando.fecha"
+                    required
+                  />
+                  <input
+                    type="time"
+                    name="actividadEditandoHora"
+                    class="activity-input"
+                    aria-label="Hora"
+                    [(ngModel)]="actividadEditando.hora"
+                    required
                   />
                   <input
                     type="text"
                     name="actividadEditandoLugar"
                     class="activity-input"
-                    placeholder="Lugar"
+                    placeholder="Lugar *"
                     aria-label="Lugar"
                     [(ngModel)]="actividadEditando.lugar"
-                  />
-                  <input
-                    type="text"
-                    name="actividadEditandoTipo"
-                    class="activity-input"
-                    placeholder="Tipo"
-                    aria-label="Tipo"
-                    [(ngModel)]="actividadEditando.tipo"
+                    required
                   />
 
                   <div class="activity-item__actions">
-                    <button type="button" class="btn btn-primary" (click)="guardarActividad()">Guardar</button>
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      (click)="guardarActividad()"
+                      [disabled]="!esValida(actividadEditando)"
+                    >
+                      Guardar
+                    </button>
                     <button type="button" class="btn btn-outline" (click)="cancelarEdicionActividad()">Cancelar</button>
                   </div>
                 </div>
