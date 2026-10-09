@@ -1,0 +1,3 @@
+# Claves y configuración privada: NUNCA se suben a git
+backend/secretos.properties
+.env

@@ -1,0 +1,22 @@
+# Caddy: servidor web de VITA+ en producción (ver docker-compose.yml).
+# DOMINIO viene del archivo .env (p. ej. 3-90-12-45.sslip.io). Con un
+# dominio, Caddy saca y renueva solo el certificado HTTPS.
+{$DOMINIO} {
+	encode zstd gzip
+
+	# El API va al gateway. flush_interval -1: no guardar en búfer, para que
+	# las notificaciones en tiempo real (SSE) lleguen al instante.
+	handle /api/* {
+		reverse_proxy gateway:8080 {
+			flush_interval -1
+		}
+	}
+
+	# El resto es la aplicación de Angular; las rutas internas
+	# (/panel/...) cargan index.html.
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

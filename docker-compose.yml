@@ -1,0 +1,84 @@
+# VITA+ en producción: los 10 servicios, el api-gateway y el frontend (Caddy
+# con HTTPS). Se levanta todo con:  docker compose up -d --build
+#
+# Las claves y el dominio van en el archivo .env (copiar .env.example).
+# Solo el frontend (Caddy) se expone a internet, en los puertos 80 y 443;
+# los servicios se hablan entre sí por la red interna de Docker.
+
+x-servicio: &servicio
+  restart: unless-stopped
+  env_file: .env
+  mem_limit: 600m
+  environment:
+    # Direcciones internas de cada servicio (reemplazan los localhost)
+    AUTH_SERVICE_URL: http://auth-service:8081
+    MESSAGING_SERVICE_URL: http://messaging-service:8082
+    SALUD_SERVICE_URL: http://salud-service:8084
+    PERSONA_MAYOR_SERVICE_URL: http://persona-mayor-service:8085
+    ACOMPANANTE_SERVICE_URL: http://acompanante-service:8086
+    VOLUNTARIO_SERVICE_URL: http://voluntario-service:8087
+    ORGANIZACION_SERVICE_URL: http://organizacion-service:8088
+    ACTIVIDAD_SERVICE_URL: http://actividad-service:8089
+    ANALITICA_SERVICE_URL: http://analitica-service:8090
+    # El gateway solo acepta peticiones del navegador desde la página publicada
+    CORS_ORIGINS: https://${DOMINIO}
+
+services:
+  auth-service:
+    <<: *servicio
+    build: { context: ./backend, args: { SERVICIO: auth-service } }
+
+  messaging-service:
+    <<: *servicio
+    build: { context: ./backend, args: { SERVICIO: messaging-service } }
+
+  salud-service:
+    <<: *servicio
+    build: { context: ./backend, args: { SERVICIO: salud-service } }
+
+  persona-mayor-service:
+    <<: *servicio
+    build: { context: ./backend, args: { SERVICIO: persona-mayor-service } }
+
+  acompanante-service:
+    <<: *servicio
+    build: { context: ./backend, args: { SERVICIO: acompanante-service } }
+
+  voluntario-service:
+    <<: *servicio
+    build: { context: ./backend, args: { SERVICIO: voluntario-service } }
+
+  organizacion-service:
+    <<: *servicio
+    build: { context: ./backend, args: { SERVICIO: organizacion-service } }
+
+  actividad-service:
+    <<: *servicio
+    build: { context: ./backend, args: { SERVICIO: actividad-service } }
+
+  analitica-service:
+    <<: *servicio
+    build: { context: ./backend, args: { SERVICIO: analitica-service } }
+
+  gateway:
+    <<: *servicio
+    build: { context: ./backend, args: { SERVICIO: api-gateway } }
+
+  # Frontend + HTTPS. Es lo único abierto a internet.
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    environment:
+      DOMINIO: ${DOMINIO}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data      # certificados HTTPS (no se pierden al reiniciar)
+      - caddy_config:/config
+    depends_on:
+      - gateway
+
+volumes:
+  caddy_data:
+  caddy_config:
