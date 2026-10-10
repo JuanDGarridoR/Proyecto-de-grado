@@ -275,7 +275,7 @@ export class ReportePoblacion implements ReporteExportable {
     const mayor = this.porEdad().reduce((a, b) => (b.personas > a.personas ? b : a));
     const sinFecha = total - edades.length;
 
-    return 'La gráfica agrupa a las personas mayores asociadas según su edad. El rango con más personas es '
+    return 'La gráfica agrupa a las personas mayores asociadas según su edad. El rango que agrupa el mayor número de personas es '
       + `"${mayor.etiqueta}" (${mayor.personas}, el ${pct(mayor.personas, edades.length)} %) y la edad promedio `
       + `es de ${this.kpis().edadPromedio}. `
       + (sinFecha > 0
@@ -309,7 +309,7 @@ export class ReportePoblacion implements ReporteExportable {
     const conEps = this.porEps().filter((e) => e.eps !== 'Sin EPS registrada' && e.eps !== 'Otras');
     const sinEps = this.porEps().find((e) => e.eps === 'Sin EPS registrada')?.personas ?? 0;
     const principal = conEps.length > 0
-      ? `"${conEps[0].eps}" es la más común, con ${conEps[0].personas} `
+      ? `"${conEps[0].eps}" es la EPS con el mayor número de afiliados: ${conEps[0].personas} `
         + `${conEps[0].personas === 1 ? 'persona' : 'personas'} (${pct(conEps[0].personas, total)} %). `
       : '';
     const faltantes = sinEps > 0
@@ -318,7 +318,7 @@ export class ReportePoblacion implements ReporteExportable {
       : 'Todas las personas tienen su EPS registrada, lo que facilita la gestión de citas y servicios de salud.';
 
     return 'Cada barra indica cuántas personas mayores están afiliadas a cada EPS (si hay más de ocho, '
-      + `las menos frecuentes se agrupan en "Otras"). ${principal}${faltantes}`;
+      + `las de menor número de afiliados se agrupan en "Otras"). ${principal}${faltantes}`;
   }
 
   private explicacionIntereses(): string {
@@ -332,8 +332,8 @@ export class ReportePoblacion implements ReporteExportable {
     }
 
     const primero = top[0];
-    return 'La gráfica muestra los intereses más frecuentes entre las personas asociadas (hasta 10); el '
-      + 'color indica si se trata de un gusto, un talento o un hobby. El más común es '
+    return 'La gráfica muestra los intereses registrados por el mayor número de personas asociadas (hasta 10); '
+      + 'el color indica si se trata de un gusto, un talento o un hobby. El primero de la lista es '
       + `"${primero.nombre}", con ${primero.personas} ${primero.personas === 1 ? 'persona' : 'personas'}, y `
       + `${conIntereses} de ${total} personas han registrado sus intereses. Estos datos sirven para `
       + 'proponer actividades que respondan a lo que las personas mayores disfrutan y saben hacer.';
@@ -356,7 +356,7 @@ export class ReportePoblacion implements ReporteExportable {
           opciones: hayPersonas ? this.graficaEps() : null, tabla: this.tablaEps(),
           explicacion: this.explicacionEps() },
         { titulo: 'Intereses más comunes',
-          descripcion: 'Los 10 gustos, talentos y hobbies más frecuentes.',
+          descripcion: 'Los 10 gustos, talentos y hobbies registrados por el mayor número de personas.',
           opciones: this.datos().intereses.length > 0 ? this.graficaIntereses() : null,
           tabla: this.tablaIntereses(),
           explicacion: this.explicacionIntereses() }

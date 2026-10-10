@@ -26,7 +26,7 @@
 
   <app-grafica-card
     titulo="Ocupación de cupos"
-    descripcion="Actividades con cupos definidos, de la más llena a la menos llena (máx. 10)."
+    descripcion="Actividades con cupos definidos, de mayor a menor porcentaje de ocupación (máx. 10)."
     [opciones]="graficaOcupacion()"
     [tabla]="tablaOcupacion()"
     [vacio]="tablaOcupacion().filas.length === 0"

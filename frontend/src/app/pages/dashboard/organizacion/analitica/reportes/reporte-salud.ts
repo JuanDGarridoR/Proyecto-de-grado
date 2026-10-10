@@ -549,7 +549,7 @@ export class ReporteSalud implements ReporteExportable {
     const medidas = peor.normal + peor.revisar + peor.error;
     const resumen = peor.revisar === 0
       ? 'Todas las últimas mediciones están dentro de los rangos normales de referencia.'
-      : `${NOMBRE_INDICADOR[peor.indicador]} es el indicador con más personas por revisar: `
+      : `${NOMBRE_INDICADOR[peor.indicador]} es el indicador con el mayor número de personas por revisar: `
         + `${peor.revisar} de ${medidas} ${medidas === 1 ? 'medida' : 'medidas'}.`;
 
     return 'Para cada indicador (presión, pulso y oxígeno), la barra divide a las personas según su última '
@@ -564,7 +564,7 @@ export class ReporteSalud implements ReporteExportable {
     const total = puntos.reduce((s, p) => s + p.total, 0);
     if (total === 0) {
       return 'No se registraron mediciones de signos vitales en el período, por eso la línea se mantiene '
-        + 'en cero. Registrar los signos vitales de forma periódica permite detectar a tiempo cambios en '
+        + 'en cero. Registrar los signos vitales de forma periódica permite identificar a tiempo cambios en '
         + 'la salud de las personas mayores.';
     }
 
@@ -574,12 +574,13 @@ export class ReporteSalud implements ReporteExportable {
 
     return `La línea muestra cuántas mediciones de signos vitales se registraron cada ${unidad} del período: `
       + `${total} en total, con un promedio de ${String(promedio).replace('.', ',')} por ${unidad}. `
-      + `${porMes ? 'El mes' : 'La semana'} con más registros fue ${porMes ? '' : 'la del '}${mayor.etiqueta} `
-      + `(${mayor.total})`
+      + `${porMes ? 'El mes' : 'La semana'} con el mayor número de registros fue ${porMes ? '' : 'la del '}`
+      + `${mayor.etiqueta} (${mayor.total})`
       + (vacios > 0
         ? `, y hubo ${vacios} ${vacios === 1 ? unidad : (porMes ? 'meses' : 'semanas')} sin ninguna medición. `
         : '. ')
-      + 'Las caídas en la línea pueden indicar momentos en que se descuidó el seguimiento de la salud.';
+      + `Los puntos donde la línea baja señalan los períodos con menor número de mediciones; identificarlos `
+      + 'ayuda a planear un seguimiento continuo de la salud.';
   }
 
   private explicacionEvolucion(nombre: string): string {
@@ -647,7 +648,7 @@ export class ReporteSalud implements ReporteExportable {
       ],
       nota: 'Los rangos "normales" son referencias generales para adultos (presión 90–139 / 60–89 mmHg, pulso 60–100 lpm, '
         + 'oxígeno 95 % o más). Son orientativos y no reemplazan el criterio médico. Un "posible error de registro" '
-        + 'es un valor que no puede ser real y probablemente se digitó mal.'
+        + 'es un valor que no puede ser real y probablemente corresponde a un error de digitación.'
     };
   }
 }
