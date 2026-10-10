@@ -98,8 +98,14 @@
         </p>
       </div>
     } @else {
+      <app-buscador-nombre class="vinculos__buscador" [(texto)]="busqueda" placeholder="Buscar voluntario por nombre..." />
+
+      @if (voluntariosFiltrados().length === 0) {
+        <p class="vinculos__sin-resultados">Ningún voluntario coincide con "{{ busqueda() }}".</p>
+      }
+
       <div class="vinculos__list">
-        @for (voluntario of voluntarios(); track voluntario.idUsuario) {
+        @for (voluntario of voluntariosFiltrados(); track voluntario.idUsuario) {
           <app-person-card
             etiqueta="Voluntario"
             icono="star"

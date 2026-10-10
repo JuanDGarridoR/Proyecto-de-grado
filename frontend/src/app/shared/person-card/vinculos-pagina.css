@@ -136,6 +136,20 @@
   box-shadow: 0 0 0 3px rgba(0, 48, 73, 0.08);
 }
 
+/* <app-buscador-nombre> encima de una lista y el aviso cuando nada coincide */
+
+.vinculos__buscador {
+  margin-bottom: 16px;
+}
+
+.vinculos__sin-resultados {
+  margin: 0 0 16px;
+  padding: 16px 18px;
+  border: 1px dashed var(--vita-border);
+  border-radius: var(--radius-md);
+  color: var(--vita-text-gray);
+}
+
 /* Botones de aceptar / rechazar / solicitar */
 
 .vinculos__primary,

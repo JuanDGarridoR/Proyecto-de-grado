@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import {
@@ -11,15 +11,16 @@ import { PersonCard } from '../../../../shared/person-card/person-card';
 import { CancelarAsociacion } from '../../../../shared/cancelar-asociacion/cancelar-asociacion';
 import { mensajeDeError } from '../../../../core/formato/formato';
 import { Cargando } from '../../../../shared/cargando/cargando';
+import { BuscadorNombre, filtrarPorNombre } from '../../../../shared/buscador-nombre/buscador-nombre';
 
 /**
  * Voluntarios de la organización: solicitudes de vinculación pendientes
- * (aceptar o rechazar) y voluntarios ya vinculados.
+ * (aceptar o rechazar) y voluntarios ya vinculados, con búsqueda por nombre.
  */
 @Component({
   selector: 'app-organizacion-voluntarios',
   standalone: true,
-  imports: [Icon, PersonCard, CancelarAsociacion, Cargando],
+  imports: [Icon, PersonCard, CancelarAsociacion, Cargando, BuscadorNombre],
   templateUrl: './voluntarios.html',
   styleUrls: ['../../../../shared/person-card/vinculos-pagina.css']
 })
@@ -29,6 +30,12 @@ export class Voluntarios implements OnInit {
   protected readonly voluntarios = signal<VoluntarioOrganizacion[]>([]);
   protected readonly solicitudes = signal<VoluntarioOrganizacion[]>([]);
   protected readonly cargando = signal(true);
+
+  // Búsqueda por nombre en los voluntarios vinculados
+  protected readonly busqueda = signal('');
+  protected readonly voluntariosFiltrados = computed(() =>
+    filtrarPorNombre(this.voluntarios(), this.busqueda())
+  );
 
   protected readonly mensaje = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
