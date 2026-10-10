@@ -85,7 +85,7 @@ public class UsuarioDetailsService implements UserDetailsService {
                                 : "SIN_CONTRASENA_LOGIN_POR_OTP"
                 )
                 .authorities(authorities)
-                .disabled(!Boolean.TRUE.equals(usuario.getActivo()))
+                // Una cuenta inactiva sigue pudiendo usar su sesión para reactivarse.
                 .build();
     }
 }

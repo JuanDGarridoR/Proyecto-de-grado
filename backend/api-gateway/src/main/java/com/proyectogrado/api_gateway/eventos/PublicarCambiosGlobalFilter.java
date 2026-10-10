@@ -34,12 +34,13 @@ public class PublicarCambiosGlobalFilter implements GlobalFilter, Ordered {
      * Ruta del gateway y recurso que cambia cuando se escribe en ella. Gana
      * la primera coincidencia. Las rutas que no aparecen (login, OTP,
      * contraseña) no cambian datos que vean otros usuarios. "*" significa
-     * que cambia todo: al borrar una cuenta se borran también sus relaciones.
+     * que cambia todo: al borrar, inactivar o reactivar una cuenta cambian
+     * también sus relaciones.
      */
     private static final Map<String, String> RECURSOS_POR_RUTA = new LinkedHashMap<>();
 
     static {
-        RECURSOS_POR_RUTA.put("/api/auth/cuenta", "*");
+        RECURSOS_POR_RUTA.put("/api/auth/cuenta/**", "*");
         RECURSOS_POR_RUTA.put("/api/auth/registro", "usuarios");
         RECURSOS_POR_RUTA.put("/api/auth/informacion", "usuarios");
         RECURSOS_POR_RUTA.put("/api/organizacion/informacion", "usuarios");

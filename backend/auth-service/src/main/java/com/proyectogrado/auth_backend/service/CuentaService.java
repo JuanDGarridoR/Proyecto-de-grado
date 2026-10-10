@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Eliminación de cuenta, para cualquier rol. No mira el rol del usuario:
+ * Eliminación, inactivación y reactivación de la cuenta, para cualquier rol.
+ *
+ * Al eliminar no se mira el rol del usuario:
  * borra todo lo que pueda referenciar su id_usuario en cada tabla (si no
  * aplica a su rol, el DELETE simplemente no afecta filas).
  *
@@ -89,6 +91,109 @@ public class CuentaService {
         }
     }
 
+    // =========================================================
+    // INACTIVAR Y REACTIVAR LA CUENTA
+    // =========================================================
+
+    /*
+     * Una cuenta inactiva puede entrar, pero nadie más la ve. En vez de tocar
+     * cada consulta de cada servicio (todas filtran los vínculos por
+     * estado = 'ACEPTADA' o 'PENDIENTE'), sus vínculos pasan a un estado que
+     * nadie lista:
+     *   ACEPTADA  -> CUENTA_INACTIVA
+     *   PENDIENTE -> PENDIENTE_CUENTA_INACTIVA
+     * Al reactivarla vuelven a su estado, pero solo los vínculos cuya otra
+     * parte también está activa (si las dos se inactivaron, el vínculo
+     * vuelve cuando se reactiva la segunda). Los vínculos que el usuario
+     * inactivó a mano (INACTIVA) no se tocan.
+     */
+
+    public static final String CUENTA_INACTIVA = "CUENTA_INACTIVA";
+    public static final String PENDIENTE_CUENTA_INACTIVA = "PENDIENTE_CUENTA_INACTIVA";
+
+    private static final String OCULTAR = """
+            UPDATE %s SET estado = CASE estado
+                    WHEN 'ACEPTADA' THEN 'CUENTA_INACTIVA'
+                    ELSE 'PENDIENTE_CUENTA_INACTIVA' END
+             WHERE estado IN ('ACEPTADA', 'PENDIENTE') AND (%s)
+            """;
+
+    private static final String RESTAURAR = """
+            UPDATE %s v SET estado = CASE v.estado
+                    WHEN 'CUENTA_INACTIVA' THEN 'ACEPTADA'
+                    ELSE 'PENDIENTE' END
+             WHERE v.estado IN ('CUENTA_INACTIVA', 'PENDIENTE_CUENTA_INACTIVA') AND (%s)
+            """;
+
+    // La otra parte del vínculo está activa (activo null cuenta como activo).
+    private static final String PERSONA_ACTIVA =
+            "EXISTS (SELECT 1 FROM usuario u WHERE u.id_usuario = v.%s AND COALESCE(u.activo, TRUE))";
+    private static final String ORGANIZACION_ACTIVA =
+            "EXISTS (SELECT 1 FROM usuario u WHERE u.id_organizacion = v.id_organizacion AND COALESCE(u.activo, TRUE))";
+
+    @Transactional
+    public void inactivarCuenta(Integer idUsuario) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        usuario.setActivo(false);
+        usuarioRepository.save(usuario);
+
+        ocultar("persona_mayor_organizacion", "id_persona_mayor = :id", idUsuario);
+        ocultar("persona_mayor_acompanante", "id_persona_mayor = :id OR id_acompanante = :id", idUsuario);
+        ocultarSiExisteTabla("voluntario_organizacion", "id_voluntario = :id", idUsuario);
+
+        if (usuario.getIdOrganizacion() != null) {
+            ocultar("persona_mayor_organizacion", "id_organizacion = :id", usuario.getIdOrganizacion());
+            ocultarSiExisteTabla("voluntario_organizacion", "id_organizacion = :id", usuario.getIdOrganizacion());
+        }
+    }
+
+    @Transactional
+    public void reactivarCuenta(Integer idUsuario) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        usuario.setActivo(true);
+        usuarioRepository.saveAndFlush(usuario);
+
+        restaurar("persona_mayor_organizacion",
+                "v.id_persona_mayor = :id AND " + ORGANIZACION_ACTIVA, idUsuario);
+        restaurar("persona_mayor_acompanante",
+                "(v.id_persona_mayor = :id AND " + PERSONA_ACTIVA.formatted("id_acompanante") + ")"
+                        + " OR (v.id_acompanante = :id AND " + PERSONA_ACTIVA.formatted("id_persona_mayor") + ")",
+                idUsuario);
+        if (existeTabla("voluntario_organizacion")) {
+            restaurar("voluntario_organizacion",
+                    "v.id_voluntario = :id AND " + ORGANIZACION_ACTIVA, idUsuario);
+        }
+
+        if (usuario.getIdOrganizacion() != null) {
+            restaurar("persona_mayor_organizacion",
+                    "v.id_organizacion = :id AND " + PERSONA_ACTIVA.formatted("id_persona_mayor"),
+                    usuario.getIdOrganizacion());
+            if (existeTabla("voluntario_organizacion")) {
+                restaurar("voluntario_organizacion",
+                        "v.id_organizacion = :id AND " + PERSONA_ACTIVA.formatted("id_voluntario"),
+                        usuario.getIdOrganizacion());
+            }
+        }
+    }
+
+    private void ocultar(String tabla, String condicion, Integer id) {
+        ejecutar(OCULTAR.formatted(tabla, condicion), id);
+    }
+
+    private void ocultarSiExisteTabla(String tabla, String condicion, Integer id) {
+        if (existeTabla(tabla)) {
+            ocultar(tabla, condicion, id);
+        }
+    }
+
+    private void restaurar(String tabla, String condicion, Integer id) {
+        ejecutar(RESTAURAR.formatted(tabla, condicion), id);
+    }
+
     /** Borra la organización, sus actividades y sus vínculos si ya no le queda ningún usuario. */
     private void eliminarOrganizacionSinUsuarios(Integer idOrganizacion) {
 
@@ -117,14 +222,18 @@ public class CuentaService {
      * nunca han arrancado, la tabla no existe y el DELETE abortaría todo.
      */
     private void ejecutarSiExisteTabla(String tabla, String sql, Integer id) {
+        if (existeTabla(tabla)) {
+            ejecutar(sql, id);
+        }
+    }
+
+    private boolean existeTabla(String tabla) {
         Object existe = entityManager
                 .createNativeQuery("SELECT to_regclass(:tabla) IS NOT NULL")
                 .setParameter("tabla", tabla)
                 .getSingleResult();
 
-        if (Boolean.TRUE.equals(existe)) {
-            ejecutar(sql, id);
-        }
+        return Boolean.TRUE.equals(existe);
     }
 
     // id_voluntario, id_persona_mayor_proponente y estado los agrega actividad-service al arrancar.

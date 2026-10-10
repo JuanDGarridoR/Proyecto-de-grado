@@ -67,6 +67,10 @@ export class DashboardShell implements OnInit, OnDestroy {
   protected readonly errorNotificaciones = signal(false);
   private intervaloNotificaciones?: ReturnType<typeof setInterval>;
 
+  /** El usuario inactivó su cuenta: se muestra un aviso para reactivarla. */
+  protected readonly cuentaInactiva = signal(false);
+  protected readonly reactivandoCuenta = signal(false);
+
   constructor(
     private authService: AuthService,
     private notificacionService: NotificacionService,
@@ -75,10 +79,13 @@ export class DashboardShell implements OnInit, OnDestroy {
   ) {
     // Las emergencias y las notificaciones leídas en otra pestaña llegan al instante.
     alCambiar(['notificaciones'], () => this.cargarNotificaciones());
+    // Inactivar o reactivar la cuenta (desde el perfil u otra pestaña).
+    alCambiar(['usuarios'], () => this.cargarEstadoCuenta());
   }
 
   ngOnInit(): void {
     this.cargarNotificaciones();
+    this.cargarEstadoCuenta();
 
     // Los recordatorios los envían tareas programadas del backend, que no
     // generan aviso en tiempo real: se consultan cada minuto.
@@ -171,5 +178,25 @@ export class DashboardShell implements OnInit, OnDestroy {
     if (ruta) {
       this.router.navigateByUrl(ruta);
     }
+  }
+
+  private cargarEstadoCuenta(): void {
+    this.authService.cuentaActiva().subscribe({
+      next: (activa) => this.cuentaInactiva.set(!activa),
+      error: () => this.cuentaInactiva.set(false)
+    });
+  }
+
+  /** Desde el aviso de "cuenta inactiva", sin tener que ir al perfil. */
+  reactivarCuenta(): void {
+    this.reactivandoCuenta.set(true);
+
+    this.authService.reactivarCuenta().subscribe({
+      next: () => {
+        this.reactivandoCuenta.set(false);
+        this.cuentaInactiva.set(false);
+      },
+      error: () => this.reactivandoCuenta.set(false)
+    });
   }
 }

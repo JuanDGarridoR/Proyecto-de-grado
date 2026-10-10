@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { timeout } from 'rxjs';
 
 import { EliminarCuenta } from '../eliminar-cuenta/eliminar-cuenta';
+import { InactivarCuenta } from '../inactivar-cuenta/inactivar-cuenta';
 import { GestorNotificaciones } from '../gestor-notificaciones/gestor-notificaciones';
 import { DatosSalud } from '../datos-salud/datos-salud';
 
@@ -57,7 +58,7 @@ interface PerfilInformacion {
  */
 @Component({
   selector: 'app-perfil',
-  imports: [FormsModule, CampoContrasena, EliminarCuenta, GestorNotificaciones, DatosSalud, Cargando],
+  imports: [FormsModule, CampoContrasena, InactivarCuenta, EliminarCuenta, GestorNotificaciones, DatosSalud, Cargando],
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })

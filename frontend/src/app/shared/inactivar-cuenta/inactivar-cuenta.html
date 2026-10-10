@@ -1,0 +1,86 @@
+<!-- Inactivar / reactivar la cuenta -->
+@if (activa() !== null) {
+  <section class="zona-peligro zona-inactivar" aria-labelledby="inactivarCuentaTitle">
+    <div>
+      @if (activa()) {
+        <h2 id="inactivarCuentaTitle">Inactivar cuenta</h2>
+        <p>
+          Tu cuenta dejará de aparecer para tus organizaciones, acompañantes y
+          demás personas vinculadas. No se borra nada y puedes reactivarla
+          cuando quieras.
+        </p>
+      } @else {
+        <h2 id="inactivarCuentaTitle">Tu cuenta está inactiva</h2>
+        <p>
+          Nadie más ve tu cuenta. Al reactivarla, vuelves a aparecer para tus
+          organizaciones, acompañantes y demás personas vinculadas.
+        </p>
+      }
+
+      @if (error() && !mostrandoModal()) {
+        <p class="zona-inactivar__error">{{ error() }}</p>
+      }
+    </div>
+
+    @if (activa()) {
+      <button type="button" class="zona-peligro__boton zona-inactivar__boton" (click)="abrirModal()">
+        Inactivar mi cuenta
+      </button>
+    } @else {
+      <button
+        type="button"
+        class="zona-inactivar__reactivar"
+        (click)="reactivar()"
+        [disabled]="procesando()"
+      >
+        {{ procesando() ? 'Reactivando…' : 'Reactivar mi cuenta' }}
+      </button>
+    }
+  </section>
+}
+
+<!-- Confirmación -->
+@if (mostrandoModal()) {
+  <div class="eliminar-overlay">
+    <div
+      class="eliminar-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="inactivarCuentaModalTitle"
+    >
+      <h2 id="inactivarCuentaModalTitle">¿Inactivar tu cuenta?</h2>
+
+      <p>
+        Mientras esté inactiva, tus organizaciones, acompañantes y demás
+        personas vinculadas no verán tu cuenta ni tus datos, y no recibirán
+        tus avisos (por ejemplo, las alertas de emergencia).
+      </p>
+      <p>
+        Puedes seguir entrando y reactivarla cuando quieras desde tu perfil.
+      </p>
+
+      @if (error()) {
+        <p class="eliminar-modal__error">{{ error() }}</p>
+      }
+
+      <div class="eliminar-modal__acciones">
+        <button
+          type="button"
+          class="eliminar-modal__cancelar"
+          (click)="cerrarModal()"
+          [disabled]="procesando()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="eliminar-modal__confirmar zona-inactivar__confirmar"
+          (click)="inactivar()"
+          [disabled]="procesando()"
+        >
+          {{ procesando() ? 'Inactivando…' : 'Inactivar cuenta' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -138,7 +138,8 @@ public class PersonaMayorAcompananteInformacionController {
                 personaMayor.getIps(),
                 personaMayor.getDireccionIps(),
                 personaMayor.getViveSolo(),
-                false
+                false,
+                !Boolean.FALSE.equals(usuario.getActivo())
         );
     }
 }

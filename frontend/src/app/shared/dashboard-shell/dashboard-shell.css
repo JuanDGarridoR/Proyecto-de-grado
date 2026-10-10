@@ -428,6 +428,45 @@
   padding: 32px;
 }
 
+/* Aviso de cuenta inactiva (encima de la página) */
+
+.shell__cuenta-inactiva {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+
+  margin-bottom: 24px;
+  padding: 14px 18px;
+
+  border: 1px solid color-mix(in srgb, var(--vita-gold) 50%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--vita-gold) 12%, var(--vita-white));
+  color: var(--vita-navy);
+}
+
+.shell__cuenta-inactiva p {
+  flex: 1;
+  min-width: 220px;
+  margin: 0;
+}
+
+.shell__cuenta-inactiva button {
+  padding: 9px 16px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--vita-navy);
+  color: var(--vita-white);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.shell__cuenta-inactiva button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Modo accesible: letra e iconos más grandes */
 
 :host(.shell-host--accessible) .shell__nav-link {

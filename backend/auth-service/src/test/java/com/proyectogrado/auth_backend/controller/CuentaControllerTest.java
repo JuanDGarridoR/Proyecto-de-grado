@@ -12,6 +12,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -44,6 +45,26 @@ class CuentaControllerTest {
                 .andExpect(content().string("Cuenta eliminada correctamente"));
 
         verify(cuentaService).eliminarCuenta(57);
+    }
+
+    @Test
+    void inactivaYReactivaLaCuentaDelUsuarioDelToken() throws Exception {
+        mockMvc.perform(put("/api/auth/cuenta/inactivar").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        verify(cuentaService).inactivarCuenta(57);
+
+        mockMvc.perform(put("/api/auth/cuenta/reactivar").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        verify(cuentaService).reactivarCuenta(57);
+    }
+
+    @Test
+    void siFallaLaInactivacionRespondeErrorSinDetallesInternos() throws Exception {
+        doThrow(new RuntimeException("error de SQL")).when(cuentaService).inactivarCuenta(57);
+
+        mockMvc.perform(put("/api/auth/cuenta/inactivar").header("Authorization", "Bearer " + token))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("No se pudo inactivar la cuenta"));
     }
 
     @Test

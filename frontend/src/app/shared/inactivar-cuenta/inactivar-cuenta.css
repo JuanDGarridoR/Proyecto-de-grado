@@ -1,0 +1,44 @@
+/* Usa las clases de eliminar-cuenta.css con un tono menos alarmante:
+   inactivar no borra nada. */
+
+.zona-inactivar {
+  border-color: var(--vita-border);
+}
+
+.zona-inactivar h2 {
+  color: var(--vita-navy);
+}
+
+.zona-inactivar__boton {
+  border-color: var(--vita-navy);
+  color: var(--vita-navy);
+}
+
+.zona-inactivar__boton:hover {
+  background: var(--vita-navy);
+}
+
+.zona-inactivar__reactivar {
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--vita-green);
+  color: var(--vita-white);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.zona-inactivar__reactivar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.zona-inactivar__error {
+  margin-top: 8px !important;
+  color: #c0392b !important;
+}
+
+.zona-inactivar__confirmar {
+  background: var(--vita-navy);
+}

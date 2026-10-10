@@ -164,7 +164,8 @@ usuario = usuarioRepository.save(usuario);
                 personaMayor != null ? personaMayor.getIps() : null,
                 personaMayor != null ? personaMayor.getDireccionIps() : null,
                 personaMayor != null ? personaMayor.getViveSolo() : null,
-                tieneContrasena
+                tieneContrasena,
+                !Boolean.FALSE.equals(usuario.getActivo())
         );
     }
 

@@ -104,9 +104,8 @@ public class AuthService {
                         "Correo o contraseña incorrectos"
                 ));
 
-        if (!Boolean.TRUE.equals(usuario.getActivo())) {
-            throw new RuntimeException("El usuario se encuentra inactivo");
-        }
+        // Una cuenta inactiva sí puede entrar: desde su perfil la reactiva
+        // (ver CuentaService). Mientras tanto nadie más la ve.
 
         boolean contrasenaCorrecta = passwordEncoder.matches(
                 request.getContrasena(),
@@ -150,10 +149,6 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException(
                         "No existe una cuenta con ese celular"
                 ));
-
-        if (!Boolean.TRUE.equals(usuario.getActivo())) {
-            throw new RuntimeException("El usuario se encuentra inactivo");
-        }
 
         return generarRespuestaLogin(usuario, "Inicio de sesión exitoso");
     }

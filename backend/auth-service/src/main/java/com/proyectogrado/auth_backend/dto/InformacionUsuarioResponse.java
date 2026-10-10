@@ -25,6 +25,9 @@ public class InformacionUsuarioResponse {
     /** Si es false, el usuario entra solo con OTP y puede crear una contraseña sin dar la actual. */
     private boolean tieneContrasena;
 
+    /** false si el usuario inactivó su cuenta (nadie más la ve hasta que la reactive). */
+    private boolean activo;
+
     public InformacionUsuarioResponse(
             Integer idUsuario,
             String nombre,
@@ -37,8 +40,10 @@ public class InformacionUsuarioResponse {
             String ips,
             String direccionIps,
             Boolean viveSolo,
-            boolean tieneContrasena
+            boolean tieneContrasena,
+            boolean activo
     ) {
+        this.activo = activo;
         this.viveSolo = viveSolo;
         this.idUsuario = idUsuario;
         this.nombre = nombre;
@@ -99,5 +104,9 @@ public class InformacionUsuarioResponse {
 
     public boolean isTieneContrasena() {
         return tieneContrasena;
+    }
+
+    public boolean isActivo() {
+        return activo;
     }
 }

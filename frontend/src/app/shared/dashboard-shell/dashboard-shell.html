@@ -124,6 +124,22 @@
 
     <!-- Página del panel -->
     <main class="shell__content">
+      @if (cuentaInactiva()) {
+        <div class="shell__cuenta-inactiva" role="status">
+          <app-icon name="power" />
+          <p>
+            <strong>Tu cuenta está inactiva.</strong>
+            Tus organizaciones, acompañantes y demás personas vinculadas no la ven.
+          </p>
+          <button
+            type="button"
+            (click)="reactivarCuenta()"
+            [disabled]="reactivandoCuenta()"
+          >
+            {{ reactivandoCuenta() ? 'Reactivando…' : 'Reactivar cuenta' }}
+          </button>
+        </div>
+      }
       <ng-content></ng-content>
     </main>
   </div>

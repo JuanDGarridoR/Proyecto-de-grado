@@ -150,6 +150,12 @@ public class PersonaMayorAcompananteController {
                         : "Ya existe una solicitud pendiente para este acompañante");
             }
 
+            // Una cuenta inactivada: no se revela ni se sobrescribe el vínculo.
+            if (!"RECHAZADA".equals(relacionExistente.getEstado())) {
+                return ResponseEntity.badRequest()
+                        .body("No es posible enviar la solicitud a este acompañante en este momento");
+            }
+
             // Estaba RECHAZADA: se permite volver a intentar.
             relacionExistente.setEstado("PENDIENTE");
             relacionExistente.setSolicitadaPor(PersonaMayorAcompanante.PERSONA_MAYOR);

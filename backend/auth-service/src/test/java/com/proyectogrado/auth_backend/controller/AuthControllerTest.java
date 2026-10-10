@@ -331,7 +331,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void loginDeUnaCuentaInactivaSeRechaza() throws Exception {
+    void unaCuentaInactivaPuedeEntrarParaReactivarse() throws Exception {
         Usuario usuario = usuarioConContrasena("secreta1");
         usuario.setActivo(false);
         when(usuarioRepository.findByCorreo(CORREO)).thenReturn(Optional.of(usuario));
@@ -339,8 +339,8 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"correo\": \"" + CORREO + "\", \"contrasena\": \"secreta1\"}"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.mensaje").value("El usuario se encuentra inactivo"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").exists());
     }
 
     @Test

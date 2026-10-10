@@ -129,6 +129,12 @@ public class AcompananteRelacionController {
                         : "Esta persona mayor ya te envió una solicitud: acéptala en Solicitudes pendientes");
             }
 
+            // Una cuenta inactivada: no se revela ni se sobrescribe el vínculo.
+            if (!"RECHAZADA".equals(relacion.getEstado())) {
+                return ResponseEntity.badRequest()
+                        .body("No es posible enviar la solicitud a esta persona en este momento");
+            }
+
             // Estaba RECHAZADA: se permite volver a intentar.
         } else {
             relacion = new PersonaMayorAcompanante(idPersonaMayor, idAcompanante);

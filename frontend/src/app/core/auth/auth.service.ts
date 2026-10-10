@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { API_URL } from '../api';
 
 /** Login con correo y contraseña. */
@@ -252,6 +252,22 @@ restablecerContrasena(
     return this.http.delete(`${this.apiUrl}/cuenta`, {
       responseType: 'text'
     });
+  }
+
+  /** false si el usuario inactivó su cuenta (nadie más la ve hasta que la reactive). */
+  cuentaActiva(): Observable<boolean> {
+    return this.http
+      .get<{ activo: boolean }>(`${this.apiUrl}/informacion`)
+      .pipe(map((informacion) => informacion.activo !== false));
+  }
+
+  /** La cuenta deja de verse para sus organizaciones, acompañantes y demás vínculos. */
+  inactivarCuenta(): Observable<string> {
+    return this.http.put(`${this.apiUrl}/cuenta/inactivar`, {}, { responseType: 'text' });
+  }
+
+  reactivarCuenta(): Observable<string> {
+    return this.http.put(`${this.apiUrl}/cuenta/reactivar`, {}, { responseType: 'text' });
   }
 
   /** Guarda la sesión en la pestaña y una copia "recordada" para las ventanas nuevas. */
