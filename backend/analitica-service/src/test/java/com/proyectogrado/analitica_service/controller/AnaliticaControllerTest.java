@@ -57,10 +57,9 @@ class AnaliticaControllerTest {
                 .andExpect(status().isOk())
                 // Sin Marta (pendiente), Ana (rechazó) ni Pedro (otra organización); por nombre.
                 .andExpect(jsonPath("$.personas[*].nombre", contains("Luis Gómez", "Rosa Díaz")))
-                // La fecha del perfil manda sobre la del registro.
                 .andExpect(jsonPath("$.personas[0].fechaNacimiento").value("1944-07-01"))
+                // EPS en blanco: no se reporta.
                 .andExpect(jsonPath("$.personas[0].eps").doesNotExist())
-                // Género en blanco en el perfil: se usa el del registro.
                 .andExpect(jsonPath("$.personas[1].genero").value("Femenino"))
                 .andExpect(jsonPath("$.personas[1].eps").value("Capital Salud"))
                 .andExpect(jsonPath("$.intereses[*].nombre", contains("Boleros", "Tejer")))

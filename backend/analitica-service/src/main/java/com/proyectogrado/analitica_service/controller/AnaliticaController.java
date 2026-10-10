@@ -165,13 +165,12 @@ public class AnaliticaController {
 
         MapSqlParameterSource params = new MapSqlParameterSource("org", idOrganizacion);
 
-        // La fecha de nacimiento y el género pueden estar en persona_mayor (los
-        // guarda /api/persona-mayor/perfil) o en usuario (registro y "Mi
-        // información"): se usa el primero que exista.
+        // La fecha de nacimiento y el género están en usuario (registro y "Mi
+        // información"); de persona_mayor solo sale la EPS.
         List<PersonaPoblacion> personas = jdbc.query("""
                 SELECT u.id_usuario, u.nombre_usuario,
-                       COALESCE(pm.fecha_nacimiento, u.fecha_nacimiento) AS fecha_nacimiento,
-                       COALESCE(NULLIF(pm.genero, ''), NULLIF(u.genero, '')) AS genero,
+                       u.fecha_nacimiento,
+                       NULLIF(u.genero, '') AS genero,
                        NULLIF(TRIM(pm.eps), '') AS eps
                   FROM usuario u
                   LEFT JOIN persona_mayor pm ON pm.id_usuario = u.id_usuario

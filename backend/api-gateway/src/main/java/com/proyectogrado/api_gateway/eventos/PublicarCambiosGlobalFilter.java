@@ -42,7 +42,6 @@ public class PublicarCambiosGlobalFilter implements GlobalFilter, Ordered {
         RECURSOS_POR_RUTA.put("/api/auth/cuenta", "*");
         RECURSOS_POR_RUTA.put("/api/auth/registro", "usuarios");
         RECURSOS_POR_RUTA.put("/api/auth/informacion", "usuarios");
-        RECURSOS_POR_RUTA.put("/api/persona-mayor/perfil", "usuarios");
         RECURSOS_POR_RUTA.put("/api/organizacion/informacion", "usuarios");
 
         // Tienen que ir antes de /api/voluntario/**, que es el perfil del voluntario.

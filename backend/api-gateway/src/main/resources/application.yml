@@ -62,12 +62,12 @@ spring:
               filters:
                 - JwtAuth
 
-            # Perfil, gustos, acompañantes, organizaciones y botón de emergencia
+            # Gustos, acompañantes, organizaciones y botón de emergencia
             # de la persona mayor.
             - id: personamayor-service
               uri: ${PERSONA_MAYOR_SERVICE_URL:http://localhost:8085}
               predicates:
-                - Path=/api/persona-mayor/acompanantes/**,/api/persona-mayor/organizaciones/**,/api/persona-mayor/emergencia,/api/persona-mayor/*/gustos,/api/persona-mayor/perfil,/api/gustos/**
+                - Path=/api/persona-mayor/acompanantes/**,/api/persona-mayor/organizaciones/**,/api/persona-mayor/emergencia,/api/persona-mayor/*/gustos,/api/gustos/**
               filters:
                 - JwtAuth
 

@@ -78,7 +78,7 @@ public class RecomendadorOrganizaciones {
         // ---------- Quién es: dirección y de qué tablas salen sus datos ----------
 
         List<String> direcciones = jdbc.query("""
-                SELECT COALESCE(NULLIF(TRIM(pm.direccion), ''), u.direccion) AS direccion
+                SELECT u.direccion
                   FROM persona_mayor pm
                   JOIN usuario u ON u.id_usuario = pm.id_usuario
                  WHERE pm.id_usuario = :id

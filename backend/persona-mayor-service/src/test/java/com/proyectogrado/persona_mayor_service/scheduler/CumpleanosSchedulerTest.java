@@ -62,7 +62,6 @@ class CumpleanosSchedulerTest {
     void setUp() {
         PersonaMayorLookup persona = mock(PersonaMayorLookup.class);
         when(persona.getIdUsuario()).thenReturn(ID_PERSONA);
-        when(persona.getFechaNacimiento()).thenAnswer(inv -> fechaNacimiento);
 
         // Simula la consulta por mes y días de la BD
         PersonaMayorLookupRepository personaRepo = mock(PersonaMayorLookupRepository.class);

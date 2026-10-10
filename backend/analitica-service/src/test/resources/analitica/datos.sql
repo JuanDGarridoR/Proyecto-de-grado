@@ -6,15 +6,15 @@
 INSERT INTO usuario (id_usuario, nombre_usuario, id_organizacion) VALUES (30, 'Fundación Entrenubes', 5);
 INSERT INTO usuario (id_usuario, nombre_usuario, id_organizacion) VALUES (31, 'Comedor Comunitario', 6);
 
--- Personas mayores: Luis corrigió su fecha de nacimiento en el perfil y su EPS quedó en blanco
+-- Personas mayores: la EPS de Luis quedó en blanco
 INSERT INTO usuario (id_usuario, nombre_usuario, fecha_nacimiento, genero) VALUES (10, 'Rosa Díaz', '1950-03-14', 'Femenino');
-INSERT INTO usuario (id_usuario, nombre_usuario, fecha_nacimiento, genero) VALUES (11, 'Luis Gómez', '1945-07-01', 'Masculino');
+INSERT INTO usuario (id_usuario, nombre_usuario, fecha_nacimiento, genero) VALUES (11, 'Luis Gómez', '1944-07-01', 'Masculino');
 INSERT INTO usuario (id_usuario, nombre_usuario, fecha_nacimiento, genero) VALUES (12, 'Marta Ruiz', '1952-01-20', 'Femenino');
 INSERT INTO usuario (id_usuario, nombre_usuario, fecha_nacimiento, genero) VALUES (13, 'Pedro León', '1948-11-02', 'Masculino');
 INSERT INTO usuario (id_usuario, nombre_usuario, fecha_nacimiento, genero) VALUES (14, 'Ana Torres', '1955-05-05', 'Femenino');
 
-INSERT INTO persona_mayor (id_usuario, genero, eps) VALUES (10, '', 'Capital Salud');
-INSERT INTO persona_mayor (id_usuario, fecha_nacimiento, eps) VALUES (11, '1944-07-01', '  ');
+INSERT INTO persona_mayor (id_usuario, eps) VALUES (10, 'Capital Salud');
+INSERT INTO persona_mayor (id_usuario, eps) VALUES (11, '  ');
 INSERT INTO persona_mayor (id_usuario) VALUES (12);
 INSERT INTO persona_mayor (id_usuario) VALUES (13);
 INSERT INTO persona_mayor (id_usuario) VALUES (14);

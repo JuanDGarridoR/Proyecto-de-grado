@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin, map, switchMap } from 'rxjs';
+import { Observable } from 'rxjs';
 import { API_URL } from '../api';
 
 /**
- * Perfil completo de la persona mayor: datos de la cuenta (auth-service) más
- * fecha de nacimiento, género y dirección (persona-mayor-service).
+ * Perfil de la persona mayor tal como lo devuelve auth-service: la fecha de
+ * nacimiento, el género y la dirección están en la tabla usuario.
  */
 export interface PersonaMayorResponse {
   idUsuario: number;
@@ -25,64 +25,19 @@ export interface CambiarContrasenaRequest {
 }
 
 /**
- * Perfil de la persona mayor. Une dos endpoints: la cuenta en auth-service y
- * el perfil en persona-mayor-service.
+ * Perfil y contraseña de la persona mayor (auth-service). La edición del
+ * perfil la hace la página de perfil compartida con /auth/informacion.
  */
 @Injectable({ providedIn: 'root' })
 export class PersonaMayorService {
 
   private readonly authUrl = `${API_URL}/auth/informacion`;
-  private readonly perfilUrl = `${API_URL}/persona-mayor/perfil`;
   private readonly contrasenaUrl = `${API_URL}/auth/contrasena`;
 
   constructor(private http: HttpClient) {}
 
-  /** Pide los dos endpoints en paralelo y une las respuestas. */
   obtenerInformacion(): Observable<PersonaMayorResponse> {
-    return forkJoin({
-      identidad: this.http.get<any>(this.authUrl),
-      perfil: this.http.get<any>(this.perfilUrl)
-    }).pipe(
-      map(({ identidad, perfil }) => ({
-        idUsuario: identidad.idUsuario,
-        nombre: identidad.nombre,
-        celular: identidad.celular,
-        correo: identidad.correo,
-        tieneContrasena: identidad.tieneContrasena,
-        fechaNacimiento: perfil.fechaNacimiento,
-        genero: perfil.genero,
-        direccion: perfil.direccion
-      }))
-    );
-  }
-
-  /**
-   * Primero se guarda la cuenta (nombre y correo): si el correo es rechazado,
-   * el perfil no queda guardado a medias.
-   */
-  actualizarInformacion(informacion: PersonaMayorResponse): Observable<PersonaMayorResponse> {
-    return this.http.put<any>(this.authUrl, {
-      nombre: informacion.nombre,
-      correo: informacion.correo
-    }).pipe(
-      switchMap((identidad) =>
-        this.http.put<any>(this.perfilUrl, {
-          fechaNacimiento: informacion.fechaNacimiento,
-          genero: informacion.genero,
-          direccion: informacion.direccion
-        }).pipe(map((perfil) => ({ identidad, perfil })))
-      ),
-      map(({ identidad, perfil }) => ({
-        idUsuario: identidad.idUsuario,
-        nombre: identidad.nombre,
-        celular: identidad.celular,
-        correo: identidad.correo,
-        tieneContrasena: identidad.tieneContrasena,
-        fechaNacimiento: perfil.fechaNacimiento,
-        genero: perfil.genero,
-        direccion: perfil.direccion
-      }))
-    );
+    return this.http.get<PersonaMayorResponse>(this.authUrl);
   }
 
   cambiarContrasena(request: CambiarContrasenaRequest): Observable<string> {

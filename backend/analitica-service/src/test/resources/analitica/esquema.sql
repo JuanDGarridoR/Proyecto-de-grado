@@ -12,8 +12,6 @@ CREATE TABLE usuario (
 
 CREATE TABLE persona_mayor (
     id_usuario       INTEGER PRIMARY KEY,
-    fecha_nacimiento DATE,
-    genero           VARCHAR(50),
     eps              VARCHAR(120)
 );
 
