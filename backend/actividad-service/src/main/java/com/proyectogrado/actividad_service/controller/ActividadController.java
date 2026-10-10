@@ -52,6 +52,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/actividades")
 public class ActividadController {
 
+    /** Lo más espaciada que puede repetirse una actividad periódica (un año). */
+    static final int MAX_FRECUENCIA_DIAS = 365;
+
     private final ActividadRepository actividadRepository;
     private final ParticipacionRepository participacionRepository;
     private final UsuarioLookupRepository usuarioLookupRepository;
@@ -188,17 +191,21 @@ public class ActividadController {
                         .collect(Collectors.toSet());
 
         List<ActividadDisponibleResponse> respuesta = actividades.stream()
-                .map(a -> new ActividadDisponibleResponse(
-                        a.getIdActividad(),
-                        a.getNombre(),
-                        a.getDescripcion(),
-                        a.getFecha(),
-                        a.getHora(),
-                        a.getLugar(),
-                        a.getTipo(),
-                        a.getCupos(),
-                        idsInscritos.contains(a.getIdActividad())
-                ))
+                .map(a -> {
+                    ActividadDisponibleResponse disponible = new ActividadDisponibleResponse(
+                            a.getIdActividad(),
+                            a.getNombre(),
+                            a.getDescripcion(),
+                            a.getFecha(),
+                            a.getHora(),
+                            a.getLugar(),
+                            a.getTipo(),
+                            a.getCupos(),
+                            idsInscritos.contains(a.getIdActividad())
+                    );
+                    disponible.setFrecuenciaDias(a.getFrecuenciaDias());
+                    return disponible;
+                })
                 .toList();
 
         return ResponseEntity.ok(respuesta);
@@ -607,14 +614,12 @@ public class ActividadController {
             return ResponseEntity.badRequest().body("Los cupos deben ser mayores a 0");
         }
 
-        actividad.setNombre(request.getNombre());
-        actividad.setDescripcion(request.getDescripcion());
-        actividad.setFecha(request.getFecha());
-        actividad.setHora(request.getHora());
-        actividad.setLugar(request.getLugar());
-        actividad.setTipo(request.getTipo());
-        actividad.setCupos(request.getCupos());
-        actividad.setResponsable(request.getResponsable());
+        String errorFrecuencia = validarFrecuencia(request);
+        if (errorFrecuencia != null) {
+            return ResponseEntity.badRequest().body(errorFrecuencia);
+        }
+
+        aplicarDatos(actividad, request);
 
         actividad = actividadRepository.save(actividad);
 
@@ -676,6 +681,25 @@ public class ActividadController {
             return "Los cupos deben ser mayores a 0";
         }
 
+        return validarFrecuencia(request);
+    }
+
+    /** Una actividad periódica necesita fecha (de ahí se cuentan los días) y entre 1 y 365 días. */
+    private String validarFrecuencia(ActividadRequest request) {
+        Integer frecuencia = request.getFrecuenciaDias();
+
+        if (frecuencia == null) {
+            return null;
+        }
+
+        if (frecuencia < 1 || frecuencia > MAX_FRECUENCIA_DIAS) {
+            return "La actividad debe repetirse cada 1 a " + MAX_FRECUENCIA_DIAS + " días";
+        }
+
+        if (request.getFecha() == null) {
+            return "Una actividad que se repite necesita una fecha de inicio";
+        }
+
         return null;
     }
 
@@ -688,6 +712,7 @@ public class ActividadController {
         actividad.setTipo(request.getTipo());
         actividad.setCupos(request.getCupos());
         actividad.setResponsable(request.getResponsable());
+        actividad.setFrecuenciaDias(request.getFrecuenciaDias());
     }
 
     /** Actividades de la organización que ven las personas mayores (sin propuestas pendientes ni rechazadas). */
@@ -750,7 +775,8 @@ public class ActividadController {
                 a.getLugar(),
                 a.getTipo(),
                 a.getCupos(),
-                a.getResponsable()
+                a.getResponsable(),
+                a.getFrecuenciaDias()
         );
     }
 
@@ -763,7 +789,7 @@ public class ActividadController {
     }
 
     private ActividadResponse aResponse(Actividad a) {
-        return new ActividadResponse(
+        ActividadResponse response = new ActividadResponse(
                 a.getIdActividad(),
                 a.getIdOrganizacion(),
                 a.getNombre(),
@@ -775,5 +801,7 @@ public class ActividadController {
                 a.getCupos(),
                 a.getResponsable()
         );
+        response.setFrecuenciaDias(a.getFrecuenciaDias());
+        return response;
     }
 }

@@ -105,7 +105,8 @@ function actividadVacia(): ActividadRequest {
     lugar: null,
     tipo: null,
     cupos: null,
-    responsable: null
+    responsable: null,
+    frecuenciaDias: null
   };
 }
 
@@ -552,7 +553,9 @@ export class OrganizacionDashboard implements OnInit, OnDestroy {
       lugar: actividad.lugar,
       tipo: actividad.tipo,
       cupos: actividad.cupos,
-      responsable: actividad.responsable
+      responsable: actividad.responsable,
+      // Esta edición rápida no muestra la repetición: se conserva la que tenía.
+      frecuenciaDias: actividad.frecuenciaDias
     };
   }
 

@@ -13,6 +13,12 @@ import java.time.LocalDate;
  * idPersonaMayorProponente y estado PENDIENTE, y solo la ven las personas
  * mayores cuando la organización la acepta. Las que crea la organización
  * tienen estado null.
+ *
+ * Una actividad periódica (frecuenciaDias distinto de null) se repite cada
+ * tantos días con los mismos datos: cuando pasa su día,
+ * ActividadPeriodicaScheduler crea la siguiente y le pasa la periodicidad.
+ * Así las personas mayores ven una sola ocurrencia a la vez y cada una
+ * guarda sus propias inscripciones y asistencia.
  */
 @Entity
 @Table(name = "actividad")
@@ -64,6 +70,13 @@ public class Actividad {
     /** Persona mayor que propuso la actividad; null si no la propuso una persona mayor. */
     @Column(name = "id_persona_mayor_proponente")
     private Integer idPersonaMayorProponente;
+
+    /**
+     * Cada cuántos días se repite; null si no se repite. Solo la tiene la
+     * ocurrencia más reciente de la serie.
+     */
+    @Column(name = "frecuencia_dias")
+    private Integer frecuenciaDias;
 
     /** Estado de la propuesta; null si la creó la organización. */
     @Column(name = "estado")
@@ -150,6 +163,14 @@ public class Actividad {
 
     public void setResponsable(String responsable) {
         this.responsable = responsable;
+    }
+
+    public Integer getFrecuenciaDias() {
+        return frecuenciaDias;
+    }
+
+    public void setFrecuenciaDias(Integer frecuenciaDias) {
+        this.frecuenciaDias = frecuenciaDias;
     }
 
     public Integer getIdVoluntario() {

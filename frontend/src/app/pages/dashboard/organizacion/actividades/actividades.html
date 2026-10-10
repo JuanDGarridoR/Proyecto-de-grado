@@ -404,6 +404,41 @@
         </div>
 
 
+        <!-- Repetición: si se desmarca, no se crea la siguiente -->
+        <div class="form-group">
+
+          <label class="form-check" for="editarRepetirActividad">
+            <input
+              id="editarRepetirActividad"
+              type="checkbox"
+              name="editarRepetirActividad"
+              [(ngModel)]="repetirEditando"
+            />
+            Se repite periódicamente
+          </label>
+
+          @if (repetirEditando) {
+            <div class="form-repeat">
+              <label for="editarCadaDiasActividad">Cada</label>
+              <input
+                id="editarCadaDiasActividad"
+                type="number"
+                name="editarCadaDiasActividad"
+                [(ngModel)]="actividadEditando.frecuenciaDias"
+                min="1"
+                [max]="maxFrecuencia"
+              />
+              <span>días</span>
+            </div>
+
+            <p class="form-hint">
+              Cuando pase esta actividad, aparece la siguiente con los mismos datos.
+            </p>
+          }
+
+        </div>
+
+
 @if (error()) {
   <div class="form-error">
     {{ error() }}
@@ -807,6 +842,13 @@
 </strong>
       </div>
 
+    </div>
+
+    <div class="confirmation-item">
+      <span class="confirmation-label">Se repite</span>
+      <strong>
+        {{ repetirEditando && actividadEditando.frecuenciaDias ? frecuencia(actividadEditando.frecuenciaDias) : 'No' }}
+      </strong>
     </div>
 
     @if (

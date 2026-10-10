@@ -16,7 +16,18 @@ public class ActividadRequest {
     private Integer cupos;
     private String responsable;
 
+    /** Cada cuántos días se repite; null si no se repite. */
+    private Integer frecuenciaDias;
+
     public ActividadRequest() {
+    }
+
+    public Integer getFrecuenciaDias() {
+        return frecuenciaDias;
+    }
+
+    public void setFrecuenciaDias(Integer frecuenciaDias) {
+        this.frecuenciaDias = frecuenciaDias;
     }
 
     public String getNombre() {

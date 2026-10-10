@@ -44,6 +44,10 @@
         @if (actividad.cupos !== null) {
           <span><app-icon name="users" /> {{ actividad.cupos }} cupos</span>
         }
+
+        @if (actividad.frecuenciaDias) {
+          <span><app-icon name="repeat" /> {{ frecuencia(actividad.frecuenciaDias) }}</span>
+        }
       </div>
     </div>
 

@@ -16,6 +16,8 @@ export interface Actividad {
   tipo: string | null;
   cupos: number | null;
   responsable: string | null;
+  /** Cada cuántos días se repite; null si no se repite. */
+  frecuenciaDias: number | null;
 }
 
 /** Actividad vista por la persona mayor; inscrito indica si ya se inscribió. */
@@ -29,9 +31,14 @@ export interface ActividadDisponible {
   tipo: string | null;
   cupos: number | null;
   inscrito: boolean;
+  frecuenciaDias: number | null;
 }
 
-/** Datos para crear o editar una actividad. */
+/**
+ * Datos para crear o editar una actividad. Si frecuenciaDias tiene valor,
+ * cuando pasa el día de la actividad el backend crea la siguiente con los
+ * mismos datos, frecuenciaDias días después.
+ */
 export interface ActividadRequest {
   nombre: string;
   descripcion: string | null;
@@ -41,6 +48,33 @@ export interface ActividadRequest {
   tipo: string | null;
   cupos: number | null;
   responsable: string | null;
+  frecuenciaDias: number | null;
+}
+
+/** Lo más espaciada que puede repetirse una actividad (igual que en el backend). */
+export const MAX_FRECUENCIA_DIAS = 365;
+
+/** Mensaje de error si los días de repetición no son válidos, o null si están bien. */
+export function errorFrecuencia(dias: number | null): string | null {
+  if (dias === null || !Number.isInteger(dias) || dias < 1 || dias > MAX_FRECUENCIA_DIAS) {
+    return `Indica cada cuántos días se repite (entre 1 y ${MAX_FRECUENCIA_DIAS})`;
+  }
+
+  return null;
+}
+
+/** "Todos los días", "Cada semana", "Cada 3 días"... */
+export function textoFrecuencia(dias: number): string {
+  if (dias === 1) {
+    return 'Todos los días';
+  }
+
+  if (dias % 7 === 0) {
+    const semanas = dias / 7;
+    return semanas === 1 ? 'Cada semana' : `Cada ${semanas} semanas`;
+  }
+
+  return `Cada ${dias} días`;
 }
 
 /** Estado de una actividad propuesta por un voluntario o una persona mayor. */
@@ -69,6 +103,7 @@ export interface PropuestaActividad {
   tipo: string | null;
   cupos: number | null;
   responsable: string | null;
+  frecuenciaDias: number | null;
 }
 
 /** Persona inscrita en una actividad. asistio es null mientras no se registre la asistencia. */

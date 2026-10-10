@@ -139,6 +139,42 @@
         </div>
 
 
+        <!-- Repetición: la siguiente aparece cuando pasa la actual -->
+        <div class="form-group">
+
+          <label class="form-check" for="repetirActividad">
+            <input
+              id="repetirActividad"
+              type="checkbox"
+              name="repetirActividad"
+              [(ngModel)]="repetir"
+            />
+            Se repite periódicamente
+          </label>
+
+          @if (repetir) {
+            <div class="form-repeat">
+              <label for="cadaDiasActividad">Cada</label>
+              <input
+                id="cadaDiasActividad"
+                type="number"
+                name="cadaDiasActividad"
+                [(ngModel)]="cadaDias"
+                min="1"
+                [max]="maxFrecuencia"
+              />
+              <span>días</span>
+            </div>
+
+            <p class="form-hint">
+              Se repite con la misma hora, lugar y demás datos. Cuando pase
+              esta actividad, aparece la siguiente.
+            </p>
+          }
+
+        </div>
+
+
         <div class="form-group">
 
           <label for="lugarActividad">
@@ -341,6 +377,11 @@
               <strong>{{ actividad.cupos || 'No especificado' }}</strong>
             </div>
 
+          </div>
+
+          <div class="confirmation-item">
+            <span class="confirmation-label">Se repite</span>
+            <strong>{{ repetir && cadaDias ? frecuencia(cadaDias) : 'No' }}</strong>
           </div>
 
           @if (actividad.descripcion) {

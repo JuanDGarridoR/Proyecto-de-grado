@@ -24,6 +24,7 @@ public record PropuestaActividadResponse(
         String lugar,
         String tipo,
         Integer cupos,
-        String responsable
+        String responsable,
+        Integer frecuenciaDias
 ) {
 }

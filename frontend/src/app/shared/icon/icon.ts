@@ -14,6 +14,8 @@ const ICONS: Record<string, string> = {
   heart:
     '<path d="M12 20s-7-4.35-9.5-8.5A5 5 0 0 1 12 6a5 5 0 0 1 9.5 5.5C19 15.65 12 20 12 20Z"/>',
   clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  repeat:
+    '<path d="m17 2.5 3 3-3 3"/><path d="M4 11.5v-1a5 5 0 0 1 5-5h11"/><path d="m7 21.5-3-3 3-3"/><path d="M20 12.5v1a5 5 0 0 1-5 5H4"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>',
   users:
     '<circle cx="8.5" cy="8.5" r="3"/><path d="M2.5 19.5a6 6 0 0 1 12 0"/><path d="M15.5 6a3 3 0 0 1 0 6"/><path d="M16.5 14c2.4.7 4 2.6 4 5.5"/>',

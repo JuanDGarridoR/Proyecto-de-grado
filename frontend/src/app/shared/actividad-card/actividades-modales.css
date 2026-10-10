@@ -170,6 +170,46 @@
   gap: 1rem;
 }
 
+/* Casilla "Se repite periódicamente" y el "Cada [N] días" que aparece debajo */
+.form-group .form-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+}
+
+.form-group .form-check input {
+  width: 1.15rem;
+  height: 1.15rem;
+  padding: 0;
+  margin: 0;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+.form-repeat {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.form-group .form-repeat input {
+  width: 6rem;
+}
+
+.form-repeat label {
+  font-weight: 400;
+}
+
+.form-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;

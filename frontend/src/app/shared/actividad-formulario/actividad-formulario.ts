@@ -1,7 +1,13 @@
 import { Component, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { ActividadRequest, fechaHoy } from '../../core/actividades/actividad.service';
+import {
+  ActividadRequest,
+  MAX_FRECUENCIA_DIAS,
+  errorFrecuencia,
+  fechaHoy,
+  textoFrecuencia
+} from '../../core/actividades/actividad.service';
 import { Icon } from '../icon/icon';
 
 /** Organización que se puede elegir en el formulario (propuestas). */
@@ -56,8 +62,15 @@ export class ActividadFormulario {
     lugar: null,
     tipo: null,
     cupos: null,
-    responsable: null
+    responsable: null,
+    frecuenciaDias: null
   };
+
+  // Repetición: solo se envía cadaDias si está marcada.
+  protected repetir = false;
+  protected cadaDias: number | null = 7;
+  protected readonly maxFrecuencia = MAX_FRECUENCIA_DIAS;
+  protected readonly frecuencia = textoFrecuencia;
 
   protected idOrganizacion: number | null = null;
 
@@ -81,7 +94,11 @@ export class ActividadFormulario {
 
   protected confirmar(): void {
     this.confirmando.set(false);
-    this.guardar.emit({ ...this.actividad, idOrganizacion: this.idOrganizacion });
+    this.guardar.emit({
+      ...this.actividad,
+      frecuenciaDias: this.repetir ? this.cadaDias : null,
+      idOrganizacion: this.idOrganizacion
+    });
   }
 
   private validar(): string | null {
@@ -107,6 +124,10 @@ export class ActividadFormulario {
 
     if (this.actividad.fecha < fechaHoy()) {
       return 'No se puede crear una actividad con una fecha anterior a hoy';
+    }
+
+    if (this.repetir) {
+      return errorFrecuencia(this.cadaDias);
     }
 
     return null;

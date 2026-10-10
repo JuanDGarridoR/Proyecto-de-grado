@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { DatePipe } from '@angular/common';
 
 import { Icon } from '../icon/icon';
-import { fechaHoy } from '../../core/actividades/actividad.service';
+import { fechaHoy, textoFrecuencia } from '../../core/actividades/actividad.service';
 
 /** Campos que comparten Actividad y ActividadDisponible. */
 export interface ActividadTarjeta {
@@ -13,6 +13,7 @@ export interface ActividadTarjeta {
   lugar: string | null;
   tipo: string | null;
   cupos: number | null;
+  frecuenciaDias?: number | null;
 }
 
 /**
@@ -39,4 +40,6 @@ export class ActividadCard {
     const fecha = this.actividad.fecha;
     return !!fecha && fecha < fechaHoy();
   }
+
+  protected readonly frecuencia = textoFrecuencia;
 }

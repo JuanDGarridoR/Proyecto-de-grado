@@ -17,7 +17,18 @@ public class ActividadDisponibleResponse {
     private Integer cupos;
     private boolean inscrito;
 
+    /** Cada cuántos días se repite; null si no se repite. */
+    private Integer frecuenciaDias;
+
     public ActividadDisponibleResponse() {
+    }
+
+    public Integer getFrecuenciaDias() {
+        return frecuenciaDias;
+    }
+
+    public void setFrecuenciaDias(Integer frecuenciaDias) {
+        this.frecuenciaDias = frecuenciaDias;
     }
 
     public ActividadDisponibleResponse(

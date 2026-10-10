@@ -9,8 +9,11 @@ import {
   ActividadRequest,
   ParticipanteActividad,
   PropuestaActividad,
+  MAX_FRECUENCIA_DIAS,
+  errorFrecuencia,
   fechaHoy,
-  separarPorFecha
+  separarPorFecha,
+  textoFrecuencia
 } from '../../../../core/actividades/actividad.service';
 
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -77,8 +80,14 @@ protected actividadEditando: ActividadRequest = {
   lugar: null,
   tipo: null,
   cupos: null,
-  responsable: null
+  responsable: null,
+  frecuenciaDias: null
 };
+
+  // Repetición de la actividad que se edita; si se desmarca, deja de repetirse.
+  protected repetirEditando = false;
+  protected readonly maxFrecuencia = MAX_FRECUENCIA_DIAS;
+  protected readonly frecuencia = textoFrecuencia;
 
   // Modal de participantes
   protected actividadParticipantes = signal<Actividad | null>(null);
@@ -248,7 +257,10 @@ protected confirmarEdicion(): void {
   this.actividadService
     .actualizar(
       this.actividadEditandoId,
-      this.actividadEditando
+      {
+        ...this.actividadEditando,
+        frecuenciaDias: this.repetirEditando ? this.actividadEditando.frecuenciaDias : null
+      }
     )
     .subscribe({
       next: () => {
@@ -282,8 +294,10 @@ this.actividadEditando = {
   lugar: actividad.lugar,
   tipo: actividad.tipo,
   cupos: actividad.cupos,
-  responsable: actividad.responsable
+  responsable: actividad.responsable,
+  frecuenciaDias: actividad.frecuenciaDias ?? 7
 };
+    this.repetirEditando = actividad.frecuenciaDias !== null;
   }
 
   protected cancelarEdicion(): void {
@@ -297,8 +311,10 @@ this.actividadEditando = {
   lugar: null,
   tipo: null,
   cupos: null,
-  responsable: null
+  responsable: null,
+  frecuenciaDias: null
 };
+    this.repetirEditando = false;
   }
 
 /** Pide confirmación antes de guardar la edición. */
@@ -308,6 +324,14 @@ protected guardarActividad(): void {
     !this.actividadEditando.nombre.trim()
   ) {
     return;
+  }
+
+  if (this.repetirEditando) {
+    const errorRepeticion = errorFrecuencia(this.actividadEditando.frecuenciaDias);
+    if (errorRepeticion) {
+      this.error.set(errorRepeticion);
+      return;
+    }
   }
 
   this.error.set(null);
