@@ -33,6 +33,10 @@ public class UsuarioLookup {
     @Column(name = "id_organizacion")
     private Integer idOrganizacion;
 
+    /** false si el usuario inactivó su cuenta; null cuenta como activo. */
+    @Column(name = "activo")
+    private Boolean activo;
+
     /** Lo exige JPA. */
 
     protected UsuarioLookup() {
@@ -56,5 +60,9 @@ public class UsuarioLookup {
 
     public Integer getIdOrganizacion() {
         return idOrganizacion;
+    }
+
+    public boolean estaActivo() {
+        return !Boolean.FALSE.equals(activo);
     }
 }

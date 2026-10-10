@@ -186,6 +186,17 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
             return ResponseEntity.badRequest().body("Ya perteneces a esta organización");
         }
 
+        if (relacion != null && PersonaMayorOrganizacion.INACTIVA.equals(relacion.getEstado())) {
+            return ResponseEntity.badRequest()
+                    .body("Ya tienes esta organización como inactiva: reactívala desde Mis organizaciones");
+        }
+
+        // La cuenta de una de las dos partes está inactiva: no se sobrescribe.
+        if (relacion != null && !"PENDIENTE".equals(relacion.getEstado())
+                && !"RECHAZADA".equals(relacion.getEstado())) {
+            return ResponseEntity.badRequest().body("Esta organización no está disponible en este momento");
+        }
+
         if (relacion != null && "PENDIENTE".equals(relacion.getEstado())) {
             if (relacion.laEnvioLaPersonaMayor()) {
                 return ResponseEntity.badRequest().body("Ya enviaste una solicitud a esta organización");
@@ -222,6 +233,66 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
             @PathVariable Integer idOrganizacion
     ) {
         return cambiarEstadoOrganizacion(idPersonaMayor, idOrganizacion, "RECHAZADA", "rechazada");
+    }
+
+    /** Organizaciones con las que la persona mayor pausó el vínculo. */
+    @GetMapping("/api/persona-mayor/organizaciones/inactivas")
+    public ResponseEntity<List<OrganizacionSolicitudResponse>> obtenerOrganizacionesInactivas(
+            @RequestHeader("X-User-Id") Integer idPersonaMayor
+    ) {
+        return ResponseEntity.ok(listarOrganizacionesPorEstado(idPersonaMayor, PersonaMayorOrganizacion.INACTIVA));
+    }
+
+    /**
+     * La persona mayor pausa un vínculo aceptado: la organización deja de
+     * verla y ella deja de ver las actividades y avisos de la organización.
+     */
+    @PutMapping("/api/persona-mayor/organizaciones/{idOrganizacion}/inactivar")
+    public ResponseEntity<String> inactivarAsociacion(
+            @RequestHeader("X-User-Id") Integer idPersonaMayor,
+            @PathVariable Integer idOrganizacion
+    ) {
+        PersonaMayorOrganizacion relacion = relacionRepository
+                .findById(new PersonaMayorOrganizacionId(idPersonaMayor, idOrganizacion))
+                .orElse(null);
+
+        if (relacion == null || !"ACEPTADA".equals(relacion.getEstado())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No perteneces a esta organización");
+        }
+
+        relacion.setEstado(PersonaMayorOrganizacion.INACTIVA);
+        relacionRepository.saveAndFlush(relacion);
+
+        return ResponseEntity.ok("Inactivaste tu vínculo con la organización. Puedes reactivarlo cuando quieras.");
+    }
+
+    /**
+     * Reactiva un vínculo pausado. Si la cuenta de la organización está
+     * inactiva, queda como CUENTA_INACTIVA y vuelve cuando la reactive.
+     */
+    @PutMapping("/api/persona-mayor/organizaciones/{idOrganizacion}/reactivar")
+    public ResponseEntity<String> reactivarAsociacion(
+            @RequestHeader("X-User-Id") Integer idPersonaMayor,
+            @PathVariable Integer idOrganizacion
+    ) {
+        PersonaMayorOrganizacion relacion = relacionRepository
+                .findById(new PersonaMayorOrganizacionId(idPersonaMayor, idOrganizacion))
+                .orElse(null);
+
+        if (relacion == null || !PersonaMayorOrganizacion.INACTIVA.equals(relacion.getEstado())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No tienes un vínculo inactivo con esta organización");
+        }
+
+        boolean organizacionActiva = usuarioLookupRepository.findByIdOrganizacion(idOrganizacion)
+                .stream()
+                .anyMatch(UsuarioLookup::estaActivo);
+
+        relacion.setEstado(organizacionActiva ? "ACEPTADA" : PersonaMayorOrganizacion.CUENTA_INACTIVA);
+        relacionRepository.saveAndFlush(relacion);
+
+        return ResponseEntity.ok("Reactivaste tu vínculo con la organización");
     }
 
     /** La persona mayor deshace el vínculo con una organización. */

@@ -61,6 +61,7 @@ class PersonaMayorOrganizacionControllerTest {
         when(cuentaOrganizacion.getIdOrganizacion()).thenReturn(ORGANIZACION);
         when(cuentaOrganizacion.getNombreUsuario()).thenReturn("Fundación Entrenubes");
         when(cuentaOrganizacion.getCelular()).thenReturn("+573003330000");
+        when(cuentaOrganizacion.estaActivo()).thenReturn(true);
         when(usuarioLookupRepository.findById(CUENTA_ORGANIZACION)).thenReturn(Optional.of(cuentaOrganizacion));
         when(usuarioLookupRepository.findByIdOrganizacion(ORGANIZACION)).thenReturn(List.of(cuentaOrganizacion));
 
@@ -115,6 +116,60 @@ class PersonaMayorOrganizacionControllerTest {
                         .header("X-User-Id", PERSONA_MAYOR))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Esta solicitud ya fue procesada"));
+    }
+
+    @Test
+    void laPersonaMayorInactivaYReactivaElVinculo() throws Exception {
+        PersonaMayorOrganizacion vinculo = vinculo("ACEPTADA");
+        when(relacionRepository.findById(new PersonaMayorOrganizacionId(PERSONA_MAYOR, ORGANIZACION)))
+                .thenReturn(Optional.of(vinculo));
+
+        mockMvc.perform(put("/api/persona-mayor/organizaciones/" + ORGANIZACION + "/inactivar")
+                        .header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isOk());
+        assertEquals(PersonaMayorOrganizacion.INACTIVA, vinculo.getEstado());
+
+        mockMvc.perform(put("/api/persona-mayor/organizaciones/" + ORGANIZACION + "/reactivar")
+                        .header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isOk());
+        assertEquals("ACEPTADA", vinculo.getEstado());
+    }
+
+    @Test
+    void siLaOrganizacionInactivoSuCuentaElVinculoReactivadoSigueOculto() throws Exception {
+        PersonaMayorOrganizacion vinculo = vinculo(PersonaMayorOrganizacion.INACTIVA);
+        when(relacionRepository.findById(new PersonaMayorOrganizacionId(PERSONA_MAYOR, ORGANIZACION)))
+                .thenReturn(Optional.of(vinculo));
+        UsuarioLookup cuentaInactiva = mock(UsuarioLookup.class);
+        when(usuarioLookupRepository.findByIdOrganizacion(ORGANIZACION)).thenReturn(List.of(cuentaInactiva));
+
+        mockMvc.perform(put("/api/persona-mayor/organizaciones/" + ORGANIZACION + "/reactivar")
+                        .header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isOk());
+
+        assertEquals(PersonaMayorOrganizacion.CUENTA_INACTIVA, vinculo.getEstado());
+    }
+
+    @Test
+    void soloSeInactivaUnVinculoAceptado() throws Exception {
+        existeVinculo("PENDIENTE");
+
+        mockMvc.perform(put("/api/persona-mayor/organizaciones/" + ORGANIZACION + "/inactivar")
+                        .header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isNotFound());
+
+        verify(relacionRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void pedirUnirseAUnaOrganizacionInactivaNoLaSobrescribe() throws Exception {
+        existeVinculo(PersonaMayorOrganizacion.INACTIVA);
+
+        mockMvc.perform(post("/api/persona-mayor/organizaciones/" + ORGANIZACION + "/solicitud")
+                        .header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isBadRequest());
+
+        verify(relacionRepository, never()).saveAndFlush(any());
     }
 
     @Test

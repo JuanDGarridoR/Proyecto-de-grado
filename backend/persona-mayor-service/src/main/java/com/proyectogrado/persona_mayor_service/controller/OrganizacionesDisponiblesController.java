@@ -1,6 +1,7 @@
 package com.proyectogrado.persona_mayor_service.controller;
 
 import com.proyectogrado.persona_mayor_service.dto.OrganizacionDisponibleResponse;
+import com.proyectogrado.persona_mayor_service.model.PersonaMayorOrganizacion;
 import com.proyectogrado.persona_mayor_service.model.UsuarioLookup;
 import com.proyectogrado.persona_mayor_service.repository.OrganizacionLookupRepository;
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorOrganizacionRepository;
@@ -16,7 +17,8 @@ import java.util.Set;
 
 /**
  * Todas las organizaciones a las que la persona mayor puede pedir unirse:
- * las que no tienen con ella un vínculo aceptado ni una solicitud pendiente
+ * las que tienen una cuenta activa y no tienen con ella un vínculo aceptado,
+ * inactivo ni una solicitud pendiente
  * (enviada por cualquiera de las dos). Las que la rechazaron sí aparecen,
  * porque puede volver a solicitar. Se muestran en "Ver todas las
  * organizaciones", debajo de las recomendadas.
@@ -41,13 +43,14 @@ public class OrganizacionesDisponiblesController {
     /** Ordenadas por nombre. El contacto sale de la primera cuenta de cada organización. */
     @GetMapping("/api/persona-mayor/organizaciones/disponibles")
     public List<OrganizacionDisponibleResponse> disponibles(@RequestHeader("X-User-Id") Integer idPersonaMayor) {
+        // Las inactivas también quedan fuera: se reactivan desde "Mis organizaciones".
         Set<Integer> ocupadas = new HashSet<>();
-        for (String estado : List.of("ACEPTADA", "PENDIENTE")) {
+        for (String estado : List.of("ACEPTADA", "PENDIENTE", PersonaMayorOrganizacion.INACTIVA)) {
             relacionRepository.findById_IdPersonaMayorAndEstado(idPersonaMayor, estado)
                     .forEach(relacion -> ocupadas.add(relacion.getId().getIdOrganizacion()));
         }
 
-        return organizacionLookupRepository.findAllByOrderByNombreAsc()
+        return organizacionLookupRepository.findActivasOrderByNombre()
                 .stream()
                 .filter(organizacion -> !ocupadas.contains(organizacion.getIdOrganizacion()))
                 .map(organizacion -> {

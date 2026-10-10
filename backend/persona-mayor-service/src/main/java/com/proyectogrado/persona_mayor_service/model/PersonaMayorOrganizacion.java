@@ -15,10 +15,20 @@ public class PersonaMayorOrganizacion {
     public static final String ORGANIZACION = "ORGANIZACION";
     public static final String PERSONA_MAYOR = "PERSONA_MAYOR";
 
+    public static final String INACTIVA = "INACTIVA";
+    /** La puso auth-service porque la cuenta de la otra parte está inactiva. */
+    public static final String CUENTA_INACTIVA = "CUENTA_INACTIVA";
+
     @EmbeddedId
     private PersonaMayorOrganizacionId id;
 
-    /** PENDIENTE hasta que el otro lado responde; luego ACEPTADA o RECHAZADA. */
+    /**
+     * PENDIENTE hasta que el otro lado responde; luego ACEPTADA o RECHAZADA.
+     * La persona mayor puede pausar un vínculo aceptado (INACTIVA): mientras
+     * tanto la organización no la ve y ella no ve lo de la organización.
+     * CUENTA_INACTIVA y PENDIENTE_CUENTA_INACTIVA los pone auth-service
+     * cuando una de las dos cuentas se inactiva.
+     */
     @Column(name = "estado", nullable = false)
     private String estado = "PENDIENTE";
 

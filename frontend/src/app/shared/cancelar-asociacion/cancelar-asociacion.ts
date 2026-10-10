@@ -4,7 +4,8 @@ import { Icon } from '../icon/icon';
 /**
  * Confirmación estándar para cancelar el vínculo con una persona mayor, un
  * acompañante o una organización. La página decide cuándo mostrarla y qué
- * hacer al confirmar.
+ * hacer al confirmar. Los textos se pueden cambiar para confirmar otra
+ * acción sobre el vínculo (por ejemplo, inactivarlo).
  */
 @Component({
   selector: 'app-cancelar-asociacion',
@@ -19,6 +20,12 @@ export class CancelarAsociacion {
 
   /** Qué pasa después de cancelar, visto desde quien cancela. */
   readonly advertencia = input('');
+
+  readonly titulo = input('¿Cancelar asociación?');
+  /** Va antes del nombre: "Estás a punto de {accion} {nombre}." */
+  readonly accion = input('cancelar la asociación con');
+  readonly textoConfirmar = input('Cancelar asociación');
+  readonly icono = input('x');
 
   readonly confirmar = output<void>();
   readonly cerrar = output<void>();

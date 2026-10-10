@@ -113,7 +113,7 @@ public class RecomendadorOrganizaciones {
             gustosPersona.put(rs.getInt("id_gusto"), rs.getString("nombre"));
         });
 
-        // ---------- Organizaciones a las que NO pertenece (ni tiene solicitud) ----------
+        // ---------- Organizaciones activas a las que NO pertenece (ni tiene solicitud ni vínculo pausado) ----------
 
         List<Organizacion> organizaciones = jdbc.query("""
                 SELECT o.id_organizacion, o.nombre, o.direccion, cuenta.celular, cuenta.correo
@@ -125,11 +125,14 @@ public class RecomendadorOrganizaciones {
                          ORDER BY u.id_usuario
                          LIMIT 1
                   ) cuenta ON TRUE
-                 WHERE o.id_organizacion NOT IN (
+                 WHERE EXISTS (SELECT 1 FROM usuario ua
+                                WHERE ua.id_organizacion = o.id_organizacion
+                                  AND COALESCE(ua.activo, TRUE))
+                   AND o.id_organizacion NOT IN (
                         SELECT v.id_organizacion
                           FROM %s v
                          WHERE v.%s = :id
-                           AND v.estado IN ('ACEPTADA', 'PENDIENTE'))
+                           AND v.estado IN ('ACEPTADA', 'PENDIENTE', 'INACTIVA'))
                  ORDER BY o.nombre
                 """.formatted(tablas.vinculos(), tablas.columnaVinculos()), params, (rs, i) -> new Organizacion(
                 rs.getInt("id_organizacion"), rs.getString("nombre"), rs.getString("direccion"),

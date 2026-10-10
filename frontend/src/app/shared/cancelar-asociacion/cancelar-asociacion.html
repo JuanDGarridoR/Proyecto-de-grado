@@ -12,10 +12,10 @@
     </div>
 
     <div class="confirmation-modal__content">
-      <h2 id="confirmation-title">¿Cancelar asociación?</h2>
+      <h2 id="confirmation-title">{{ titulo() }}</h2>
 
       <p>
-        Estás a punto de cancelar la asociación con
+        Estás a punto de {{ accion() }}
         <strong>{{ nombre() }}</strong>.
       </p>
 
@@ -32,8 +32,8 @@
       </button>
 
       <button type="button" class="confirmation-modal__confirm" (click)="confirmar.emit()">
-        <app-icon name="x" />
-        Cancelar asociación
+        <app-icon [name]="icono()" />
+        {{ textoConfirmar() }}
       </button>
     </div>
   </div>

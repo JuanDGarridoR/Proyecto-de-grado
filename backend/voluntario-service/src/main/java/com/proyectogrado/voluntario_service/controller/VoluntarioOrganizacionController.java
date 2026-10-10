@@ -77,8 +77,11 @@ public class VoluntarioOrganizacionController {
                         relacion -> relacion.getId().getIdOrganizacion(),
                         VoluntarioOrganizacion::getEstado));
 
-        List<OrganizacionVoluntarioResponse> respuesta = organizacionLookupRepository.findAll()
+        // Las organizaciones inactivas no aparecen, ni los vínculos que
+        // auth-service ocultó porque la cuenta del voluntario está inactiva.
+        List<OrganizacionVoluntarioResponse> respuesta = organizacionLookupRepository.findActivas()
                 .stream()
+                .filter(organizacion -> !ocultoPorCuentaInactiva(estados.get(organizacion.getIdOrganizacion())))
                 .sorted(Comparator.comparing(
                         OrganizacionLookup::getNombre,
                         Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
@@ -123,6 +126,17 @@ public class VoluntarioOrganizacionController {
                         .body("Ya tienes una solicitud pendiente con esta organización");
             }
 
+            if (VoluntarioOrganizacion.INACTIVA.equals(relacion.getEstado())) {
+                return ResponseEntity.badRequest()
+                        .body("Ya tienes esta organización como inactiva: reactívala desde Mis organizaciones");
+            }
+
+            // La cuenta de una de las dos partes está inactiva: no se sobrescribe.
+            if (!VoluntarioOrganizacion.RECHAZADA.equals(relacion.getEstado())) {
+                return ResponseEntity.badRequest()
+                        .body("Esta organización no está disponible en este momento");
+            }
+
             // Rechazada antes: se puede volver a solicitar
             relacion.setEstado(VoluntarioOrganizacion.PENDIENTE);
         } else {
@@ -154,7 +168,8 @@ public class VoluntarioOrganizacionController {
 
         String mensaje = switch (relacion.getEstado()) {
             case VoluntarioOrganizacion.PENDIENTE -> "Solicitud cancelada correctamente";
-            case VoluntarioOrganizacion.ACEPTADA -> "Te desvinculaste de la organización correctamente";
+            case VoluntarioOrganizacion.ACEPTADA, VoluntarioOrganizacion.INACTIVA ->
+                    "Te desvinculaste de la organización correctamente";
             default -> "Solicitud eliminada correctamente";
         };
 
@@ -162,6 +177,66 @@ public class VoluntarioOrganizacionController {
         relacionRepository.flush();
 
         return ResponseEntity.ok(mensaje);
+    }
+
+    /**
+     * El voluntario pausa un vínculo aceptado: la organización deja de verlo
+     * y él deja de ver lo de la organización hasta que lo reactive.
+     */
+    @PutMapping("/api/voluntario/organizaciones/{idOrganizacion}/inactivar")
+    public ResponseEntity<String> inactivarVinculo(
+            @RequestHeader("X-User-Id") Integer idVoluntario,
+            @PathVariable Integer idOrganizacion
+    ) {
+        VoluntarioOrganizacion relacion = relacionRepository
+                .findById(new VoluntarioOrganizacionId(idVoluntario, idOrganizacion))
+                .orElse(null);
+
+        if (relacion == null || !VoluntarioOrganizacion.ACEPTADA.equals(relacion.getEstado())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No estás vinculado a esta organización");
+        }
+
+        relacion.setEstado(VoluntarioOrganizacion.INACTIVA);
+        relacionRepository.saveAndFlush(relacion);
+
+        return ResponseEntity.ok("Inactivaste tu vínculo con la organización. Puedes reactivarlo cuando quieras.");
+    }
+
+    /**
+     * Reactiva un vínculo pausado. Si la cuenta de la organización está
+     * inactiva, queda como CUENTA_INACTIVA y vuelve cuando la reactive.
+     */
+    @PutMapping("/api/voluntario/organizaciones/{idOrganizacion}/reactivar")
+    public ResponseEntity<String> reactivarVinculo(
+            @RequestHeader("X-User-Id") Integer idVoluntario,
+            @PathVariable Integer idOrganizacion
+    ) {
+        VoluntarioOrganizacion relacion = relacionRepository
+                .findById(new VoluntarioOrganizacionId(idVoluntario, idOrganizacion))
+                .orElse(null);
+
+        if (relacion == null || !VoluntarioOrganizacion.INACTIVA.equals(relacion.getEstado())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No tienes un vínculo inactivo con esta organización");
+        }
+
+        boolean organizacionActiva = usuarioLookupRepository.findCuentasOrganizacion(idOrganizacion)
+                .stream()
+                .anyMatch(UsuarioLookup::estaActivo);
+
+        relacion.setEstado(organizacionActiva
+                ? VoluntarioOrganizacion.ACEPTADA
+                : VoluntarioOrganizacion.CUENTA_INACTIVA);
+        relacionRepository.saveAndFlush(relacion);
+
+        return ResponseEntity.ok("Reactivaste tu vínculo con la organización");
+    }
+
+    /** Vínculos que auth-service ocultó porque una de las dos cuentas está inactiva. */
+    private static boolean ocultoPorCuentaInactiva(String estado) {
+        return VoluntarioOrganizacion.CUENTA_INACTIVA.equals(estado)
+                || VoluntarioOrganizacion.PENDIENTE_CUENTA_INACTIVA.equals(estado);
     }
 
     // Lado de la organización: voluntarios y solicitudes

@@ -120,6 +120,12 @@ public class OrganizacionRelacionController {
                         .body("Ya existe una solicitud pendiente para esta persona mayor");
             }
 
+            // La persona inactivó el vínculo o su cuenta: no se revela ni se sobrescribe.
+            if (!"RECHAZADA".equals(relacionExistente.getEstado())) {
+                return ResponseEntity.badRequest()
+                        .body("No es posible enviar la solicitud a esta persona mayor en este momento");
+            }
+
             relacionExistente.setEstado("PENDIENTE");
             relacionExistente.setSolicitadaPor(PersonaMayorOrganizacion.ORGANIZACION);
             relacionRepository.saveAndFlush(relacionExistente);

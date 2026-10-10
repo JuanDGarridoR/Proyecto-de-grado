@@ -74,6 +74,17 @@
               <div card-actions class="person-card-actions">
                 <button
                   type="button"
+                  class="vinculos__secondary"
+                  (click)="organizacionAInactivar.set(organizacion)"
+                  [disabled]="procesando() === organizacion.idOrganizacion"
+                  title="Inactivar: la organización no verá tus datos hasta que lo reactives"
+                >
+                  <app-icon name="power" />
+                  Inactivar
+                </button>
+
+                <button
+                  type="button"
                   class="person-card-remove"
                   (click)="organizacionADesvincular.set(organizacion)"
                   [disabled]="procesando() === organizacion.idOrganizacion"
@@ -88,6 +99,47 @@
         </div>
       }
     </section>
+
+    <!-- Vínculos pausados por el voluntario -->
+
+    @if (inactivas().length > 0) {
+      <section class="vinculos__section">
+        <div class="vinculos__section-header">
+          <div>
+            <h2>Organizaciones inactivas</h2>
+            <p>No ven tus datos y tú no ves sus actividades hasta que reactives la vinculación.</p>
+          </div>
+
+          <span class="vinculos__badge">{{ inactivas().length }}</span>
+        </div>
+
+        <div class="vinculos__list">
+          @for (organizacion of inactivas(); track organizacion.idOrganizacion) {
+            <app-person-card
+              etiqueta="Organización"
+              icono="building"
+              [nombre]="organizacion.nombre"
+              [celular]="organizacion.celular ?? ''"
+              [direccion]="organizacion.direccion"
+              estado="Inactiva"
+              estadoTipo="pendiente"
+            >
+              <div card-actions class="person-card-actions">
+                <button
+                  type="button"
+                  class="vinculos__primary"
+                  (click)="reactivar(organizacion)"
+                  [disabled]="procesando() === organizacion.idOrganizacion"
+                >
+                  <app-icon name="check" />
+                  Reactivar
+                </button>
+              </div>
+            </app-person-card>
+          }
+        </div>
+      </section>
+    }
 
     <!-- Mis solicitudes (pendientes y rechazadas) -->
 
@@ -224,5 +276,18 @@
     advertencia="Dejarás de ser voluntario de esta organización. Si quieres volver, tendrás que enviar una nueva solicitud."
     (confirmar)="confirmarDesvinculacion()"
     (cerrar)="organizacionADesvincular.set(null)"
+  />
+}
+
+@if (organizacionAInactivar(); as organizacion) {
+  <app-cancelar-asociacion
+    [nombre]="organizacion.nombre"
+    titulo="¿Inactivar vinculación?"
+    accion="inactivar tu vinculación con"
+    textoConfirmar="Inactivar"
+    icono="power"
+    advertencia="Mientras esté inactiva, la organización no verá tus datos y tú no verás sus actividades. Puedes reactivarla cuando quieras."
+    (confirmar)="confirmarInactivacion()"
+    (cerrar)="organizacionAInactivar.set(null)"
   />
 }

@@ -21,6 +21,14 @@ public class VoluntarioOrganizacion {
     public static final String PENDIENTE = "PENDIENTE";
     public static final String ACEPTADA = "ACEPTADA";
     public static final String RECHAZADA = "RECHAZADA";
+    /** El voluntario pausó el vínculo: la organización no lo ve hasta que lo reactive. */
+    public static final String INACTIVA = "INACTIVA";
+    /**
+     * Los pone auth-service cuando una de las dos cuentas se inactiva (en
+     * vez de ACEPTADA y PENDIENTE); nadie los lista.
+     */
+    public static final String CUENTA_INACTIVA = "CUENTA_INACTIVA";
+    public static final String PENDIENTE_CUENTA_INACTIVA = "PENDIENTE_CUENTA_INACTIVA";
 
     @EmbeddedId
     private VoluntarioOrganizacionId id;

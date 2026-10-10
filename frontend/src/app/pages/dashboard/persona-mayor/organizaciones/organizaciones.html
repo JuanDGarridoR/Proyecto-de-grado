@@ -442,6 +442,16 @@
 
   <button
     type="button"
+    class="pause-association-button"
+    (click)="inactivarAsociacion(organizacion)"
+    title="Inactivar asociación: la organización no verá tus datos hasta que la reactives"
+  >
+    <app-icon name="power" />
+    Inactivar
+  </button>
+
+  <button
+    type="button"
     class="remove-association-button"
     (click)="cancelarAsociacion(organizacion)"
     title="Cancelar asociación"
@@ -494,6 +504,39 @@
             [disabled]="cancelandoEnviada() === organizacion.idOrganizacion"
           >
             Cancelar solicitud
+          </button>
+        </li>
+      }
+    </ul>
+  </section>
+}
+
+<!-- Vínculos que la persona mayor pausó -->
+
+@if (inactivas().length > 0) {
+  <section class="enviadas" aria-labelledby="inactivasTitulo">
+    <div class="section-title">
+      <div>
+        <h2 id="inactivasTitulo">Organizaciones inactivas</h2>
+        <p>Estas organizaciones no ven tus datos y tú no ves sus actividades hasta que reactives la asociación.</p>
+      </div>
+    </div>
+
+    <ul class="enviadas__lista">
+      @for (organizacion of inactivas(); track organizacion.idOrganizacion) {
+        <li class="enviada">
+          <span class="organization-icon" aria-hidden="true"><app-icon name="building" /></span>
+          <div class="enviada__datos">
+            <strong>{{ organizacion.nombre }}</strong>
+            <span class="enviada__estado enviada__estado--inactiva"><app-icon name="power" /> Asociación inactiva</span>
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary enviada__cancelar"
+            (click)="reactivarAsociacion(organizacion)"
+            [disabled]="reactivando() === organizacion.idOrganizacion"
+          >
+            Reactivar
           </button>
         </li>
       }
@@ -615,6 +658,23 @@
             </strong>?
           </p>
 
+        } @else if (accionPendiente() === 'inactivar') {
+
+          <h2>Inactivar asociación</h2>
+
+          <p>
+            ¿Deseas inactivar tu asociación con
+            <strong>
+              {{ organizacionSeleccionada()?.nombre }}
+            </strong>?
+          </p>
+
+          <span class="modal-confirmation__warning">
+            Mientras esté inactiva, la organización no verá tus datos ni recibirá
+            tus alertas de emergencia, y tú no verás sus actividades. Puedes
+            reactivarla cuando quieras.
+          </span>
+
         } @else {
 
           <h2>Cancelar asociación</h2>
@@ -668,6 +728,12 @@
           } @else if (accionPendiente() === 'rechazar') {
 
             Rechazar
+
+          } @else if (accionPendiente() === 'inactivar') {
+
+            <app-icon name="power" />
+
+            Inactivar
 
           } @else {
 

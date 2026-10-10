@@ -50,6 +50,14 @@ export class Organizaciones implements OnInit {
   protected readonly cancelandoEnviada =
     signal<number | null>(null);
 
+  /** Organizaciones con las que pausó el vínculo (no ven sus datos hasta que lo reactive). */
+  protected readonly inactivas =
+    signal<OrganizacionSolicitud[]>([]);
+
+  /** Vínculo inactivo que se está reactivando; deshabilita su botón. */
+  protected readonly reactivando =
+    signal<number | null>(null);
+
   /** Organizaciones a las que puede pedir unirse ("Ver todas las organizaciones"). */
   protected readonly disponibles =
     signal<OrganizacionSolicitud[]>([]);
@@ -82,9 +90,9 @@ export class Organizaciones implements OnInit {
 protected readonly organizacionSeleccionada =
   signal<OrganizacionSolicitud | null>(null);
 
-/** Qué se confirma en el modal: aceptar, rechazar o cancelar el vínculo. */
+/** Qué se confirma en el modal: aceptar, rechazar, inactivar o cancelar el vínculo. */
 protected readonly accionPendiente =
-  signal<'aceptar' | 'rechazar' | 'cancelar' | null>(null);
+  signal<'aceptar' | 'rechazar' | 'inactivar' | 'cancelar' | null>(null);
 
   constructor(
     private organizacionService: OrganizacionService
@@ -93,6 +101,7 @@ protected readonly accionPendiente =
       this.cargarOrganizaciones();
       this.cargarSolicitudes();
       this.cargarEnviadas();
+      this.cargarInactivas();
       this.cargarDisponibles();
     });
   }
@@ -101,7 +110,42 @@ protected readonly accionPendiente =
     this.cargarOrganizaciones();
     this.cargarSolicitudes();
     this.cargarEnviadas();
+    this.cargarInactivas();
     this.cargarDisponibles();
+  }
+
+  cargarInactivas(): void {
+    this.organizacionService.obtenerOrganizacionesInactivas().subscribe({
+      next: (inactivas) => this.inactivas.set(inactivas),
+      error: () => this.inactivas.set([])
+    });
+  }
+
+  /** Abre la confirmación para pausar el vínculo con la organización. */
+  inactivarAsociacion(organizacion: OrganizacionSolicitud): void {
+    this.organizacionSeleccionada.set(organizacion);
+    this.accionPendiente.set('inactivar');
+    this.modalAbierto.set(true);
+  }
+
+  /** Vuelve a activar un vínculo pausado (no necesita confirmación). */
+  reactivarAsociacion(organizacion: OrganizacionSolicitud): void {
+    this.reactivando.set(organizacion.idOrganizacion);
+    this.mensaje.set(null);
+    this.error.set(null);
+
+    this.organizacionService.reactivarAsociacionOrganizacion(organizacion.idOrganizacion).subscribe({
+      next: (respuesta) => {
+        this.reactivando.set(null);
+        this.mensaje.set(`${organizacion.nombre}: ${respuesta}`);
+        this.cargarInactivas();
+        this.cargarOrganizaciones();
+      },
+      error: (error) => {
+        this.reactivando.set(null);
+        this.error.set(mensajeDeError(error, 'No se pudo reactivar el vínculo.'));
+      }
+    });
   }
 
   cargarDisponibles(): void {
@@ -340,6 +384,21 @@ confirmarAccion(): void {
           this.error.set(mensaje);
         }
 
+      });
+
+  } else if (accion === 'inactivar') {
+
+    this.organizacionService
+      .inactivarAsociacionOrganizacion(organizacion.idOrganizacion)
+      .subscribe({
+        next: (respuesta) => {
+          this.mensaje.set(respuesta);
+          this.cargarOrganizaciones();
+          this.cargarInactivas();
+        },
+        error: (error) => {
+          this.error.set(mensajeDeError(error, 'No se pudo inactivar la asociación.'));
+        }
       });
 
   } else if (accion === 'cancelar') {

@@ -5,7 +5,8 @@ import { Observable } from 'rxjs';
 import { Gusto } from '../gustos/gusto.service';
 import { API_URL } from '../api';
 
-export type EstadoVinculo = 'PENDIENTE' | 'ACEPTADA' | 'RECHAZADA';
+/** INACTIVA: el voluntario pausó el vínculo y la organización no lo ve. */
+export type EstadoVinculo = 'PENDIENTE' | 'ACEPTADA' | 'RECHAZADA' | 'INACTIVA';
 
 /** Organización vista por el voluntario, con el estado de su vínculo (null = sin solicitud). */
 export interface OrganizacionVoluntario {
@@ -42,6 +43,15 @@ export class VoluntarioService {
   /** Cancela una solicitud pendiente, descarta una rechazada o desvincula. */
   eliminarVinculo(idOrganizacion: number): Observable<string> {
     return this.http.delete(`${this.apiUrl}/${idOrganizacion}`, { responseType: 'text' });
+  }
+
+  /** Pausa el vínculo: la organización deja de verlo y él deja de ver lo de la organización. */
+  inactivarVinculo(idOrganizacion: number): Observable<string> {
+    return this.http.put(`${this.apiUrl}/${idOrganizacion}/inactivar`, {}, { responseType: 'text' });
+  }
+
+  reactivarVinculo(idOrganizacion: number): Observable<string> {
+    return this.http.put(`${this.apiUrl}/${idOrganizacion}/reactivar`, {}, { responseType: 'text' });
   }
 
   /** Gustos que marcó el voluntario (del mismo catálogo que las personas mayores). */

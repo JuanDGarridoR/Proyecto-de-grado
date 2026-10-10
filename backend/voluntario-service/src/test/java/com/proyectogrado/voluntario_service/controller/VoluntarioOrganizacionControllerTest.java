@@ -88,7 +88,7 @@ class VoluntarioOrganizacionControllerTest {
         OrganizacionLookup comedor = mock(OrganizacionLookup.class);
         when(comedor.getIdOrganizacion()).thenReturn(6);
         when(comedor.getNombre()).thenReturn("Comedor Comunitario");
-        when(organizacionLookupRepository.findAll()).thenReturn(List.of(fundacion, comedor));
+        when(organizacionLookupRepository.findActivas()).thenReturn(List.of(fundacion, comedor));
         when(relacionRepository.findById_IdVoluntario(VOLUNTARIO)).thenReturn(List.of(vinculo("PENDIENTE")));
 
         mockMvc.perform(get("/api/voluntario/organizaciones").header("X-User-Id", VOLUNTARIO))
@@ -177,6 +177,33 @@ class VoluntarioOrganizacionControllerTest {
         mockMvc.perform(get("/api/organizacion/voluntarios").header("X-User-Id", 31))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("El usuario no tiene una organización asociada"));
+    }
+
+    @Test
+    void elVoluntarioInactivaYReactivaSuVinculo() throws Exception {
+        VoluntarioOrganizacion vinculo = vinculo(VoluntarioOrganizacion.ACEPTADA);
+        when(relacionRepository.findById(new VoluntarioOrganizacionId(VOLUNTARIO, ORGANIZACION)))
+                .thenReturn(Optional.of(vinculo));
+        UsuarioLookup cuentaActiva = mock(UsuarioLookup.class);
+        when(cuentaActiva.estaActivo()).thenReturn(true);
+        when(usuarioLookupRepository.findCuentasOrganizacion(ORGANIZACION)).thenReturn(List.of(cuentaActiva));
+
+        mockMvc.perform(put("/api/voluntario/organizaciones/" + ORGANIZACION + "/inactivar")
+                        .header("X-User-Id", VOLUNTARIO))
+                .andExpect(status().isOk());
+        assertEquals(VoluntarioOrganizacion.INACTIVA, vinculo.getEstado());
+
+        // Mientras está inactivo no puede volver a solicitar: tiene que reactivarlo.
+        when(organizacionLookupRepository.existsById(ORGANIZACION)).thenReturn(true);
+        mockMvc.perform(post("/api/voluntario/organizaciones/" + ORGANIZACION + "/solicitud")
+                        .header("X-User-Id", VOLUNTARIO))
+                .andExpect(status().isBadRequest());
+        assertEquals(VoluntarioOrganizacion.INACTIVA, vinculo.getEstado());
+
+        mockMvc.perform(put("/api/voluntario/organizaciones/" + ORGANIZACION + "/reactivar")
+                        .header("X-User-Id", VOLUNTARIO))
+                .andExpect(status().isOk());
+        assertEquals(VoluntarioOrganizacion.ACEPTADA, vinculo.getEstado());
     }
 
     @Test

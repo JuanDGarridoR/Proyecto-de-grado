@@ -176,6 +176,28 @@ export class OrganizacionService {
     );
   }
 
+  /** Organizaciones con las que la persona mayor pausó el vínculo. */
+  obtenerOrganizacionesInactivas(): Observable<OrganizacionSolicitud[]> {
+    return this.http.get<OrganizacionSolicitud[]>(`${API_URL}/persona-mayor/organizaciones/inactivas`);
+  }
+
+  /** Pausa el vínculo: la organización deja de ver sus datos y ella sus actividades. */
+  inactivarAsociacionOrganizacion(idOrganizacion: number): Observable<string> {
+    return this.http.put(
+      `${API_URL}/persona-mayor/organizaciones/${idOrganizacion}/inactivar`,
+      {},
+      { responseType: 'text' },
+    );
+  }
+
+  reactivarAsociacionOrganizacion(idOrganizacion: number): Observable<string> {
+    return this.http.put(
+      `${API_URL}/persona-mayor/organizaciones/${idOrganizacion}/reactivar`,
+      {},
+      { responseType: 'text' },
+    );
+  }
+
   /** Acompañantes de una persona mayor vinculada (lo atiende persona-mayor-service). */
   obtenerAcompanantesPersonaMayor(idPersonaMayor: number): Observable<AcompanantePersonaMayor[]> {
     return this.http.get<AcompanantePersonaMayor[]>(

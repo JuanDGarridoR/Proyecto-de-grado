@@ -675,6 +675,42 @@
   transform: translateY(0);
 }
 
+/* Pausar la asociación (al lado de cancelarla) */
+
+.pause-association-button {
+  height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 0 14px;
+
+  border: 1px solid var(--vita-border);
+  border-radius: 10px;
+
+  background: var(--vita-white);
+  color: var(--vita-navy);
+
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.pause-association-button:hover {
+  border-color: var(--vita-navy);
+  background: #f4f6f8;
+
+  transform: translateY(-1px);
+}
+
 
 /* Estado vacío */
 
@@ -1239,6 +1275,10 @@
   font-size: 1rem;
   font-weight: 600;
   color: color-mix(in srgb, var(--vita-gold) 45%, var(--vita-navy));
+}
+
+.enviada__estado--inactiva {
+  color: var(--vita-text-gray);
 }
 
 .enviada__cancelar {

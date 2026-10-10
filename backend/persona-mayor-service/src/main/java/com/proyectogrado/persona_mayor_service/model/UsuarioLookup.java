@@ -37,6 +37,10 @@ public class UsuarioLookup {
     @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
 
+    /** false si el usuario inactivó su cuenta; null cuenta como activo. */
+    @Column(name = "activo")
+    private Boolean activo;
+
     /** Lo exige JPA. */
     protected UsuarioLookup() {
     }
@@ -63,5 +67,9 @@ public class UsuarioLookup {
 
     public LocalDate getFechaNacimiento() {
         return fechaNacimiento;
+    }
+
+    public boolean estaActivo() {
+        return !Boolean.FALSE.equals(activo);
     }
 }

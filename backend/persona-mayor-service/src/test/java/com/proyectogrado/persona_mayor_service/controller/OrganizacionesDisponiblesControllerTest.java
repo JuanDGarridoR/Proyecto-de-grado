@@ -43,7 +43,7 @@ class OrganizacionesDisponiblesControllerTest {
         OrganizacionLookup fundacion = organizacion(5, "Fundación Entrenubes");
         OrganizacionLookup comedor = organizacion(6, "Comedor Comunitario");
         OrganizacionLookup hogar = organizacion(7, "Hogar San Rafael");
-        when(organizacionRepository.findAllByOrderByNombreAsc()).thenReturn(List.of(comedor, fundacion, hogar));
+        when(organizacionRepository.findActivasOrderByNombre()).thenReturn(List.of(comedor, fundacion, hogar));
 
         // Ya pertenece a la 5 y tiene una solicitud pendiente con la 7.
         when(relacionRepository.findById_IdPersonaMayorAndEstado(PERSONA_MAYOR, "ACEPTADA"))

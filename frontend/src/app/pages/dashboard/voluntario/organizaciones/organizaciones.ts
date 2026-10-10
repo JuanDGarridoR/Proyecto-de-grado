@@ -16,8 +16,9 @@ import { mensajeDeError } from '../../../../core/formato/formato';
 import { Cargando } from '../../../../shared/cargando/cargando';
 
 /**
- * Organizaciones del voluntario: a cuáles está vinculado, sus solicitudes
- * (pendientes o rechazadas), las recomendadas según sus gustos y su
+ * Organizaciones del voluntario: a cuáles está vinculado, las que pausó
+ * (inactivas), sus solicitudes (pendientes o rechazadas), las recomendadas
+ * según sus gustos y su
  * dirección (las mismas tarjetas que ve la persona mayor) y, en un
  * desplegable, todas las demás. Puede pedir vincularse a cualquiera y estar
  * vinculado a varias a la vez.
@@ -42,6 +43,12 @@ export class VoluntarioOrganizaciones implements OnInit {
   protected readonly procesando = signal<number | null>(null);
 
   protected readonly organizacionADesvincular = signal<OrganizacionVoluntario | null>(null);
+  protected readonly organizacionAInactivar = signal<OrganizacionVoluntario | null>(null);
+
+  /** Vínculos que el voluntario pausó: la organización no lo ve hasta que los reactive. */
+  protected readonly inactivas = computed(() =>
+    this.organizaciones().filter((o) => o.estado === 'INACTIVA')
+  );
 
   protected busqueda = '';
   protected readonly filtro = signal('');
@@ -104,6 +111,20 @@ export class VoluntarioOrganizaciones implements OnInit {
     this.organizacionADesvincular.set(null);
     this.ejecutar(organizacion, this.voluntarioService.eliminarVinculo(organizacion.idOrganizacion),
       'No se pudo cancelar la vinculación.');
+  }
+
+  protected confirmarInactivacion(): void {
+    const organizacion = this.organizacionAInactivar();
+    if (!organizacion) return;
+
+    this.organizacionAInactivar.set(null);
+    this.ejecutar(organizacion, this.voluntarioService.inactivarVinculo(organizacion.idOrganizacion),
+      'No se pudo inactivar la vinculación.');
+  }
+
+  protected reactivar(organizacion: OrganizacionVoluntario): void {
+    this.ejecutar(organizacion, this.voluntarioService.reactivarVinculo(organizacion.idOrganizacion),
+      'No se pudo reactivar la vinculación.');
   }
 
   private ejecutar(
