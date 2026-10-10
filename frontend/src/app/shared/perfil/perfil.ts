@@ -40,6 +40,8 @@ interface PerfilInformacion {
   eps?: string;
   ips?: string;
   direccionIps?: string;
+  /** Si vive sola; null si no lo ha indicado. */
+  viveSolo?: boolean | null;
   tieneContrasena: boolean;
 }
 
@@ -155,6 +157,7 @@ export class Perfil implements OnInit {
             eps: data.eps,
             ips: data.ips,
             direccionIps: data.direccionIps,
+            viveSolo: data.viveSolo ?? null,
             tieneContrasena: data.tieneContrasena,
           };
 
@@ -293,6 +296,7 @@ export class Perfil implements OnInit {
           eps: this.formulario.eps || null,
           ips: this.formulario.ips || null,
           direccionIps: this.formulario.direccionIps || null,
+          viveSolo: this.formulario.viveSolo ?? null,
         })
         .pipe(timeout(10000))
         .subscribe({
@@ -308,6 +312,7 @@ export class Perfil implements OnInit {
               eps: data.eps,
               ips: data.ips,
               direccionIps: data.direccionIps,
+              viveSolo: data.viveSolo ?? null,
               tieneContrasena: data.tieneContrasena,
             };
 

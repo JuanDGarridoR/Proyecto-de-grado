@@ -67,6 +67,10 @@
         <dt>Dirección de la IPS</dt>
         <dd [class.perfil__vacio]="!p.direccionIps">{{ p.direccionIps || 'No registrada' }}</dd>
       </div>
+      <div class="perfil__campo">
+        <dt>¿Vive solo o sola?</dt>
+        <dd [class.perfil__vacio]="p.viveSolo === null">{{ textoViveSolo(p.viveSolo) || 'No registrado' }}</dd>
+      </div>
     </dl>
   } @else {
     <!-- Formulario de edición -->
@@ -108,6 +112,14 @@
           <label for="perfilDireccionIps">Dirección de la IPS</label>
           <input id="perfilDireccionIps" name="direccionIps" type="text" maxlength="200"
                  [(ngModel)]="formulario.direccionIps" placeholder="Ej.: Calle 137 Sur # 13-50" />
+        </div>
+        <div class="perfil__campo">
+          <label for="perfilViveSolo">¿Vive solo o sola?</label>
+          <select id="perfilViveSolo" name="viveSolo" [(ngModel)]="formulario.viveSolo">
+            <option [ngValue]="null">Selecciona una opción</option>
+            <option [ngValue]="true">Sí</option>
+            <option [ngValue]="false">No, vive con otras personas</option>
+          </select>
         </div>
       </div>
 

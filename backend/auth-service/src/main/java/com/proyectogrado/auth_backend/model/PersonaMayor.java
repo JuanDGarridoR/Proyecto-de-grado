@@ -31,7 +31,19 @@ public class PersonaMayor {
     @Column(name = "direccion_ips")
     private String direccionIps;
 
+    /** Si vive sola: true sí, false no, null si no lo ha indicado. */
+    @Column(name = "vive_solo")
+    private Boolean viveSolo;
+
     public PersonaMayor() {
+    }
+
+    public Boolean getViveSolo() {
+        return viveSolo;
+    }
+
+    public void setViveSolo(Boolean viveSolo) {
+        this.viveSolo = viveSolo;
     }
 
     public PersonaMayor(Usuario usuario) {

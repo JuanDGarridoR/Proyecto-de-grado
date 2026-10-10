@@ -19,6 +19,8 @@ public class InformacionUsuarioResponse {
     private String eps;
     private String ips;
     private String direccionIps;
+    /** Si vive sola; null si no lo ha indicado. */
+    private Boolean viveSolo;
 
     /** Si es false, el usuario entra solo con OTP y puede crear una contraseña sin dar la actual. */
     private boolean tieneContrasena;
@@ -34,8 +36,10 @@ public class InformacionUsuarioResponse {
             String eps,
             String ips,
             String direccionIps,
+            Boolean viveSolo,
             boolean tieneContrasena
     ) {
+        this.viveSolo = viveSolo;
         this.idUsuario = idUsuario;
         this.nombre = nombre;
         this.celular = celular;
@@ -87,6 +91,10 @@ public class InformacionUsuarioResponse {
 
     public String getDireccionIps() {
         return direccionIps;
+    }
+
+    public Boolean getViveSolo() {
+        return viveSolo;
     }
 
     public boolean isTieneContrasena() {

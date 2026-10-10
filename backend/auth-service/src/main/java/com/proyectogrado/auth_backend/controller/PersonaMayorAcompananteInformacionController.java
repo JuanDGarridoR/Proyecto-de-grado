@@ -23,8 +23,8 @@ import static com.proyectogrado.auth_backend.controller.UsuarioInformacionContro
 
 /**
  * Perfil de una persona mayor consultado y editado por su acompañante:
- * nombre, fecha de nacimiento, género, dirección, EPS, IPS y dirección de
- * la IPS. Solo si el vínculo entre los dos está ACEPTADO.
+ * nombre, fecha de nacimiento, género, dirección, EPS, IPS, dirección de
+ * la IPS y si vive sola. Solo si el vínculo entre los dos está ACEPTADO.
  *
  * El correo y el celular no se editan aquí: son los datos con los que la
  * persona mayor inicia sesión, y solo ella los cambia.
@@ -104,6 +104,7 @@ public class PersonaMayorAcompananteInformacionController {
         personaMayor.setEps(eps);
         personaMayor.setIps(ips);
         personaMayor.setDireccionIps(direccionIps);
+        personaMayor.setViveSolo(request.getViveSolo());
         personaMayor = personaMayorRepository.save(personaMayor);
 
         return ResponseEntity.ok(aRespuesta(usuario, personaMayor));
@@ -136,6 +137,7 @@ public class PersonaMayorAcompananteInformacionController {
                 personaMayor.getEps(),
                 personaMayor.getIps(),
                 personaMayor.getDireccionIps(),
+                personaMayor.getViveSolo(),
                 false
         );
     }

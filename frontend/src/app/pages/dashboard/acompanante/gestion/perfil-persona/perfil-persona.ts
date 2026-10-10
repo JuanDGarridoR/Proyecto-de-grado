@@ -17,12 +17,13 @@ interface FormularioPerfil {
   eps: string;
   ips: string;
   direccionIps: string;
+  viveSolo: boolean | null;
 }
 
 /**
  * Pestaña "Perfil" de "Gestionar cuidado": datos personales de la persona
  * mayor que el acompañante puede consultar y completar (nombre, fecha de
- * nacimiento, género, dirección, EPS e IPS). El celular y el correo solo
+ * nacimiento, género, dirección, EPS, IPS y si vive sola). El celular y el correo solo
  * los ve, porque con ellos la persona inicia sesión.
  */
 @Component({
@@ -100,7 +101,8 @@ export class PerfilPersona {
       direccion: perfil.direccion ?? '',
       eps: perfil.eps ?? '',
       ips: perfil.ips ?? '',
-      direccionIps: perfil.direccionIps ?? ''
+      direccionIps: perfil.direccionIps ?? '',
+      viveSolo: perfil.viveSolo ?? null
     };
     this.errorGuardado.set('');
     this.guardadoExitoso.set(false);
@@ -137,7 +139,8 @@ export class PerfilPersona {
       direccion: f.direccion.trim() || null,
       eps: f.eps.trim() || null,
       ips: f.ips.trim() || null,
-      direccionIps: f.direccionIps.trim() || null
+      direccionIps: f.direccionIps.trim() || null,
+      viveSolo: f.viveSolo
     }).subscribe({
       next: (perfil) => {
         this.guardando.set(false);
@@ -178,6 +181,13 @@ export class PerfilPersona {
   }
 
   private formularioVacio(): FormularioPerfil {
-    return { nombre: '', fechaNacimiento: '', genero: '', direccion: '', eps: '', ips: '', direccionIps: '' };
+    return {
+      nombre: '', fechaNacimiento: '', genero: '', direccion: '', eps: '', ips: '', direccionIps: '', viveSolo: null
+    };
+  }
+
+  /** true -> "Sí", false -> "No, vive con otras personas", null -> "". */
+  protected textoViveSolo(viveSolo: boolean | null): string {
+    return viveSolo === true ? 'Sí' : viveSolo === false ? 'No, vive con otras personas' : '';
   }
 }

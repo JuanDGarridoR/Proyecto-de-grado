@@ -119,12 +119,13 @@ usuario.setDireccion(request.getDireccion());
 
 usuario = usuarioRepository.save(usuario);
 
-        // La EPS y la IPS (con su dirección) están en la tabla persona_mayor: solo se guardan si
-        // el usuario es persona mayor. Para los demás roles se ignoran.
+        // La EPS, la IPS (con su dirección) y si vive sola están en la tabla persona_mayor: solo se
+        // guardan si el usuario es persona mayor. Para los demás roles se ignoran.
         personaMayorRepository.findById(usuario.getIdUsuario()).ifPresent(personaMayor -> {
             personaMayor.setEps(eps);
             personaMayor.setIps(ips);
             personaMayor.setDireccionIps(direccionIps);
+            personaMayor.setViveSolo(request.getViveSolo());
             personaMayorRepository.save(personaMayor);
         });
 
@@ -162,6 +163,7 @@ usuario = usuarioRepository.save(usuario);
                 personaMayor != null ? personaMayor.getEps() : null,
                 personaMayor != null ? personaMayor.getIps() : null,
                 personaMayor != null ? personaMayor.getDireccionIps() : null,
+                personaMayor != null ? personaMayor.getViveSolo() : null,
                 tieneContrasena
         );
     }

@@ -75,6 +75,8 @@ export interface PerfilPersonaMayor {
   eps: string | null;
   ips: string | null;
   direccionIps: string | null;
+  /** Si vive sola; null si no se ha indicado. */
+  viveSolo: boolean | null;
 }
 
 /** El correo y el celular no se envían: solo la persona mayor los cambia. */
@@ -86,6 +88,8 @@ export interface ActualizarPerfilPersonaMayorRequest {
   eps: string | null;
   ips: string | null;
   direccionIps: string | null;
+  /** Si vive sola; null si no se ha indicado. */
+  viveSolo: boolean | null;
 }
 
 /**

@@ -18,6 +18,16 @@ public class ActualizarInformacionRequest {
     private String eps;
     private String ips;
     private String direccionIps;
+    /** null si no lo indica. */
+    private Boolean viveSolo;
+
+    public Boolean getViveSolo() {
+        return viveSolo;
+    }
+
+    public void setViveSolo(Boolean viveSolo) {
+        this.viveSolo = viveSolo;
+    }
 
     public String getNombre() {
         return nombre;

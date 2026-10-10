@@ -77,6 +77,12 @@
               <label> Dirección de la IPS </label>
               <p>{{ informacion?.direccionIps || 'No registrada' }}</p>
             </div>
+            <div class="informacion__field">
+              <label> ¿Vives solo o sola? </label>
+              <p>
+                {{ informacion?.viveSolo === true ? 'Sí' : informacion?.viveSolo === false ? 'No, vivo con otras personas' : 'No registrado' }}
+              </p>
+            </div>
           }
         </div>
       </div>
@@ -225,6 +231,14 @@
                 [(ngModel)]="formulario.direccionIps"
                 placeholder="Ej.: Carrera 7 # 40-62"
               />
+            </div>
+            <div class="informacion__field">
+              <label for="viveSolo"> ¿Vives solo o sola? </label>
+              <select id="viveSolo" [(ngModel)]="formulario.viveSolo">
+                <option [ngValue]="null">Selecciona una opción</option>
+                <option [ngValue]="true">Sí</option>
+                <option [ngValue]="false">No, vivo con otras personas</option>
+              </select>
             </div>
           }
           <!-- Dirección de la organización -->

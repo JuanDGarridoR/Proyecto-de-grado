@@ -89,16 +89,18 @@ class PersonaMayorAcompananteInformacionControllerTest {
                                 {"nombre": " Rosa Elvira Díaz ", "correo": "otro@vitamas.co",
                                  "fechaNacimiento": "1948-07-02", "genero": "Femenino",
                                  "direccion": "Carrera 3 # 95-40 Sur", "eps": "Capital Salud",
-                                 "ips": "USS Usme", "direccionIps": ""}
+                                 "ips": "USS Usme", "direccionIps": "", "viveSolo": true}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombre").value("Rosa Elvira Díaz"))
-                .andExpect(jsonPath("$.eps").value("Capital Salud"));
+                .andExpect(jsonPath("$.eps").value("Capital Salud"))
+                .andExpect(jsonPath("$.viveSolo").value(true));
 
         assertEquals("rosa@vitamas.co", usuario.getCorreo());
         assertEquals(LocalDate.of(1948, 7, 2), usuario.getFechaNacimiento());
         assertEquals("USS Usme", personaMayor.getIps());
         assertEquals(null, personaMayor.getDireccionIps());
+        assertEquals(true, personaMayor.getViveSolo());
     }
 
     @Test
