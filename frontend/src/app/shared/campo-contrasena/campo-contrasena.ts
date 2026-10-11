@@ -1,5 +1,5 @@
 import { AfterContentInit, Component, ElementRef, inject } from '@angular/core';
-import { Icon } from '../icon/icon';
+import { Icono } from '../icono/icono';
 
 /**
  * Envuelve un <input type="password"> y le agrega un botón con un ojo para
@@ -14,7 +14,7 @@ import { Icon } from '../icon/icon';
 @Component({
   selector: 'app-campo-contrasena',
   standalone: true,
-  imports: [Icon],
+  imports: [Icono],
   template: `
     <ng-content />
     <button
@@ -25,7 +25,7 @@ import { Icon } from '../icon/icon';
       [title]="visible ? 'Ocultar contraseña' : 'Mostrar contraseña'"
       (click)="alternar()"
     >
-      <app-icon [name]="visible ? 'eye-off' : 'eye'" />
+      <app-icono [name]="visible ? 'eye-off' : 'eye'" />
     </button>
   `,
   styles: [

@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 
 import { SignoVitalResponse } from '../../core/signos-vitales/signos-vitales.services';
 import { imcPorRegistro } from '../../core/signos-vitales/imc';
-import { Icon } from '../icon/icon';
+import { Icono } from '../icono/icono';
 import { Cargando } from '../cargando/cargando';
 
 /**
@@ -14,7 +14,7 @@ import { Cargando } from '../cargando/cargando';
  */
 @Component({
   selector: 'app-signos-vitales-lista',
-  imports: [Icon, DatePipe, Cargando],
+  imports: [Icono, DatePipe, Cargando],
   templateUrl: './signos-vitales-lista.html',
   styleUrl: './signos-vitales-lista.css'
 })

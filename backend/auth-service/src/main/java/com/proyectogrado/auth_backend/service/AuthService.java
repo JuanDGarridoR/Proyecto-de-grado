@@ -1,6 +1,6 @@
 package com.proyectogrado.auth_backend.service;
 
-import com.proyectogrado.auth_backend.client.MessagingClient;
+import com.proyectogrado.auth_backend.client.MensajeriaClient;
 import com.proyectogrado.auth_backend.dto.LoginOtpRequest;
 import com.proyectogrado.auth_backend.dto.LoginRequest;
 import com.proyectogrado.auth_backend.dto.LoginResponse;
@@ -35,7 +35,7 @@ import java.util.List;
  * Registro, inicio de sesión y recuperación de contraseña.
  *
  * Hay dos formas de entrar: con correo y contraseña, o con el celular y un
- * código OTP que envía y verifica messaging-service. El celular siempre es
+ * código OTP que envía y verifica mensajeria-service. El celular siempre es
  * obligatorio; el correo y la contraseña son opcionales, pero van juntos.
  */
 @Service
@@ -50,8 +50,8 @@ public class AuthService {
     private final VoluntarioRepository voluntarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final MessagingClient messagingClient;
-    private final EmailValidationService emailValidationService;
+    private final MensajeriaClient mensajeriaClient;
+    private final ValidacionCorreoService validacionCorreoService;
 
     public AuthService(
             UsuarioRepository usuarioRepository,
@@ -63,8 +63,8 @@ public class AuthService {
             VoluntarioRepository voluntarioRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            MessagingClient messagingClient,
-            EmailValidationService emailValidationService
+            MensajeriaClient mensajeriaClient,
+            ValidacionCorreoService validacionCorreoService
     ) {
 
         this.usuarioRepository = usuarioRepository;
@@ -76,8 +76,8 @@ public class AuthService {
         this.voluntarioRepository = voluntarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
-        this.messagingClient = messagingClient;
-        this.emailValidationService = emailValidationService;
+        this.mensajeriaClient = mensajeriaClient;
+        this.validacionCorreoService = validacionCorreoService;
     }
 
     /** Inicio de sesión con correo y contraseña. */
@@ -135,7 +135,7 @@ public class AuthService {
 
         String celular = request.getCelular().trim();
 
-        boolean codigoValido = messagingClient.verificarOtp(
+        boolean codigoValido = mensajeriaClient.verificarOtp(
                 celular,
                 request.getCodigo().trim()
         );
@@ -200,7 +200,7 @@ public void restablecerContrasena(
             ));
 
     boolean codigoValido =
-            messagingClient.verificarOtp(
+            mensajeriaClient.verificarOtp(
                     celular,
                     request.getCodigo().trim()
             );
@@ -299,7 +299,7 @@ public void restablecerContrasena(
         if (correo != null) {
 
         JsonNode resultado =
-                emailValidationService.validarCorreo(correo);
+                validacionCorreoService.validarCorreo(correo);
 
         String status =
                 resultado

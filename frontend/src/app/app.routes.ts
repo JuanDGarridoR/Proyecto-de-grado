@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 
 /**
- * Rutas de la aplicación. Cada panel carga PanelShellLayout (barra lateral
+ * Rutas de la aplicación. Cada panel carga PlantillaPanel (barra lateral
  * y superior) y authGuard, que exige sesión con el rol de data.rol. Las
  * secciones que aún no existen muestran EnConstruccion con data.titulo.
  */
@@ -11,13 +11,16 @@ export const routes: Routes = [
   // Páginas públicas
   {
     path: '',
-    loadComponent: () => import('./pages/landing/landing').then((m) => m.Landing),
+    loadComponent: () => import('./pages/inicio/inicio').then((m) => m.Inicio),
   },
 
   {
-    path: 'login',
-    loadComponent: () => import('./pages/login/login').then((m) => m.Login),
+    path: 'iniciar-sesion',
+    loadComponent: () => import('./pages/iniciar-sesion/iniciar-sesion').then((m) => m.IniciarSesion),
   },
+
+  // Dirección anterior, por si alguien la tiene guardada.
+  { path: 'login', redirectTo: 'iniciar-sesion', pathMatch: 'full' },
 
   {
     path: 'registro',
@@ -28,7 +31,7 @@ export const routes: Routes = [
   {
     path: 'panel/organizacion',
     loadComponent: () =>
-      import('./shared/panel-shell-layout/panel-shell-layout').then((m) => m.PanelShellLayout),
+      import('./shared/plantilla-panel/plantilla-panel').then((m) => m.PlantillaPanel),
 
     canActivate: [authGuard],
     data: { rol: 'ORGANIZACION' },
@@ -37,15 +40,15 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () =>
-          import('./pages/dashboard/organizacion/organizacion').then(
-            (m) => m.OrganizacionDashboard,
+          import('./pages/panel/organizacion/organizacion').then(
+            (m) => m.PanelOrganizacion,
           ),
       },
 
       {
         path: 'personas-mayores',
         loadComponent: () =>
-          import('./pages/dashboard/organizacion/personas-mayores/personas-mayores').then(
+          import('./pages/panel/organizacion/personas-mayores/personas-mayores').then(
             (m) => m.PersonasMayores,
           ),
         data: { titulo: 'Personas mayores' },
@@ -61,7 +64,7 @@ export const routes: Routes = [
       {
         path: 'voluntarios',
         loadComponent: () =>
-          import('./pages/dashboard/organizacion/voluntarios/voluntarios').then(
+          import('./pages/panel/organizacion/voluntarios/voluntarios').then(
             (m) => m.Voluntarios,
           ),
       },
@@ -69,7 +72,7 @@ export const routes: Routes = [
       {
         path: 'actividades',
         loadComponent: () =>
-          import('./pages/dashboard/organizacion/actividades/actividades').then(
+          import('./pages/panel/organizacion/actividades/actividades').then(
             (m) => m.Actividades,
           ),
         data: { titulo: 'Actividades' },
@@ -78,7 +81,7 @@ export const routes: Routes = [
       {
         path: 'signos-vitales',
         loadComponent: () =>
-          import('./pages/dashboard/organizacion/signos-vitales/signos-vitales').then(
+          import('./pages/panel/organizacion/signos-vitales/signos-vitales').then(
             (m) => m.SignosVitales,
           ),
         data: { titulo: 'Signos vitales' },
@@ -108,7 +111,7 @@ export const routes: Routes = [
       {
         path: 'analitica',
         loadComponent: () =>
-          import('./pages/dashboard/organizacion/analitica/analitica').then((m) => m.Analitica),
+          import('./pages/panel/organizacion/analitica/analitica').then((m) => m.Analitica),
       },
 
       {
@@ -133,7 +136,7 @@ export const routes: Routes = [
   {
     path: 'panel/voluntario',
     loadComponent: () =>
-      import('./shared/panel-shell-layout/panel-shell-layout').then((m) => m.PanelShellLayout),
+      import('./shared/plantilla-panel/plantilla-panel').then((m) => m.PlantillaPanel),
 
     canActivate: [authGuard],
     data: { rol: 'VOLUNTARIO' },
@@ -142,13 +145,13 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () =>
-          import('./pages/dashboard/voluntario/voluntario').then((m) => m.VoluntarioDashboard),
+          import('./pages/panel/voluntario/voluntario').then((m) => m.PanelVoluntario),
       },
 
       {
         path: 'organizaciones',
         loadComponent: () =>
-          import('./pages/dashboard/voluntario/organizaciones/organizaciones').then(
+          import('./pages/panel/voluntario/organizaciones/organizaciones').then(
             (m) => m.VoluntarioOrganizaciones,
           ),
       },
@@ -156,7 +159,7 @@ export const routes: Routes = [
       {
         path: 'actividades',
         loadComponent: () =>
-          import('./pages/dashboard/voluntario/actividades/actividades').then(
+          import('./pages/panel/voluntario/actividades/actividades').then(
             (m) => m.VoluntarioActividades,
           ),
       },
@@ -183,7 +186,7 @@ export const routes: Routes = [
   {
     path: 'panel/acompanante',
     loadComponent: () =>
-      import('./shared/panel-shell-layout/panel-shell-layout').then((m) => m.PanelShellLayout),
+      import('./shared/plantilla-panel/plantilla-panel').then((m) => m.PlantillaPanel),
 
     canActivate: [authGuard],
     data: { rol: 'ACOMPANANTE' },
@@ -192,13 +195,13 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () =>
-          import('./pages/dashboard/acompanante/acompanante').then((m) => m.AcompananteDashboard),
+          import('./pages/panel/acompanante/acompanante').then((m) => m.PanelAcompanante),
       },
 
       {
         path: 'personas-mayores',
         loadComponent: () =>
-          import('./pages/dashboard/acompanante/mis-personas-mayores/mis-personas-mayores').then(
+          import('./pages/panel/acompanante/mis-personas-mayores/mis-personas-mayores').then(
             (m) => m.MisPersonasMayores,
           ),
       },
@@ -206,7 +209,7 @@ export const routes: Routes = [
       {
         path: 'seguimiento',
         loadComponent: () =>
-          import('./pages/dashboard/acompanante/seguimiento/seguimiento').then(
+          import('./pages/panel/acompanante/seguimiento/seguimiento').then(
             (m) => m.Seguimiento,
           ),
       },
@@ -214,13 +217,13 @@ export const routes: Routes = [
       {
         path: 'gestion',
         loadComponent: () =>
-          import('./pages/dashboard/acompanante/gestion/gestion').then((m) => m.GestionCuidado),
+          import('./pages/panel/acompanante/gestion/gestion').then((m) => m.GestionCuidado),
       },
 
       {
         path: 'actividades',
         loadComponent: () =>
-          import('./pages/dashboard/acompanante/actividades/actividades').then(
+          import('./pages/panel/acompanante/actividades/actividades').then(
             (m) => m.ActividadesComponent,
           ),
       },
@@ -238,7 +241,7 @@ export const routes: Routes = [
     path: 'panel/persona-mayor',
 
     loadComponent: () =>
-      import('./shared/panel-shell-layout/panel-shell-layout').then((m) => m.PanelShellLayout),
+      import('./shared/plantilla-panel/plantilla-panel').then((m) => m.PlantillaPanel),
 
     canActivate: [authGuard],
     data: { rol: 'PERSONA_MAYOR' },
@@ -247,15 +250,15 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () =>
-          import('./pages/dashboard/persona-mayor/persona-mayor').then(
-            (m) => m.PersonaMayorDashboard,
+          import('./pages/panel/persona-mayor/persona-mayor').then(
+            (m) => m.PanelPersonaMayor,
           ),
       },
 
       {
         path: 'actividades',
         loadComponent: () =>
-          import('./pages/dashboard/persona-mayor/actividades/actividades').then(
+          import('./pages/panel/persona-mayor/actividades/actividades').then(
             (m) => m.Actividades,
           ),
       },
@@ -270,7 +273,7 @@ export const routes: Routes = [
       {
         path: 'recordatorios',
         loadComponent: () =>
-          import('./pages/dashboard/persona-mayor/recordatorios/recordatorios').then(
+          import('./pages/panel/persona-mayor/recordatorios/recordatorios').then(
             (m) => m.Recordatorios,
           ),
       },
@@ -278,7 +281,7 @@ export const routes: Routes = [
       {
         path: 'signos-vitales',
         loadComponent: () =>
-          import('./pages/dashboard/persona-mayor/signos-vitales/signos-vitales').then(
+          import('./pages/panel/persona-mayor/signos-vitales/signos-vitales').then(
             (m) => m.SignosVitalesPersonaMayor,
           ),
       },
@@ -286,7 +289,7 @@ export const routes: Routes = [
       {
         path: 'citas-medicas',
         loadComponent: () =>
-          import('./pages/dashboard/persona-mayor/citas-medicas/citas-medicas').then(
+          import('./pages/panel/persona-mayor/citas-medicas/citas-medicas').then(
             (m) => m.CitasMedicas,
           ),
       },
@@ -299,12 +302,12 @@ export const routes: Routes = [
       {
         path: 'contactos',
         loadComponent: () =>
-          import('./pages/dashboard/persona-mayor/contactos/contactos').then((m) => m.Contactos),
+          import('./pages/panel/persona-mayor/contactos/contactos').then((m) => m.Contactos),
       },
       {
         path: 'organizaciones',
         loadComponent: () =>
-          import('./pages/dashboard/persona-mayor/organizaciones/organizaciones').then(
+          import('./pages/panel/persona-mayor/organizaciones/organizaciones').then(
             (m) => m.Organizaciones,
           ),
       },

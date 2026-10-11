@@ -8,7 +8,7 @@ import {
   fechaHoy,
   textoFrecuencia
 } from '../../core/actividades/actividad.service';
-import { Icon } from '../icon/icon';
+import { Icono } from '../icono/icono';
 
 /** Organización que se puede elegir en el formulario (propuestas). */
 export interface OpcionOrganizacion {
@@ -33,9 +33,9 @@ export interface ActividadFormularioDatos extends ActividadRequest {
 @Component({
   selector: 'app-actividad-formulario',
   standalone: true,
-  imports: [FormsModule, Icon],
+  imports: [FormsModule, Icono],
   templateUrl: './actividad-formulario.html',
-  styleUrls: ['../actividad-card/actividades-modales.css']
+  styleUrls: ['../tarjeta-actividad/actividades-modales.css']
 })
 export class ActividadFormulario {
 

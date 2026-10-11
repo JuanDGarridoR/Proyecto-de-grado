@@ -28,7 +28,7 @@
         <div class="salud__bloque">
           <div class="salud__bloque-header">
             <span class="salud__bloque-icono" aria-hidden="true">
-              <app-icon [name]="seccion.icono" />
+              <app-icono [name]="seccion.icono" />
             </span>
             <h3>{{ seccion.titulo }}</h3>
             @if (registrosSeccion.length > 0) {
@@ -88,7 +88,7 @@
                         [attr.aria-label]="'Editar ' + nombreDe(registro)"
                         (click)="abrirEdicion(seccion, registro)"
                       >
-                        <app-icon name="pen" />
+                        <app-icono name="pen" />
                       </button>
                       <button
                         type="button"
@@ -96,7 +96,7 @@
                         [attr.aria-label]="'Quitar ' + nombreDe(registro)"
                         (click)="idConfirmandoQuitar.set(registro.idPersonaMayorCondicionSalud)"
                       >
-                        <app-icon name="x" />
+                        <app-icono name="x" />
                       </button>
                     </div>
                   }
@@ -106,7 +106,7 @@
           }
 
           <button type="button" class="salud__agregar" (click)="abrirNuevo(seccion)">
-            <app-icon name="plus" />
+            <app-icono name="plus" />
             Agregar {{ seccion.singular }}
           </button>
         </div>

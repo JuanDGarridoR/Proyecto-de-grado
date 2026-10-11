@@ -88,7 +88,7 @@ public class CuentaService {
                     + " AND estado IN ('PENDIENTE', 'RECHAZADA')", idUsuario);
         }
 
-        // Preferencias de notificación (tabla de messaging-service)
+        // Preferencias de notificación (tabla de mensajeria-service)
         ejecutarSiExisteTabla("preferencia_notificacion",
                 "DELETE FROM preferencia_notificacion WHERE id_usuario = :id", idUsuario);
 
@@ -279,7 +279,7 @@ public class CuentaService {
     /**
      * Ejecuta el DELETE solo si la tabla existe. voluntario_organizacion,
      * preferencia_notificacion y persona_mayor_condicion_salud las crean
-     * voluntario-service, messaging-service y salud-service al arrancar; si
+     * voluntario-service, mensajeria-service y salud-service al arrancar; si
      * nunca han arrancado, la tabla no existe y el DELETE abortaría todo.
      */
     private void ejecutarSiExisteTabla(String tabla, String sql, Integer id) {

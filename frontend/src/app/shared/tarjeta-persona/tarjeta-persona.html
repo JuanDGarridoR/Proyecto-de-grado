@@ -1,0 +1,84 @@
+<!-- Identidad -->
+
+<div class="person-card__identity">
+  <div class="person-card__avatar" aria-hidden="true">
+    <app-icono [name]="icono()" />
+  </div>
+
+  <div class="person-card__name">
+    @if (etiqueta()) {
+      <span class="person-card__eyebrow">{{ etiqueta() }}</span>
+    }
+
+    <h3>{{ nombre() }}</h3>
+  </div>
+</div>
+
+<div class="person-card__divider"></div>
+
+<!-- Detalles -->
+
+<div class="person-card__details">
+  @if (celular()) {
+    <div class="person-card__detail">
+      <app-icono name="phone" />
+
+      <div>
+        <span>Celular</span>
+        <strong>{{ celular() }}</strong>
+      </div>
+    </div>
+  }
+
+  @if (correo()) {
+    <div class="person-card__detail">
+      <app-icono name="mail" />
+
+      <div>
+        <span>Correo</span>
+        <strong>{{ correo() }}</strong>
+      </div>
+    </div>
+  }
+
+  @if (direccion()) {
+    <div class="person-card__detail">
+      <app-icono name="map-pin" />
+
+      <div>
+        <span>Dirección</span>
+        <strong>{{ direccion() }}</strong>
+      </div>
+    </div>
+  }
+
+  @if (relacion()) {
+    <div class="person-card__detail">
+      <app-icono name="users" />
+
+      <div>
+        <span>Relación</span>
+        <strong>{{ relacion() }}</strong>
+      </div>
+    </div>
+  }
+</div>
+
+<div class="person-card__divider person-card__divider--short"></div>
+
+<!-- Estado y acciones -->
+
+<div class="person-card__actions">
+  @if (estado()) {
+    <div
+      class="person-card__status"
+      [class.person-card__status--pending]="estadoTipo() === 'pendiente'"
+      [class.person-card__status--rejected]="estadoTipo() === 'rechazado'"
+    >
+      <span class="person-card__status-dot"></span>
+      <span>{{ estado() }}</span>
+    </div>
+  }
+
+  <ng-content select="[card-actions]" />
+</div>

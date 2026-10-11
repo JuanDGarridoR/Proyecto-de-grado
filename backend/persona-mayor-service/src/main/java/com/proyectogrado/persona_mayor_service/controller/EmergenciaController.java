@@ -1,6 +1,6 @@
 package com.proyectogrado.persona_mayor_service.controller;
 
-import com.proyectogrado.persona_mayor_service.client.MessagingClient;
+import com.proyectogrado.persona_mayor_service.client.MensajeriaClient;
 import com.proyectogrado.persona_mayor_service.config.ZonaHoraria;
 import com.proyectogrado.persona_mayor_service.model.Emergencia;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorAcompanante;
@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Botón de emergencia de la persona mayor: envía un SMS a todos sus
  * acompañantes y organizaciones con vínculo aceptado. Este servicio decide
- * a quién avisar; messaging-service solo hace el envío. Además la guarda
+ * a quién avisar; mensajeria-service solo hace el envío. Además la guarda
  * (tabla emergencia) para que los acompañantes la vean en su inicio.
  */
 @RestController
@@ -33,20 +33,20 @@ public class EmergenciaController {
     private final PersonaMayorAcompananteRepository relacionAcompananteRepository;
     private final PersonaMayorOrganizacionRepository relacionOrganizacionRepository;
     private final UsuarioLookupRepository usuarioLookupRepository;
-    private final MessagingClient messagingClient;
+    private final MensajeriaClient mensajeriaClient;
     private final EmergenciaRepository emergenciaRepository;
 
     public EmergenciaController(
             PersonaMayorAcompananteRepository relacionAcompananteRepository,
             PersonaMayorOrganizacionRepository relacionOrganizacionRepository,
             UsuarioLookupRepository usuarioLookupRepository,
-            MessagingClient messagingClient,
+            MensajeriaClient mensajeriaClient,
             EmergenciaRepository emergenciaRepository
     ) {
         this.relacionAcompananteRepository = relacionAcompananteRepository;
         this.relacionOrganizacionRepository = relacionOrganizacionRepository;
         this.usuarioLookupRepository = usuarioLookupRepository;
-        this.messagingClient = messagingClient;
+        this.mensajeriaClient = mensajeriaClient;
         this.emergenciaRepository = emergenciaRepository;
     }
 
@@ -84,7 +84,7 @@ public class EmergenciaController {
                 continue;
             }
 
-            if (messagingClient.enviarMensaje(celular, mensaje, "EMERGENCIA")) {
+            if (mensajeriaClient.enviarMensaje(celular, mensaje, "EMERGENCIA")) {
                 enviadosAcompanantes++;
             }
         }
@@ -108,7 +108,7 @@ public class EmergenciaController {
                 continue;
             }
 
-            if (messagingClient.enviarMensaje(celular, mensaje, "EMERGENCIA")) {
+            if (mensajeriaClient.enviarMensaje(celular, mensaje, "EMERGENCIA")) {
                 enviadosOrganizaciones++;
             }
         }

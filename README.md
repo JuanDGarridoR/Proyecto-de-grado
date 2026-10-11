@@ -83,7 +83,7 @@ El backend está dividido en **Servicios**. El frontend nunca habla directamente
            ▼
 ┌──────────────────────────────────────────┐
 │                Servicios                 │
-│  auth · messaging · persona-mayor ·      │
+│  auth · mensajeria · persona-mayor ·      │
 │  acompañante · organización · voluntario │
 │  salud · actividad · analítica           │
 └──────────┬───────────────────┬───────────┘
@@ -101,7 +101,7 @@ El backend está dividido en **Servicios**. El frontend nunca habla directamente
 | ----------------------- | :----: | ---------------------------------------------------------------- |
 | `api-gateway`           |  8080  | Punto de entrada único; valida el JWT y enruta las peticiones    |
 | `auth-service`          |  8081  | Registro, inicio de sesión (contraseña u OTP), cuenta, JWT y validación de correos (Hunter) |
-| `messaging-service`     |  8082  | Envío de SMS y códigos OTP (TextBee) y notificaciones del panel  |
+| `mensajeria-service`     |  8082  | Envío de SMS y códigos OTP (TextBee) y notificaciones del panel  |
 | `salud-service`         |  8084  | Medicamentos, recordatorios y signos vitales                     |
 | `persona-mayor-service` |  8085  | Perfil, gustos, contactos y emergencias de la persona mayor      |
 | `acompanante-service`   |  8086  | Personas mayores a cargo, seguimiento y contactos de emergencia  |
@@ -120,7 +120,7 @@ Proyecto-de-grado/
 ├── backend/
 │   ├── api-gateway/
 │   ├── auth-service/
-│   ├── messaging-service/
+│   ├── mensajeria-service/
 │   ├── persona-mayor-service/
 │   ├── acompanante-service/
 │   ├── organizacion-service/
@@ -136,8 +136,8 @@ Proyecto-de-grado/
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── core/          ← autenticación, interceptores y servicios
-│   │   │   ├── pages/         ← landing, login, registro y paneles por rol
-│   │   │   └── shared/        ← navbar, footer, shell de los paneles, iconos
+│   │   │   ├── pages/         ← inicio, iniciar sesión, registro y paneles por rol
+│   │   │   └── shared/        ← barra de navegación, pie de página, marco de los paneles, iconos
 │   │   ├── index.html
 │   │   ├── main.ts
 │   │   └── styles.css

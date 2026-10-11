@@ -1,6 +1,6 @@
 package com.proyectogrado.persona_mayor_service.integracion;
 
-import com.proyectogrado.persona_mayor_service.client.MessagingClient;
+import com.proyectogrado.persona_mayor_service.client.MensajeriaClient;
 import com.proyectogrado.persona_mayor_service.controller.EmergenciaController;
 import com.proyectogrado.persona_mayor_service.controller.PersonaMayorAcompananteController;
 import com.proyectogrado.persona_mayor_service.repository.AcompananteLookupRepository;
@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Flujo completo de un contacto de emergencia sobre una base H2 en memoria
  * (RF-53): la persona mayor ya registrada agrega a su acompañante, él acepta,
  * aparece en sus contactos y le llega la alerta del botón de emergencia. Los
- * controladores usan los repositorios reales; solo messaging-service está
+ * controladores usan los repositorios reales; solo mensajeria-service está
  * simulado.
  */
 @DataJpaTest
@@ -61,7 +61,7 @@ class ContactoDeEmergenciaIntegracionTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    private final MessagingClient messagingClient = mock(MessagingClient.class);
+    private final MensajeriaClient mensajeriaClient = mock(MensajeriaClient.class);
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -76,7 +76,7 @@ class ContactoDeEmergenciaIntegracionTest {
 
         mockMvc = MockMvcBuilders.standaloneSetup(
                 new PersonaMayorAcompananteController(relacionRepository, usuarioLookupRepository, acompananteLookupRepository),
-                new EmergenciaController(relacionRepository, organizacionRepository, usuarioLookupRepository, messagingClient,
+                new EmergenciaController(relacionRepository, organizacionRepository, usuarioLookupRepository, mensajeriaClient,
                         emergenciaRepository)
         ).build();
     }
@@ -119,7 +119,7 @@ class ContactoDeEmergenciaIntegracionTest {
                 .andExpect(jsonPath("$.length()").value(0));
         mockMvc.perform(post("/api/persona-mayor/emergencia").header("X-User-Id", 10))
                 .andExpect(status().isBadRequest());
-        verify(messagingClient, never()).enviarMensaje(anyString(), anyString(), anyString());
+        verify(mensajeriaClient, never()).enviarMensaje(anyString(), anyString(), anyString());
 
         elAcompananteAcepta(10);
 
@@ -130,13 +130,13 @@ class ContactoDeEmergenciaIntegracionTest {
                 .andExpect(jsonPath("$[0].celular").value("+573002220000"))
                 .andExpect(jsonPath("$[0].relacion").value("Hijo"));
 
-        when(messagingClient.enviarMensaje(anyString(), anyString(), anyString())).thenReturn(true);
+        when(mensajeriaClient.enviarMensaje(anyString(), anyString(), anyString())).thenReturn(true);
 
         mockMvc.perform(post("/api/persona-mayor/emergencia").header("X-User-Id", 10))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Alerta de emergencia enviada a 1 acompañante(s) y 0 organización(es)"));
 
-        verify(messagingClient).enviarMensaje(eq("+573002220000"), contains("Rosa Díaz"), eq("EMERGENCIA"));
+        verify(mensajeriaClient).enviarMensaje(eq("+573002220000"), contains("Rosa Díaz"), eq("EMERGENCIA"));
     }
 
     @Test

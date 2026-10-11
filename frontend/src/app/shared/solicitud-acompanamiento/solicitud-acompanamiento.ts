@@ -1,7 +1,7 @@
 import { Component, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { Icon } from '../icon/icon';
+import { Icono } from '../icono/icono';
 
 /** Lo que entrega el formulario: celular ya con +57 y la relación. */
 export interface DatosSolicitudAcompanamiento {
@@ -20,7 +20,7 @@ export interface DatosSolicitudAcompanamiento {
 @Component({
   selector: 'app-solicitud-acompanamiento',
   standalone: true,
-  imports: [FormsModule, Icon],
+  imports: [FormsModule, Icono],
   templateUrl: './solicitud-acompanamiento.html',
   styleUrl: './solicitud-acompanamiento.css'
 })

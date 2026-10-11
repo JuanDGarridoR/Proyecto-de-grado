@@ -1,0 +1,306 @@
+<!-- Mensajes de éxito y error -->
+
+@if (mensaje(); as mensajeActual) {
+  <div class="message message--success">
+    <app-icono name="check-circle" />
+
+    {{ mensajeActual }}
+  </div>
+}
+
+@if (error(); as errorActual) {
+  <div class="message message--error">
+    <app-icono name="alert-circle" />
+
+    {{ errorActual }}
+  </div>
+}
+
+<!-- Personas mayores que pidieron unirse -->
+
+@if (solicitudes().length > 0) {
+  <section class="solicitudes-section" aria-labelledby="solicitudesTitulo">
+    <div class="section-title">
+      <div>
+        <h2 id="solicitudesTitulo">Solicitudes para unirse</h2>
+        <p>Estas personas mayores pidieron hacer parte de tu organización.</p>
+      </div>
+
+      <div class="people-count">
+        {{ solicitudes().length }} {{ solicitudes().length === 1 ? 'solicitud' : 'solicitudes' }}
+      </div>
+    </div>
+
+    <div class="people-list">
+      @for (persona of solicitudes(); track persona.idUsuario) {
+        <app-tarjeta-persona
+          etiqueta="Persona mayor"
+          [nombre]="persona.nombre"
+          [celular]="persona.celular"
+          estado="Solicitud pendiente"
+          estadoTipo="pendiente"
+        >
+          <div card-actions class="person-card-actions">
+            <button
+              type="button"
+              class="solicitud-boton solicitud-boton--rechazar"
+              (click)="responderSolicitud(persona, false)"
+              [disabled]="respondiendo() === persona.idUsuario"
+            >
+              Rechazar
+            </button>
+
+            <button
+              type="button"
+              class="solicitud-boton solicitud-boton--aceptar"
+              (click)="responderSolicitud(persona, true)"
+              [disabled]="respondiendo() === persona.idUsuario"
+            >
+              <app-icono name="check" />
+              Aceptar
+            </button>
+          </div>
+        </app-tarjeta-persona>
+      }
+    </div>
+  </section>
+}
+
+<!-- Personas mayores vinculadas -->
+
+<section class="people-section">
+  <div class="section-title">
+    <div>
+      <h2>Personas mayores</h2>
+
+      <p>Consulta las personas mayores que pertenecen a tu organización.</p>
+    </div>
+
+    <div class="people-section__actions">
+      @if (!cargandoPersonas()) {
+        <div class="people-count">
+          {{ personasMayores().length }}
+          {{ personasMayores().length === 1 ? 'persona asociada' : 'personas asociadas' }}
+        </div>
+      }
+
+      <button type="button" class="add-button" (click)="mostrarFormulario()">
+        <app-icono name="users" />
+
+        Asociar persona mayor
+      </button>
+    </div>
+  </div>
+
+  <!-- Cargando, error o estado vacío -->
+
+  @if (cargandoPersonas()) {
+    <div class="empty-state" role="status" aria-live="polite">
+      <div class="empty-state__icon">
+        <app-icono name="hourglass" class="icono-cargando" />
+      </div>
+
+      <h3>Cargando personas mayores...</h3>
+
+      <p>Estamos trayendo las personas mayores de tu organización.</p>
+    </div>
+  } @else if (errorPersonas()) {
+    <div class="empty-state" role="alert">
+      <div class="empty-state__icon empty-state__icon--error">
+        <app-icono name="alert-circle" />
+      </div>
+
+      <h3>No se pudieron cargar las personas mayores</h3>
+
+      <p>Revisa tu conexión e inténtalo de nuevo en un momento.</p>
+    </div>
+  } @else if (personasMayores().length === 0) {
+    <div class="empty-state">
+      <div class="empty-state__icon">
+        <app-icono name="users" />
+      </div>
+
+      <h3>No tienes personas mayores asociadas</h3>
+
+      <p>Cuando una persona mayor acepte tu solicitud de asociación, aparecerá aquí.</p>
+    </div>
+  } @else {
+    <app-buscador-nombre class="buscador" [(texto)]="busqueda" placeholder="Buscar persona mayor por nombre..." />
+
+    @if (personasFiltradas().length === 0) {
+      <p class="sin-resultados">Ninguna persona mayor coincide con "{{ busqueda() }}".</p>
+    }
+
+    <!-- Lista: cada tarjeta tiene botones de acompañantes, signos vitales y cancelar -->
+
+    <div class="people-list">
+      @for (persona of personasFiltradas(); track persona.idUsuario) {
+        <app-tarjeta-persona
+          etiqueta="Persona mayor"
+          [nombre]="persona.nombre"
+          [celular]="persona.celular"
+        >
+          <div card-actions class="person-card-actions">
+            <button
+              type="button"
+              class="person-card-action"
+              (click)="mostrarAcompanantes(persona)"
+            >
+              <app-icono name="users" />
+              Acompañantes
+            </button>
+
+            <button
+              type="button"
+              class="person-card-action"
+              (click)="mostrarSignosVitales(persona)"
+            >
+              <app-icono name="heart" />
+              Signos vitales
+            </button>
+
+            <button
+              type="button"
+              class="person-card-remove"
+              (click)="mostrarConfirmacion(persona)"
+              title="Cancelar asociación"
+              aria-label="Cancelar asociación"
+            >
+              <app-icono name="x" />
+            </button>
+          </div>
+        </app-tarjeta-persona>
+      }
+    </div>
+  }
+</section>
+
+<!-- Personas mayores que eliminaron su cuenta y por qué -->
+
+@if (retiros().length > 0) {
+  <details class="retiros">
+    <summary>
+      Personas que dejaron la plataforma
+      <span class="retiros__cantidad">{{ retiros().length }}</span>
+    </summary>
+
+    <p class="retiros__ayuda">
+      Personas mayores de tu organización que eliminaron su cuenta, con la razón que indicaron.
+    </p>
+
+    <ul class="retiros__lista">
+      @for (retiro of retiros(); track $index) {
+        <li class="retiro">
+          <div class="retiro__encabezado">
+            <strong>{{ retiro.nombre }}</strong>
+            <span class="retiro__fecha">{{ retiro.fecha | date:"d 'de' MMMM 'de' y":'':'es-CO' }}</span>
+          </div>
+          <span class="retiro__razon">{{ textoRazon(retiro.razon) }}</span>
+          @if (retiro.comentario) {
+            <p class="retiro__comentario">“{{ retiro.comentario }}”</p>
+          }
+        </li>
+      }
+    </ul>
+  </details>
+}
+
+<!-- Modal para enviar una solicitud de vínculo por celular -->
+
+@if (mostrandoFormulario()) {
+  <div class="modal-overlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal__header">
+        <h2 id="modalTitle">Asociar persona mayor</h2>
+
+        <button
+          type="button"
+          class="modal__close"
+          (click)="cancelarFormulario()"
+          aria-label="Cerrar"
+        >
+          ×
+        </button>
+      </div>
+
+      <p class="modal__description">
+        Ingresa el número de celular de la persona mayor que deseas asociar. Se enviará una
+        solicitud que deberá ser aceptada por la persona.
+      </p>
+
+      <div class="form-group">
+        <label for="celularPersonaMayor"> Celular de la persona mayor </label>
+
+        <input
+          id="celularPersonaMayor"
+          type="tel"
+          [(ngModel)]="celular"
+          placeholder="Ej. 3001234567"
+        />
+      </div>
+
+      @if (error(); as errorActual) {
+        <div class="modal__error">
+          <app-icono name="alert-circle" />
+
+          {{ errorActual }}
+        </div>
+      }
+
+      <div class="modal__actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cancelarFormulario()"
+          [disabled]="agregandoPersonaMayor()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-gold"
+          (click)="asociarPersonaMayor()"
+          [disabled]="agregandoPersonaMayor()"
+        >
+          @if (agregandoPersonaMayor()) {
+            Enviando...
+          } @else {
+            Enviar solicitud
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal para cancelar el vínculo -->
+@if (mostrandoConfirmacion()) {
+  <app-cancelar-asociacion
+    [nombre]="personaSeleccionada?.nombre"
+    advertencia="La persona mayor dejará de aparecer en la lista de personas asociadas a tu organización."
+    (confirmar)="confirmarCancelacion()"
+    (cerrar)="cerrarConfirmacion()"
+  />
+}
+
+<!-- Modal de acompañantes -->
+@if (mostrandoAcompanantes()) {
+  <app-modal-acompanantes
+    [nombre]="personaMayorSeleccionada?.nombre"
+    [acompanantes]="acompanantes()"
+    [cargando]="cargandoAcompanantes()"
+    (cerrar)="cerrarAcompanantes()"
+  />
+}
+
+<!-- Modal de signos vitales -->
+@if (mostrandoSignosVitales()) {
+  <app-modal-signos-vitales
+    [nombre]="personaMayorSeleccionada?.nombre"
+    [registros]="signosVitales()"
+    [cargando]="cargandoSignosVitales()"
+    [error]="errorSignosVitales()"
+    (cerrar)="cerrarSignosVitales()"
+  />
+}

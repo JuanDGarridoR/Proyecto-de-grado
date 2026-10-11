@@ -1,20 +1,20 @@
 <section class="recomendaciones" aria-labelledby="recomendacionesTitulo">
   <header class="recomendaciones__header">
     <h2 id="recomendacionesTitulo">
-      <app-icon name="sparkles" /> Organizaciones que te pueden interesar
+      <app-icono name="sparkles" /> Organizaciones que te pueden interesar
     </h2>
     <p>Te las recomendamos según tus gustos, las actividades que ofrecen y qué tan cerca te quedan.</p>
   </header>
 
   @if (mensaje(); as m) {
     <div class="aviso aviso--exito" role="status">
-      <app-icon name="check-circle" />
+      <app-icono name="check-circle" />
       <p>{{ m }}</p>
     </div>
   }
   @if (errorSolicitud(); as e) {
     <div class="aviso aviso--error" role="alert">
-      <app-icon name="alert-circle" />
+      <app-icono name="alert-circle" />
       <p>{{ e }}</p>
     </div>
   }
@@ -28,7 +28,7 @@
     <!-- Avisos para mejorar las recomendaciones -->
     @if (!d.conGustos) {
       <div class="aviso">
-        <app-icon name="info" />
+        <app-icono name="info" />
         <p>
           Registra tus intereses para recibir mejores recomendaciones.
           <a [routerLink]="panel() + '/intereses'">Ir a mis intereses</a>
@@ -37,7 +37,7 @@
     }
     @if (!d.direccionReconocida) {
       <div class="aviso">
-        <app-icon name="map" />
+        <app-icono name="map" />
         <p>
           No pudimos ubicar tu dirección, así que no sabemos qué tan cerca te quedan las organizaciones.
           Revisa que esté escrita como en un recibo, por ejemplo "Calle 76 Sur # 4-20".
@@ -62,14 +62,14 @@
                 <div>
                   <h3>{{ org.nombre }}</h3>
                   @if (org.direccion) {
-                    <p class="tarjeta__direccion"><app-icon name="map" /> {{ org.direccion }}</p>
+                    <p class="tarjeta__direccion"><app-icono name="map" /> {{ org.direccion }}</p>
                   }
                 </div>
 
                 <ul class="tarjeta__razones">
                   @for (razon of org.razones; track razon) {
                     <li>
-                      <app-icon
+                      <app-icono
                         [name]="razon.startsWith('Queda') ? 'map' : razon.startsWith('Tiene') ? 'activity' : 'users'"
                       />
                       {{ razon }}
@@ -93,7 +93,7 @@
                   @if (enviando() === org.idOrganizacion) {
                     Enviando...
                   } @else {
-                    <app-icon name="plus" /> Solicitar vinculación
+                    <app-icono name="plus" /> Solicitar vinculación
                   }
                 </button>
               </div>

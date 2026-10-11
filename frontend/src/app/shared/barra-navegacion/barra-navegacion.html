@@ -1,0 +1,106 @@
+<header class="navbar">
+
+  <div class="container navbar__inner">
+
+    <a
+      class="navbar__brand"
+      href="#hero"
+      aria-label="VITA+, ir al inicio"
+    >
+      <img
+        src="logo.png"
+        alt="Logo VITA+"
+        class="logo-mark"
+      />
+
+      <span class="navbar__brand-text">
+        <span class="navbar__brand-name">VITA+</span>
+
+        <span class="navbar__brand-tagline">
+          Cuidamos juntos a quienes importan
+        </span>
+      </span>
+    </a>
+
+    <!-- Enlaces a las secciones de la landing -->
+    <nav
+      class="navbar__nav"
+      aria-label="Navegación principal"
+    >
+      <ul class="navbar__links">
+
+        @for (link of navLinks; track link.href) {
+          <li>
+            <a [href]="link.href">
+              {{ link.label }}
+            </a>
+          </li>
+        }
+
+      </ul>
+    </nav>
+
+    <!-- Sin sesión: ingresar o crear cuenta. Con sesión: menú del usuario. -->
+    <div class="navbar__actions">
+
+      @if (!autenticado()) {
+
+        <a
+          class="navbar__login-link"
+          routerLink="/iniciar-sesion"
+        >
+          Iniciar sesión
+        </a>
+
+        <a
+          class="btn btn-primary"
+          routerLink="/registro"
+        >
+          Crear cuenta
+        </a>
+
+      } @else {
+
+        <div class="navbar__user">
+
+  <!-- Botón con la inicial del usuario; abre su menú -->
+  <button
+    type="button"
+    class="navbar__user-avatar"
+    (click)="toggleMenuUsuario()"
+    [title]="nombreUsuario"
+    [attr.aria-expanded]="menuUsuarioAbierto"
+  >
+    {{ inicialUsuario }}
+  </button>
+
+  @if (menuUsuarioAbierto) {
+    <div class="navbar__user-menu">
+
+          <button
+            type="button"
+            (click)="irAMiInformacion()"
+          >
+            Página principal
+          </button>
+
+          <button
+            type="button"
+            class="navbar__menu-logout"
+            (click)="cerrarSesion()"
+          >
+            Cerrar sesión
+          </button>
+
+        </div>
+      }
+
+    </div>
+
+      }
+
+    </div>
+
+  </div>
+
+</header>

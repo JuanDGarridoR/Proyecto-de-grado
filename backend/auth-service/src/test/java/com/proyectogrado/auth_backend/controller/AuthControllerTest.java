@@ -1,7 +1,7 @@
 package com.proyectogrado.auth_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.proyectogrado.auth_backend.client.MessagingClient;
+import com.proyectogrado.auth_backend.client.MensajeriaClient;
 import com.proyectogrado.auth_backend.model.Organizacion;
 import com.proyectogrado.auth_backend.model.PersonaMayor;
 import com.proyectogrado.auth_backend.model.Rol;
@@ -16,7 +16,7 @@ import com.proyectogrado.auth_backend.repository.UsuarioRolRepository;
 import com.proyectogrado.auth_backend.repository.VoluntarioRepository;
 import com.proyectogrado.auth_backend.security.JwtService;
 import com.proyectogrado.auth_backend.service.AuthService;
-import com.proyectogrado.auth_backend.service.EmailValidationService;
+import com.proyectogrado.auth_backend.service.ValidacionCorreoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -50,7 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Registro, inicio de sesión (con contraseña y con OTP) y recuperación de
  * contraseña (RF-01, RF-02 y RF-06). Usa el AuthService real, con BCrypt y
- * JwtService reales; solo se simulan los repositorios, messaging-service y
+ * JwtService reales; solo se simulan los repositorios, mensajeria-service y
  * Hunter, así que no se toca la base de datos ni se envían SMS.
  */
 class AuthControllerTest {
@@ -66,8 +66,8 @@ class AuthControllerTest {
     private UsuarioRolRepository usuarioRolRepository;
     private PersonaMayorRepository personaMayorRepository;
     private OrganizacionRepository organizacionRepository;
-    private MessagingClient messagingClient;
-    private EmailValidationService emailValidationService;
+    private MensajeriaClient mensajeriaClient;
+    private ValidacionCorreoService validacionCorreoService;
     private JwtService jwtService;
     private MockMvc mockMvc;
 
@@ -78,8 +78,8 @@ class AuthControllerTest {
         usuarioRolRepository = mock(UsuarioRolRepository.class);
         personaMayorRepository = mock(PersonaMayorRepository.class);
         organizacionRepository = mock(OrganizacionRepository.class);
-        messagingClient = mock(MessagingClient.class);
-        emailValidationService = mock(EmailValidationService.class);
+        mensajeriaClient = mock(MensajeriaClient.class);
+        validacionCorreoService = mock(ValidacionCorreoService.class);
 
         jwtService = new JwtService();
         ReflectionTestUtils.setField(jwtService, "jwtSecret", "clave_de_pruebas_de_vita_mas_con_al_menos_32_bytes");
@@ -95,12 +95,12 @@ class AuthControllerTest {
                 mock(VoluntarioRepository.class),
                 passwordEncoder,
                 jwtService,
-                messagingClient,
-                emailValidationService
+                mensajeriaClient,
+                validacionCorreoService
         );
 
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new AuthController(authService, emailValidationService))
+                .standaloneSetup(new AuthController(authService, validacionCorreoService))
                 .build();
 
         // La base asigna el id al guardar.
@@ -130,7 +130,7 @@ class AuthControllerTest {
     }
 
     private void hunterResponde(String correo, String estado) throws Exception {
-        when(emailValidationService.validarCorreo(correo))
+        when(validacionCorreoService.validarCorreo(correo))
                 .thenReturn(objectMapper.readTree("{\"data\":{\"status\":\"" + estado + "\"}}"));
     }
 
@@ -346,7 +346,7 @@ class AuthControllerTest {
     @Test
     void loginConCodigoOtpValidoDevuelveToken() throws Exception {
         Usuario usuario = usuarioConContrasena("secreta1");
-        when(messagingClient.verificarOtp(CELULAR, "482913")).thenReturn(true);
+        when(mensajeriaClient.verificarOtp(CELULAR, "482913")).thenReturn(true);
         when(usuarioRepository.findByCelular(CELULAR)).thenReturn(Optional.of(usuario));
         when(usuarioRolRepository.findByUsuario_IdUsuario(25))
                 .thenReturn(List.of(new UsuarioRol(usuario, rol(1, "PERSONA_MAYOR"))));
@@ -361,7 +361,7 @@ class AuthControllerTest {
 
     @Test
     void loginConCodigoOtpIncorrectoResponde401() throws Exception {
-        when(messagingClient.verificarOtp(CELULAR, "000000")).thenReturn(false);
+        when(mensajeriaClient.verificarOtp(CELULAR, "000000")).thenReturn(false);
 
         mockMvc.perform(post("/api/auth/login-otp")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -374,7 +374,7 @@ class AuthControllerTest {
     void restablecerContrasenaConCodigoValidoGuardaLaNuevaYPermiteIniciarSesionConElla() throws Exception {
         Usuario usuario = usuarioConContrasena("olvidada1");
         when(usuarioRepository.findByCelular(CELULAR)).thenReturn(Optional.of(usuario));
-        when(messagingClient.verificarOtp(CELULAR, "551177")).thenReturn(true);
+        when(mensajeriaClient.verificarOtp(CELULAR, "551177")).thenReturn(true);
 
         mockMvc.perform(post("/api/auth/restablecer-contrasena")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -412,7 +412,7 @@ class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje").value("No existe una cuenta con ese celular"));
 
-        verify(messagingClient, never()).verificarOtp(anyString(), anyString());
+        verify(mensajeriaClient, never()).verificarOtp(anyString(), anyString());
         verify(usuarioRepository, never()).save(any());
     }
 
@@ -421,7 +421,7 @@ class AuthControllerTest {
         Usuario usuario = usuarioConContrasena("olvidada1");
         String hashAnterior = usuario.getContrasenaHash();
         when(usuarioRepository.findByCelular(CELULAR)).thenReturn(Optional.of(usuario));
-        when(messagingClient.verificarOtp(CELULAR, "123123")).thenReturn(false);
+        when(mensajeriaClient.verificarOtp(CELULAR, "123123")).thenReturn(false);
 
         mockMvc.perform(post("/api/auth/restablecer-contrasena")
                         .contentType(MediaType.APPLICATION_JSON)

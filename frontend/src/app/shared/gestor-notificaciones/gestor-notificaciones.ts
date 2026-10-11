@@ -60,7 +60,7 @@ const OPCIONES: Record<TipoPerfil, OpcionNotificacion[]> = {
 /**
  * Sección "Gestor de notificaciones" del perfil: cada usuario ve los tipos
  * de notificación que le pueden llegar según su rol y los activa o
- * desactiva. Los cambios se guardan al momento en messaging-service, que
+ * desactiva. Los cambios se guardan al momento en mensajeria-service, que
  * no envía los tipos desactivados.
  */
 @Component({

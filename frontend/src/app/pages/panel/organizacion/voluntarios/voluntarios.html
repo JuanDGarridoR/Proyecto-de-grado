@@ -1,0 +1,144 @@
+<div class="vinculos">
+
+  <div class="vinculos__header">
+    <div class="vinculos__titulo">
+      <h1>Voluntarios</h1>
+      @if (voluntarios().length > 0) {
+        <span
+          class="vinculos__badge"
+          [title]="voluntarios().length + ' voluntarios vinculados'"
+          [attr.aria-label]="voluntarios().length + ' voluntarios vinculados'"
+        >{{ voluntarios().length }}</span>
+      }
+    </div>
+    <p>
+      Responde las solicitudes de los voluntarios que quieren vincularse a tu
+      organización y consulta los que ya están vinculados.
+    </p>
+  </div>
+
+  @if (mensaje()) {
+    <div class="vinculos__message vinculos__message--success" role="status">
+      <app-icono name="check-circle" />
+      {{ mensaje() }}
+    </div>
+  }
+
+  @if (error()) {
+    <div class="vinculos__message vinculos__message--error" role="alert">
+      <app-icono name="alert-circle" />
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Solicitudes pendientes -->
+
+  @if (solicitudes().length > 0) {
+    <section class="vinculos__section">
+      <div class="vinculos__section-header">
+        <div>
+          <h2>Solicitudes pendientes</h2>
+          <p>Estos voluntarios están esperando tu respuesta.</p>
+        </div>
+
+        <span class="vinculos__badge">{{ solicitudes().length }}</span>
+      </div>
+
+      <div class="vinculos__list">
+        @for (voluntario of solicitudes(); track voluntario.idUsuario) {
+          <app-tarjeta-persona
+            etiqueta="Voluntario"
+            icono="star"
+            [nombre]="voluntario.nombre"
+            [celular]="voluntario.celular ?? ''"
+            [correo]="voluntario.correo"
+            estado="Solicitud pendiente"
+            estadoTipo="pendiente"
+          >
+            <div card-actions class="person-card-actions">
+              <button
+                type="button"
+                class="vinculos__secondary"
+                (click)="rechazar(voluntario)"
+                [disabled]="procesando() === voluntario.idUsuario"
+              >
+                Rechazar
+              </button>
+
+              <button
+                type="button"
+                class="vinculos__primary"
+                (click)="aceptar(voluntario)"
+                [disabled]="procesando() === voluntario.idUsuario"
+              >
+                <app-icono name="check" />
+                Aceptar
+              </button>
+            </div>
+          </app-tarjeta-persona>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Voluntarios vinculados -->
+
+  <section class="vinculos__section" aria-label="Voluntarios vinculados">
+    @if (cargando()) {
+      <div class="vinculos__loading">
+        <app-cargando texto="Cargando voluntarios..." />
+      </div>
+    } @else if (voluntarios().length === 0) {
+      <div class="vinculos__empty">
+        <div class="vinculos__empty-icon"><app-icono name="star" /></div>
+        <h3>Aún no tienes voluntarios vinculados</h3>
+        <p>
+          Los voluntarios envían su solicitud desde su panel. Cuando aceptes
+          una, el voluntario aparecerá aquí.
+        </p>
+      </div>
+    } @else {
+      <app-buscador-nombre class="vinculos__buscador" [(texto)]="busqueda" placeholder="Buscar voluntario por nombre..." />
+
+      @if (voluntariosFiltrados().length === 0) {
+        <p class="vinculos__sin-resultados">Ningún voluntario coincide con "{{ busqueda() }}".</p>
+      }
+
+      <div class="vinculos__list">
+        @for (voluntario of voluntariosFiltrados(); track voluntario.idUsuario) {
+          <app-tarjeta-persona
+            etiqueta="Voluntario"
+            icono="star"
+            [nombre]="voluntario.nombre"
+            [celular]="voluntario.celular ?? ''"
+            [correo]="voluntario.correo"
+            estado="Vinculado"
+          >
+            <div card-actions class="person-card-actions">
+              <button
+                type="button"
+                class="person-card-remove"
+                (click)="voluntarioADesvincular.set(voluntario)"
+                [disabled]="procesando() === voluntario.idUsuario"
+                title="Desvincular voluntario"
+                aria-label="Desvincular voluntario"
+              >
+                <app-icono name="x" />
+              </button>
+            </div>
+          </app-tarjeta-persona>
+        }
+      </div>
+    }
+  </section>
+
+</div>
+
+@if (voluntarioADesvincular(); as voluntario) {
+  <app-cancelar-asociacion
+    [nombre]="voluntario.nombre"
+    advertencia="El voluntario dejará de aparecer en tu organización. Si quiere volver, tendrá que enviar una nueva solicitud."
+    (confirmar)="confirmarDesvinculacion()"
+    (cerrar)="voluntarioADesvincular.set(null)"
+  />
+}

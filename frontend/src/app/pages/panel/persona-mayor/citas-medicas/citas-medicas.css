@@ -1,0 +1,621 @@
+:host {
+  display: block;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--vita-navy);
+}
+
+/* Dentro de "Gestionar cuidado" (acompañante) el título es de sección */
+.page-header__titulo-acompanante {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--vita-navy);
+}
+
+.page-header p {
+  margin-top: 4px;
+  color: var(--vita-text-gray);
+  font-size: 0.9rem;
+}
+
+.estado-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+
+.estado-card h2 {
+  font-size: 1rem;
+  color: var(--vita-navy);
+}
+
+.estado-card__icon {
+  font-size: 1.5rem;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c23b3b;
+  background: color-mix(in srgb, #d64545 12%, white);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  margin: 16px 0 0;
+}
+
+.texto-suave {
+  color: var(--vita-text-gray);
+  font-size: 0.9rem;
+}
+
+.section-block {
+  margin-bottom: 36px;
+}
+
+.section-block__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--vita-navy);
+}
+
+.section-block__contador {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--vita-green) 18%, white);
+  color: var(--vita-navy);
+  font-size: 0.8rem;
+}
+
+.section-block__contador--suave {
+  background: #edf1f6;
+  color: var(--vita-text-gray);
+}
+
+.btn-secondary {
+  border: 1px solid var(--vita-border);
+  background: var(--vita-white);
+  color: var(--vita-navy);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #f7f9fb;
+}
+
+.btn-danger {
+  background: color-mix(in srgb, #d64545 10%, white);
+  color: #c23b3b;
+  border: 1px solid color-mix(in srgb, #d64545 25%, white);
+}
+
+/* Hoja de calendario con la fecha (próximas y pasadas) */
+
+.hoja-fecha {
+  width: 84px;
+  flex-shrink: 0;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--vita-white);
+  border: 1px solid var(--vita-border);
+  text-align: center;
+}
+
+.hoja-fecha__mes {
+  width: 100%;
+  padding: 5px 0;
+  background: var(--vita-navy);
+  color: var(--vita-white);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hoja-fecha__dia {
+  padding-top: 6px;
+  color: var(--vita-navy);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.hoja-fecha__semana {
+  padding: 0 4px 8px;
+  color: var(--vita-text-gray);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.hoja-fecha--pequena {
+  width: 64px;
+  border-radius: 12px;
+}
+
+.hoja-fecha--pequena .hoja-fecha__mes {
+  padding: 3px 0;
+  background: #8996a8;
+  font-size: 0.68rem;
+}
+
+.hoja-fecha--pequena .hoja-fecha__dia {
+  padding-top: 3px;
+  color: var(--vita-text-gray);
+  font-size: 1.45rem;
+}
+
+.hoja-fecha--pequena .hoja-fecha__semana {
+  padding-bottom: 5px;
+  font-size: 0.68rem;
+}
+
+/* Próximas citas */
+
+.citas-grid {
+  display: grid;
+  gap: 14px;
+}
+
+/* Fila horizontal: fecha | datos | aviso y acciones */
+.cita-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px 22px;
+  padding: 18px 22px;
+  border-radius: 20px;
+  background: var(--vita-white);
+  border: 1px solid var(--vita-border);
+  box-shadow: 0 8px 26px rgba(20, 46, 78, 0.06);
+}
+
+.cita-card--siguiente {
+  border-color: color-mix(in srgb, var(--vita-green) 55%, white);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--vita-green) 7%, white), var(--vita-white) 60%);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--vita-green) 18%, transparent);
+}
+
+.cita-card--siguiente .hoja-fecha {
+  border-color: color-mix(in srgb, var(--vita-green) 55%, white);
+}
+
+.cita-card--siguiente .hoja-fecha__mes {
+  background: var(--vita-green);
+}
+
+.cita-card__cuerpo {
+  min-width: 0;
+}
+
+.cita-card__etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.etiqueta {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: #edf1f6;
+  color: var(--vita-navy);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.etiqueta::first-letter {
+  text-transform: uppercase;
+}
+
+.etiqueta--siguiente {
+  background: var(--vita-green);
+  color: var(--vita-white);
+}
+
+.cita-card h3 {
+  margin: 0 0 8px;
+  color: var(--vita-navy);
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.cita-card__info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cita-card__info li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--vita-navy);
+  font-size: 0.95rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.cita-card__info app-icono {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--vita-text-gray);
+}
+
+.cita-card__consultorio {
+  color: var(--vita-text-gray);
+  font-weight: 500;
+}
+
+.cita-card__consultorio::before {
+  content: '· ';
+}
+
+.cita-card__nota {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--vita-gold) 22%, white);
+  color: var(--vita-navy);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.cita-card__nota app-icono {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.cita-card__pie {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+  padding-left: 22px;
+  border-left: 1px solid var(--vita-border);
+}
+
+.cita-card__aviso {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--vita-text-gray);
+  font-size: 0.82rem;
+}
+
+.cita-card__acciones {
+  display: flex;
+  gap: 8px;
+}
+
+.cita-card__acciones .btn {
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+}
+
+.empty-card {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 40px 20px;
+  border: 1px dashed var(--vita-border);
+  border-radius: 20px;
+  color: var(--vita-text-gray);
+}
+
+.empty-card__icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  border-radius: 16px;
+  background: #edf5fc;
+  color: var(--vita-navy);
+  font-size: 1.7rem;
+}
+
+.empty-card h3 {
+  color: var(--vita-navy);
+}
+
+.empty-card .btn {
+  margin-top: 10px;
+}
+
+/* Historial de citas pasadas */
+
+.historial {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.historial__item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--vita-white);
+  border: 1px solid var(--vita-border);
+  border-left: 4px solid #b8c2cf;
+  box-shadow: 0 4px 14px rgba(20, 46, 78, 0.05);
+}
+
+.historial__cuerpo {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.historial__cuerpo strong {
+  color: var(--vita-navy);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.historial__detalle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--vita-text-gray);
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
+}
+
+.historial__detalle app-icono {
+  flex-shrink: 0;
+}
+
+.historial__detalle--cuando::first-letter {
+  text-transform: uppercase;
+}
+
+.historial__nota {
+  color: var(--vita-text-gray);
+  font-size: 0.84rem;
+  font-style: italic;
+}
+
+.btn-icono {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vita-border);
+  border-radius: 10px;
+  background: var(--vita-white);
+  color: #c23b3b;
+  cursor: pointer;
+}
+
+.btn-icono:hover {
+  background: color-mix(in srgb, #d64545 8%, white);
+}
+
+.historial__mas {
+  margin-top: 14px;
+}
+
+/* Modal */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 480px;
+  padding: 28px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-card h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--vita-navy);
+}
+
+.form-nota {
+  margin: 4px 0 8px;
+  color: var(--vita-text-gray);
+  font-size: 0.82rem;
+}
+
+.obligatorio {
+  color: #d64545;
+  font-weight: 700;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--vita-navy);
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+
+.form-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-fila--lugar {
+  grid-template-columns: 3fr 2fr;
+}
+
+.form-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--vita-green) 10%, white);
+  color: var(--vita-navy);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.form-hint--error {
+  background: color-mix(in srgb, #d64545 10%, white);
+  color: #c23b3b;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--vita-navy);
+}
+
+textarea.form-input {
+  resize: vertical;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--vita-orange);
+}
+
+.form-input--error,
+.form-input--error:focus {
+  border-color: #d64545;
+  background: color-mix(in srgb, #d64545 4%, white);
+}
+
+.form-picker {
+  min-height: 46px;
+  font-size: 1rem;
+  background-color: var(--vita-white);
+  cursor: pointer;
+}
+
+.form-picker::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+.modal-card__acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.modal-card__acciones .btn {
+  flex: 1;
+}
+
+/* En pantallas angostas, el aviso y las acciones bajan debajo de los datos. */
+@media (max-width: 860px) {
+  .cita-card {
+    grid-template-columns: auto 1fr;
+  }
+
+  .cita-card__pie {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0 0;
+    border-left: none;
+    border-top: 1px solid var(--vita-border);
+  }
+}
+
+@media (max-width: 560px) {
+  .cita-card {
+    gap: 14px;
+    padding: 18px;
+  }
+
+  .hoja-fecha {
+    align-self: flex-start;
+  }
+
+  .hoja-fecha {
+    width: 70px;
+  }
+
+  .hoja-fecha__dia {
+    font-size: 1.6rem;
+  }
+
+  .cita-card__acciones {
+    width: 100%;
+  }
+
+  .cita-card__acciones .btn {
+    flex: 1;
+  }
+
+  .form-fila,
+  .form-fila--lugar {
+    grid-template-columns: 1fr;
+  }
+}

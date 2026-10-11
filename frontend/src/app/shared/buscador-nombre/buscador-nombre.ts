@@ -1,6 +1,6 @@
 import { Component, input, model } from '@angular/core';
 
-import { Icon } from '../icon/icon';
+import { Icono } from '../icono/icono';
 
 /** Texto en minúsculas y sin tildes, para comparar nombres: "José" -> "jose". */
 export function normalizar(texto: string | null | undefined): string {
@@ -25,10 +25,10 @@ export function filtrarPorNombre<T extends { nombre: string | null }>(lista: T[]
 @Component({
   selector: 'app-buscador-nombre',
   standalone: true,
-  imports: [Icon],
+  imports: [Icono],
   template: `
     <div class="buscador" [class.buscador--grande]="grande()">
-      <app-icon name="search" class="buscador__icono" aria-hidden="true" />
+      <app-icono name="search" class="buscador__icono" aria-hidden="true" />
       <input
         type="search"
         class="buscador__input"
@@ -39,7 +39,7 @@ export function filtrarPorNombre<T extends { nombre: string | null }>(lista: T[]
       />
       @if (texto()) {
         <button type="button" class="buscador__limpiar" (click)="texto.set('')" aria-label="Borrar búsqueda">
-          <app-icon name="x" />
+          <app-icono name="x" />
         </button>
       }
     </div>

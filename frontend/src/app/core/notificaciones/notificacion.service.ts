@@ -17,7 +17,7 @@ export interface NotificacionesResponse {
   notificaciones: Notificacion[];
 }
 
-/** Tipos de notificación (TipoNotificacion en messaging-service). */
+/** Tipos de notificación (TipoNotificacion en mensajeria-service). */
 export type TipoNotificacion =
   | 'EMERGENCIA'
   | 'CUMPLEANOS'
@@ -29,7 +29,7 @@ export type TipoNotificacion =
 /** Si cada tipo está activo para el usuario. */
 export type PreferenciasNotificacion = Record<TipoNotificacion, boolean>;
 
-/** Notificaciones de la campanita del panel y preferencias (messaging-service). */
+/** Notificaciones de la campanita del panel y preferencias (mensajeria-service). */
 @Injectable({ providedIn: 'root' })
 export class NotificacionService {
 

@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { SignoVitalResponse } from '../signos-vitales/signos-vitales.services';
 import { CitaMedica } from '../citas-medicas/cita-medica.service';
-import { AcompananteResumen } from '../../shared/acompanantes-modal/acompanantes-modal';
+import { AcompananteResumen } from '../../shared/modal-acompanantes/modal-acompanantes';
 import { API_URL } from '../api';
 
 /** Acompañante de una persona mayor, con su parentesco. */

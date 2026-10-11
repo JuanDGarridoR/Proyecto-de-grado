@@ -37,7 +37,7 @@ describe('authGuard', () => {
     const resultado = entrarA('ORGANIZACION');
 
     expect(resultado).toBeInstanceOf(UrlTree);
-    expect(TestBed.inject(Router).serializeUrl(resultado as UrlTree)).toBe('/login');
+    expect(TestBed.inject(Router).serializeUrl(resultado as UrlTree)).toBe('/iniciar-sesion');
   });
 
   it('deja entrar al panel del propio rol', () => {

@@ -12,7 +12,7 @@
   <!-- Cargando -->
   @if (cargando()) {
     <div class="estado-card">
-      <span class="estado-card__icon"><app-icon name="hourglass" class="icono-cargando" /></span>
+      <span class="estado-card__icon"><app-icono name="hourglass" class="icono-cargando" /></span>
       <div>
         <h2>Cargando tus intereses...</h2>
         <p>Estamos preparando tus opciones.</p>
@@ -34,7 +34,7 @@
             [class.categoria-card--activa]="categoriaActiva() === categoria.valor"
             (click)="cambiarCategoria(categoria.valor)"
           >
-            <span class="categoria-card__icon"><app-icon [name]="categoria.icon" /></span>
+            <span class="categoria-card__icon"><app-icono [name]="categoria.icon" /></span>
 
             <span class="categoria-card__content">
               <span class="categoria-card__title">{{ categoria.label }}</span>
@@ -57,9 +57,9 @@
       <div class="opciones-header">
         <div>
           <span class="opciones-header__icon">
-            @if (categoriaActiva() === 'GUSTO') { <app-icon name="heart" /> }
-            @if (categoriaActiva() === 'TALENTO') { <app-icon name="sparkles" /> }
-            @if (categoriaActiva() === 'HOBBY') { <app-icon name="target" /> }
+            @if (categoriaActiva() === 'GUSTO') { <app-icono name="heart" /> }
+            @if (categoriaActiva() === 'TALENTO') { <app-icono name="sparkles" /> }
+            @if (categoriaActiva() === 'HOBBY') { <app-icono name="target" /> }
           </span>
 
           <div>
@@ -86,19 +86,19 @@
             (click)="alternarGusto(gusto.idGusto)"
             [attr.aria-pressed]="estaSeleccionado(gusto.idGusto)"
           >
-            <span class="opcion-card__emoji"><app-icon [name]="obtenerIcono(gusto)" /></span>
+            <span class="opcion-card__emoji"><app-icono [name]="obtenerIcono(gusto)" /></span>
 
             <span class="opcion-card__text">
               <span class="opcion-card__name">{{ gusto.nombre }}</span>
             </span>
 
             <span class="opcion-card__check">
-              @if (estaSeleccionado(gusto.idGusto)) { <app-icon name="check" /> } @else { <app-icon name="plus" /> }
+              @if (estaSeleccionado(gusto.idGusto)) { <app-icono name="check" /> } @else { <app-icono name="plus" /> }
             </span>
           </button>
         } @empty {
           <div class="empty-card">
-            <span><app-icon name="sprout" /></span>
+            <span><app-icono name="sprout" /></span>
             <h3>Todavía no hay opciones</h3>
             <p>Aún no se han registrado opciones para esta categoría.</p>
           </div>
@@ -108,7 +108,7 @@
       <!-- Error -->
       @if (errorGustos()) {
         <div class="error-message">
-          <span><app-icon name="alert-circle" /></span>
+          <span><app-icono name="alert-circle" /></span>
           {{ errorGustos() }}
         </div>
       }
@@ -116,7 +116,7 @@
       <!-- Guardar -->
       <div class="guardar-section">
         <div class="guardar-info">
-          <span class="guardar-info__icon"><app-icon name="heart" /></span>
+          <span class="guardar-info__icon"><app-icono name="heart" /></span>
           <div>
             <strong>Tus intereses nos ayudan a conocerte mejor</strong>
             <p>Puedes cambiarlos cuando quieras.</p>

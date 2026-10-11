@@ -10,7 +10,7 @@ import {
 import { OrganizacionService } from '../../core/organizacion/organizacion.service';
 import { VoluntarioService } from '../../core/voluntario/voluntario.service';
 import { alCambiar } from '../../core/tiempo-real/tiempo-real.service';
-import { Icon } from '../icon/icon';
+import { Icono } from '../icono/icono';
 import { mensajeDeError } from '../../core/formato/formato';
 
 /**
@@ -24,7 +24,7 @@ import { mensajeDeError } from '../../core/formato/formato';
  */
 @Component({
   selector: 'app-recomendaciones-organizaciones',
-  imports: [Icon, RouterLink],
+  imports: [Icono, RouterLink],
   templateUrl: './recomendaciones-organizaciones.html',
   styleUrl: './recomendaciones-organizaciones.css'
 })

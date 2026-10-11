@@ -1,5 +1,5 @@
 /* Estilos globales de Vita+: variables de la marca, estilos base, utilidades
-   compartidas y las acciones que se proyectan dentro de <app-person-card>. */
+   compartidas y las acciones que se proyectan dentro de <app-tarjeta-persona>. */
 
 :root {
   /* Paleta de la marca (opción 4: "Vita Tecnológica Amigable") */
@@ -232,7 +232,7 @@ button {
   flex-shrink: 0;
 }
 
-/* Acciones dentro de <app-person-card> (se proyectan con card-actions,
+/* Acciones dentro de <app-tarjeta-persona> (se proyectan con card-actions,
    por eso viven aquí y no en el CSS encapsulado de la tarjeta). */
 
 .person-card-actions {

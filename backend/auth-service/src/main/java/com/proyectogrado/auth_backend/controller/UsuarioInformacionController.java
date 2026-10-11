@@ -7,7 +7,7 @@ import com.proyectogrado.auth_backend.model.Usuario;
 import com.proyectogrado.auth_backend.repository.PersonaMayorRepository;
 import com.proyectogrado.auth_backend.repository.UsuarioRepository;
 import com.proyectogrado.auth_backend.security.JwtService;
-import com.proyectogrado.auth_backend.service.EmailValidationService;
+import com.proyectogrado.auth_backend.service.ValidacionCorreoService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,18 +40,18 @@ public class UsuarioInformacionController {
     private final UsuarioRepository usuarioRepository;
     private final PersonaMayorRepository personaMayorRepository;
     private final JwtService jwtService;
-    private final EmailValidationService emailValidationService;
+    private final ValidacionCorreoService validacionCorreoService;
 
     public UsuarioInformacionController(
             UsuarioRepository usuarioRepository,
             PersonaMayorRepository personaMayorRepository,
             JwtService jwtService,
-            EmailValidationService emailValidationService
+            ValidacionCorreoService validacionCorreoService
     ) {
         this.usuarioRepository = usuarioRepository;
         this.personaMayorRepository = personaMayorRepository;
         this.jwtService = jwtService;
-        this.emailValidationService = emailValidationService;
+        this.validacionCorreoService = validacionCorreoService;
     }
 
     /** Datos del usuario autenticado. */
@@ -99,7 +99,7 @@ public class UsuarioInformacionController {
             }
 
             try {
-                if (!emailValidationService.puedeRecibirCorreos(correo)) {
+                if (!validacionCorreoService.puedeRecibirCorreos(correo)) {
                     return ResponseEntity.badRequest().body(
                             "El correo electrónico no parece ser válido o no puede recibir correos. "
                                     + "Verifica que esté escrito correctamente."

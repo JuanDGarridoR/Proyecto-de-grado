@@ -1,0 +1,293 @@
+<div class="vinculos">
+
+  <div class="vinculos__header">
+    <h1>Organizaciones</h1>
+    <p>
+      Vincúlate con las organizaciones en las que quieres ser voluntario.
+    </p>
+  </div>
+
+  @if (mensaje()) {
+    <div class="vinculos__message vinculos__message--success" role="status">
+      <app-icono name="check-circle" />
+      {{ mensaje() }}
+    </div>
+  }
+
+  @if (error()) {
+    <div class="vinculos__message vinculos__message--error" role="alert">
+      <app-icono name="alert-circle" />
+      {{ error() }}
+    </div>
+  }
+
+  @if (cargando()) {
+
+    <div class="vinculos__loading">
+      <app-cargando texto="Cargando organizaciones..." />
+    </div>
+
+  } @else {
+
+    <!-- Mis organizaciones (vinculado) -->
+
+    <section class="vinculos__section">
+      <div class="vinculos__section-header">
+        <div>
+          <h2>Mis organizaciones</h2>
+          <p>Organizaciones en las que ya eres voluntario.</p>
+        </div>
+
+        @if (vinculadas().length > 0) {
+          <div class="mis-organizaciones__acciones">
+            <app-buscador-nombre [(texto)]="busquedaVinculadas" placeholder="Buscar en mis organizaciones..." />
+            <span class="vinculos__badge">{{ vinculadas().length }}</span>
+          </div>
+        }
+      </div>
+
+      @if (vinculadas().length === 0) {
+        <div class="vinculos__empty">
+          <div class="vinculos__empty-icon"><app-icono name="building" /></div>
+          <h3>Aún no estás vinculado a ninguna organización</h3>
+          <p>
+            Envía una solicitud a alguna de las organizaciones disponibles.
+            Cuando la acepten, aparecerá aquí.
+          </p>
+        </div>
+      } @else {
+        @if (vinculadasFiltradas().length === 0) {
+          <p class="sin-resultados">Ninguna de tus organizaciones coincide con "{{ busquedaVinculadas() }}".</p>
+        }
+
+        <div class="vinculos__list">
+          @for (organizacion of vinculadasFiltradas(); track organizacion.idOrganizacion) {
+            <app-tarjeta-persona
+              etiqueta="Organización"
+              icono="building"
+              [nombre]="organizacion.nombre"
+              [celular]="organizacion.celular ?? ''"
+              [correo]="organizacion.correo"
+              [direccion]="organizacion.direccion"
+              estado="Vinculado"
+            >
+              <div card-actions class="person-card-actions">
+                <button
+                  type="button"
+                  class="vinculos__secondary"
+                  (click)="organizacionAInactivar.set(organizacion)"
+                  [disabled]="procesando() === organizacion.idOrganizacion"
+                  title="Inactivar: la organización no verá tus datos hasta que lo reactives"
+                >
+                  <app-icono name="power" />
+                  Inactivar
+                </button>
+
+                <button
+                  type="button"
+                  class="person-card-remove"
+                  (click)="organizacionADesvincular.set(organizacion)"
+                  [disabled]="procesando() === organizacion.idOrganizacion"
+                  title="Desvincularme"
+                  aria-label="Desvincularme de la organización"
+                >
+                  <app-icono name="x" />
+                </button>
+              </div>
+            </app-tarjeta-persona>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Vínculos pausados por el voluntario -->
+
+    @if (inactivas().length > 0) {
+      <section class="vinculos__section">
+        <div class="vinculos__section-header">
+          <div>
+            <h2>Organizaciones inactivas</h2>
+            <p>No ven tus datos y tú no ves sus actividades hasta que reactives la vinculación.</p>
+          </div>
+
+          <span class="vinculos__badge">{{ inactivas().length }}</span>
+        </div>
+
+        <div class="vinculos__list">
+          @for (organizacion of inactivas(); track organizacion.idOrganizacion) {
+            <app-tarjeta-persona
+              etiqueta="Organización"
+              icono="building"
+              [nombre]="organizacion.nombre"
+              [celular]="organizacion.celular ?? ''"
+              [direccion]="organizacion.direccion"
+              estado="Inactiva"
+              estadoTipo="pendiente"
+            >
+              <div card-actions class="person-card-actions">
+                <button
+                  type="button"
+                  class="vinculos__primary"
+                  (click)="reactivar(organizacion)"
+                  [disabled]="procesando() === organizacion.idOrganizacion"
+                >
+                  <app-icono name="check" />
+                  Reactivar
+                </button>
+              </div>
+            </app-tarjeta-persona>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Mis solicitudes (pendientes y rechazadas) -->
+
+    @if (solicitudes().length > 0) {
+      <section class="vinculos__section">
+        <div class="vinculos__section-header">
+          <div>
+            <h2>Mis solicitudes</h2>
+            <p>Solicitudes que enviaste y su respuesta.</p>
+          </div>
+
+          <span class="vinculos__badge">{{ solicitudes().length }}</span>
+        </div>
+
+        <div class="vinculos__list">
+          @for (organizacion of solicitudes(); track organizacion.idOrganizacion) {
+            <app-tarjeta-persona
+              etiqueta="Organización"
+              icono="building"
+              [nombre]="organizacion.nombre"
+              [celular]="organizacion.celular ?? ''"
+              [direccion]="organizacion.direccion"
+              [estado]="organizacion.estado === 'PENDIENTE' ? 'Solicitud pendiente' : 'Solicitud rechazada'"
+              [estadoTipo]="organizacion.estado === 'PENDIENTE' ? 'pendiente' : 'rechazado'"
+            >
+              <div card-actions class="person-card-actions">
+                @if (organizacion.estado === 'PENDIENTE') {
+                  <button
+                    type="button"
+                    class="vinculos__secondary"
+                    (click)="eliminarSolicitud(organizacion)"
+                    [disabled]="procesando() === organizacion.idOrganizacion"
+                  >
+                    Cancelar solicitud
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="vinculos__secondary"
+                    (click)="eliminarSolicitud(organizacion)"
+                    [disabled]="procesando() === organizacion.idOrganizacion"
+                  >
+                    Descartar
+                  </button>
+
+                  <button
+                    type="button"
+                    class="vinculos__primary"
+                    (click)="solicitar(organizacion)"
+                    [disabled]="procesando() === organizacion.idOrganizacion"
+                  >
+                    Volver a solicitar
+                  </button>
+                }
+              </div>
+            </app-tarjeta-persona>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Organizaciones recomendadas según sus gustos (mismas tarjetas que la persona mayor) -->
+
+    <app-recomendaciones-organizaciones rol="VOLUNTARIO" (solicitada)="cargar()" />
+
+    <!-- Todas las demás, por si quiere escribirle a una que no le recomendamos -->
+
+    @if (hayDisponibles()) {
+      <details class="todas">
+        <summary>Ver todas las organizaciones</summary>
+
+        <section class="vinculos__section todas__contenido">
+          <div class="vinculos__section-header">
+            <div>
+              <p>Elige cualquier organización y envíale una solicitud de vinculación.</p>
+            </div>
+
+            <input
+              type="search"
+              class="vinculos__search"
+              placeholder="Buscar por nombre..."
+              aria-label="Buscar organización por nombre"
+              [(ngModel)]="busqueda"
+              (ngModelChange)="buscar($event)"
+            />
+          </div>
+
+          @if (disponibles().length === 0) {
+            <div class="vinculos__empty">
+              <div class="vinculos__empty-icon"><app-icono name="building" /></div>
+              <h3>Sin resultados</h3>
+              <p>Ninguna organización coincide con "{{ filtro() }}".</p>
+            </div>
+          } @else {
+            <div class="vinculos__list">
+              @for (organizacion of disponibles(); track organizacion.idOrganizacion) {
+                <app-tarjeta-persona
+                  etiqueta="Organización"
+                  icono="building"
+                  [nombre]="organizacion.nombre"
+                  [celular]="organizacion.celular ?? ''"
+                  [correo]="organizacion.correo"
+                  [direccion]="organizacion.direccion"
+                >
+                  <div card-actions class="person-card-actions">
+                    <button
+                      type="button"
+                      class="vinculos__primary"
+                      (click)="solicitar(organizacion)"
+                      [disabled]="procesando() === organizacion.idOrganizacion"
+                    >
+                      @if (procesando() === organizacion.idOrganizacion) {
+                        Enviando...
+                      } @else {
+                        <app-icono name="plus" />
+                        Solicitar vinculación
+                      }
+                    </button>
+                  </div>
+                </app-tarjeta-persona>
+              }
+            </div>
+          }
+        </section>
+      </details>
+    }
+  }
+
+</div>
+
+@if (organizacionADesvincular(); as organizacion) {
+  <app-cancelar-asociacion
+    [nombre]="organizacion.nombre"
+    advertencia="Dejarás de ser voluntario de esta organización. Si quieres volver, tendrás que enviar una nueva solicitud."
+    (confirmar)="confirmarDesvinculacion()"
+    (cerrar)="organizacionADesvincular.set(null)"
+  />
+}
+
+@if (organizacionAInactivar(); as organizacion) {
+  <app-cancelar-asociacion
+    [nombre]="organizacion.nombre"
+    titulo="¿Inactivar vinculación?"
+    accion="inactivar tu vinculación con"
+    textoConfirmar="Inactivar"
+    icono="power"
+    advertencia="Mientras esté inactiva, la organización no verá tus datos y tú no verás sus actividades. Puedes reactivarla cuando quieras."
+    (confirmar)="confirmarInactivacion()"
+    (cerrar)="organizacionAInactivar.set(null)"
+  />
+}

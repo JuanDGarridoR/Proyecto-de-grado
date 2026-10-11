@@ -3,14 +3,14 @@
   <div class="signos-loading"><app-cargando texto="Cargando signos vitales..." /></div>
 } @else if (error(); as errorActual) {
   <div class="signos-error">
-    <app-icon name="alert-circle" />
+    <app-icono name="alert-circle" />
 
     {{ errorActual }}
   </div>
 } @else if (registros().length === 0) {
   <div class="signos-empty">
     <div class="signos-empty__icon">
-      <app-icon name="heart" />
+      <app-icono name="heart" />
     </div>
 
     <h3>{{ tituloVacio() }}</h3>
@@ -23,7 +23,7 @@
     @for (registro of registros(); track registro.idSignoVital; let i = $index) {
       <div class="signo-item">
         <div class="signo-item__fecha">
-          <app-icon name="calendar" />
+          <app-icono name="calendar" />
           {{ registro.fechaHora | date: "d 'de' MMMM yyyy, h:mm a" }}
         </div>
 

@@ -1,0 +1,62 @@
+<div class="modal-overlay" (click)="cerrar.emit()">
+  <div
+    class="modal acompanantes-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="acompanantes-title"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal__header">
+      <div>
+        <span class="eyebrow"> Acompañamiento </span>
+
+        <h2 id="acompanantes-title">Acompañantes</h2>
+      </div>
+
+      <button type="button" class="modal__close" (click)="cerrar.emit()" aria-label="Cerrar">
+        ×
+      </button>
+    </div>
+
+    <p class="modal__description">
+      Personas que acompañan a
+      <strong>{{ nombre() }}</strong>.
+    </p>
+
+    @if (cargando()) {
+      <div class="acompanantes-loading">Cargando acompañantes...</div>
+    } @else if (error()) {
+      <div class="acompanantes-loading">{{ error() }}</div>
+    } @else if (acompanantes().length === 0) {
+      <div class="acompanantes-empty">
+        <div class="acompanantes-empty__icon">
+          <app-icono name="users" />
+        </div>
+
+        <h3>No tiene acompañantes registrados</h3>
+
+        <p>Esta persona mayor no tiene acompañantes asociados actualmente.</p>
+      </div>
+    } @else {
+      <div class="acompanantes-list">
+        @for (acompanante of acompanantes(); track acompanante.idUsuario) {
+          <div class="acompanante-item">
+            <div class="acompanante-item__icon">
+              <app-icono name="user" />
+            </div>
+
+            <div class="acompanante-item__info">
+              <strong>{{ acompanante.nombre }}</strong>
+
+              <span>{{ acompanante.celular }}</span>
+
+              @if (acompanante.relacion) {
+                <small>{{ acompanante.relacion }}</small>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

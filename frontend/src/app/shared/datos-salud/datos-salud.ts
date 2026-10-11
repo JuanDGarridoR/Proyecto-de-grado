@@ -9,7 +9,7 @@ import {
   TipoCondicionSalud
 } from '../../core/condiciones-salud/condicion-salud.service';
 import { alCambiar } from '../../core/tiempo-real/tiempo-real.service';
-import { Icon } from '../icon/icon';
+import { Icono } from '../icono/icono';
 
 /** Cómo se presenta cada tipo de dato de salud. */
 interface SeccionSalud {
@@ -56,7 +56,7 @@ interface GrupoOpciones {
  */
 @Component({
   selector: 'app-datos-salud',
-  imports: [FormsModule, Icon],
+  imports: [FormsModule, Icono],
   templateUrl: './datos-salud.html',
   styleUrl: './datos-salud.css'
 })

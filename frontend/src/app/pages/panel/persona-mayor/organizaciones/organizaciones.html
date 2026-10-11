@@ -1,0 +1,754 @@
+<!-- Encabezado -->
+
+<div class="page-header">
+
+  <h1>Organizaciones</h1>
+
+  <p>
+    Consulta las organizaciones que te acompañan
+    y gestiona tus solicitudes de asociación.
+  </p>
+
+</div>
+
+
+<!-- Mensajes de respuesta -->
+
+@if (mensaje()) {
+
+  <div class="message message--success">
+
+    <div class="message__icon">
+      <app-icono name="check-circle" />
+    </div>
+
+    <span>
+      {{ mensaje() }}
+    </span>
+
+  </div>
+
+}
+
+@if (error()) {
+
+  <div class="message message--error">
+
+    <div class="message__icon">
+      <app-icono name="alert-circle" />
+    </div>
+
+    <span>
+      {{ error() }}
+    </span>
+
+  </div>
+
+}
+
+
+<!-- Solicitudes pendientes -->
+
+@if (solicitudes().length > 0) {
+
+  <section class="requests-section">
+
+    <div class="section-title">
+
+      <div>
+
+        <h2>Solicitudes pendientes</h2>
+
+        <p>
+          Organizaciones que desean asociarse contigo.
+        </p>
+
+      </div>
+
+      <div class="request-count">
+
+        {{ solicitudes().length }}
+
+        {{ solicitudes().length === 1
+          ? 'solicitud'
+          : 'solicitudes'
+        }}
+
+      </div>
+
+    </div>
+
+
+    <div class="requests-list">
+
+      @for (
+        organizacion of solicitudes();
+        track organizacion.idOrganizacion
+      ) {
+
+        <div class="request-card">
+
+          <!-- Organización -->
+
+          <div class="request-card__organization">
+
+            <div class="organization-icon organization-icon--request">
+
+              <app-icono name="building" />
+
+            </div>
+
+            <div>
+
+              <span class="eyebrow">
+                Solicitud de asociación
+              </span>
+
+              <h3>
+                {{ organizacion.nombre }}
+              </h3>
+
+            </div>
+
+          </div>
+
+
+          <!-- Información -->
+
+          <div class="request-card__info">
+
+            @if (organizacion.direccion) {
+
+              <div class="info-item">
+
+                <app-icono name="map" />
+
+                <div>
+
+                  <span>Dirección</span>
+
+                  <strong>
+                    {{ organizacion.direccion }}
+                  </strong>
+
+                </div>
+
+              </div>
+
+            }
+
+            @if (organizacion.celular) {
+
+              <div class="info-item">
+
+                <app-icono name="phone" />
+
+                <div>
+
+                  <span>Celular</span>
+
+                  <strong>
+                    {{ organizacion.celular }}
+                  </strong>
+
+                </div>
+
+              </div>
+
+            }
+
+            @if (organizacion.correo) {
+
+              <div class="info-item">
+
+                <app-icono name="mail" />
+
+                <div>
+
+                  <span>Correo</span>
+
+                  <strong>
+                    {{ organizacion.correo }}
+                  </strong>
+
+                </div>
+
+              </div>
+
+            }
+
+          </div>
+
+
+          <!-- Acciones -->
+
+          <div class="request-card__actions">
+
+            <button
+              type="button"
+              class="btn btn-reject"
+              (click)="rechazarSolicitud(organizacion.idOrganizacion)"
+              [disabled]="
+                procesandoSolicitud() === organizacion.idOrganizacion
+              "
+            >
+
+              @if (
+                procesandoSolicitud() === organizacion.idOrganizacion
+              ) {
+
+                Procesando...
+
+              } @else {
+
+                Rechazar
+
+              }
+
+            </button>
+
+
+            <button
+              type="button"
+              class="btn btn-accept"
+              (click)="aceptarSolicitud(organizacion.idOrganizacion)"
+              [disabled]="
+                procesandoSolicitud() === organizacion.idOrganizacion
+              "
+            >
+
+              @if (
+                procesandoSolicitud() === organizacion.idOrganizacion
+              ) {
+
+                Procesando...
+
+              } @else {
+
+                <app-icono name="check" />
+
+                Aceptar
+
+              }
+
+            </button>
+
+          </div>
+
+        </div>
+
+      }
+
+    </div>
+
+  </section>
+
+}
+
+
+<!-- Sin solicitudes -->
+
+@if (solicitudes().length === 0) {
+
+  <div class="no-pending">
+
+    <div class="no-pending__icon">
+
+      <app-icono name="check" />
+
+    </div>
+
+    <div class="no-pending__content">
+
+      <strong>
+        No hay solicitudes pendientes
+      </strong>
+
+      <span>
+        No tienes nuevas solicitudes de asociación.
+      </span>
+
+    </div>
+
+  </div>
+
+}
+
+
+<!-- Mis organizaciones -->
+
+<section class="organizations-section">
+
+  <div class="section-title section-title--organizations">
+
+    <h2>Mis organizaciones</h2>
+
+    @if (organizaciones().length > 0) {
+      <app-buscador-nombre
+        [(texto)]="busquedaOrganizaciones"
+        [grande]="true"
+        placeholder="Buscar en mis organizaciones..."
+      />
+    }
+
+  </div>
+
+
+  @if (organizaciones().length === 0) {
+
+    <div class="empty-state">
+
+      <div class="empty-state__icon">
+
+        <app-icono name="building" />
+
+      </div>
+
+      <h3>
+        No tienes organizaciones asociadas
+      </h3>
+
+      <p>
+        Cuando aceptes una solicitud de asociación,
+        la organización aparecerá aquí.
+      </p>
+
+    </div>
+
+  } @else {
+
+    <div class="organizations-list">
+
+      @for (
+        organizacion of organizacionesFiltradas();
+        track organizacion.idOrganizacion
+      ) {
+
+        <div class="organization-card">
+
+          <!-- Organización -->
+
+          <div class="organization-card__identity">
+
+            <div class="organization-icon">
+
+              <app-icono name="building" />
+
+            </div>
+
+            <div class="organization-card__name">
+
+              <span class="eyebrow">
+                Organización
+              </span>
+
+              <h3>
+                {{ organizacion.nombre }}
+              </h3>
+
+            </div>
+
+          </div>
+
+
+          <div class="organization-card__divider"></div>
+
+
+          @if (organizacion.direccion) {
+
+            <div class="organization-card__detail">
+
+              <app-icono name="map" />
+
+              <div>
+
+                <span>
+                  Dirección
+                </span>
+
+                <strong>
+                  {{ organizacion.direccion }}
+                </strong>
+
+              </div>
+
+            </div>
+
+          }
+
+
+          @if (organizacion.celular) {
+
+            <div class="organization-card__detail">
+
+              <app-icono name="phone" />
+
+              <div>
+
+                <span>
+                  Celular
+                </span>
+
+                <strong>
+                  {{ organizacion.celular }}
+                </strong>
+
+              </div>
+
+            </div>
+
+          }
+
+
+          @if (organizacion.correo) {
+
+            <div class="organization-card__detail">
+
+              <app-icono name="mail" />
+
+              <div>
+
+                <span>
+                  Correo
+                </span>
+
+                <strong>
+                  {{ organizacion.correo }}
+                </strong>
+
+              </div>
+
+            </div>
+
+          }
+
+
+<div class="organization-card__divider organization-card__divider--status"></div>
+
+
+<!-- Estado y acciones -->
+
+<div class="organization-card__actions">
+
+  <div class="organization-status">
+
+    <span class="organization-status__dot"></span>
+
+    <span>
+      Asociación activa
+    </span>
+
+  </div>
+
+  <button
+    type="button"
+    class="pause-association-button"
+    (click)="inactivarAsociacion(organizacion)"
+    title="Inactivar asociación: la organización no verá tus datos hasta que la reactives"
+  >
+    <app-icono name="power" />
+    Inactivar
+  </button>
+
+  <button
+    type="button"
+    class="remove-association-button"
+    (click)="cancelarAsociacion(organizacion)"
+    title="Cancelar asociación"
+    aria-label="Cancelar asociación"
+  >
+    <app-icono name="x" />
+  </button>
+
+</div>
+
+        </div>
+
+      }
+
+      @if (organizacionesFiltradas().length === 0) {
+        <p class="sin-resultados">
+          Ninguna de tus organizaciones coincide con "{{ busquedaOrganizaciones() }}".
+        </p>
+      }
+
+    </div>
+
+  }
+
+</section>
+
+<!-- Solicitudes que envió la persona mayor -->
+
+@if (enviadas().length > 0) {
+  <section class="enviadas" aria-labelledby="enviadasTitulo">
+    <div class="section-title">
+      <div>
+        <h2 id="enviadasTitulo">Solicitudes que enviaste</h2>
+        <p>La organización te responderá. Cuando te acepte, aparecerá en "Mis organizaciones".</p>
+      </div>
+    </div>
+
+    <ul class="enviadas__lista">
+      @for (organizacion of enviadas(); track organizacion.idOrganizacion) {
+        <li class="enviada">
+          <span class="organization-icon" aria-hidden="true"><app-icono name="building" /></span>
+          <div class="enviada__datos">
+            <strong>{{ organizacion.nombre }}</strong>
+            <span class="enviada__estado"><app-icono name="hourglass" /> Esperando respuesta</span>
+          </div>
+          <button
+            type="button"
+            class="btn btn-secondary enviada__cancelar"
+            (click)="cancelarEnviada(organizacion)"
+            [disabled]="cancelandoEnviada() === organizacion.idOrganizacion"
+          >
+            Cancelar solicitud
+          </button>
+        </li>
+      }
+    </ul>
+  </section>
+}
+
+<!-- Vínculos que la persona mayor pausó -->
+
+@if (inactivas().length > 0) {
+  <section class="enviadas" aria-labelledby="inactivasTitulo">
+    <div class="section-title">
+      <div>
+        <h2 id="inactivasTitulo">Organizaciones inactivas</h2>
+        <p>Estas organizaciones no ven tus datos y tú no ves sus actividades hasta que reactives la asociación.</p>
+      </div>
+    </div>
+
+    <ul class="enviadas__lista">
+      @for (organizacion of inactivas(); track organizacion.idOrganizacion) {
+        <li class="enviada">
+          <span class="organization-icon" aria-hidden="true"><app-icono name="building" /></span>
+          <div class="enviada__datos">
+            <strong>{{ organizacion.nombre }}</strong>
+            <span class="enviada__estado enviada__estado--inactiva"><app-icono name="power" /> Asociación inactiva</span>
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary enviada__cancelar"
+            (click)="reactivarAsociacion(organizacion)"
+            [disabled]="reactivando() === organizacion.idOrganizacion"
+          >
+            Reactivar
+          </button>
+        </li>
+      }
+    </ul>
+  </section>
+}
+
+<!-- Recomendaciones según gustos y cercanía (analitica-service) -->
+<app-recomendaciones-organizaciones (solicitada)="alSolicitar()" />
+
+<!-- Todas las demás, por si quiere unirse a una que no le recomendamos -->
+
+@if (disponibles().length > 0) {
+  <details class="todas">
+    <summary>Ver todas las organizaciones</summary>
+
+    <div class="todas__contenido">
+      <p class="todas__ayuda">Elige cualquier organización y envíale una solicitud para unirte.</p>
+
+      <input
+        type="search"
+        class="todas__buscar"
+        placeholder="Buscar por nombre..."
+        aria-label="Buscar organización por nombre"
+        [(ngModel)]="busqueda"
+        (ngModelChange)="filtro.set($event)"
+      />
+
+      @if (disponiblesFiltradas().length === 0) {
+        <p class="todas__ayuda">Ninguna organización coincide con "{{ filtro() }}".</p>
+      } @else {
+        <ul class="enviadas__lista">
+          @for (organizacion of disponiblesFiltradas(); track organizacion.idOrganizacion) {
+            <li class="enviada">
+              <span class="organization-icon" aria-hidden="true"><app-icono name="building" /></span>
+              <div class="enviada__datos">
+                <strong>{{ organizacion.nombre }}</strong>
+                @if (organizacion.direccion) {
+                  <span class="todas__direccion"><app-icono name="map" /> {{ organizacion.direccion }}</span>
+                }
+              </div>
+              <button
+                type="button"
+                class="btn btn-primary todas__solicitar"
+                (click)="solicitarVinculacion(organizacion)"
+                [disabled]="solicitando() === organizacion.idOrganizacion"
+              >
+                @if (solicitando() === organizacion.idOrganizacion) {
+                  Enviando...
+                } @else {
+                  <app-icono name="plus" /> Solicitar vinculación
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </details>
+}
+
+<!-- Modal de confirmación -->
+
+@if (modalAbierto()) {
+
+  <div
+    class="modal-overlay"
+    (click)="cerrarModal()"
+  >
+
+    <div
+      class="modal-confirmation"
+      (click)="$event.stopPropagation()"
+    >
+
+      <div
+        class="modal-confirmation__icon"
+        [class.modal-confirmation__icon--danger]="
+          accionPendiente() === 'rechazar' ||
+          accionPendiente() === 'cancelar'
+        "
+      >
+
+        @if (accionPendiente() === 'aceptar') {
+
+          <app-icono name="check" />
+
+        } @else {
+
+          <app-icono name="alert-circle" />
+
+        }
+
+      </div>
+
+      <div class="modal-confirmation__content">
+
+        @if (accionPendiente() === 'aceptar') {
+
+          <h2>Aceptar solicitud</h2>
+
+          <p>
+            ¿Estás seguro de que deseas aceptar la solicitud
+            de asociación de
+            <strong>
+              {{ organizacionSeleccionada()?.nombre }}
+            </strong>?
+          </p>
+
+        } @else if (accionPendiente() === 'rechazar') {
+
+          <h2>Rechazar solicitud</h2>
+
+          <p>
+            ¿Estás seguro de que deseas rechazar la solicitud
+            de asociación de
+            <strong>
+              {{ organizacionSeleccionada()?.nombre }}
+            </strong>?
+          </p>
+
+        } @else if (accionPendiente() === 'inactivar') {
+
+          <h2>Inactivar asociación</h2>
+
+          <p>
+            ¿Deseas inactivar tu asociación con
+            <strong>
+              {{ organizacionSeleccionada()?.nombre }}
+            </strong>?
+          </p>
+
+          <span class="modal-confirmation__warning">
+            Mientras esté inactiva, la organización no verá tus datos ni recibirá
+            tus alertas de emergencia, y tú no verás sus actividades. Puedes
+            reactivarla cuando quieras.
+          </span>
+
+        } @else {
+
+          <h2>Cancelar asociación</h2>
+
+          <p>
+            ¿Estás seguro de que deseas cancelar la asociación
+            con
+            <strong>
+              {{ organizacionSeleccionada()?.nombre }}
+            </strong>?
+          </p>
+
+          <span class="modal-confirmation__warning">
+            La organización dejará de aparecer entre tus
+            organizaciones asociadas.
+          </span>
+
+        }
+
+      </div>
+
+      <div class="modal-confirmation__actions">
+
+        <button
+          type="button"
+          class="modal-button modal-button--secondary"
+          (click)="cerrarModal()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="modal-button"
+          [class.modal-button--success]="
+            accionPendiente() === 'aceptar'
+          "
+          [class.modal-button--danger]="
+            accionPendiente() === 'rechazar' ||
+            accionPendiente() === 'cancelar'
+          "
+          (click)="confirmarAccion()"
+        >
+
+          @if (accionPendiente() === 'aceptar') {
+
+            <app-icono name="check" />
+
+            Aceptar
+
+          } @else if (accionPendiente() === 'rechazar') {
+
+            Rechazar
+
+          } @else if (accionPendiente() === 'inactivar') {
+
+            <app-icono name="power" />
+
+            Inactivar
+
+          } @else {
+
+            <app-icono name="x" />
+
+            Desvincular
+
+          }
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+}

@@ -1,6 +1,6 @@
 package com.proyectogrado.persona_mayor_service.scheduler;
 
-import com.proyectogrado.persona_mayor_service.client.MessagingClient;
+import com.proyectogrado.persona_mayor_service.client.MensajeriaClient;
 import com.proyectogrado.persona_mayor_service.config.ZonaHoraria;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorAcompanante;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorLookup;
@@ -37,20 +37,20 @@ public class CumpleanosScheduler {
     private final PersonaMayorAcompananteRepository relacionAcompananteRepository;
     private final PersonaMayorOrganizacionRepository relacionOrganizacionRepository;
     private final UsuarioLookupRepository usuarioLookupRepository;
-    private final MessagingClient messagingClient;
+    private final MensajeriaClient mensajeriaClient;
 
     public CumpleanosScheduler(
             PersonaMayorLookupRepository personaMayorLookupRepository,
             PersonaMayorAcompananteRepository relacionAcompananteRepository,
             PersonaMayorOrganizacionRepository relacionOrganizacionRepository,
             UsuarioLookupRepository usuarioLookupRepository,
-            MessagingClient messagingClient
+            MensajeriaClient mensajeriaClient
     ) {
         this.personaMayorLookupRepository = personaMayorLookupRepository;
         this.relacionAcompananteRepository = relacionAcompananteRepository;
         this.relacionOrganizacionRepository = relacionOrganizacionRepository;
         this.usuarioLookupRepository = usuarioLookupRepository;
-        this.messagingClient = messagingClient;
+        this.mensajeriaClient = mensajeriaClient;
     }
 
     @Scheduled(cron = "0 0 8 * * *", zone = "America/Bogota")
@@ -145,7 +145,7 @@ public class CumpleanosScheduler {
     }
 
     private void enviar(Integer idUsuario, String celular, String mensaje, String tipo) {
-        boolean enviado = messagingClient.enviarMensaje(celular, mensaje, tipo);
+        boolean enviado = mensajeriaClient.enviarMensaje(celular, mensaje, tipo);
         System.out.println("[CUMPLEAÑOS] Usuario " + idUsuario + " -> " + celular
                 + ": " + (enviado ? "OK" : "FALLO"));
     }

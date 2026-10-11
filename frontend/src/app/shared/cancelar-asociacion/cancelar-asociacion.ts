@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { Icon } from '../icon/icon';
+import { Icono } from '../icono/icono';
 
 /**
  * Confirmación estándar para cancelar el vínculo con una persona mayor, un
@@ -9,7 +9,7 @@ import { Icon } from '../icon/icon';
  */
 @Component({
   selector: 'app-cancelar-asociacion',
-  imports: [Icon],
+  imports: [Icono],
   templateUrl: './cancelar-asociacion.html',
   styleUrl: './cancelar-asociacion.css'
 })

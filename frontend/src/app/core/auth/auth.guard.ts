@@ -11,7 +11,7 @@ export const authGuard: CanActivateFn = (route) => {
   const router = inject(Router);
 
   if (!authService.estaAutenticado()) {
-    return router.parseUrl('/login');
+    return router.parseUrl('/iniciar-sesion');
   }
 
   const rolRequerido = route.data['rol'] as string | undefined;

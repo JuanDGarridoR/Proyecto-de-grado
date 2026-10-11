@@ -21,7 +21,7 @@ import java.util.List;
  * Citas médicas de la persona mayor autenticada: crear, listar, editar y
  * borrar. Solo se registran citas futuras, y las que ya pasaron no se
  * editan (quedan como historial; sí se pueden borrar). Los recordatorios (un día y una hora antes) los envía
- * CitaMedicaReminderScheduler; los acompañantes las consultan desde
+ * CitaMedicaRecordatorioScheduler; los acompañantes las consultan desde
  * acompanante-service.
  */
 @RestController

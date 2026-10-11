@@ -2,7 +2,7 @@ import { Component, Signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
-import { Icon } from '../icon/icon';
+import { Icono } from '../icono/icono';
 
 /**
  * Página temporal de las secciones que todavía no existen. Muestra el
@@ -11,10 +11,10 @@ import { Icon } from '../icon/icon';
 @Component({
   selector: 'app-en-construccion',
   standalone: true,
-  imports: [Icon],
+  imports: [Icono],
   template: `
     <div class="en-construccion">
-      <span class="en-construccion__icon" aria-hidden="true"><app-icon name="wrench" /></span>
+      <span class="en-construccion__icon" aria-hidden="true"><app-icono name="wrench" /></span>
       <h2>{{ titulo() }}</h2>
       <p>Esta sección está en construcción. Muy pronto vas a poder usarla desde aquí.</p>
     </div>

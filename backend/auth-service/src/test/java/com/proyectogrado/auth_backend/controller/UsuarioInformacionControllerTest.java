@@ -5,7 +5,7 @@ import com.proyectogrado.auth_backend.model.Usuario;
 import com.proyectogrado.auth_backend.repository.PersonaMayorRepository;
 import com.proyectogrado.auth_backend.repository.UsuarioRepository;
 import com.proyectogrado.auth_backend.security.JwtService;
-import com.proyectogrado.auth_backend.service.EmailValidationService;
+import com.proyectogrado.auth_backend.service.ValidacionCorreoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ class UsuarioInformacionControllerTest {
 
     private UsuarioRepository usuarioRepository;
     private PersonaMayorRepository personaMayorRepository;
-    private EmailValidationService emailValidationService;
+    private ValidacionCorreoService validacionCorreoService;
     private MockMvc mockMvc;
     private String token;
     private Usuario usuario;
@@ -48,7 +48,7 @@ class UsuarioInformacionControllerTest {
     void setUp() {
         usuarioRepository = mock(UsuarioRepository.class);
         personaMayorRepository = mock(PersonaMayorRepository.class);
-        emailValidationService = mock(EmailValidationService.class);
+        validacionCorreoService = mock(ValidacionCorreoService.class);
 
         JwtService jwtService = new JwtService();
         ReflectionTestUtils.setField(jwtService, "jwtSecret", "clave_de_pruebas_de_vita_mas_con_al_menos_32_bytes");
@@ -68,7 +68,7 @@ class UsuarioInformacionControllerTest {
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc = MockMvcBuilders.standaloneSetup(new UsuarioInformacionController(
-                usuarioRepository, personaMayorRepository, jwtService, emailValidationService)).build();
+                usuarioRepository, personaMayorRepository, jwtService, validacionCorreoService)).build();
     }
 
     private PersonaMayor personaMayor() {
@@ -116,7 +116,7 @@ class UsuarioInformacionControllerTest {
         assertEquals("Capital Salud", personaMayor.getEps());
         assertEquals("USS Usme", personaMayor.getIps());
         // El correo no cambió: no se gasta una consulta de Hunter.
-        verify(emailValidationService, never()).puedeRecibirCorreos(anyString());
+        verify(validacionCorreoService, never()).puedeRecibirCorreos(anyString());
     }
 
     @Test
@@ -159,7 +159,7 @@ class UsuarioInformacionControllerTest {
 
     @Test
     void actualizarConUnCorreoQueNoPuedeRecibirMensajesSeRechaza() throws Exception {
-        when(emailValidationService.puedeRecibirCorreos("rosa.nueva@vitamas.co")).thenReturn(false);
+        when(validacionCorreoService.puedeRecibirCorreos("rosa.nueva@vitamas.co")).thenReturn(false);
 
         mockMvc.perform(put("/api/auth/informacion")
                         .header("Authorization", "Bearer " + token)
@@ -172,7 +172,7 @@ class UsuarioInformacionControllerTest {
 
     @Test
     void siHunterNoRespondeSeAvisaConUn502SinGuardar() throws Exception {
-        when(emailValidationService.puedeRecibirCorreos("rosa.nueva@vitamas.co"))
+        when(validacionCorreoService.puedeRecibirCorreos("rosa.nueva@vitamas.co"))
                 .thenThrow(new RuntimeException("Hunter respondió 503"));
 
         mockMvc.perform(put("/api/auth/informacion")

@@ -28,7 +28,7 @@ export interface EnviarOtpRequest {
   celular: string;
 }
 
-/** Respuesta de messaging-service al pedir un código. */
+/** Respuesta de mensajeria-service al pedir un código. */
 export interface OtpEnviarResponse {
   success: boolean;
   message: string;
@@ -209,7 +209,7 @@ restablecerContrasena(
 }
 
   /**
-   * El envío del código está en messaging-service (/api/otp/send), no en
+   * El envío del código está en mensajeria-service (/api/otp/send), no en
    * auth-service. Espera "phoneNumber" en lugar de "celular" y responde
    * { success, message }, no un LoginResponse.
    */

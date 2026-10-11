@@ -1,6 +1,6 @@
 package com.proyectogrado.persona_mayor_service.scheduler;
 
-import com.proyectogrado.persona_mayor_service.client.MessagingClient;
+import com.proyectogrado.persona_mayor_service.client.MensajeriaClient;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorAcompanante;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorLookup;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorOrganizacion;
@@ -99,13 +99,13 @@ class CumpleanosSchedulerTest {
             return cumplen;
         });
 
-        MessagingClient messagingClient = mock(MessagingClient.class);
-        when(messagingClient.enviarMensaje(anyString(), anyString(), anyString())).thenAnswer(inv -> {
+        MensajeriaClient mensajeriaClient = mock(MensajeriaClient.class);
+        when(mensajeriaClient.enviarMensaje(anyString(), anyString(), anyString())).thenAnswer(inv -> {
             envios.add(new Envio(inv.getArgument(0), inv.getArgument(1)));
             return true;
         });
 
-        scheduler = new CumpleanosScheduler(personaRepo, acompRepo, orgRepo, usuarioRepo, messagingClient);
+        scheduler = new CumpleanosScheduler(personaRepo, acompRepo, orgRepo, usuarioRepo, mensajeriaClient);
     }
 
     @Test

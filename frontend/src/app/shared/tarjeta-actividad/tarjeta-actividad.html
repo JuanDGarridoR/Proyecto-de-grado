@@ -1,0 +1,59 @@
+<article class="activity-card" [class.past]="pasada">
+
+  <!-- Fecha -->
+  <div class="activity-date">
+    @if (actividad.fecha) {
+      <span class="date-day">{{ actividad.fecha | date:'d' }}</span>
+      <span class="date-month">{{ actividad.fecha | date:'MMM':'':'es-CO' }}</span>
+    } @else {
+      <span class="date-day">—</span>
+      <span class="date-month">Sin fecha</span>
+    }
+  </div>
+
+  <!-- Información -->
+  <div class="activity-content">
+
+    <div class="activity-info">
+      <h3>{{ actividad.nombre }}</h3>
+
+      @if (actividad.descripcion) {
+        <p class="activity-description">{{ actividad.descripcion }}</p>
+      }
+
+      @if (actividad.tipo) {
+        <span class="activity-type">{{ actividad.tipo }}</span>
+      }
+
+      <div class="activity-details">
+        @if (actividad.fecha) {
+          <span>
+            <app-icono name="calendar" />
+            {{ actividad.fecha | date:'EEEE, d \'de\' MMMM':'':'es-CO' }}
+          </span>
+        }
+
+        @if (actividad.hora) {
+          <span><app-icono name="clock" /> {{ actividad.hora }}</span>
+        }
+
+        @if (actividad.lugar) {
+          <span><app-icono name="map-pin" /> {{ actividad.lugar }}</span>
+        }
+
+        @if (actividad.cupos !== null) {
+          <span><app-icono name="users" /> {{ actividad.cupos }} cupos</span>
+        }
+
+        @if (actividad.frecuenciaDias) {
+          <span><app-icono name="repeat" /> {{ frecuencia(actividad.frecuenciaDias) }}</span>
+        }
+      </div>
+    </div>
+
+    <!-- Acciones (las pone cada perfil) -->
+    <div class="activity-actions"><ng-content /></div>
+
+  </div>
+
+</article>

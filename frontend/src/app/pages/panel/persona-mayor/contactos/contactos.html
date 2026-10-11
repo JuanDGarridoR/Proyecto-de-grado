@@ -1,0 +1,276 @@
+<div class="page-header">
+  <h1>Contactos</h1>
+  <p>
+    Aquí puedes consultar a tus acompañantes y solicitar ayuda en caso de emergencia.
+  </p>
+</div>
+
+<!-- Botón de emergencia -->
+
+<section class="emergency-section section-block">
+
+  <div class="emergency-card card">
+
+    <div class="emergency-card__icon" aria-hidden="true">
+      <app-icono name="alert-triangle" />
+    </div>
+
+    <div class="emergency-card__content">
+      <h2>¿Necesitas ayuda?</h2>
+
+      <p>
+        Envía una alerta de emergencia a tus acompañantes.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="btn emergency-card__button"
+      (click)="activarConfirmacionEmergencia()"
+    >
+      <app-icono name="alert-triangle" />
+      Activar emergencia
+    </button>
+
+    @if (mostrandoConfirmacionEmergencia()) {
+
+      <div class="emergency-confirmation">
+
+        <div
+          class="emergency-confirmation__icon"
+          aria-hidden="true"
+        >
+          <app-icono name="alert-triangle" />
+        </div>
+
+        <div class="emergency-confirmation__content">
+
+          <h3>¿Confirmar emergencia?</h3>
+
+          <p>
+            Se enviará una alerta a tus acompañantes para informarles
+            que necesitas ayuda.
+          </p>
+
+          <div class="emergency-confirmation__actions">
+
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="cancelarEmergencia()"
+              [disabled]="enviandoEmergencia()"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="button"
+              class="btn emergency-confirmation__confirm"
+              (click)="confirmarEmergencia()"
+              [disabled]="enviandoEmergencia()"
+            >
+              @if (enviandoEmergencia()) {
+                Enviando...
+              } @else {
+                Sí, enviar alerta
+              }
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    }
+
+  </div>
+
+  @if (mensajeEmergencia(); as mensaje) {
+
+    <div class="emergency-success">
+      <app-icono name="check-circle" />
+      {{ mensaje }}
+    </div>
+
+  }
+
+  @if (errorEmergencia(); as error) {
+
+    <div class="emergency-error">
+      <app-icono name="alert-circle" />
+      {{ error }}
+    </div>
+
+  }
+
+</section>
+
+
+<!-- Contactos -->
+
+<section class="contacts-section section-block">
+
+  <div class="contacts-section__header">
+
+    <h2 class="section-block__title">
+      <app-icono name="users" />
+      Mis contactos
+    </h2>
+
+    <button
+      type="button"
+      class="add-companion-button"
+      (click)="mostrarFormularioAcompanante()"
+    >
+      Añadir acompañante
+    </button>
+
+  </div>
+
+
+  @if (mensajeAcompanante(); as mensaje) {
+
+    <div class="emergency-success">
+      <app-icono name="check-circle" />
+      {{ mensaje }}
+    </div>
+
+  }
+
+
+  <!-- Solicitudes que le enviaron acompañantes -->
+
+  @if (solicitudes().length > 0) {
+
+    <div class="companions-list">
+
+      @for (solicitud of solicitudes(); track solicitud.idUsuario) {
+
+        <app-tarjeta-persona
+          etiqueta="Quiere ser tu acompañante"
+          [nombre]="solicitud.nombre"
+          [celular]="solicitud.celular"
+          [relacion]="solicitud.relacion"
+          estado="Solicitud pendiente"
+          estadoTipo="pendiente"
+        >
+          <div card-actions class="person-card-actions">
+            <button
+              type="button"
+              class="person-card-action"
+              (click)="responderSolicitud(solicitud, false)"
+              [disabled]="solicitudProcesando() === solicitud.idUsuario"
+            >
+              Rechazar
+            </button>
+
+            <button
+              type="button"
+              class="person-card-action"
+              (click)="responderSolicitud(solicitud, true)"
+              [disabled]="solicitudProcesando() === solicitud.idUsuario"
+            >
+              <app-icono name="check" />
+              Aceptar
+            </button>
+          </div>
+        </app-tarjeta-persona>
+
+      }
+
+    </div>
+
+  }
+
+
+  <!-- Lista de acompañantes -->
+
+  @if (mensajeCancelacion(); as mensaje) {
+
+    <div class="emergency-success">
+      <app-icono name="check-circle" />
+      {{ mensaje }}
+    </div>
+
+  }
+
+  @if (errorCancelacion(); as error) {
+
+    <div class="emergency-error">
+      <app-icono name="alert-circle" />
+      {{ error }}
+    </div>
+
+  }
+
+  @if (acompanantes().length > 0) {
+
+    <div class="companions-list">
+
+      @for (ac of acompanantes(); track ac.idUsuario) {
+
+        <app-tarjeta-persona
+          etiqueta="Acompañante"
+          [nombre]="ac.nombre"
+          [celular]="ac.celular"
+          [relacion]="ac.relacion"
+        >
+          <div card-actions class="person-card-actions">
+            <button
+              type="button"
+              class="person-card-remove"
+              (click)="mostrarConfirmacionCancelacion(ac)"
+              title="Cancelar asociación"
+              aria-label="Cancelar asociación"
+            >
+              <app-icono name="x" />
+            </button>
+          </div>
+        </app-tarjeta-persona>
+
+      }
+
+    </div>
+
+  } @else {
+
+    <div class="empty-contacts card">
+
+      <span aria-hidden="true">
+        <app-icono name="user" />
+      </span>
+
+      <p>
+        No tienes acompañantes registrados.
+      </p>
+
+    </div>
+
+  }
+
+</section>
+
+
+<!-- Modal para añadir un acompañante (formulario compartido con el acompañante) -->
+
+@if (mostrandoFormularioAcompanante()) {
+  <app-solicitud-acompanamiento
+    titulo="Añadir acompañante"
+    descripcion="Ingresa los datos del acompañante que deseas agregar. Se enviará una solicitud que deberá ser aceptada por el acompañante."
+    etiquetaCelular="Celular del acompañante"
+    [enviando]="agregandoAcompanante()"
+    [errorServidor]="errorAcompanante()"
+    (enviar)="agregarAcompanante($event)"
+    (cerrar)="cancelarFormularioAcompanante()"
+  />
+}
+
+@if (acompananteACancelar(); as acompanante) {
+  <app-cancelar-asociacion
+    [nombre]="acompanante.nombre"
+    advertencia="Esta persona dejará de ser tu acompañante y ya no podrá ver tu seguimiento."
+    (confirmar)="confirmarCancelacion()"
+    (cerrar)="cerrarConfirmacionCancelacion()"
+  />
+}

@@ -20,7 +20,7 @@ start "API Gateway" cmd /k "cd /d %~dp0api-gateway && .\mvnw.cmd spring-boot:run
 
 start "Auth Service" cmd /k "cd /d %~dp0auth-service && .\mvnw.cmd spring-boot:run"
 
-start "Messaging Service" cmd /k "cd /d %~dp0messaging-service && .\mvnw.cmd spring-boot:run"
+start "Mensajeria Service" cmd /k "cd /d %~dp0mensajeria-service && .\mvnw.cmd spring-boot:run"
 
 start "Organizacion Service" cmd /k "cd /d %~dp0organizacion-service && .\mvnw.cmd spring-boot:run"
 

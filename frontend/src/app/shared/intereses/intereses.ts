@@ -11,7 +11,7 @@ import {
 } from '../../core/gustos/gusto.service';
 import { VoluntarioService } from '../../core/voluntario/voluntario.service';
 import { alCambiar } from '../../core/tiempo-real/tiempo-real.service';
-import { Icon } from '../icon/icon';
+import { Icono } from '../icono/icono';
 
 /** Pestaña de categoría. */
 interface CategoriaTab {
@@ -79,7 +79,7 @@ const ICONO_POR_DEFECTO: Record<CategoriaGusto, string> = {
 @Component({
   selector: 'app-intereses',
   standalone: true,
-  imports: [FormsModule, Icon],
+  imports: [FormsModule, Icono],
   templateUrl: './intereses.html',
   styleUrl: './intereses.css'
 })
@@ -228,7 +228,7 @@ export class Intereses implements OnInit {
   }
 
   /**
-   * Nombre del icono (para <app-icon [name]="...">) que corresponde al
+   * Nombre del icono (para <app-icono [name]="...">) que corresponde al
    * gusto, según su nombre exacto en la base de datos. Si no está en la
    * lista, usa el icono por defecto de su categoría.
    */

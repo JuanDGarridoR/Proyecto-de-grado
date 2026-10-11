@@ -29,7 +29,7 @@ export interface CitaMedicaRequest {
 
 /**
  * Cuándo se envían los recordatorios. Debe coincidir con HORAS_AVISO_DIA y
- * MINUTOS_AVISO_HORA de CitaMedicaReminderScheduler en salud-service.
+ * MINUTOS_AVISO_HORA de CitaMedicaRecordatorioScheduler en salud-service.
  */
 export const TEXTO_AVISOS_CITA = 'un día antes y una hora antes';
 

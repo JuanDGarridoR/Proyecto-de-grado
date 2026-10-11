@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.proyectogrado.auth_backend.dto.RestablecerContrasenaRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.proyectogrado.auth_backend.service.EmailValidationService;
+import com.proyectogrado.auth_backend.service.ValidacionCorreoService;
 
 /**
  * Endpoints públicos de autenticación: login (con contraseña o con OTP),
@@ -30,11 +30,11 @@ public class AuthController {
 
     private final AuthService authService;
 
-    private final EmailValidationService emailValidationService;
+    private final ValidacionCorreoService validacionCorreoService;
 
-    public AuthController(AuthService authService, EmailValidationService emailValidationService) {
+    public AuthController(AuthService authService, ValidacionCorreoService validacionCorreoService) {
         this.authService = authService;
-        this.emailValidationService = emailValidationService;
+        this.validacionCorreoService = validacionCorreoService;
     }
 
     /** Login con correo y contraseña. Si falla, responde 401. */
@@ -164,7 +164,7 @@ public ResponseEntity<?> validarCorreo(
 ) {
     try {
         JsonNode resultado =
-                emailValidationService.validarCorreo(correo);
+                validacionCorreoService.validarCorreo(correo);
 
         return ResponseEntity
                 .ok()

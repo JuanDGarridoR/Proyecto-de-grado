@@ -175,7 +175,7 @@
   line-height: 1.45;
 }
 
-.tarjeta__razones app-icon {
+.tarjeta__razones app-icono {
   flex-shrink: 0;
   margin-top: 3px;
   color: #2a78d6;

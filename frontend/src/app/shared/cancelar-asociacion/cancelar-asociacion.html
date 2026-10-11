@@ -8,7 +8,7 @@
     (click)="$event.stopPropagation()"
   >
     <div class="confirmation-modal__icon">
-      <app-icon name="alert-triangle" />
+      <app-icono name="alert-triangle" />
     </div>
 
     <div class="confirmation-modal__content">
@@ -32,7 +32,7 @@
       </button>
 
       <button type="button" class="confirmation-modal__confirm" (click)="confirmar.emit()">
-        <app-icon [name]="icono()" />
+        <app-icono [name]="icono()" />
         {{ textoConfirmar() }}
       </button>
     </div>

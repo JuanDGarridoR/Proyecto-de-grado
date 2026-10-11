@@ -8,7 +8,7 @@ import java.time.LocalTime;
 
 /**
  * Cita médica de una persona mayor, con el estado de sus recordatorios
- * (ver CitaMedicaReminderScheduler). idPersonaMayor es un Integer simple y
+ * (ver CitaMedicaRecordatorioScheduler). idPersonaMayor es un Integer simple y
  * no una relación JPA, porque la tabla persona_mayor es de auth-service.
  */
 @Entity

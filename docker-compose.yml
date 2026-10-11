@@ -12,7 +12,7 @@ x-servicio: &servicio
   environment:
     # Direcciones internas de cada servicio (reemplazan los localhost)
     AUTH_SERVICE_URL: http://auth-service:8081
-    MESSAGING_SERVICE_URL: http://messaging-service:8082
+    MENSAJERIA_SERVICE_URL: http://mensajeria-service:8082
     SALUD_SERVICE_URL: http://salud-service:8084
     PERSONA_MAYOR_SERVICE_URL: http://persona-mayor-service:8085
     ACOMPANANTE_SERVICE_URL: http://acompanante-service:8086
@@ -28,9 +28,9 @@ services:
     <<: *servicio
     build: { context: ./backend, args: { SERVICIO: auth-service } }
 
-  messaging-service:
+  mensajeria-service:
     <<: *servicio
-    build: { context: ./backend, args: { SERVICIO: messaging-service } }
+    build: { context: ./backend, args: { SERVICIO: mensajeria-service } }
 
   salud-service:
     <<: *servicio

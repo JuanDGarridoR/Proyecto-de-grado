@@ -1,0 +1,274 @@
+<div class="mis-personas">
+
+  <!-- Encabezado -->
+  <div class="mis-personas__header">
+    <div>
+      <h1>Personas mayores</h1>
+      <p>
+        Administra las personas mayores que acompañas y envía solicitudes a nuevas.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="mis-personas__add-button"
+      (click)="mostrarFormulario()"
+    >
+      <app-icono name="plus" />
+      Añadir persona mayor
+    </button>
+  </div>
+
+  <!-- Mensajes de éxito y error -->
+  @if (mensaje) {
+    <div class="mis-personas__message mis-personas__message--success">
+      {{ mensaje }}
+    </div>
+  }
+
+  @if (error) {
+    <div class="mis-personas__message mis-personas__message--error">
+      {{ error }}
+    </div>
+  }
+
+  <!-- Solicitudes pendientes (solo aparece si hay) -->
+  @if (solicitudes.length > 0) {
+
+    <section class="mis-personas__section">
+
+      <div class="mis-personas__section-header">
+        <div>
+          <h2>Solicitudes pendientes</h2>
+          <p>
+            Estas personas mayores están esperando tu confirmación.
+          </p>
+        </div>
+
+        <span class="mis-personas__badge">
+          {{ solicitudes.length }}
+        </span>
+      </div>
+
+      <div class="mis-personas__requests">
+
+        @for (solicitud of solicitudes; track solicitud.idUsuario) {
+
+          <app-tarjeta-persona
+            etiqueta="Persona mayor"
+            [nombre]="solicitud.nombre"
+            [celular]="solicitud.celular"
+            estado="Solicitud pendiente"
+            estadoTipo="pendiente"
+          >
+            <div card-actions class="mis-personas__actions">
+
+              <button
+                type="button"
+                class="mis-personas__reject-button"
+                (click)="rechazarSolicitud(solicitud.idUsuario)"
+              >
+                Rechazar
+              </button>
+
+              <button
+                type="button"
+                class="mis-personas__accept-button"
+                (click)="aceptarSolicitud(solicitud.idUsuario)"
+              >
+                Aceptar
+              </button>
+
+            </div>
+          </app-tarjeta-persona>
+
+        }
+
+      </div>
+
+    </section>
+
+  }
+
+  <!-- Personas mayores a cargo -->
+  @if (enviadas.length > 0) {
+
+    <section class="mis-personas__section">
+
+      <div class="mis-personas__section-header">
+        <div>
+          <h2>Solicitudes enviadas</h2>
+          <p>
+            Estas personas mayores aún no responden tu solicitud.
+          </p>
+        </div>
+
+        <span class="mis-personas__badge">
+          {{ enviadas.length }}
+        </span>
+      </div>
+
+      <div class="mis-personas__requests">
+
+        @for (solicitud of enviadas; track solicitud.idUsuario) {
+
+          <app-tarjeta-persona
+            etiqueta="Persona mayor"
+            [nombre]="solicitud.nombre"
+            [celular]="solicitud.celular"
+            estado="Esperando respuesta"
+            estadoTipo="pendiente"
+          >
+            <div card-actions class="mis-personas__actions">
+              <button
+                type="button"
+                class="mis-personas__reject-button"
+                (click)="cancelarSolicitudEnviada(solicitud)"
+              >
+                Cancelar solicitud
+              </button>
+            </div>
+          </app-tarjeta-persona>
+
+        }
+
+      </div>
+
+    </section>
+
+  }
+
+  <section class="mis-personas__section">
+
+    @if (cargando) {
+
+      <div class="mis-personas__loading">
+        <app-cargando texto="Cargando personas mayores..." />
+      </div>
+
+    } @else if (personasMayores.length === 0) {
+
+      <div class="mis-personas__empty">
+        <div class="mis-personas__empty-icon">
+          <app-icono name="users" />
+        </div>
+
+        <h3>No tienes personas mayores asociadas</h3>
+
+        <p>
+          Cuando aceptes una solicitud de acompañamiento,
+          aparecerá aquí.
+        </p>
+      </div>
+
+    } @else {
+
+      <app-buscador-nombre class="buscador" [(texto)]="busqueda" placeholder="Buscar persona mayor por nombre..." />
+
+      @if (personasFiltradas.length === 0) {
+        <p class="sin-resultados">Ninguna persona mayor coincide con "{{ busqueda }}".</p>
+      }
+
+      <div class="mis-personas__list">
+
+        @for (persona of personasFiltradas; track persona.idUsuario) {
+
+          <app-tarjeta-persona
+            etiqueta="Persona mayor"
+            [nombre]="persona.nombre"
+            [celular]="persona.celular"
+          >
+            <div card-actions class="person-card-actions">
+              <a
+                class="person-card-action"
+                routerLink="/panel/acompanante/gestion"
+                [queryParams]="{ persona: persona.idUsuario }"
+              >
+                <app-icono name="clipboard" />
+                Gestionar cuidado
+              </a>
+
+              <button
+                type="button"
+                class="person-card-action"
+                (click)="mostrarAcompanantes(persona)"
+              >
+                <app-icono name="users" />
+                Acompañantes
+              </button>
+
+              <button
+                type="button"
+                class="person-card-action"
+                (click)="mostrarSignosVitales(persona)"
+              >
+                <app-icono name="heart" />
+                Signos vitales
+              </button>
+
+              <button
+                type="button"
+                class="person-card-remove"
+                (click)="mostrarConfirmacionCancelacion(persona)"
+                title="Cancelar asociación"
+                aria-label="Cancelar asociación"
+              >
+                <app-icono name="x" />
+              </button>
+            </div>
+          </app-tarjeta-persona>
+
+        }
+
+      </div>
+
+    }
+
+  </section>
+
+</div>
+
+<!-- Modal para dejar de acompañar -->
+@if (mostrandoFormulario) {
+  <app-solicitud-acompanamiento
+    titulo="Añadir persona mayor"
+    descripcion="Ingresa los datos de la persona mayor que quieres acompañar. Se enviará una solicitud que deberá ser aceptada por la persona mayor."
+    etiquetaCelular="Celular de la persona mayor"
+    placeholderRelacion="Tu relación con ella. Ej. Hijo, hija, sobrino..."
+    [enviando]="enviandoSolicitud"
+    [errorServidor]="errorSolicitud"
+    (enviar)="enviarSolicitud($event)"
+    (cerrar)="cerrarFormulario()"
+  />
+}
+
+@if (personaACancelar) {
+  <app-cancelar-asociacion
+    [nombre]="personaACancelar.nombre"
+    advertencia="Dejarás de acompañar a esta persona mayor y ya no podrás ver su seguimiento."
+    (confirmar)="confirmarCancelacion()"
+    (cerrar)="cerrarConfirmacionCancelacion()"
+  />
+}
+
+<!-- Modal de signos vitales -->
+@if (personaSignosVitales) {
+  <app-modal-signos-vitales
+    [nombre]="personaSignosVitales.nombre"
+    [registros]="signosVitales"
+    [cargando]="cargandoSignosVitales"
+    [error]="errorSignosVitales"
+    (cerrar)="cerrarSignosVitales()"
+  />
+}
+
+<!-- Modal de acompañantes -->
+@if (personaAcompanantes) {
+  <app-modal-acompanantes
+    [nombre]="personaAcompanantes.nombre"
+    [acompanantes]="acompanantes"
+    [cargando]="cargandoAcompanantes"
+    [error]="errorAcompanantes"
+    (cerrar)="cerrarAcompanantes()"
+  />
+}

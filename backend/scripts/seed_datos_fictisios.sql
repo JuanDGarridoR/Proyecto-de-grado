@@ -1122,7 +1122,7 @@ WHERE m.activo AND random() < 0.10;
 
 -- Citas médicas pasadas de los últimos 21 días: aviso del día antes y
 -- de una hora antes, a la persona mayor y a sus acompañantes aceptados.
--- Mismos textos que CitaMedicaReminderScheduler.
+-- Mismos textos que CitaMedicaRecordatorioScheduler.
 WITH avisos AS (
     SELECT c.id_persona_mayor, u.nombre_usuario, u.celular,
            seed_tmp.hora_sms(c.hora) AS hora,

@@ -1,6 +1,6 @@
 package com.proyectogrado.salud_backend.scheduler;
 
-import com.proyectogrado.salud_backend.client.MessagingClient;
+import com.proyectogrado.salud_backend.client.MensajeriaClient;
 import com.proyectogrado.salud_backend.config.ZonaHoraria;
 import com.proyectogrado.salud_backend.controller.MedicamentoController;
 import com.proyectogrado.salud_backend.model.Medicamento;
@@ -39,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * memoria (RF-54): la persona mayor registra el medicamento y el scheduler,
  * con las consultas reales, avisa 15 minutos antes y a la hora exacta a ella
  * y a su acompañante, sin repetir avisos. Cada consulta corre en su propia
- * transacción, como en producción; messaging-service está simulado.
+ * transacción, como en producción; mensajeria-service está simulado.
  */
 @DataJpaTest
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -59,7 +59,7 @@ class MedicamentoRecordatorioIntegracionTest {
 
     private JdbcTemplate jdbc;
     private final List<String> enviados = new ArrayList<>();
-    private MedicamentoReminderScheduler scheduler;
+    private MedicamentoRecordatorioScheduler scheduler;
 
     @BeforeEach
     void setUp() {
@@ -69,14 +69,14 @@ class MedicamentoRecordatorioIntegracionTest {
         jdbc.update("insert into persona_mayor_acompanante (id_persona_mayor, id_acompanante, estado)"
                 + " values (10, 20, 'ACEPTADA')");
 
-        MessagingClient messagingClient = mock(MessagingClient.class);
-        when(messagingClient.enviarMensaje(anyString(), anyString(), eq("MEDICAMENTO"))).thenAnswer(inv -> {
+        MensajeriaClient mensajeriaClient = mock(MensajeriaClient.class);
+        when(mensajeriaClient.enviarMensaje(anyString(), anyString(), eq("MEDICAMENTO"))).thenAnswer(inv -> {
             enviados.add(inv.getArgument(0) + " | " + inv.getArgument(1));
             return true;
         });
 
-        scheduler = new MedicamentoReminderScheduler(
-                medicamentoRepository, relacionRepository, usuarioLookupRepository, messagingClient);
+        scheduler = new MedicamentoRecordatorioScheduler(
+                medicamentoRepository, relacionRepository, usuarioLookupRepository, mensajeriaClient);
     }
 
     @AfterEach

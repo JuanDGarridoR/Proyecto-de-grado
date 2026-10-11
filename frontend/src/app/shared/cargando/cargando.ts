@@ -1,6 +1,6 @@
 import { Component, input } from '@angular/core';
 
-import { Icon } from '../icon/icon';
+import { Icono } from '../icono/icono';
 
 /**
  * Mensaje de carga con el reloj de arena girando: <app-cargando texto="Cargando actividades..." />.
@@ -9,10 +9,10 @@ import { Icon } from '../icon/icon';
 @Component({
   selector: 'app-cargando',
   standalone: true,
-  imports: [Icon],
+  imports: [Icono],
   template: `
     <span class="cargando" role="status" aria-live="polite">
-      <app-icon name="hourglass" class="icono-cargando cargando__icono" aria-hidden="true" />
+      <app-icono name="hourglass" class="icono-cargando cargando__icono" aria-hidden="true" />
       {{ texto() }}
     </span>
   `,

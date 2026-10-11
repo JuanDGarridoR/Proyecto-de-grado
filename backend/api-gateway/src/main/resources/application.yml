@@ -49,14 +49,14 @@ spring:
             # Solo el envío del código es público. /api/otp/verify no se expone:
             # lo llama auth-service directamente, y si estuviera abierto se
             # podrían adivinar códigos de otros celulares sin pasar por el login.
-            - id: messaging-otp
-              uri: ${MESSAGING_SERVICE_URL:http://localhost:8082}
+            - id: mensajeria-otp
+              uri: ${MENSAJERIA_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/api/otp/send
 
             # Campanita del panel: SMS enviados al usuario autenticado.
-            - id: messaging-notificaciones
-              uri: ${MESSAGING_SERVICE_URL:http://localhost:8082}
+            - id: mensajeria-notificaciones
+              uri: ${MENSAJERIA_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/api/notificaciones/**
               filters:

@@ -1,0 +1,311 @@
+<div class="signos-container">
+  <div class="encabezado">
+    <div>
+      <h1>Signos vitales</h1>
+      <p>Registra los signos vitales de las personas mayores asociadas a tu organización.</p>
+    </div>
+  </div>
+
+  <div class="formulario-card">
+    <!-- Persona mayor a la que se le toman los signos -->
+    <div class="campo campo-completo">
+      <label for="personaMayor">
+        Persona mayor
+        <span class="obligatorio">*</span>
+      </label>
+
+      <select
+        id="personaMayor"
+        [(ngModel)]="idPersonaMayor"
+        [disabled]="cargandoPersonas || guardando"
+      >
+        <option [ngValue]="null" disabled>Selecciona una persona mayor</option>
+
+        @for (persona of personasMayores; track persona.idUsuario) {
+          <option [ngValue]="persona.idUsuario">
+            {{ persona.nombre }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <!-- Mediciones: cada una es opcional, pero la presión va completa -->
+    <div class="campo">
+      <label for="presionSistolica"> Presión sistólica </label>
+
+      <div class="input-unidad">
+        <input
+          id="presionSistolica"
+          type="number"
+          min="0"
+          [(ngModel)]="presionSistolica"
+          [disabled]="guardando"
+          placeholder="Ej. 120"
+        />
+        <span>mmHg</span>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="presionDiastolica"> Presión diastólica </label>
+
+      <div class="input-unidad">
+        <input
+          id="presionDiastolica"
+          type="number"
+          min="0"
+          [(ngModel)]="presionDiastolica"
+          [disabled]="guardando"
+          placeholder="Ej. 80"
+        />
+        <span>mmHg</span>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="frecuenciaCardiaca"> Frecuencia cardíaca </label>
+
+      <div class="input-unidad">
+        <input
+          id="frecuenciaCardiaca"
+          type="number"
+          min="0"
+          [(ngModel)]="frecuenciaCardiaca"
+          [disabled]="guardando"
+          placeholder="Ej. 72"
+        />
+        <span>lpm</span>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="frecuenciaRespiratoria"> Frecuencia respiratoria </label>
+
+      <div class="input-unidad">
+        <input
+          id="frecuenciaRespiratoria"
+          type="number"
+          min="0"
+          [(ngModel)]="frecuenciaRespiratoria"
+          [disabled]="guardando"
+          placeholder="Ej. 16"
+        />
+        <span>rpm</span>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="temperatura">Temperatura corporal</label>
+
+      <div class="input-unidad">
+        <input
+          id="temperatura"
+          type="number"
+          step="0.1"
+          min="0"
+          [(ngModel)]="temperatura"
+          [disabled]="guardando"
+          placeholder="Ej. 36.5"
+        />
+        <span>°C</span>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="saturacionOxigeno"> Saturación de oxígeno </label>
+
+      <div class="input-unidad">
+        <input
+          id="saturacionOxigeno"
+          type="number"
+          min="0"
+          max="100"
+          [(ngModel)]="saturacionOxigeno"
+          [disabled]="guardando"
+          placeholder="Ej. 98"
+        />
+        <span>%</span>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="peso"> Peso </label>
+
+      <div class="input-unidad">
+        <input
+          id="peso"
+          type="number"
+          step="0.1"
+          min="0"
+          [(ngModel)]="peso"
+          [disabled]="guardando"
+          placeholder="Ej. 65.5"
+        />
+        <span>kg</span>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="estatura">Estatura</label>
+
+      <div class="input-unidad">
+        <input
+          id="estatura"
+          type="number"
+          step="0.1"
+          min="0"
+          [(ngModel)]="estatura"
+          [disabled]="guardando"
+          placeholder="Ej. 162"
+        />
+        <span>cm</span>
+      </div>
+    </div>
+
+    <div class="campo campo-completo">
+      <label for="observaciones"> Observaciones </label>
+
+      <textarea
+        id="observaciones"
+        [(ngModel)]="observaciones"
+        [disabled]="guardando"
+        rows="4"
+        placeholder="Agrega alguna observación relevante..."
+      ></textarea>
+    </div>
+
+    <!-- Mensaje de éxito -->
+    @if (mensajeExito) {
+      <div class="mensaje exito campo-completo">
+        {{ mensajeExito }}
+      </div>
+    }
+
+    <!-- Mensaje de error -->
+    @if (mensajeError) {
+      <div class="mensaje error campo-completo">
+        {{ mensajeError }}
+      </div>
+    }
+
+    <div class="acciones campo-completo">
+      <button
+        type="button"
+        class="btn-secundario"
+        (click)="limpiarFormulario()"
+        [disabled]="guardando"
+      >
+        Limpiar
+      </button>
+
+      <button
+        type="button"
+        class="btn-principal"
+        (click)="registrarSignosVitales()"
+        [disabled]="guardando || cargandoPersonas"
+      >
+        @if (guardando) {
+          Guardando...
+        } @else {
+          Registrar signos vitales
+        }
+      </button>
+    </div>
+  </div>
+</div>
+<!-- Modal de confirmación antes de guardar -->
+@if (mostrarConfirmacion) {
+  <div class="modal-overlay">
+    <div class="modal-confirmacion">
+      <div class="modal-icono"><app-icono name="heart" /></div>
+
+      <h2>Confirmar registro</h2>
+
+      <p class="modal-descripcion">¿Deseas registrar estos signos vitales?</p>
+
+      @if (personaSeleccionada) {
+        <div class="persona-confirmacion">
+          <span class="persona-label"> Persona mayor </span>
+
+          <strong>
+            {{ personaSeleccionada.nombre }}
+          </strong>
+
+          @if (personaSeleccionada.celular) {
+            <span>
+              {{ personaSeleccionada.celular }}
+            </span>
+          }
+        </div>
+      }
+
+      <div class="resumen-signos">
+        <div class="resumen-item">
+          <span>Presión arterial</span>
+          <strong> {{ presionSistolica ?? '-' }} / {{ presionDiastolica ?? '-' }} mmHg </strong>
+        </div>
+
+        <div class="resumen-item">
+          <span>Frecuencia cardíaca</span>
+          <strong> {{ frecuenciaCardiaca ?? '-' }} lpm </strong>
+        </div>
+
+        <div class="resumen-item">
+          <span>Frecuencia respiratoria</span>
+          <strong> {{ frecuenciaRespiratoria ?? '-' }} rpm </strong>
+        </div>
+
+        <div class="resumen-item">
+          <span>Temperatura corporal</span>
+          <strong> {{ temperatura ?? '-' }} °C </strong>
+        </div>
+
+        <div class="resumen-item">
+          <span>Saturación de oxígeno</span>
+          <strong> {{ saturacionOxigeno ?? '-' }} % </strong>
+        </div>
+
+        <div class="resumen-item">
+          <span>Peso</span>
+          <strong> {{ peso ?? '-' }} kg </strong>
+        </div>
+
+        <div class="resumen-item">
+          <span>Estatura</span>
+          <strong>{{ estatura ?? '-' }} cm</strong>
+        </div>
+
+        <div class="resumen-item">
+          <span>IMC</span>
+          <strong>
+            @if (imc(); as i) { {{ i.valor }} · {{ i.categoria }} } @else { - }
+          </strong>
+        </div>
+      </div>
+
+      <div class="modal-acciones">
+        <button
+          type="button"
+          class="btn-secundario"
+          (click)="cancelarConfirmacion()"
+          [disabled]="guardando"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="btn-principal"
+          (click)="confirmarRegistro()"
+          [disabled]="guardando"
+        >
+          @if (guardando) {
+            Guardando...
+          } @else {
+            Confirmar registro
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
