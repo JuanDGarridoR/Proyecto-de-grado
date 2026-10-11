@@ -11,7 +11,7 @@ export const routes: Routes = [
   // Páginas públicas
   {
     path: '',
-    loadComponent: () => import('./pages/inicio/inicio').then((m) => m.Inicio),
+    loadComponent: () => import('./pages/landing/landing').then((m) => m.Landing),
   },
 
   {

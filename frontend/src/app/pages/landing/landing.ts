@@ -10,9 +10,9 @@ import { Reto } from "./secciones/reto/reto";
 
 /** Página de inicio pública: reúne las secciones de la landing en orden. */
 @Component({
-  selector: 'app-inicio',
+  selector: 'app-landing',
   imports: [BarraNavegacion, Portada, Modulos, Mision, PiePagina, QuienesSomosComponent, Reto],
-  templateUrl: './inicio.html',
-  styleUrl: './inicio.css'
+  templateUrl: './landing.html',
+  styleUrl: './landing.css'
 })
-export class Inicio {}
+export class Landing {}

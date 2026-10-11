@@ -136,7 +136,7 @@ Proyecto-de-grado/
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── core/          ← autenticación, interceptores y servicios
-│   │   │   ├── pages/         ← inicio, iniciar sesión, registro y paneles por rol
+│   │   │   ├── pages/         ← landing, iniciar sesión, registro y paneles por rol
 │   │   │   └── shared/        ← barra de navegación, pie de página, marco de los paneles, iconos
 │   │   ├── index.html
 │   │   ├── main.ts
