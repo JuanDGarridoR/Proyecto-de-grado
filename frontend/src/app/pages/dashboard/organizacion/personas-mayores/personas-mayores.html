@@ -175,6 +175,36 @@
   }
 </section>
 
+<!-- Personas mayores que eliminaron su cuenta y por qué -->
+
+@if (retiros().length > 0) {
+  <details class="retiros">
+    <summary>
+      Personas que dejaron la plataforma
+      <span class="retiros__cantidad">{{ retiros().length }}</span>
+    </summary>
+
+    <p class="retiros__ayuda">
+      Personas mayores de tu organización que eliminaron su cuenta, con la razón que indicaron.
+    </p>
+
+    <ul class="retiros__lista">
+      @for (retiro of retiros(); track $index) {
+        <li class="retiro">
+          <div class="retiro__encabezado">
+            <strong>{{ retiro.nombre }}</strong>
+            <span class="retiro__fecha">{{ retiro.fecha | date:"d 'de' MMMM 'de' y":'':'es-CO' }}</span>
+          </div>
+          <span class="retiro__razon">{{ textoRazon(retiro.razon) }}</span>
+          @if (retiro.comentario) {
+            <p class="retiro__comentario">“{{ retiro.comentario }}”</p>
+          }
+        </li>
+      }
+    </ul>
+  </details>
+}
+
 <!-- Modal para enviar una solicitud de vínculo por celular -->
 
 @if (mostrandoFormulario()) {

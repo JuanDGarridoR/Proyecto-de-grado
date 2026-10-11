@@ -247,9 +247,13 @@ restablecerContrasena(
       );
   }
 
-  /** Borra la cuenta del usuario autenticado, sea cual sea su rol. El backend toma el id del token. */
-  eliminarCuenta(): Observable<string> {
+  /**
+   * Borra la cuenta del usuario autenticado, sea cual sea su rol. El backend
+   * toma el id del token y guarda la razón (ver razones-retiro.ts).
+   */
+  eliminarCuenta(razon: string, comentario: string | null): Observable<string> {
     return this.http.delete(`${this.apiUrl}/cuenta`, {
+      body: { razon, comentario },
       responseType: 'text'
     });
   }

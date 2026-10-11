@@ -33,6 +33,38 @@
         Esta acción no se puede deshacer.
       </p>
 
+      <label for="razonEliminar">¿Por qué se elimina la cuenta?</label>
+      <select
+        id="razonEliminar"
+        class="eliminar-modal__campo"
+        [value]="razon()"
+        (change)="razon.set($any($event.target).value)"
+        [disabled]="eliminando()"
+      >
+        <option value="" disabled>Selecciona una razón</option>
+        @for (opcion of razones; track opcion.codigo) {
+          <option [value]="opcion.codigo">{{ opcion.texto }}</option>
+        }
+      </select>
+
+      <label for="comentarioEliminar">Comentario (opcional)</label>
+      <textarea
+        id="comentarioEliminar"
+        class="eliminar-modal__campo"
+        rows="3"
+        [attr.maxlength]="maxComentario"
+        [value]="comentario()"
+        (input)="comentario.set($any($event.target).value)"
+        [disabled]="eliminando()"
+      ></textarea>
+
+      @if (esPersonaMayor) {
+        <p class="eliminar-modal__nota">
+          Las organizaciones a las que perteneces verán la razón y el comentario,
+          para saber por qué ya no estás en la plataforma.
+        </p>
+      }
+
       <label for="confirmacionEliminar">
         Escribe <strong>ELIMINAR</strong> para confirmar
       </label>

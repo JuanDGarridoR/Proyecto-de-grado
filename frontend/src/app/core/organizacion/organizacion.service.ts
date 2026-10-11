@@ -36,6 +36,17 @@ export interface VoluntarioOrganizacion {
   correo: string | null;
 }
 
+/**
+ * Persona mayor de la organización que eliminó su cuenta. razon es un
+ * código de RAZONES_RETIRO (ver core/auth/razones-retiro.ts).
+ */
+export interface RetiroPersonaMayor {
+  nombre: string;
+  razon: string;
+  comentario: string | null;
+  fecha: string;
+}
+
 /** Acompañante de una persona mayor, visto por la organización. */
 export interface AcompanantePersonaMayor {
   idUsuario: number;
@@ -83,6 +94,11 @@ export class OrganizacionService {
   /** Personas mayores con vínculo aceptado. */
   obtenerPersonasMayores(): Observable<PersonaMayorOrganizacion[]> {
     return this.http.get<PersonaMayorOrganizacion[]>(`${this.apiUrl}/personas-mayores`);
+  }
+
+  /** Personas mayores que eliminaron su cuenta y por qué, de la más reciente a la más antigua. */
+  obtenerRetiros(): Observable<RetiroPersonaMayor[]> {
+    return this.http.get<RetiroPersonaMayor[]>(`${this.apiUrl}/retiros`);
   }
 
   /** Envía una solicitud de vínculo a la persona mayor con ese celular. */

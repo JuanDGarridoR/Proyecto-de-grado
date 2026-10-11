@@ -1,6 +1,8 @@
 package com.proyectogrado.auth_backend.service;
 
+import com.proyectogrado.auth_backend.model.RetiroCuenta;
 import com.proyectogrado.auth_backend.model.Usuario;
+import com.proyectogrado.auth_backend.repository.RetiroCuentaRepository;
 import com.proyectogrado.auth_backend.repository.UsuarioRepository;
 
 import jakarta.persistence.EntityManager;
@@ -8,6 +10,10 @@ import jakarta.persistence.PersistenceContext;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
 
 /**
  * Eliminación, inactivación y reactivación de la cuenta, para cualquier rol.
@@ -27,17 +33,27 @@ public class CuentaService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    private final UsuarioRepository usuarioRepository;
+    private static final ZoneId COLOMBIA = ZoneId.of("America/Bogota");
 
-    public CuentaService(UsuarioRepository usuarioRepository) {
+    private final UsuarioRepository usuarioRepository;
+    private final RetiroCuentaRepository retiroCuentaRepository;
+
+    public CuentaService(UsuarioRepository usuarioRepository, RetiroCuentaRepository retiroCuentaRepository) {
         this.usuarioRepository = usuarioRepository;
+        this.retiroCuentaRepository = retiroCuentaRepository;
     }
 
+    /**
+     * Guarda la razón del retiro (ver RetiroCuenta) y borra la cuenta, todo
+     * en la misma transacción.
+     */
     @Transactional
-    public void eliminarCuenta(Integer idUsuario) {
+    public void eliminarCuenta(Integer idUsuario, String razon, String comentario) {
 
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        registrarRetiro(usuario, razon, comentario);
 
         Integer idOrganizacion = usuario.getIdOrganizacion();
 
@@ -89,6 +105,51 @@ public class CuentaService {
         if (idOrganizacion != null) {
             eliminarOrganizacionSinUsuarios(idOrganizacion);
         }
+    }
+
+    /**
+     * Una fila por cada organización de la persona mayor (con su nombre, para
+     * que la organización sepa quién se fue y por qué). Si no era persona
+     * mayor o no tenía organizaciones, una sola fila anónima.
+     */
+    private void registrarRetiro(Usuario usuario, String razon, String comentario) {
+        LocalDateTime ahora = LocalDateTime.now(COLOMBIA);
+        String rol = rolDe(usuario.getIdUsuario());
+
+        @SuppressWarnings("unchecked")
+        List<Number> organizaciones = "PERSONA_MAYOR".equals(rol)
+                ? entityManager.createNativeQuery("""
+                        SELECT id_organizacion FROM persona_mayor_organizacion
+                         WHERE id_persona_mayor = :id
+                           AND estado IN ('ACEPTADA', 'CUENTA_INACTIVA')
+                        """)
+                        .setParameter("id", usuario.getIdUsuario())
+                        .getResultList()
+                : List.of();
+
+        if (organizaciones.isEmpty()) {
+            retiroCuentaRepository.save(new RetiroCuenta(null, null, rol, razon, comentario, ahora));
+            return;
+        }
+
+        for (Number idOrganizacion : organizaciones) {
+            retiroCuentaRepository.save(new RetiroCuenta(idOrganizacion.intValue(),
+                    usuario.getNombreUsuario(), rol, razon, comentario, ahora));
+        }
+    }
+
+    /** Primer rol del usuario (PERSONA_MAYOR, ACOMPANANTE...), o null si no tiene. */
+    private String rolDe(Integer idUsuario) {
+        List<?> roles = entityManager.createNativeQuery("""
+                        SELECT r.nombre FROM usuario_rol ur
+                          JOIN rol r ON r.id_rol = ur.id_rol
+                         WHERE ur.id_usuario = :id
+                         ORDER BY r.id_rol
+                        """)
+                .setParameter("id", idUsuario)
+                .getResultList();
+
+        return roles.isEmpty() ? null : String.valueOf(roles.get(0));
     }
 
     // =========================================================

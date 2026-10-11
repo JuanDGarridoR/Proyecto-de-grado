@@ -619,6 +619,82 @@
   color: var(--vita-text-gray);
 }
 
+/* Personas que dejaron la plataforma (desplegable al final) */
+
+.retiros {
+  margin-top: 32px;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-md);
+  background: var(--vita-white);
+}
+
+.retiros summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  color: var(--vita-navy);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.retiros__cantidad {
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: #f3f4f6;
+  color: var(--vita-text-gray);
+  font-size: 0.85rem;
+}
+
+.retiros__ayuda {
+  margin: 0;
+  padding: 0 20px 12px;
+  color: var(--vita-text-gray);
+}
+
+.retiros__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.retiro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-sm, 10px);
+}
+
+.retiro__encabezado {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--vita-navy);
+}
+
+.retiro__fecha {
+  color: var(--vita-text-gray);
+  font-size: 0.9rem;
+}
+
+.retiro__razon {
+  color: var(--vita-text);
+  font-weight: 600;
+}
+
+.retiro__comentario {
+  margin: 4px 0 0;
+  color: var(--vita-text-gray);
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
 /* Estado de error de la lista */
 
 .empty-state__icon--error {

@@ -61,6 +61,9 @@
 .eliminar-modal {
   width: 100%;
   max-width: 440px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  box-sizing: border-box;
   padding: 28px;
   background: var(--vita-white);
   border-radius: var(--radius-md);
@@ -91,6 +94,26 @@
   border-radius: var(--radius-sm);
   font: inherit;
   box-sizing: border-box;
+}
+
+.eliminar-modal .eliminar-modal__campo {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-sm);
+  background: var(--vita-white);
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.eliminar-modal textarea.eliminar-modal__campo {
+  resize: vertical;
+}
+
+.eliminar-modal .eliminar-modal__nota {
+  margin-top: -6px;
+  font-size: 0.9rem;
 }
 
 .eliminar-modal .eliminar-modal__error {

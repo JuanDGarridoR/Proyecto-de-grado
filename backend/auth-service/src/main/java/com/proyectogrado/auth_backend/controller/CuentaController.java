@@ -1,5 +1,7 @@
 package com.proyectogrado.auth_backend.controller;
 
+import com.proyectogrado.auth_backend.dto.EliminarCuentaRequest;
+import com.proyectogrado.auth_backend.model.RetiroCuenta;
 import com.proyectogrado.auth_backend.security.JwtService;
 import com.proyectogrado.auth_backend.service.CuentaService;
 
@@ -7,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,16 +31,34 @@ public class CuentaController {
         this.jwtService = jwtService;
     }
 
-    /** Borra la cuenta y todo lo relacionado con ella (ver CuentaService). */
+    /**
+     * Borra la cuenta y todo lo relacionado con ella (ver CuentaService).
+     * Pide la razón del retiro, que queda guardada para las organizaciones.
+     */
     @DeleteMapping
     public ResponseEntity<String> eliminarCuenta(
-            @RequestHeader("Authorization") String authorizationHeader
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody(required = false) EliminarCuentaRequest request
     ) {
         String token = authorizationHeader.substring(7);
         Integer idUsuario = jwtService.extraerIdUsuario(token);
 
+        // Las organizaciones tienen su propia lista de razones.
+        String razon = request != null && request.razon() != null ? request.razon().trim() : null;
+        if (razon == null || !RetiroCuenta.esRazonValida(jwtService.extraerRol(token), razon)) {
+            return ResponseEntity.badRequest().body("Selecciona la razón por la que eliminas tu cuenta");
+        }
+
+        String comentario = request.comentario() == null || request.comentario().isBlank()
+                ? null
+                : request.comentario().trim();
+        if (comentario != null && comentario.length() > RetiroCuenta.MAX_COMENTARIO) {
+            return ResponseEntity.badRequest()
+                    .body("El comentario no puede tener más de " + RetiroCuenta.MAX_COMENTARIO + " caracteres");
+        }
+
         try {
-            cuentaService.eliminarCuenta(idUsuario);
+            cuentaService.eliminarCuenta(idUsuario, razon, comentario);
         } catch (RuntimeException e) {
             System.err.println("Error al eliminar la cuenta " + idUsuario + ": " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

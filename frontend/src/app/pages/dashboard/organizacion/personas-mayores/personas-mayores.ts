@@ -1,12 +1,15 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 import {
   OrganizacionService,
   PersonaMayorOrganizacion,
-  AcompanantePersonaMayor
+  AcompanantePersonaMayor,
+  RetiroPersonaMayor
 } from '../../../../core/organizacion/organizacion.service';
+import { textoRazonRetiro } from '../../../../core/auth/razones-retiro';
 
 import {
   SignosVitalesService,
@@ -24,13 +27,14 @@ import { mensajeDeError } from '../../../../core/formato/formato';
 
 /**
  * Personas mayores de la organización: lista de vinculadas, solicitud de
- * vínculo por celular, cancelación del vínculo y dos modales de consulta
- * (acompañantes y últimos signos vitales).
+ * vínculo por celular, cancelación del vínculo, dos modales de consulta
+ * (acompañantes y últimos signos vitales) y, al final, las que dejaron la
+ * plataforma y por qué.
  */
 @Component({
   selector: 'app-personas-mayores',
   standalone: true,
-  imports: [Icon, FormsModule, PersonCard, CancelarAsociacion, SignosVitalesModal, AcompanantesModal, BuscadorNombre],
+  imports: [Icon, FormsModule, DatePipe, PersonCard, CancelarAsociacion, SignosVitalesModal, AcompanantesModal, BuscadorNombre],
   templateUrl: './personas-mayores.html',
   styleUrl: './personas-mayores.css'
 })
@@ -55,6 +59,12 @@ export class PersonasMayores implements OnInit {
   /** Personas mayores que pidieron unirse a la organización. */
   protected readonly solicitudes =
     signal<PersonaMayorOrganizacion[]>([]);
+
+  /** Personas mayores que eliminaron su cuenta y por qué (por ejemplo, fallecimiento). */
+  protected readonly retiros =
+    signal<RetiroPersonaMayor[]>([]);
+
+  protected readonly textoRazon = textoRazonRetiro;
 
   /** Solicitud que se está respondiendo; deshabilita sus botones. */
   protected readonly respondiendo =
@@ -108,6 +118,7 @@ constructor(
   alCambiar(['organizaciones', 'usuarios'], () => {
     this.cargarPersonasMayores();
     this.cargarSolicitudes();
+    this.cargarRetiros();
   });
 
   // Si hay un modal abierto, se actualiza en vivo sin mostrar "cargando".
@@ -135,6 +146,7 @@ constructor(
 ngOnInit(): void {
   this.cargarPersonasMayores();
   this.cargarSolicitudes();
+  this.cargarRetiros();
 
   // Desde las acciones rápidas del inicio se llega con ?abrir=registrar.
   this.route.queryParams.subscribe(params => {
@@ -143,6 +155,13 @@ ngOnInit(): void {
     }
   });
 }
+
+  cargarRetiros(): void {
+    this.organizacionService.obtenerRetiros().subscribe({
+      next: (retiros) => this.retiros.set(retiros),
+      error: () => this.retiros.set([])
+    });
+  }
 
   cargarSolicitudes(): void {
     this.organizacionService.obtenerSolicitudesPersonasMayores().subscribe({
