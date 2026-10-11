@@ -47,9 +47,15 @@
       <div class="shell__topbar-left">
         <div class="shell__role-info">
           <span class="shell__role-pill">{{ roleLabel }}</span>
-          <span class="shell__privacy-message">
+          <button
+            type="button"
+            class="shell__privacy-message"
+            (click)="politicaDatosAbierta.set(true)"
+            title="Ver cómo cuidamos tus datos"
+          >
+            <app-icon name="info" />
             Tus datos son privados, solo serán accesibles para ti y las personas autorizadas.
-          </span>
+          </button>
         </div>
       </div>
 
@@ -144,3 +150,107 @@
     </main>
   </div>
 </div>
+
+<!-- Política de datos: se abre desde el mensaje de privacidad de la barra superior -->
+@if (politicaDatosAbierta()) {
+  <div class="politica-overlay" (click)="politicaDatosAbierta.set(false)">
+    <div
+      class="politica-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="politicaDatosTitulo"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="politica-modal__header">
+        <h2 id="politicaDatosTitulo">Cómo cuidamos tus datos</h2>
+        <button
+          type="button"
+          class="politica-modal__cerrar"
+          (click)="politicaDatosAbierta.set(false)"
+          aria-label="Cerrar"
+        >
+          <app-icon name="x" />
+        </button>
+      </div>
+
+      <div class="politica-modal__contenido">
+        <p>
+          En VITA+ tu información es privada. Solo la ven tú y las personas
+          con las que tienes un vínculo aceptado, y únicamente lo que necesitan
+          para acompañarte.
+        </p>
+
+        <h3>Tú decides qué compartes</h3>
+        <ul>
+          <li>
+            Las <strong>enfermedades, alergias y discapacidades</strong> solo
+            aparecen si la persona mayor (o su acompañante) las registra.
+            Ningún dato de salud es obligatorio.
+          </li>
+          <li>
+            Lo mismo pasa con los medicamentos, las citas médicas, los signos
+            vitales, los gustos y si la persona vive sola: si no se registran,
+            no se muestran en ningún lugar.
+          </li>
+        </ul>
+
+        <h3>Quién ve cada información</h3>
+        <ul>
+          <li>
+            <strong>Enfermedades, alergias, discapacidades, medicamentos y
+            citas médicas:</strong> solo la persona mayor y los acompañantes
+            que ella aceptó.
+          </li>
+          <li>
+            <strong>Organizaciones:</strong> ven el nombre, el celular, los
+            signos vitales y los acompañantes de las personas mayores
+            vinculadas, para poder acompañarlas. Sus reportes usan datos
+            generales como la edad, el género, la EPS y los gustos. No ven las
+            enfermedades, alergias ni discapacidades.
+          </li>
+          <li>
+            <strong>Voluntarios:</strong> no ven la información personal ni
+            de salud de las personas mayores.
+          </li>
+          <li>
+            Nadie ve tus datos si no tiene un vínculo aceptado contigo. Si
+            cancelas o inactivas un vínculo, esa persona u organización deja
+            de verlos.
+          </li>
+        </ul>
+
+        <h3>Cómo protegemos tu cuenta</h3>
+        <ul>
+          <li>
+            Tu contraseña se guarda cifrada: nadie puede leerla, ni siquiera
+            el equipo de VITA+.
+          </li>
+          <li>
+            Tu celular se usa para iniciar sesión con un código y para enviarte
+            los avisos que tengas activos (recordatorios y emergencias). Puedes
+            elegir cuáles recibir en tu perfil.
+          </li>
+        </ul>
+
+        <h3>Tú tienes el control</h3>
+        <ul>
+          <li>Puedes ver y corregir tus datos cuando quieras desde tu perfil.</li>
+          <li>
+            Puedes <strong>inactivar tu cuenta</strong>: nadie la verá hasta
+            que la reactives, y no se borra nada.
+          </li>
+          <li>
+            Puedes <strong>eliminar tu cuenta</strong>: se borra toda tu
+            información. Solo se guarda la razón que indiques y, si eres
+            persona mayor, tu nombre para que tus organizaciones sepan por qué
+            ya no estás.
+          </li>
+        </ul>
+      </div>
+
+      <div class="politica-modal__acciones">
+        <button type="button" (click)="politicaDatosAbierta.set(false)">Entendido</button>
+      </div>
+    </div>
+  </div>
+}

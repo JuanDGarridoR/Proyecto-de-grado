@@ -67,6 +67,9 @@ export class DashboardShell implements OnInit, OnDestroy {
   protected readonly errorNotificaciones = signal(false);
   private intervaloNotificaciones?: ReturnType<typeof setInterval>;
 
+  /** Modal "Cómo cuidamos tus datos", que se abre desde el mensaje de privacidad. */
+  protected readonly politicaDatosAbierta = signal(false);
+
   /** El usuario inactivó su cuenta: se muestra un aviso para reactivarla. */
   protected readonly cuentaInactiva = signal(false);
   protected readonly reactivandoCuenta = signal(false);
