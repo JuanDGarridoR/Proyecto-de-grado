@@ -1,0 +1,135 @@
+<div class="modal-overlay" (click)="cerrar.emit()">
+  <div
+    class="modal notas-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="notas-title"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal__header">
+      <div>
+        <span class="eyebrow">Seguimiento</span>
+        <h2 id="notas-title">Notas</h2>
+      </div>
+
+      <button type="button" class="modal__close" (click)="cerrar.emit()" aria-label="Cerrar">×</button>
+    </div>
+
+    <p class="modal__description">
+      Lo que tu organización quiere recordar sobre <strong>{{ nombre() }}</strong>. Solo tu organización
+      ve estas notas.
+    </p>
+
+    <!-- Nota nueva -->
+    <div class="nota-nueva">
+      <label class="sr-only" for="notaNueva">Nueva nota</label>
+      <textarea
+        id="notaNueva"
+        rows="3"
+        [maxlength]="MAX_TEXTO"
+        placeholder="Ej.: Visita en casa. Está bien de ánimo, pidió ayuda con la cita de control."
+        [(ngModel)]="textoNuevo"
+        [disabled]="guardando()"
+      ></textarea>
+      <div class="nota-nueva__acciones">
+        <span class="contador">{{ textoNuevo.length }} / {{ MAX_TEXTO }}</span>
+        <button
+          type="button"
+          class="boton boton--primario"
+          (click)="guardar()"
+          [disabled]="!textoNuevo.trim() || guardando()"
+        >
+          <app-icono name="plus" />
+          {{ guardando() ? 'Guardando...' : 'Agregar nota' }}
+        </button>
+      </div>
+    </div>
+
+    @if (error()) {
+      <p class="notas-error" role="alert"><app-icono name="alert-circle" /> {{ error() }}</p>
+    }
+
+    <!-- Notas -->
+    @if (cargando()) {
+      <p class="notas-estado">Cargando notas...</p>
+    } @else if (errorCarga()) {
+      <p class="notas-estado">{{ errorCarga() }}</p>
+    } @else if (notas().length === 0) {
+      <div class="notas-vacio">
+        <app-icono name="pen" />
+        <p>Todavía no hay notas sobre esta persona.</p>
+      </div>
+    } @else {
+      <ul class="notas-lista">
+        @for (nota of notas(); track nota.idNota) {
+          <li class="nota">
+            <div class="nota__meta">
+              <span>
+                {{ fecha(nota.fechaCreacion) }}
+                @if (nota.editada) {
+                  <span class="nota__editada" [title]="'Editada el ' + fecha(nota.fechaActualizacion)">· editada</span>
+                }
+              </span>
+              @if (nota.autor) {
+                <span class="nota__autor">{{ nota.autor }}</span>
+              }
+            </div>
+
+            @if (editando() === nota.idNota) {
+              <label class="sr-only" [for]="'editar' + nota.idNota">Editar nota</label>
+              <textarea
+                [id]="'editar' + nota.idNota"
+                rows="4"
+                [maxlength]="MAX_TEXTO"
+                [(ngModel)]="textoEditado"
+                [disabled]="procesando() === nota.idNota"
+              ></textarea>
+              <div class="nota__acciones">
+                <button type="button" class="boton" (click)="editando.set(null)" [disabled]="procesando() === nota.idNota">
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  class="boton boton--primario"
+                  (click)="guardarEdicion(nota)"
+                  [disabled]="!textoEditado.trim() || procesando() === nota.idNota"
+                >
+                  {{ procesando() === nota.idNota ? 'Guardando...' : 'Guardar' }}
+                </button>
+              </div>
+            } @else {
+              <p class="nota__texto">{{ nota.texto }}</p>
+
+              @if (eliminando() === nota.idNota) {
+                <div class="nota__confirmar" role="alert">
+                  <span>¿Eliminar esta nota?</span>
+                  <button type="button" class="boton" (click)="eliminando.set(null)" [disabled]="procesando() === nota.idNota">
+                    No
+                  </button>
+                  <button
+                    type="button"
+                    class="boton boton--peligro"
+                    (click)="confirmarEliminacion(nota)"
+                    [disabled]="procesando() === nota.idNota"
+                  >
+                    {{ procesando() === nota.idNota ? 'Eliminando...' : 'Sí, eliminar' }}
+                  </button>
+                </div>
+              } @else {
+                <div class="nota__acciones">
+                  <button type="button" class="boton boton--texto" (click)="empezarEdicion(nota)">
+                    <app-icono name="pen" /> Editar
+                  </button>
+                  <button type="button" class="boton boton--texto boton--texto-peligro"
+                          (click)="editando.set(null); eliminando.set(nota.idNota)">
+                    <app-icono name="x" /> Eliminar
+                  </button>
+                </div>
+              }
+            }
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>

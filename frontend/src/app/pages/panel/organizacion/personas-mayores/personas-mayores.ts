@@ -21,6 +21,7 @@ import { TarjetaPersona } from '../../../../shared/tarjeta-persona/tarjeta-perso
 import { CancelarAsociacion } from '../../../../shared/cancelar-asociacion/cancelar-asociacion';
 import { ModalSignosVitales } from '../../../../shared/modal-signos-vitales/modal-signos-vitales';
 import { ModalAcompanantes } from '../../../../shared/modal-acompanantes/modal-acompanantes';
+import { ModalNotas } from './modal-notas/modal-notas';
 import { BuscadorNombre, filtrarPorNombre } from '../../../../shared/buscador-nombre/buscador-nombre';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { mensajeDeError } from '../../../../core/formato/formato';
@@ -28,13 +29,13 @@ import { mensajeDeError } from '../../../../core/formato/formato';
 /**
  * Personas mayores de la organización: lista de vinculadas, solicitud de
  * vínculo por celular, cancelación del vínculo, dos modales de consulta
- * (acompañantes y últimos signos vitales) y, al final, las que dejaron la
- * plataforma y por qué.
+ * (acompañantes y últimos signos vitales), las notas de la organización
+ * sobre cada persona y, al final, las que dejaron la plataforma y por qué.
  */
 @Component({
   selector: 'app-personas-mayores',
   standalone: true,
-  imports: [Icono, FormsModule, DatePipe, TarjetaPersona, CancelarAsociacion, ModalSignosVitales, ModalAcompanantes, BuscadorNombre],
+  imports: [Icono, FormsModule, DatePipe, TarjetaPersona, CancelarAsociacion, ModalSignosVitales, ModalAcompanantes, ModalNotas, BuscadorNombre],
   templateUrl: './personas-mayores.html',
   styleUrl: './personas-mayores.css'
 })
@@ -91,6 +92,9 @@ protected readonly acompanantes =
 /** Persona de los modales de acompañantes o signos vitales. */
 protected personaMayorSeleccionada:
   PersonaMayorOrganizacion | null = null;
+
+/** Persona cuyas notas están abiertas, o null. */
+protected readonly personaNotas = signal<PersonaMayorOrganizacion | null>(null);
 
 protected readonly mostrandoSignosVitales =
   signal(false);

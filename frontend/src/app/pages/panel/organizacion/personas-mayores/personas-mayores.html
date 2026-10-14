@@ -163,6 +163,15 @@
 
             <button
               type="button"
+              class="person-card-action"
+              (click)="personaNotas.set(persona)"
+            >
+              <app-icono name="pen" />
+              Notas
+            </button>
+
+            <button
+              type="button"
               class="person-card-remove"
               (click)="mostrarConfirmacion(persona)"
               title="Cancelar asociación"
@@ -293,6 +302,15 @@
     [acompanantes]="acompanantes()"
     [cargando]="cargandoAcompanantes()"
     (cerrar)="cerrarAcompanantes()"
+  />
+}
+
+<!-- Modal de notas -->
+@if (personaNotas(); as persona) {
+  <app-modal-notas
+    [idPersonaMayor]="persona.idUsuario"
+    [nombre]="persona.nombre"
+    (cerrar)="personaNotas.set(null)"
   />
 }
 

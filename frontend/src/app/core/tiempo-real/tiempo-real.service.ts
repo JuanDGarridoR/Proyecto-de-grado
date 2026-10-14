@@ -22,6 +22,7 @@ export type Recurso =
   | 'notificaciones'    // SMS de emergencia enviados, notificaciones leídas
   | 'donaciones'        // donaciones programadas, canceladas, recibidas
   | 'inventario'        // artículos y movimientos del inventario de la organización
+  | 'notas'             // notas de la organización sobre sus personas mayores
   | 'usuarios';         // nombres/datos de perfil, registros nuevos
 
 /** Aviso especial: recargar todo (cuenta eliminada o reconexión tras un corte). */

@@ -79,6 +79,11 @@ public class PublicarCambiosGlobalFilter implements GlobalFilter, Ordered {
         RECURSOS_POR_RUTA.put("/api/persona-mayor/acompanantes/**", "acompanamientos");
         RECURSOS_POR_RUTA.put("/api/acompanante/**", "acompanamientos");
 
+        // Notas de la organización sobre una persona mayor. Tiene que ir antes
+        // de /api/organizacion/personas-mayores/**: cambiar una nota no cambia
+        // los vínculos.
+        RECURSOS_POR_RUTA.put("/api/organizacion/personas-mayores/*/notas/**", "notas");
+
         RECURSOS_POR_RUTA.put("/api/persona-mayor/organizaciones/**", "organizaciones");
         RECURSOS_POR_RUTA.put("/api/organizacion/personas-mayores/**", "organizaciones");
 

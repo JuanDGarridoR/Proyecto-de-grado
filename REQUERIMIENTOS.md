@@ -81,6 +81,7 @@ Registro, consulta y actualización de la información de personas mayores, acom
 | --- | --- | --- |
 | RF-58 | El sistema debe permitir a la organización consultar, en una sola sección, los acompañantes de todas las personas mayores vinculadas a ella. | ⏳ Pendiente |
 | RF-59 | El sistema debe permitir a la organización consultar los medicamentos vigentes de las personas mayores vinculadas a ella. | ⏳ Pendiente |
+| RF-74 | El sistema debe permitir a la organización tomar notas sobre cada persona mayor vinculada (con su fecha, hora y autor), y editarlas o eliminarlas cuando quiera; las notas solo las ve la organización que las escribió. | ✅ Implementado |
 
 ---
 

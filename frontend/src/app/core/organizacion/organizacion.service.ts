@@ -53,6 +53,17 @@ export interface RetiroPersonaMayor {
   fecha: string;
 }
 
+/** Nota privada de la organización sobre una de sus personas mayores. */
+export interface NotaPersonaMayor {
+  idNota: number;
+  texto: string;
+  /** Cuenta de la organización que la escribió o la editó por última vez. */
+  autor: string | null;
+  fechaCreacion: string;
+  fechaActualizacion: string;
+  editada: boolean;
+}
+
 /** Acompañante de una persona mayor, visto por la organización. */
 export interface AcompanantePersonaMayor {
   idUsuario: number;
@@ -227,6 +238,29 @@ export class OrganizacionService {
     return this.http.get<AcompanantePersonaMayor[]>(
       `${this.apiUrl}/personas-mayores/${idPersonaMayor}/acompanantes`,
     );
+  }
+
+  // Notas sobre cada persona mayor (privadas de la organización)
+
+  obtenerNotas(idPersonaMayor: number): Observable<NotaPersonaMayor[]> {
+    return this.http.get<NotaPersonaMayor[]>(`${this.apiUrl}/personas-mayores/${idPersonaMayor}/notas`);
+  }
+
+  crearNota(idPersonaMayor: number, texto: string): Observable<NotaPersonaMayor> {
+    return this.http.post<NotaPersonaMayor>(`${this.apiUrl}/personas-mayores/${idPersonaMayor}/notas`, { texto });
+  }
+
+  editarNota(idPersonaMayor: number, idNota: number, texto: string): Observable<NotaPersonaMayor> {
+    return this.http.put<NotaPersonaMayor>(
+      `${this.apiUrl}/personas-mayores/${idPersonaMayor}/notas/${idNota}`,
+      { texto },
+    );
+  }
+
+  eliminarNota(idPersonaMayor: number, idNota: number): Observable<string> {
+    return this.http.delete(`${this.apiUrl}/personas-mayores/${idPersonaMayor}/notas/${idNota}`, {
+      responseType: 'text',
+    });
   }
 
   // Voluntarios (los atiende voluntario-service vía el gateway)

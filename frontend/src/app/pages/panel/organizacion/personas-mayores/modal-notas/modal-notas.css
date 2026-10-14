@@ -1,0 +1,207 @@
+/* Modal de notas. El marco (overlay, encabezado, cierre) viene de modal-acompanantes.css. */
+
+.notas-modal {
+  max-width: 620px;
+}
+
+textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+
+  border: 1px solid var(--vita-border);
+  border-radius: 10px;
+  color: var(--vita-navy);
+
+  font: inherit;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--vita-navy);
+  box-shadow: 0 0 0 3px rgba(18, 53, 91, 0.08);
+}
+
+/* Nota nueva */
+
+.nota-nueva {
+  margin-bottom: 18px;
+}
+
+.nota-nueva__acciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.contador {
+  color: var(--vita-text-gray);
+  font-size: 0.8rem;
+}
+
+/* Botones */
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+
+  border: 1px solid var(--vita-border);
+  border-radius: 10px;
+  background: var(--vita-white);
+  color: var(--vita-navy);
+
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.boton--primario {
+  border-color: var(--vita-navy);
+  background: var(--vita-navy);
+  color: var(--vita-white);
+}
+
+.boton--peligro {
+  border-color: #c0392b;
+  background: #c0392b;
+  color: var(--vita-white);
+}
+
+.boton--texto {
+  padding: 4px 8px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--vita-text-gray);
+  font-size: 0.82rem;
+}
+
+.boton--texto:hover {
+  color: var(--vita-navy);
+}
+
+.boton--texto-peligro:hover {
+  color: #c0392b;
+}
+
+/* Estados */
+
+.notas-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  color: #c0392b;
+}
+
+.notas-estado {
+  margin: 0;
+  color: var(--vita-text-gray);
+}
+
+.notas-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px;
+
+  border: 1px dashed var(--vita-border);
+  border-radius: 14px;
+  color: var(--vita-text-gray);
+  font-size: 1.4rem;
+}
+
+.notas-vacio p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* Lista */
+
+.notas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 420px;
+  margin: 0;
+  padding: 0 2px 0 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.nota {
+  padding: 14px 16px;
+
+  border: 1px solid var(--vita-border);
+  border-radius: 14px;
+  background: var(--vita-cream-soft);
+}
+
+.nota__meta {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 8px;
+
+  color: var(--vita-text-gray);
+  font-size: 0.8rem;
+}
+
+.nota__editada {
+  font-style: italic;
+}
+
+.nota__autor {
+  font-weight: 600;
+}
+
+.nota__texto {
+  margin: 0;
+  color: var(--vita-navy);
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.nota__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.nota__confirmar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+
+  color: #c0392b;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+/* Solo para lectores de pantalla */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
