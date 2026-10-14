@@ -1,7 +1,6 @@
 package com.proyectogrado.auth_backend.controller;
 
 import com.proyectogrado.auth_backend.model.Usuario;
-import com.proyectogrado.auth_backend.repository.PersonaMayorRepository;
 import com.proyectogrado.auth_backend.repository.UsuarioRepository;
 import com.proyectogrado.auth_backend.security.JwtService;
 import com.proyectogrado.auth_backend.service.FotoPerfilStorage;
@@ -31,8 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Foto de perfil de la persona mayor: solo ella la sube, solo se aceptan
- * imágenes reales y al reemplazarla se borra la anterior de Storage.
+ * Foto de perfil: cualquier rol la sube, solo se aceptan imágenes reales y
+ * al reemplazarla se borra la anterior de Storage.
  */
 class FotoPerfilControllerTest {
 
@@ -41,7 +40,6 @@ class FotoPerfilControllerTest {
     private static final String URL_ANTERIOR = "https://x.supabase.co/storage/v1/object/public/fotos-perfil/40/vieja.jpeg";
 
     private UsuarioRepository usuarioRepository;
-    private PersonaMayorRepository personaMayorRepository;
     private FotoPerfilStorage storage;
     private MockMvc mockMvc;
     private String token;
@@ -50,7 +48,6 @@ class FotoPerfilControllerTest {
     @BeforeEach
     void setUp() {
         usuarioRepository = mock(UsuarioRepository.class);
-        personaMayorRepository = mock(PersonaMayorRepository.class);
         storage = mock(FotoPerfilStorage.class);
 
         JwtService jwtService = new JwtService();
@@ -64,12 +61,11 @@ class FotoPerfilControllerTest {
         usuario.setFotoPerfil(URL_ANTERIOR);
 
         when(usuarioRepository.findById(40)).thenReturn(Optional.of(usuario));
-        when(personaMayorRepository.existsById(40)).thenReturn(true);
         when(storage.estaConfigurado()).thenReturn(true);
         when(storage.subir(eq(40), any(), any())).thenReturn(URL_NUEVA);
 
         mockMvc = MockMvcBuilders.standaloneSetup(new FotoPerfilController(
-                usuarioRepository, personaMayorRepository, jwtService, storage)).build();
+                usuarioRepository, jwtService, storage)).build();
     }
 
     private static MockMultipartFile foto(byte[] bytes) {
@@ -104,13 +100,13 @@ class FotoPerfilControllerTest {
     }
 
     @Test
-    void soloLaPersonaMayorPuedeSubirFoto() throws Exception {
-        when(personaMayorRepository.existsById(40)).thenReturn(false);
+    void siLaSubidaNoEstaConfiguradaNoSeIntenta() throws Exception {
+        when(storage.estaConfigurado()).thenReturn(false);
 
         mockMvc.perform(multipart("/api/auth/informacion/foto").file(foto(JPEG))
                         .with(request -> { request.setMethod("PUT"); return request; })
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isServiceUnavailable());
 
         verify(storage, never()).subir(anyInt(), any(), any());
     }

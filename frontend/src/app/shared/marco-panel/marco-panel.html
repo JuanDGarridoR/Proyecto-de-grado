@@ -113,7 +113,13 @@
             (click)="toggleMenuUsuario()"
             [attr.aria-expanded]="menuUsuarioAbierto"
           >
-            <span class="shell__avatar">{{ userInitials }}</span>
+            <span class="shell__avatar">
+              @if (userPhoto && userPhoto !== fotoRota()) {
+                <img [src]="userPhoto" alt="" (error)="fotoRota.set(userPhoto)" />
+              } @else {
+                {{ userInitials }}
+              }
+            </span>
             <span class="shell__user-name">{{ userName }}</span>
           </button>
 

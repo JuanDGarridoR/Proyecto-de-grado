@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, effect, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 
@@ -27,10 +27,20 @@ export class BarraNavegacion {
   protected readonly autenticado;
   protected menuUsuarioAbierto = false;
 
+  /** Foto que falló al cargar, para volver a la inicial sin reintentarla. */
+  protected readonly fotoRota = signal<string | null>(null);
+
   constructor(
     protected authService: AuthService
   ) {
     this.autenticado = this.authService.estaAutenticadoSignal();
+
+    // Con sesión, el botón del usuario muestra su foto en lugar de la inicial.
+    effect(() => {
+      if (this.autenticado()) {
+        this.authService.cargarFotoPerfil();
+      }
+    });
   }
 
   get nombreUsuario(): string {

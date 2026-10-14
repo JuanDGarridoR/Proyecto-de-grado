@@ -356,7 +356,8 @@ public class VoluntarioOrganizacionController {
                         usuario.getIdUsuario(),
                         usuario.getNombreUsuario(),
                         usuario.getCelular(),
-                        usuario.getCorreo()))
+                        usuario.getCorreo(),
+                        usuario.getFotoPerfil()))
                 .toList();
 
         return ResponseEntity.ok(respuesta);
@@ -411,7 +412,8 @@ public class VoluntarioOrganizacionController {
                 organizacion.getDireccion(),
                 contacto != null ? contacto.getCelular() : null,
                 contacto != null ? contacto.getCorreo() : null,
-                estado
+                estado,
+                contacto != null ? contacto.getFotoPerfil() : null
         );
     }
 

@@ -1,5 +1,6 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { Icono } from '../icono/icono';
+import { Avatar } from '../avatar/avatar';
 
 /** Color de la etiqueta de estado: activo (verde), pendiente o rechazado. */
 export type TarjetaPersonaEstado = 'activo' | 'pendiente' | 'rechazado';
@@ -13,7 +14,7 @@ export type TarjetaPersonaEstado = 'activo' | 'pendiente' | 'rechazado';
  */
 @Component({
   selector: 'app-tarjeta-persona',
-  imports: [Icono],
+  imports: [Icono, Avatar],
   templateUrl: './tarjeta-persona.html',
   styleUrl: './tarjeta-persona.css',
   host: {
@@ -46,9 +47,6 @@ export class TarjetaPersona {
   readonly clickable = input(false);
   readonly seleccionada = input(false);
   readonly cardClick = output<void>();
-
-  /** Si la foto no carga (por ejemplo, la borraron), se vuelve al ícono. */
-  protected readonly fotoRota = signal<string | null>(null);
 
   protected onClick(): void {
     if (this.clickable()) {

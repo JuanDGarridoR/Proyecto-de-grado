@@ -5,6 +5,8 @@ public record VoluntarioOrganizacionResponse(
         Integer idUsuario,
         String nombre,
         String celular,
-        String correo
+        String correo,
+        /** URL pública de la foto de perfil, o null si no tiene. */
+        String fotoPerfil
 ) {
 }

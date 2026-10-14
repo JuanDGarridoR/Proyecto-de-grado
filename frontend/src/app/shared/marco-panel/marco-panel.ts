@@ -43,6 +43,10 @@ export class MarcoPanel implements OnInit, OnDestroy {
   @Input() roleAccent = 'var(--vita-navy)';
   @Input() userName = '';
   @Input() userInitials = '';
+  /** URL de la foto de perfil; si es null (o no carga) se muestran las iniciales. */
+  @Input() userPhoto: string | null = null;
+  /** Foto que falló al cargar, para volver a la inicial sin reintentarla. */
+  protected readonly fotoRota = signal<string | null>(null);
   @Input() navItems: OpcionMenuPanel[] = [];
   /** Menú con letra e iconos más grandes. PlantillaPanel lo activa en todos los paneles. */
   @Input() accessible = false;

@@ -23,52 +23,46 @@
   } @else {
     <!-- Información -->
     <div class="informacion__card">
-      <!-- Foto de perfil (solo persona mayor): la ven sus organizaciones y acompañantes -->
-      @if (esPersonaMayor) {
-        <div class="informacion__section">
-          <div class="informacion__foto">
-            <div class="informacion__foto-avatar">
-              @if (informacion?.fotoPerfil) {
-                <img [src]="informacion?.fotoPerfil" alt="Tu foto de perfil" />
-              } @else {
-                <app-icono name="user" />
-              }
-            </div>
-            <div class="informacion__foto-info">
-              <h2>Foto de perfil</h2>
-              <p>Tus organizaciones y acompañantes la verán junto a tu nombre.</p>
-              <div class="informacion__foto-acciones">
-                <label
-                  class="informacion__save-button"
-                  [class.informacion__foto-boton--ocupado]="subiendoFoto"
-                >
-                  <app-icono name="camera" />
-                  @if (subiendoFoto) {
-                    Guardando...
-                  } @else {
-                    {{ informacion?.fotoPerfil ? 'Cambiar foto' : 'Subir foto' }}
-                  }
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    hidden
-                    [disabled]="subiendoFoto"
-                    (change)="seleccionarFoto($event)"
-                  />
-                </label>
-                @if (informacion?.fotoPerfil && !subiendoFoto) {
-                  <button type="button" class="informacion__cancel-button" (click)="quitarFoto()">
-                    Quitar foto
-                  </button>
+      <!-- Foto de perfil: la ven los vínculos del usuario y aparece junto a su nombre en el panel -->
+      <div class="informacion__section">
+        <div class="informacion__foto">
+          <div class="informacion__foto-avatar">
+            <app-avatar [foto]="informacion?.fotoPerfil" [icono]="esOrganizacion ? 'building' : 'user'" />
+          </div>
+          <div class="informacion__foto-info">
+            <h2>{{ esOrganizacion ? 'Foto o logo de la organización' : 'Foto de perfil' }}</h2>
+            <p>{{ descripcionFoto }}</p>
+            <div class="informacion__foto-acciones">
+              <label
+                class="informacion__save-button"
+                [class.informacion__foto-boton--ocupado]="subiendoFoto"
+              >
+                <app-icono name="camera" />
+                @if (subiendoFoto) {
+                  Guardando...
+                } @else {
+                  {{ informacion?.fotoPerfil ? 'Cambiar foto' : 'Subir foto' }}
                 }
-              </div>
-              @if (errorFoto) {
-                <p class="informacion__form-error">{{ errorFoto }}</p>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  hidden
+                  [disabled]="subiendoFoto"
+                  (change)="seleccionarFoto($event)"
+                />
+              </label>
+              @if (informacion?.fotoPerfil && !subiendoFoto) {
+                <button type="button" class="informacion__cancel-button" (click)="quitarFoto()">
+                  Quitar foto
+                </button>
               }
             </div>
+            @if (errorFoto) {
+              <p class="informacion__form-error">{{ errorFoto }}</p>
+            }
           </div>
         </div>
-      }
+      </div>
       <div class="informacion__section">
         <h2>{{ esOrganizacion ? 'Datos de la organización' : 'Datos personales' }}</h2>
         <div class="informacion__grid">

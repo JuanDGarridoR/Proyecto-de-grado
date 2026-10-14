@@ -1,6 +1,7 @@
 import { Component, input, output } from '@angular/core';
 
 import { Icono } from '../icono/icono';
+import { Avatar } from '../avatar/avatar';
 
 /** Acompañante tal como lo muestra el modal. */
 export interface AcompananteResumen {
@@ -8,6 +9,8 @@ export interface AcompananteResumen {
   nombre: string;
   celular: string;
   relacion: string | null;
+  /** URL de la foto de perfil, o null si no ha subido una. */
+  fotoPerfil?: string | null;
 }
 
 /**
@@ -17,7 +20,7 @@ export interface AcompananteResumen {
  */
 @Component({
   selector: 'app-modal-acompanantes',
-  imports: [Icono],
+  imports: [Icono, Avatar],
   templateUrl: './modal-acompanantes.html',
   styleUrl: './modal-acompanantes.css'
 })

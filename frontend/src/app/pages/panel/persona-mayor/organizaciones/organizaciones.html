@@ -94,7 +94,7 @@
 
             <div class="organization-icon organization-icon--request">
 
-              <app-icono name="building" />
+              <app-avatar [foto]="organizacion.fotoPerfil" icono="building" />
 
             </div>
 
@@ -332,7 +332,7 @@
 
             <div class="organization-icon">
 
-              <app-icono name="building" />
+              <app-avatar [foto]="organizacion.fotoPerfil" icono="building" />
 
             </div>
 
@@ -492,7 +492,7 @@
     <ul class="enviadas__lista">
       @for (organizacion of enviadas(); track organizacion.idOrganizacion) {
         <li class="enviada">
-          <span class="organization-icon" aria-hidden="true"><app-icono name="building" /></span>
+          <span class="organization-icon" aria-hidden="true"><app-avatar [foto]="organizacion.fotoPerfil" icono="building" /></span>
           <div class="enviada__datos">
             <strong>{{ organizacion.nombre }}</strong>
             <span class="enviada__estado"><app-icono name="hourglass" /> Esperando respuesta</span>
@@ -525,7 +525,7 @@
     <ul class="enviadas__lista">
       @for (organizacion of inactivas(); track organizacion.idOrganizacion) {
         <li class="enviada">
-          <span class="organization-icon" aria-hidden="true"><app-icono name="building" /></span>
+          <span class="organization-icon" aria-hidden="true"><app-avatar [foto]="organizacion.fotoPerfil" icono="building" /></span>
           <div class="enviada__datos">
             <strong>{{ organizacion.nombre }}</strong>
             <span class="enviada__estado enviada__estado--inactiva"><app-icono name="power" /> Asociación inactiva</span>
@@ -571,7 +571,7 @@
         <ul class="enviadas__lista">
           @for (organizacion of disponiblesFiltradas(); track organizacion.idOrganizacion) {
             <li class="enviada">
-              <span class="organization-icon" aria-hidden="true"><app-icono name="building" /></span>
+              <span class="organization-icon" aria-hidden="true"><app-avatar [foto]="organizacion.fotoPerfil" icono="building" /></span>
               <div class="enviada__datos">
                 <strong>{{ organizacion.nombre }}</strong>
                 @if (organizacion.direccion) {

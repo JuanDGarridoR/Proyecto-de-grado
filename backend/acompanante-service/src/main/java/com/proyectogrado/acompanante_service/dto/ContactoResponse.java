@@ -11,11 +11,15 @@ public class ContactoResponse {
     private String celular;
     private String relacion;
 
-    public ContactoResponse(Integer idUsuario, String nombre, String celular, String relacion) {
+    /** URL pública de la foto de perfil, o null si no tiene. */
+    private String fotoPerfil;
+
+    public ContactoResponse(Integer idUsuario, String nombre, String celular, String relacion, String fotoPerfil) {
         this.idUsuario = idUsuario;
         this.nombre = nombre;
         this.celular = celular;
         this.relacion = relacion;
+        this.fotoPerfil = fotoPerfil;
     }
 
     public Integer getIdUsuario() {
@@ -32,5 +36,9 @@ public class ContactoResponse {
 
     public String getRelacion() {
         return relacion;
+    }
+
+    public String getFotoPerfil() {
+        return fotoPerfil;
     }
 }

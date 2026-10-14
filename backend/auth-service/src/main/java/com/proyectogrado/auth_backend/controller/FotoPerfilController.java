@@ -1,7 +1,6 @@
 package com.proyectogrado.auth_backend.controller;
 
 import com.proyectogrado.auth_backend.model.Usuario;
-import com.proyectogrado.auth_backend.repository.PersonaMayorRepository;
 import com.proyectogrado.auth_backend.repository.UsuarioRepository;
 import com.proyectogrado.auth_backend.security.JwtService;
 import com.proyectogrado.auth_backend.service.FotoPerfilStorage;
@@ -22,27 +21,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Foto de perfil de la persona mayor, que ven sus organizaciones y sus
- * acompañantes en sus listas. El archivo queda en Supabase Storage (ver
+ * Foto de perfil de cualquier rol (persona mayor, acompañante, voluntario u
+ * organización). La ven sus vínculos en sus listas y el propio usuario junto
+ * a su nombre en el panel. El archivo queda en Supabase Storage (ver
  * FotoPerfilStorage) y la tabla usuario guarda su URL pública.
+ *
+ * La foto de una organización es la de su cuenta (el usuario con
+ * id_organizacion), que es la que los demás servicios ya usan para mostrar
+ * su nombre, celular y correo.
  */
 @RestController
 @RequestMapping("/api/auth/informacion/foto")
 public class FotoPerfilController {
 
     private final UsuarioRepository usuarioRepository;
-    private final PersonaMayorRepository personaMayorRepository;
     private final JwtService jwtService;
     private final FotoPerfilStorage fotoPerfilStorage;
 
     public FotoPerfilController(
             UsuarioRepository usuarioRepository,
-            PersonaMayorRepository personaMayorRepository,
             JwtService jwtService,
             FotoPerfilStorage fotoPerfilStorage
     ) {
         this.usuarioRepository = usuarioRepository;
-        this.personaMayorRepository = personaMayorRepository;
         this.jwtService = jwtService;
         this.fotoPerfilStorage = fotoPerfilStorage;
     }
@@ -54,11 +55,6 @@ public class FotoPerfilController {
             @RequestParam("foto") MultipartFile foto
     ) throws IOException {
         Usuario usuario = usuarioDelToken(authorizationHeader);
-
-        if (!personaMayorRepository.existsById(usuario.getIdUsuario())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Solo la persona mayor puede subir una foto de perfil");
-        }
 
         if (foto.isEmpty()) {
             return ResponseEntity.badRequest().body("Selecciona una imagen");

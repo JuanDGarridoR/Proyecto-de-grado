@@ -17,8 +17,8 @@ import java.util.UUID;
 
 /**
  * Fotos de perfil en Supabase Storage, en el bucket público fotos-perfil.
- * Cada foto queda en {idUsuario}/{uuid}.{extensión}: la URL es pública (las
- * organizaciones y los acompañantes la cargan con un simple img), pero no se
+ * Cada foto queda en {idUsuario}/{uuid}.{extensión}: la URL es pública (los
+ * vínculos del usuario la cargan con un simple img), pero no se
  * puede adivinar, y el bucket no se puede listar sin la clave secreta.
  *
  * Se usa la clave secreta del proyecto (supabase.secret-key), que salta las

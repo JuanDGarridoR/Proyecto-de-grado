@@ -233,7 +233,8 @@ public class PersonaMayorAcompananteController {
                 idAcompanante,
                 usuario != null ? usuario.getNombreUsuario() : null,
                 usuario != null ? usuario.getCelular() : null,
-                relacion
+                relacion,
+                usuario != null ? usuario.getFotoPerfil() : null
         );
     }
 }

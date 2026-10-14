@@ -18,6 +18,7 @@ import { CONFIGURACION_PANEL } from '../configuracion-panel/configuracion-panel'
       [roleAccent]="roleAccent"
       [userName]="nombreUsuario()"
       [userInitials]="iniciales()"
+      [userPhoto]="fotoPerfil()"
       [navItems]="navItems"
       [accessible]="true"
     >
@@ -29,6 +30,7 @@ export class PlantillaPanel {
   /** Se recalcula solo cuando cambia el nombre en AuthService (por ejemplo, en "Mi información"). */
   protected readonly nombreUsuario = computed(() => this.authService.getNombreUsuario());
   protected readonly iniciales = computed(() => this.nombreUsuario().charAt(0).toUpperCase());
+  protected readonly fotoPerfil = computed(() => this.authService.getFotoPerfil());
 
   protected readonly roleLabel: string;
   protected readonly roleAccent: string;
@@ -44,5 +46,7 @@ export class PlantillaPanel {
       this.roleLabel = config?.roleLabel ?? '';
       this.roleAccent = config?.roleAccent ?? 'var(--vita-navy)';
       this.navItems = config?.navItems ?? [];
+
+      this.authService.cargarFotoPerfil();
   }
 }

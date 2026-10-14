@@ -270,6 +270,7 @@
 .organization-icon {
   width: 58px;
   height: 58px;
+  overflow: hidden;
 
   display: flex;
   align-items: center;

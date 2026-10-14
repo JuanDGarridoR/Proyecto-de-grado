@@ -199,7 +199,10 @@ public class AcompananteSeguimientoController {
                             usuario != null
                                     ? usuario.getCelular()
                                     : null,
-                            tipoRelacion
+                            tipoRelacion,
+                            usuario != null
+                                    ? usuario.getFotoPerfil()
+                                    : null
                     );
                 })
                 .toList();

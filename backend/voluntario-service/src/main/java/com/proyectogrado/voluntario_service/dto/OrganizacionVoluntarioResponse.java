@@ -10,6 +10,8 @@ public record OrganizacionVoluntarioResponse(
         String direccion,
         String celular,
         String correo,
-        String estado
+        String estado,
+        /** URL pública de la foto de perfil, o null si no tiene. */
+        String fotoPerfil
 ) {
 }

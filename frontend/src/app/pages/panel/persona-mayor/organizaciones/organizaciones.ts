@@ -9,6 +9,7 @@ import {
 
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { Icono } from '../../../../shared/icono/icono';
+import { Avatar } from '../../../../shared/avatar/avatar';
 import { BuscadorNombre, filtrarPorNombre } from '../../../../shared/buscador-nombre/buscador-nombre';
 import { RecomendacionesOrganizacionesComponent } from '../../../../shared/recomendaciones-organizaciones/recomendaciones-organizaciones';
 import { mensajeDeError } from '../../../../core/formato/formato';
@@ -23,7 +24,7 @@ import { mensajeDeError } from '../../../../core/formato/formato';
 @Component({
   selector: 'app-organizaciones',
   standalone: true,
-  imports: [Icono, CommonModule, FormsModule, RecomendacionesOrganizacionesComponent, BuscadorNombre],
+  imports: [Icono, Avatar, CommonModule, FormsModule, RecomendacionesOrganizacionesComponent, BuscadorNombre],
   templateUrl: './organizaciones.html',
   styleUrl: './organizaciones.css'
 })

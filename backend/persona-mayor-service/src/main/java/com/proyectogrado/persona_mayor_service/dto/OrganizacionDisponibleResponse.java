@@ -9,6 +9,8 @@ public record OrganizacionDisponibleResponse(
         String nombre,
         String direccion,
         String celular,
-        String correo
+        String correo,
+        /** URL pública de la foto de perfil, o null si no tiene. */
+        String fotoPerfil
 ) {
 }

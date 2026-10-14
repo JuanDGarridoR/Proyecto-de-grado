@@ -54,7 +54,7 @@ public class Usuario {
 
     /**
      * URL pública de la foto de perfil en Supabase Storage (bucket
-     * fotos-perfil), o null si no tiene. Hoy solo la sube la persona mayor.
+     * fotos-perfil), o null si no tiene. La sube cualquier rol.
      */
     @Column(name = "foto_perfil")
     private String fotoPerfil;

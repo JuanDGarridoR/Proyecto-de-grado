@@ -31,6 +31,10 @@ public class UsuarioLookup {
     @Column(name = "correo")
     private String correo;
 
+    /** URL pública de la foto de perfil, o null si no tiene. */
+    @Column(name = "foto_perfil")
+    private String fotoPerfil;
+
     @Column(name = "id_organizacion")
     private Integer idOrganizacion;
 
@@ -59,6 +63,10 @@ public class UsuarioLookup {
 
     public String getCorreo() {
         return correo;
+    }
+
+    public String getFotoPerfil() {
+        return fotoPerfil;
     }
 
     public Integer getIdOrganizacion() {

@@ -8,6 +8,8 @@ public record AcompananteResponse(
         Integer idUsuario,
         String nombre,
         String celular,
-        String relacion
+        String relacion,
+        /** URL pública de la foto de perfil, o null si no tiene. */
+        String fotoPerfil
 ) {
 }

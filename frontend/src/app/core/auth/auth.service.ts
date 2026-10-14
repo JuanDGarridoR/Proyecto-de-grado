@@ -169,6 +169,13 @@ export class AuthService {
     sessionStorage.getItem('nombreUsuario') ?? 'Usuario'
   );
 
+  /**
+   * URL de la foto de perfil del usuario, o null si no tiene (entonces se
+   * muestra la inicial). Se pide una vez por sesión (ver cargarFotoPerfil).
+   */
+  private readonly fotoPerfilSignal = signal<string | null>(null);
+  private fotoPerfilCargada = false;
+
   constructor(
     private http: HttpClient,
     private router: Router
@@ -281,6 +288,7 @@ restablecerContrasena(
     sessionStorage.setItem('idUsuario', String(response.idUsuario));
     sessionStorage.setItem('nombreUsuario', response.nombreUsuario);
     this.nombreUsuarioSignal.set(response.nombreUsuario);
+    this.olvidarFotoPerfil();
 
     escribirSesionRecordada({
       token: response.token,
@@ -310,6 +318,7 @@ restablecerContrasena(
     sessionStorage.removeItem('idUsuario');
     sessionStorage.removeItem('nombreUsuario');
     this.nombreUsuarioSignal.set('Usuario');
+    this.olvidarFotoPerfil();
 
     // Avisa a toda la aplicación que la sesión terminó.
     this.autenticadoSignal.set(false);
@@ -340,6 +349,41 @@ restablecerContrasena(
     if (recordada && recordada.token === sessionStorage.getItem('token')) {
       escribirSesionRecordada({ ...recordada, nombreUsuario: nombre });
     }
+  }
+
+  /** Lee un signal: la foto cambia sola en el panel al subirla o quitarla. */
+  getFotoPerfil(): string | null {
+    return this.fotoPerfilSignal();
+  }
+
+  /**
+   * Pide la foto a "Mi información" si aún no se tiene. La llaman el panel y
+   * la barra de navegación; solo la primera vez hace la petición.
+   */
+  cargarFotoPerfil(): void {
+    if (this.fotoPerfilCargada || !this.getToken()) {
+      return;
+    }
+
+    this.fotoPerfilCargada = true;
+
+    this.http.get<{ fotoPerfil?: string | null }>(`${this.apiUrl}/informacion`).subscribe({
+      next: (informacion) => this.fotoPerfilSignal.set(informacion.fotoPerfil ?? null),
+      // Sin foto se ve la inicial; se reintenta en la próxima carga del panel.
+      error: () => (this.fotoPerfilCargada = false),
+    });
+  }
+
+  /** Se llama después de subir o quitar la foto en "Mi información". */
+  actualizarFotoPerfil(url: string | null): void {
+    this.fotoPerfilCargada = true;
+    this.fotoPerfilSignal.set(url);
+  }
+
+  /** Al entrar con otra cuenta o salir, la foto anterior ya no aplica. */
+  private olvidarFotoPerfil(): void {
+    this.fotoPerfilCargada = false;
+    this.fotoPerfilSignal.set(null);
   }
 
   getRol(): string | null {

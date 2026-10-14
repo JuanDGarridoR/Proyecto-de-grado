@@ -122,7 +122,8 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
                         usuario.getCelular(),
                         acompanante != null
                                 ? acompanante.getRelacion()
-                                : null
+                                : null,
+                        usuario.getFotoPerfil()
                 );
             })
             .filter(java.util.Objects::nonNull)
@@ -385,7 +386,8 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
                             idOrganizacion,
                             usuarioOrganizacion != null ? usuarioOrganizacion.getNombreUsuario() : "Organización",
                             usuarioOrganizacion != null ? usuarioOrganizacion.getCelular() : null,
-                            usuarioOrganizacion != null ? usuarioOrganizacion.getCorreo() : null
+                            usuarioOrganizacion != null ? usuarioOrganizacion.getCorreo() : null,
+                            usuarioOrganizacion != null ? usuarioOrganizacion.getFotoPerfil() : null
                     );
                 })
                 .toList();

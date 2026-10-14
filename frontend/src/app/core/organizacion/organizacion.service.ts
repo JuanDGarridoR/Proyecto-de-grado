@@ -28,6 +28,8 @@ export interface OrganizacionSolicitud {
   celular: string;
   correo: string;
   direccion: string;
+  /** URL de la foto de perfil, o null si no ha subido una. */
+  fotoPerfil?: string | null;
 }
 
 /** Voluntario vinculado a la organización, o que le envió una solicitud. */
@@ -36,6 +38,8 @@ export interface VoluntarioOrganizacion {
   nombre: string;
   celular: string | null;
   correo: string | null;
+  /** URL de la foto de perfil, o null si no ha subido una. */
+  fotoPerfil?: string | null;
 }
 
 /**
@@ -55,6 +59,8 @@ export interface AcompanantePersonaMayor {
   nombre: string;
   celular: string;
   relacion: string | null;
+  /** URL de la foto de perfil, o null si no ha subido una. */
+  fotoPerfil?: string | null;
 }
 
 /**

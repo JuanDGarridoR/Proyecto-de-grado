@@ -25,6 +25,7 @@ import {
 import { API_URL } from '../../core/api';
 import { Cargando } from '../cargando/cargando';
 import { Icono } from '../icono/icono';
+import { Avatar } from '../avatar/avatar';
 import { reducirFoto } from '../../core/foto-perfil/reducir-foto';
 
 /** Rol del perfil que se muestra; llega en data.tipoPerfil de la ruta. */
@@ -62,7 +63,7 @@ interface PerfilInformacion {
  */
 @Component({
   selector: 'app-perfil',
-  imports: [FormsModule, CampoContrasena, InactivarCuenta, EliminarCuenta, GestorNotificaciones, DatosSalud, Cargando, Icono],
+  imports: [FormsModule, CampoContrasena, InactivarCuenta, EliminarCuenta, GestorNotificaciones, DatosSalud, Cargando, Icono, Avatar],
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })
@@ -130,6 +131,20 @@ export class Perfil implements OnInit {
     return this.esOrganizacion
       ? 'Consulta y administra los datos de tu organización.'
       : 'Consulta y administra tus datos personales.';
+  }
+
+  /** Quién verá la foto, según el rol. */
+  get descripcionFoto(): string {
+    switch (this.tipoPerfil) {
+      case 'PERSONA_MAYOR':
+        return 'Tus organizaciones y acompañantes la verán junto a tu nombre.';
+      case 'ACOMPANANTE':
+        return 'Las personas mayores que acompañas y sus otros acompañantes la verán junto a tu nombre.';
+      case 'VOLUNTARIO':
+        return 'Las organizaciones en las que eres voluntario la verán junto a tu nombre.';
+      case 'ORGANIZACION':
+        return 'Las personas mayores y los voluntarios la verán junto al nombre de tu organización.';
+    }
   }
 
   get textoCarga(): string {
@@ -238,6 +253,7 @@ export class Perfil implements OnInit {
       celular: data.celular,
       correo: data.correo || '',
       direccion: data.direccion,
+      fotoPerfil: identidad.fotoPerfil ?? null,
       tieneContrasena: identidad.tieneContrasena,
     };
   }
@@ -517,6 +533,8 @@ export class Perfil implements OnInit {
     if (this.informacion) {
       this.informacion.fotoPerfil = url;
     }
+
+    this.authService.actualizarFotoPerfil(url);
 
     this.cdr.detectChanges();
   }

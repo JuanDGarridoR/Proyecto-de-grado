@@ -120,6 +120,14 @@
   font-weight: 700;
   cursor: pointer;
   pointer-events: auto;
+  overflow: hidden;
+  padding: 0;
+}
+
+.navbar__user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Cerrar sesión */

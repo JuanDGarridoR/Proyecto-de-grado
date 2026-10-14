@@ -16,6 +16,8 @@ export interface OrganizacionVoluntario {
   celular: string | null;
   correo: string | null;
   estado: EstadoVinculo | null;
+  /** URL de la foto de perfil, o null si no ha subido una. */
+  fotoPerfil?: string | null;
 }
 
 /**

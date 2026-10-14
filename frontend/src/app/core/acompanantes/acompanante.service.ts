@@ -13,6 +13,8 @@ export interface Acompanante {
   nombre: string;
   celular: string;
   relacion: string;
+  /** URL de la foto de perfil, o null si no ha subido una. */
+  fotoPerfil?: string | null;
 }
 
 /** Persona mayor que el acompañante tiene a cargo. */

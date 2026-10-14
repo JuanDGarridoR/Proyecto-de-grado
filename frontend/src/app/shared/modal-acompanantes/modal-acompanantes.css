@@ -172,6 +172,7 @@
 .acompanante-item__icon {
   width: 44px;
   height: 44px;
+  overflow: hidden;
 
   display: flex;
   align-items: center;

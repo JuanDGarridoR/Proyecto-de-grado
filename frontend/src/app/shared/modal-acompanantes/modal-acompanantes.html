@@ -42,7 +42,7 @@
         @for (acompanante of acompanantes(); track acompanante.idUsuario) {
           <div class="acompanante-item">
             <div class="acompanante-item__icon">
-              <app-icono name="user" />
+              <app-avatar [foto]="acompanante.fotoPerfil" />
             </div>
 
             <div class="acompanante-item__info">

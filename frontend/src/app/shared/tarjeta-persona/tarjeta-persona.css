@@ -75,12 +75,6 @@
   overflow: hidden;
 }
 
-.person-card__avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .person-card__name {
   min-width: 0;
 }
