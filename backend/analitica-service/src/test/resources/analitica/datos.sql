@@ -67,8 +67,11 @@ VALUES (5, 13, '2026-09-17 10:00:00', 96);
 INSERT INTO gusto VALUES (1, 'Boleros', 'GUSTO');
 INSERT INTO gusto VALUES (2, 'Tejer', 'TALENTO');
 INSERT INTO gusto VALUES (3, 'Caminar', 'HOBBY');
+-- Profesión u oficio: va en el mismo catálogo, pero no cuenta como interés.
+INSERT INTO gusto VALUES (4, 'Docencia', 'PROFESION');
 
 INSERT INTO persona_mayor_gusto VALUES (10, 1);
 INSERT INTO persona_mayor_gusto VALUES (11, 1);
 INSERT INTO persona_mayor_gusto VALUES (10, 2);
 INSERT INTO persona_mayor_gusto VALUES (13, 3);
+INSERT INTO persona_mayor_gusto VALUES (11, 4);

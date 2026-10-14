@@ -39,7 +39,8 @@ const pct = (parte: number, total: number) => (total > 0 ? Math.round((parte / t
 
 /**
  * Reporte 3: quiénes son las personas mayores de la organización
- * (edad, género, EPS e intereses). No depende del período.
+ * (edad, género, EPS, intereses y profesión u oficio). No depende del
+ * período.
  */
 @Component({
   selector: 'app-reporte-poblacion',
@@ -238,6 +239,32 @@ export class ReportePoblacion implements ReporteExportable {
     ])
   }));
 
+  // Gráfica 5: profesiones u oficios
+
+  private readonly topProfesiones = computed(() => this.datos().profesiones.slice(0, 10));
+
+  protected readonly graficaProfesiones = computed<OpcionesGrafica>(() => {
+    const datos = [...this.topProfesiones()].reverse();
+    return base({
+      grid: { left: 8, right: 40, top: 8, bottom: 8, containLabel: true },
+      tooltip: tooltip({ trigger: 'axis', axisPointer: { type: 'shadow' } }),
+      xAxis: ejeValores(),
+      yAxis: ejeCategorias(datos.map((d) => d.nombre), {
+        axisLabel: { color: '#586576', fontSize: 12, width: 170, overflow: 'truncate' }
+      }),
+      series: [{
+        name: 'Personas', type: 'bar', barMaxWidth: ANCHO_BARRA,
+        label: etiquetaValor('right'),
+        data: datos.map((d) => ({ value: d.personas, itemStyle: estiloBarra(SERIE[3], true) }))
+      }]
+    });
+  });
+
+  protected readonly tablaProfesiones = computed<TablaGrafica>(() => ({
+    columnas: ['Profesión u oficio', 'Personas'],
+    filas: this.topProfesiones().map((d) => [d.nombre, d.personas])
+  }));
+
   // ---------- Tarjetas (pantalla y PDF) ----------
 
   protected readonly tarjetas = computed<DatoKpi[]>(() => {
@@ -339,6 +366,24 @@ export class ReportePoblacion implements ReporteExportable {
       + 'proponer actividades que respondan a lo que las personas mayores disfrutan y saben hacer.';
   }
 
+  private explicacionProfesiones(): string {
+    const total = this.datos().personas.length;
+    const conProfesion = this.datos().personasConProfesion;
+    const top = this.topProfesiones();
+    if (top.length === 0) {
+      return 'Ninguna persona asociada ha registrado su profesión u oficio, por eso la gráfica no muestra '
+        + 'datos. Conocer a qué se dedicaron ayuda a proponer actividades en las que puedan compartir su '
+        + 'experiencia.';
+    }
+
+    const primero = top[0];
+    return 'La gráfica muestra a qué se dedicaron las personas asociadas (hasta 10 profesiones u oficios; una '
+      + 'persona puede tener más de uno). El más común es '
+      + `"${primero.nombre}", con ${primero.personas} ${primero.personas === 1 ? 'persona' : 'personas'}, y `
+      + `${conProfesion} de ${total} personas han registrado su profesión u oficio. Estos datos sirven para `
+      + 'proponer actividades en las que las personas mayores puedan aportar lo que saben hacer.';
+  }
+
   // ---------- PDF ----------
 
   contenidoPdf(): ContenidoReporte {
@@ -359,7 +404,12 @@ export class ReportePoblacion implements ReporteExportable {
           descripcion: 'Los 10 gustos, talentos y hobbies registrados por el mayor número de personas.',
           opciones: this.datos().intereses.length > 0 ? this.graficaIntereses() : null,
           tabla: this.tablaIntereses(),
-          explicacion: this.explicacionIntereses() }
+          explicacion: this.explicacionIntereses() },
+        { titulo: 'Profesiones u oficios',
+          descripcion: 'A qué se dedicaron las personas asociadas (hasta 10).',
+          opciones: this.datos().profesiones.length > 0 ? this.graficaProfesiones() : null,
+          tabla: this.tablaProfesiones(),
+          explicacion: this.explicacionProfesiones() }
       ]
     };
   }

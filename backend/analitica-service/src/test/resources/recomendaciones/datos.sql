@@ -40,7 +40,14 @@ INSERT INTO gusto VALUES (1, 'Baile', 'HOBBY'), (2, 'Tejido', 'TALENTO'), (3, 'L
 INSERT INTO persona_mayor_gusto VALUES (10, 1), (10, 2), (11, 2), (12, 3);
 INSERT INTO voluntario_gusto VALUES (40, 2);
 
+-- Profesiones (mismo catálogo, categoría PROFESION). Laura fue docente,
+-- como Luis, del Centro Día Renacer. Rosa no registró profesión.
+INSERT INTO gusto VALUES (4, 'Docencia', 'PROFESION');
+INSERT INTO persona_mayor_gusto VALUES (11, 4);
+INSERT INTO voluntario_gusto VALUES (40, 4);
+
 -- Actividades: la propuesta pendiente del Centro Día Renacer no cuenta
 INSERT INTO actividad VALUES (100, 6, 'Noche de música y baile', 'Recreativa', 'Música para bailar', CURRENT_DATE, NULL);
 INSERT INTO actividad VALUES (101, 6, 'Tejido en grupo', 'Manualidades', NULL, CURRENT_DATE, 'PENDIENTE');
 INSERT INTO actividad VALUES (102, 5, 'Charla de salud', 'Salud y bienestar', NULL, CURRENT_DATE, NULL);
+INSERT INTO actividad VALUES (103, 6, 'Grupo de lectura', 'Educativa', NULL, CURRENT_DATE, NULL);

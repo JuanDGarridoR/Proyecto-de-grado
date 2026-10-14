@@ -60,21 +60,44 @@ const NOMBRE_A_ICONO: Record<string, string> = {
   'Rompecabezas': 'puzzle',
   'Ciclismo': 'bike',
   'Natación': 'swim',
-  'Voluntariado': 'users'
+  'Voluntariado': 'users',
+
+  // PROFESION (ver CatalogoProfesiones en persona-mayor-service)
+  'Labores del hogar': 'home',
+  'Agricultura o trabajo del campo': 'sprout',
+  'Construcción': 'hammer',
+  'Comercio o ventas': 'tag',
+  'Conducción o transporte': 'map',
+  'Modistería o sastrería': 'scissors',
+  'Docencia': 'book',
+  'Salud (enfermería o medicina)': 'stethoscope',
+  'Cocina': 'chef-hat',
+  'Servicios generales o aseo': 'sparkles',
+  'Oficina o administración': 'clipboard',
+  'Vigilancia o seguridad': 'eye',
+  'Mecánica': 'wrench',
+  'Carpintería o ebanistería': 'hammer',
+  'Peluquería o belleza': 'scissors',
+  'Artesanía': 'palette',
+  'Fuerza pública (militar o policía)': 'star',
+  'Ingeniería o trabajo técnico': 'settings',
+  'Trabajo social o psicología': 'users',
+  'Estudiante': 'book'
 };
 
 /** Icono de los gustos que no están en NOMBRE_A_ICONO. */
 const ICONO_POR_DEFECTO: Record<CategoriaGusto, string> = {
   GUSTO: 'heart',
   TALENTO: 'sparkles',
-  HOBBY: 'target'
+  HOBBY: 'target',
+  PROFESION: 'wrench'
 };
 
 /**
  * Intereses de la persona mayor o del voluntario (data.rol de la ruta):
- * marca sus gustos, talentos y pasatiempos del mismo catálogo, en tres
- * pestañas, y los guarda todos de una vez. Con ellos se le recomiendan
- * organizaciones.
+ * marca sus gustos, talentos, pasatiempos y su profesión u oficio del mismo
+ * catálogo, en cuatro pestañas, y los guarda todos de una vez. Con ellos se
+ * le recomiendan organizaciones (la profesión pesa menos que los gustos).
  */
 @Component({
   selector: 'app-intereses',
@@ -88,7 +111,8 @@ export class Intereses implements OnInit {
   protected readonly categorias: CategoriaTab[] = [
     { valor: 'GUSTO', label: 'Gustos', icon: 'heart' },
     { valor: 'TALENTO', label: 'Talentos', icon: 'sparkles' },
-    { valor: 'HOBBY', label: 'Pasatiempos', icon: 'target' }
+    { valor: 'HOBBY', label: 'Pasatiempos', icon: 'target' },
+    { valor: 'PROFESION', label: 'Profesión u oficio', icon: 'wrench' }
   ];
 
   protected readonly categoriaActiva = signal<CategoriaGusto>('GUSTO');

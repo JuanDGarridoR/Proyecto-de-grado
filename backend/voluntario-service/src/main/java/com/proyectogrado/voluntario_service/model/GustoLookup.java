@@ -26,7 +26,7 @@ public class GustoLookup {
     @Column(name = "nombre", nullable = false, unique = true)
     private String nombre;
 
-    /** GUSTO, TALENTO o HOBBY. */
+    /** GUSTO, TALENTO, HOBBY o PROFESION (profesión u oficio). */
     @Column(name = "categoria", length = 20)
     private String categoria;
 

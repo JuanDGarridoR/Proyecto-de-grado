@@ -69,7 +69,10 @@ public final class AnaliticaDtos {
             List<PersonaPoblacion> personas,
             List<InteresConteo> intereses,
             long personasConIntereses,
-            long acompanantesActivos
+            long acompanantesActivos,
+            /** Profesiones u oficios (categoría PROFESION), aparte de los intereses. */
+            List<InteresConteo> profesiones,
+            long personasConProfesion
     ) {
     }
 }

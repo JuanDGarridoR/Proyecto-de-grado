@@ -22,7 +22,7 @@ public class Gusto {
     @Column(name = "nombre", nullable = false, unique = true)
     private String nombre;
 
-    /** Grupo del gusto. El frontend trabaja con GUSTO, TALENTO y HOBBY. */
+    /** Grupo del gusto: GUSTO, TALENTO, HOBBY o PROFESION (ver CatalogoProfesiones). */
     @Column(name = "categoria", length = 20)
     private String categoria;
 

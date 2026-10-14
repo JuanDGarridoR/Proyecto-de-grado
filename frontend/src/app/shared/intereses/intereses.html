@@ -5,7 +5,7 @@
     <div>
       <span class="intereses-header__eyebrow">Mi perfil</span>
       <h1>Intereses</h1>
-      <p>Cuéntanos qué cosas te gustan, qué sabes hacer y cómo disfrutas tu tiempo libre.</p>
+      <p>Cuéntanos qué cosas te gustan, qué sabes hacer, cómo disfrutas tu tiempo libre y a qué te dedicas o te dedicaste.</p>
     </div>
   </section>
 
@@ -43,6 +43,7 @@
                 @if (categoria.valor === 'GUSTO') { Cosas que disfrutas y te encantan. }
                 @if (categoria.valor === 'TALENTO') { Cosas que sabes hacer muy bien. }
                 @if (categoria.valor === 'HOBBY') { Actividades que disfrutas hacer. }
+                @if (categoria.valor === 'PROFESION') { A qué te dedicas o te dedicaste en tu vida. }
               </span>
             </span>
 
@@ -60,6 +61,7 @@
             @if (categoriaActiva() === 'GUSTO') { <app-icono name="heart" /> }
             @if (categoriaActiva() === 'TALENTO') { <app-icono name="sparkles" /> }
             @if (categoriaActiva() === 'HOBBY') { <app-icono name="target" /> }
+            @if (categoriaActiva() === 'PROFESION') { <app-icono name="wrench" /> }
           </span>
 
           <div>
@@ -67,8 +69,15 @@
               @if (categoriaActiva() === 'GUSTO') { ¿Qué te gusta? }
               @if (categoriaActiva() === 'TALENTO') { ¿Qué sabes hacer? }
               @if (categoriaActiva() === 'HOBBY') { ¿Qué haces en tu tiempo libre? }
+              @if (categoriaActiva() === 'PROFESION') { ¿A qué te dedicas o te dedicaste? }
             </h2>
-            <p>Selecciona todas las opciones que quieras.</p>
+            <p>
+              @if (categoriaActiva() === 'PROFESION') {
+                Elige tu profesión u oficio; si tuviste varios, puedes elegir más de uno.
+              } @else {
+                Selecciona todas las opciones que quieras.
+              }
+            </p>
           </div>
         </div>
 

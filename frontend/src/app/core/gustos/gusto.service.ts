@@ -4,7 +4,8 @@ import { Observable } from 'rxjs';
 import { API_URL } from '../api';
 
 /** Categorías con las que se agrupan los gustos en pantalla. */
-export type CategoriaGusto = 'GUSTO' | 'TALENTO' | 'HOBBY';
+/** PROFESION: a qué se dedica o se dedicó la persona (profesión u oficio). */
+export type CategoriaGusto = 'GUSTO' | 'TALENTO' | 'HOBBY' | 'PROFESION';
 
 /** Gusto del catálogo. */
 export interface Gusto {

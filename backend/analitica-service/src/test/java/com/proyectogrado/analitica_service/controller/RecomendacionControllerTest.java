@@ -82,6 +82,23 @@ class RecomendacionControllerTest {
     }
 
     @Test
+    void laProfesionSumaComoOficioYNoComoGusto() throws Exception {
+        // RF-71: Laura fue docente, el Centro Día Renacer tiene un grupo de
+        // lectura y Luis, una de sus personas mayores, también fue docente.
+        mockMvc.perform(get("/api/analitica/recomendaciones/organizaciones").header("X-User-Id", LAURA_VOLUNTARIA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.recomendaciones[?(@.nombre == 'Centro Día Renacer')].razones[*]",
+                        hasItem("Tiene actividades relacionadas con tu oficio (Docencia): Grupo de lectura")))
+                .andExpect(jsonPath("$.recomendaciones[?(@.nombre == 'Centro Día Renacer')].razones[*]",
+                        hasItem("1 persona mayor de esta organización también se dedicó a Docencia")))
+                // La profesión no se mezcla con los gustos
+                .andExpect(jsonPath("$.recomendaciones[?(@.nombre == 'Centro Día Renacer')].gustosCoincidentes[*]",
+                        not(hasItem("Docencia"))))
+                .andExpect(jsonPath("$.recomendaciones[?(@.nombre == 'Centro Día Renacer')].razones[*]",
+                        hasItem("1 persona mayor de esta organización comparte tus gustos (Tejido)")));
+    }
+
+    @Test
     void quienNoEsPersonaMayorNiVoluntarioNoRecibeRecomendaciones() throws Exception {
         mockMvc.perform(get("/api/analitica/recomendaciones/organizaciones").header("X-User-Id", PEDRO_ACOMPANANTE))
                 .andExpect(status().isForbidden());

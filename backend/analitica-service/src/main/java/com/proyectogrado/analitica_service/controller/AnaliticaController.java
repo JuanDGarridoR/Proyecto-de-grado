@@ -154,7 +154,8 @@ public class AnaliticaController {
 
     /**
      * Perfil de la población: fecha de nacimiento, género y EPS de cada
-     * persona vinculada, y cuántas personas tienen marcado cada gusto.
+     * persona vinculada, cuántas personas tienen marcado cada gusto (gustos,
+     * talentos y pasatiempos) y, aparte, cada profesión u oficio.
      */
     @GetMapping("/poblacion")
     public ResponseEntity<?> poblacion(@RequestHeader("X-User-Id") Integer idUsuario) {
@@ -185,25 +186,11 @@ public class AnaliticaController {
                         rs.getString("eps")
                 ));
 
-        List<InteresConteo> intereses = jdbc.query("""
-                SELECT g.nombre, g.categoria, COUNT(DISTINCT pg.id_persona_mayor) AS personas
-                  FROM persona_mayor_gusto pg
-                  JOIN gusto g ON g.id_gusto = pg.id_gusto
-                 WHERE pg.id_persona_mayor IN (%s)
-                 GROUP BY g.nombre, g.categoria
-                 ORDER BY personas DESC, g.nombre
-                """.formatted(PERSONAS_ASOCIADAS), params,
-                (rs, i) -> new InteresConteo(
-                        rs.getString("nombre"),
-                        rs.getString("categoria"),
-                        rs.getLong("personas")
-                ));
+        List<InteresConteo> intereses = conteoDeGustos(false, params);
+        List<InteresConteo> profesiones = conteoDeGustos(true, params);
 
-        Long conIntereses = jdbc.queryForObject("""
-                SELECT COUNT(DISTINCT pg.id_persona_mayor)
-                  FROM persona_mayor_gusto pg
-                 WHERE pg.id_persona_mayor IN (%s)
-                """.formatted(PERSONAS_ASOCIADAS), params, Long.class);
+        Long conIntereses = personasConGustos(false, params);
+        Long conProfesion = personasConGustos(true, params);
 
         // Acompañantes distintos con vínculo aceptado a alguna persona de la organización.
         Long acompanantes = jdbc.queryForObject("""
@@ -215,7 +202,46 @@ public class AnaliticaController {
 
         return ResponseEntity.ok(new PoblacionAnalitica(
                 personas, intereses, conIntereses != null ? conIntereses : 0,
-                acompanantes != null ? acompanantes : 0));
+                acompanantes != null ? acompanantes : 0,
+                profesiones, conProfesion != null ? conProfesion : 0));
+    }
+
+    /**
+     * Cuántas personas tienen marcado cada elemento del catálogo: las
+     * profesiones (categoría PROFESION) o, si no, los demás gustos.
+     */
+    private List<InteresConteo> conteoDeGustos(boolean profesiones, MapSqlParameterSource params) {
+        return jdbc.query("""
+                SELECT g.nombre, g.categoria, COUNT(DISTINCT pg.id_persona_mayor) AS personas
+                  FROM persona_mayor_gusto pg
+                  JOIN gusto g ON g.id_gusto = pg.id_gusto
+                 WHERE pg.id_persona_mayor IN (%s)
+                   AND %s
+                 GROUP BY g.nombre, g.categoria
+                 ORDER BY personas DESC, g.nombre
+                """.formatted(PERSONAS_ASOCIADAS, filtroProfesion(profesiones)), params,
+                (rs, i) -> new InteresConteo(
+                        rs.getString("nombre"),
+                        rs.getString("categoria"),
+                        rs.getLong("personas")
+                ));
+    }
+
+    /** Cuántas personas registraron al menos una profesión o, si no, un gusto. */
+    private Long personasConGustos(boolean profesiones, MapSqlParameterSource params) {
+        return jdbc.queryForObject("""
+                SELECT COUNT(DISTINCT pg.id_persona_mayor)
+                  FROM persona_mayor_gusto pg
+                  JOIN gusto g ON g.id_gusto = pg.id_gusto
+                 WHERE pg.id_persona_mayor IN (%s)
+                   AND %s
+                """.formatted(PERSONAS_ASOCIADAS, filtroProfesion(profesiones)), params, Long.class);
+    }
+
+    private static String filtroProfesion(boolean profesiones) {
+        return profesiones
+                ? "g.categoria = 'PROFESION'"
+                : "COALESCE(g.categoria, '') <> 'PROFESION'";
     }
 
     /** Organización de la cuenta, o null si el usuario no es una organización. */

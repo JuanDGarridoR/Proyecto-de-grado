@@ -18,7 +18,12 @@ function poblacion(): PoblacionAnalitica {
       { nombre: 'Escuchar música', categoria: 'GUSTO', personas: 1 }
     ],
     personasConIntereses: 2,
-    acompanantesActivos: 3
+    acompanantesActivos: 3,
+    profesiones: [
+      { nombre: 'Cocina', categoria: 'PROFESION', personas: 2 },
+      { nombre: 'Docencia', categoria: 'PROFESION', personas: 1 }
+    ],
+    personasConProfesion: 3
   } as PoblacionAnalitica;
 }
 
@@ -29,6 +34,7 @@ interface VistaReporte {
   tablaGenero(): { filas: (string | number)[][] };
   tablaEps(): { filas: (string | number)[][] };
   tablaIntereses(): { filas: (string | number)[][] };
+  tablaProfesiones(): { filas: (string | number)[][] };
 }
 
 // Reporte de población de la analítica (RF-47): rangos de edad, género, EPS e
@@ -93,5 +99,10 @@ describe('ReportePoblacion', () => {
     const filas = reporte.tablaEps().filas;
     expect(filas).toHaveLength(8);
     expect(filas[7]).toEqual(['Otras', 3]);
+  });
+  // RF-71: las profesiones u oficios van en su propia gráfica, no entre los intereses.
+  it('muestra las profesiones u oficios aparte de los intereses', () => {
+    expect(reporte.tablaProfesiones().filas).toEqual([['Cocina', 2], ['Docencia', 1]]);
+    expect(reporte.tablaIntereses().filas.map((f) => f[0])).not.toContain('Docencia');
   });
 });

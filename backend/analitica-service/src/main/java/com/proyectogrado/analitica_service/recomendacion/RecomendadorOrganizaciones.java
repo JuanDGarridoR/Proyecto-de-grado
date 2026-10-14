@@ -21,18 +21,26 @@ import java.util.Set;
 
 /**
  * Recomienda a una persona mayor o a un voluntario organizaciones a las que
- * todavía no pertenece, según tres criterios (cada uno de 0 a 1):
+ * todavía no pertenece, según cuatro criterios (cada uno de 0 a 1):
  *
- *  - Actividades (40 %): cuántos de sus gustos tienen actividades en la
- *    organización (últimos 6 meses y próximas).
- *  - Comunidad (25 %): qué tanto se parecen sus gustos a los de las
+ *  - Actividades (peso 0,40): cuántos de sus gustos tienen actividades en
+ *    la organización (últimos 6 meses y próximas).
+ *  - Comunidad (peso 0,25): qué tanto se parecen sus gustos a los de las
  *    personas que ya están en la organización (similitud de Jaccard).
- *  - Cercanía (35 %): distancia entre las direcciones (ver DireccionBogota;
- *    si una no se puede interpretar, se usa la de su barrio); 1 a 1 km o
- *    menos y 0 a 8 km o más.
+ *  - Cercanía (peso 0,35): distancia entre las direcciones (ver
+ *    DireccionBogota; si una no se puede interpretar, se usa la de su
+ *    barrio); 1 a 1 km o menos y 0 a 8 km o más.
+ *  - Oficio (peso 0,10, el de menos importancia): si la organización tiene
+ *    actividades relacionadas con su profesión u oficio (ver Oficios) y si
+ *    alguna de sus personas mayores se dedicó a lo mismo.
  *
- * Si un criterio no se puede calcular (sin gustos o sin barrio), su peso
- * se reparte entre los demás. Cada recomendación explica sus razones.
+ * Los gustos son las categorías GUSTO, TALENTO y HOBBY; las profesiones
+ * (PROFESION) solo cuentan en el criterio de oficio. El puntaje es el
+ * promedio ponderado de los criterios que se pueden calcular: si uno no
+ * aplica (sin gustos, sin profesión o sin barrio), su peso se reparte entre
+ * los demás, así que quien no registró su profesión tiene el mismo puntaje
+ * que antes. Con los cuatro, los pesos equivalen a 36 %, 23 %, 32 % y 9 %.
+ * Cada recomendación explica sus razones.
  */
 @Service
 public class RecomendadorOrganizaciones {
@@ -40,6 +48,10 @@ public class RecomendadorOrganizaciones {
     private static final double PESO_ACTIVIDADES = 0.40;
     private static final double PESO_COMUNIDAD = 0.25;
     private static final double PESO_CERCANIA = 0.35;
+    private static final double PESO_OFICIO = 0.10;
+
+    /** Con este número de personas que compartan su oficio, esa parte del criterio queda completa. */
+    private static final int COLEGAS_PARA_MAXIMO = 2;
 
     private static final double KM_CERCA = 1;
     private static final double KM_LEJOS = 8;
@@ -102,15 +114,18 @@ public class RecomendadorOrganizaciones {
         boolean esVoluntario = tablas == VOLUNTARIO;
         Ubicacion ubicacionPersona = Ubicacion.de(direcciones.get(0));
 
+        // Gustos (GUSTO, TALENTO, HOBBY) y profesiones (PROFESION) van por separado.
         Map<Integer, String> gustosPersona = new LinkedHashMap<>();
+        Map<Integer, String> profesionesPersona = new LinkedHashMap<>();
         jdbc.query("""
-                SELECT g.id_gusto, g.nombre
+                SELECT g.id_gusto, g.nombre, g.categoria
                   FROM %s x
                   JOIN gusto g ON g.id_gusto = x.id_gusto
                  WHERE x.%s = :id
                  ORDER BY g.nombre
                 """.formatted(tablas.gustos(), tablas.columnaGustos()), params, (rs) -> {
-            gustosPersona.put(rs.getInt("id_gusto"), rs.getString("nombre"));
+            (Oficios.CATEGORIA.equals(rs.getString("categoria")) ? profesionesPersona : gustosPersona)
+                    .put(rs.getInt("id_gusto"), rs.getString("nombre"));
         });
 
         // ---------- Organizaciones activas a las que NO pertenece (ni tiene solicitud ni vínculo pausado) ----------
@@ -161,20 +176,24 @@ public class RecomendadorOrganizaciones {
         // (también para el voluntario: así ve si comparte gustos con las personas a las que ayudaría)
 
         Map<Integer, Map<Integer, Set<Integer>>> gustosMiembros = new HashMap<>(); // org -> persona -> gustos
+        Map<Integer, Map<Integer, Set<Integer>>> profesionesMiembros = new HashMap<>(); // org -> persona -> profesiones
         Map<Integer, Integer> totalMiembros = new HashMap<>();
         jdbc.query("""
-                SELECT po.id_organizacion, po.id_persona_mayor, pg.id_gusto
+                SELECT po.id_organizacion, po.id_persona_mayor, pg.id_gusto, g.categoria
                   FROM persona_mayor_organizacion po
                   LEFT JOIN persona_mayor_gusto pg ON pg.id_persona_mayor = po.id_persona_mayor
+                  LEFT JOIN gusto g ON g.id_gusto = pg.id_gusto
                  WHERE po.estado = 'ACEPTADA'
                 """, (rs) -> {
             int org = rs.getInt("id_organizacion");
             int persona = rs.getInt("id_persona_mayor");
-            Map<Integer, Set<Integer>> miembros = gustosMiembros.computeIfAbsent(org, k -> new HashMap<>());
-            Set<Integer> gustos = miembros.computeIfAbsent(persona, k -> new HashSet<>());
+            Set<Integer> gustos = gustosMiembros.computeIfAbsent(org, k -> new HashMap<>())
+                    .computeIfAbsent(persona, k -> new HashSet<>());
+            Set<Integer> profesiones = profesionesMiembros.computeIfAbsent(org, k -> new HashMap<>())
+                    .computeIfAbsent(persona, k -> new HashSet<>());
             int idGusto = rs.getInt("id_gusto");
             if (!rs.wasNull()) {
-                gustos.add(idGusto);
+                (Oficios.CATEGORIA.equals(rs.getString("categoria")) ? profesiones : gustos).add(idGusto);
             }
         });
         gustosMiembros.forEach((org, miembros) -> totalMiembros.put(org, miembros.size()));
@@ -183,9 +202,10 @@ public class RecomendadorOrganizaciones {
 
         List<OrganizacionRecomendada> resultado = new ArrayList<>();
         for (Organizacion org : organizaciones) {
-            resultado.add(evaluar(org, ubicacionPersona, gustosPersona,
+            resultado.add(evaluar(org, ubicacionPersona, gustosPersona, profesionesPersona,
                     actividades.getOrDefault(org.id(), List.of()),
                     gustosMiembros.getOrDefault(org.id(), Map.of()),
+                    profesionesMiembros.getOrDefault(org.id(), Map.of()),
                     esVoluntario));
         }
 
@@ -203,8 +223,10 @@ public class RecomendadorOrganizaciones {
             Organizacion org,
             Ubicacion ubicacionPersona,
             Map<Integer, String> gustosPersona,
+            Map<Integer, String> profesionesPersona,
             List<Actividad> actividades,
             Map<Integer, Set<Integer>> miembros,
+            Map<Integer, Set<Integer>> profesionesMiembros,
             boolean esVoluntario
     ) {
         List<String> razones = new ArrayList<>();
@@ -292,6 +314,56 @@ public class RecomendadorOrganizaciones {
                         ? (afines == 1 ? "1 persona mayor de esta organización comparte" : afines + " personas mayores de esta organización comparten")
                         : (afines == 1 ? "1 persona de esta organización comparte" : afines + " personas de esta organización comparten");
                 razones.add(quienes + " tus gustos (" + unir(masCompartidos, 3) + ")");
+            }
+        }
+
+        // ---- Oficio: actividades de su profesión y personas que se dedicaron a lo mismo ----
+        if (!profesionesPersona.isEmpty()) {
+            String oficioConActividades = null;
+            Set<String> actividadesDelOficio = new LinkedHashSet<>();
+            for (String profesion : profesionesPersona.values()) {
+                for (Actividad actividad : actividades) {
+                    if (Oficios.relacionada(profesion, actividad.texto())) {
+                        if (oficioConActividades == null) {
+                            oficioConActividades = profesion;
+                        }
+                        actividadesDelOficio.add(actividad.nombre());
+                    }
+                }
+            }
+
+            int colegas = 0;
+            Map<Integer, Integer> profesionesCompartidas = new HashMap<>();
+            for (Set<Integer> profesionesMiembro : profesionesMiembros.values()) {
+                Set<Integer> comunes = new HashSet<>(profesionesMiembro);
+                comunes.retainAll(profesionesPersona.keySet());
+                if (!comunes.isEmpty()) {
+                    colegas++;
+                    comunes.forEach(p -> profesionesCompartidas.merge(p, 1, Integer::sum));
+                }
+            }
+
+            double oficio = 0.5 * (actividadesDelOficio.isEmpty() ? 0 : 1)
+                    + 0.5 * Math.min(1.0, colegas / (double) COLEGAS_PARA_MAXIMO);
+            suma += PESO_OFICIO * oficio;
+            pesos += PESO_OFICIO;
+
+            if (oficioConActividades != null) {
+                razones.add("Tiene actividades relacionadas con tu oficio (" + oficioConActividades + "): "
+                        + unir(new ArrayList<>(actividadesDelOficio), 3));
+            }
+
+            if (colegas > 0) {
+                String oficioCompartido = profesionesCompartidas.entrySet().stream()
+                        .max(Map.Entry.comparingByValue())
+                        .map(e -> profesionesPersona.get(e.getKey()))
+                        .orElse("");
+                String quienes = esVoluntario
+                        ? (colegas == 1 ? "1 persona mayor de esta organización también se dedicó"
+                                        : colegas + " personas mayores de esta organización también se dedicaron")
+                        : (colegas == 1 ? "1 persona de esta organización también se dedicó"
+                                        : colegas + " personas de esta organización también se dedicaron");
+                razones.add(quienes + " a " + oficioCompartido);
             }
         }
 

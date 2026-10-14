@@ -63,6 +63,9 @@ export interface PoblacionAnalitica {
   personasConIntereses: number;
   /** Acompañantes distintos con vínculo aceptado a alguna persona de la organización. */
   acompanantesActivos: number;
+  /** Profesiones u oficios (categoría PROFESION), aparte de los intereses. */
+  profesiones: InteresConteo[];
+  personasConProfesion: number;
 }
 
 /** Organización recomendada a la persona mayor (puntaje de 0 a 100). */

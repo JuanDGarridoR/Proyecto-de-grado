@@ -15,6 +15,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -65,6 +67,10 @@ class AnaliticaControllerTest {
                 .andExpect(jsonPath("$.intereses[*].nombre", contains("Boleros", "Tejer")))
                 .andExpect(jsonPath("$.intereses[0].personas").value(2))
                 .andExpect(jsonPath("$.personasConIntereses").value(2))
+                // La profesión va aparte y no cuenta como interés (RF-71).
+                .andExpect(jsonPath("$.intereses[*].nombre", not(hasItem("Docencia"))))
+                .andExpect(jsonPath("$.profesiones[*].nombre", contains("Docencia")))
+                .andExpect(jsonPath("$.personasConProfesion").value(1))
                 // Acompañantes distintos y aceptados de sus personas (20 y 21).
                 .andExpect(jsonPath("$.acompanantesActivos").value(2));
     }

@@ -9,6 +9,8 @@
 --   - 60 acompañantes y 50 voluntarios (los voluntarios con dirección)
 --   - catálogo de gustos, talentos y pasatiempos + 3 a 6 por persona
 --     mayor y por voluntario (con ellos se les recomiendan organizaciones)
+--   - profesión u oficio de la mayoría de personas mayores y voluntarios
+--     (categoría PROFESION del mismo catálogo)
 --   - vínculos persona mayor <-> acompañante y persona mayor <->
 --     organización (con estados PENDIENTE / ACEPTADA / RECHAZADA). Las
 --     solicitudes pendientes van en los dos sentidos: unas las envió la
@@ -807,6 +809,68 @@ asignaciones AS (
 )
 INSERT INTO voluntario_gusto (id_voluntario, id_gusto)
 SELECT DISTINCT id_voluntario, id_gusto FROM asignaciones
+ON CONFLICT DO NOTHING;
+
+-- 10c. Profesión u oficio (categoría PROFESION del mismo catálogo; los
+--      mismos nombres que agrega persona-mayor-service al arrancar, ver
+--      CatalogoProfesiones). ~85% de las personas mayores registra una
+--      (~15% de ellas, dos) y ~90% de los voluntarios, una.
+INSERT INTO gusto (nombre, categoria)
+SELECT nombre, 'PROFESION' FROM (VALUES
+    ('Labores del hogar'), ('Agricultura o trabajo del campo'), ('Construcción'), ('Comercio o ventas'),
+    ('Conducción o transporte'), ('Modistería o sastrería'), ('Docencia'), ('Salud (enfermería o medicina)'),
+    ('Cocina'), ('Servicios generales o aseo'), ('Oficina o administración'), ('Vigilancia o seguridad'),
+    ('Mecánica'), ('Carpintería o ebanistería'), ('Peluquería o belleza'), ('Artesanía'),
+    ('Fuerza pública (militar o policía)'), ('Ingeniería o trabajo técnico'), ('Trabajo social o psicología'),
+    ('Estudiante')
+) AS v(nombre)
+ON CONFLICT (nombre) DO NOTHING;
+
+--      Oficios más comunes en personas mayores de Usme; los repetidos
+--      salen más seguido.
+WITH oficios AS (
+    SELECT ARRAY['Labores del hogar', 'Labores del hogar', 'Labores del hogar', 'Modistería o sastrería',
+                 'Cocina', 'Comercio o ventas', 'Servicios generales o aseo', 'Docencia',
+                 'Salud (enfermería o medicina)', 'Peluquería o belleza', 'Agricultura o trabajo del campo',
+                 'Artesanía'] AS mujeres,
+           ARRAY['Construcción', 'Construcción', 'Agricultura o trabajo del campo', 'Conducción o transporte',
+                 'Conducción o transporte', 'Comercio o ventas', 'Vigilancia o seguridad', 'Mecánica',
+                 'Carpintería o ebanistería', 'Fuerza pública (militar o policía)', 'Docencia',
+                 'Oficina o administración'] AS hombres
+),
+pm AS (
+    SELECT u.id_usuario, u.genero, random() AS r
+    FROM usuario u WHERE u.correo LIKE 'pm%@vitaplus.test'
+),
+elegidos AS (
+    SELECT pm.id_usuario,
+           (CASE WHEN pm.genero = 'Femenino' THEN o.mujeres ELSE o.hombres END)
+               [1 + floor(random() * 12)::int + pm.id_usuario * 0] AS profesion
+    FROM pm CROSS JOIN oficios o
+    WHERE pm.r < 0.85
+    UNION ALL
+    SELECT pm.id_usuario,
+           (CASE WHEN pm.genero = 'Femenino' THEN o.mujeres ELSE o.hombres END)
+               [1 + floor(random() * 12)::int + pm.id_usuario * 0]
+    FROM pm CROSS JOIN oficios o
+    WHERE pm.r < 0.85 * 0.15
+)
+INSERT INTO persona_mayor_gusto (id_persona_mayor, id_gusto)
+SELECT DISTINCT e.id_usuario, g.id_gusto
+FROM elegidos e JOIN gusto g ON g.nombre = e.profesion
+ON CONFLICT DO NOTHING;
+
+INSERT INTO voluntario_gusto (id_voluntario, id_gusto)
+SELECT v.id_usuario, g.id_gusto
+FROM (
+    SELECT u.id_usuario,
+           (ARRAY['Estudiante', 'Estudiante', 'Estudiante', 'Docencia', 'Salud (enfermería o medicina)',
+                  'Trabajo social o psicología', 'Oficina o administración', 'Ingeniería o trabajo técnico',
+                  'Comercio o ventas', 'Cocina'])[1 + floor(random() * 10)::int + u.id_usuario * 0] AS profesion
+    FROM usuario u
+    WHERE u.correo LIKE 'vol%@vitaplus.test' AND random() < 0.90
+) v
+JOIN gusto g ON g.nombre = v.profesion
 ON CONFLICT DO NOTHING;
 
 -- 11. Perfil de salud de cada persona mayor (tabla temporal, no se
@@ -1858,6 +1922,9 @@ UNION ALL SELECT 'vinculos_pausados_o_de_cuentas_inactivas', count(*) FROM perso
       AND id_persona_mayor IN (SELECT id_usuario FROM usuario WHERE correo LIKE 'pm%@vitaplus.test')
 UNION ALL SELECT 'retiros_de_personas_mayores', count(*) FROM retiro_cuenta
     WHERE id_organizacion IN (SELECT id_organizacion FROM usuario WHERE correo LIKE 'org%@vitaplus.test')
+UNION ALL SELECT 'personas_mayores_con_profesion', count(DISTINCT pg.id_persona_mayor) FROM persona_mayor_gusto pg
+    JOIN gusto g ON g.id_gusto = pg.id_gusto AND g.categoria = 'PROFESION'
+    WHERE pg.id_persona_mayor IN (SELECT id_usuario FROM usuario WHERE correo LIKE 'pm%@vitaplus.test')
 UNION ALL SELECT 'constancias_de_terminos', count(*) FROM aceptacion_terminos
     WHERE id_usuario IN (SELECT id_usuario FROM usuario WHERE correo LIKE '%@vitaplus.test')
 UNION ALL SELECT 'notificaciones_apagadas', count(*) FROM preferencia_notificacion

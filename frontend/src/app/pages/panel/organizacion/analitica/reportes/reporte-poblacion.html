@@ -43,4 +43,14 @@
     [vacio]="datos().intereses.length === 0"
     textoVacio="Ninguna persona asociada ha registrado sus intereses."
   />
+
+  <app-tarjeta-grafica
+    titulo="Profesiones u oficios"
+    descripcion="A qué se dedicaron las personas asociadas (hasta 10). Sirve para aprovechar su experiencia en las actividades."
+    [opciones]="graficaProfesiones()"
+    [tabla]="tablaProfesiones()"
+    [alto]="340"
+    [vacio]="datos().profesiones.length === 0"
+    textoVacio="Ninguna persona asociada ha registrado su profesión u oficio."
+  />
 </div>
