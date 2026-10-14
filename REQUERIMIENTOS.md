@@ -59,6 +59,7 @@ Registro, consulta y actualización de la información de personas mayores, acom
 | RF-15 | El sistema debe permitir a la organización registrar y actualizar su información institucional. | ✅ Implementado |
 | RF-16 | El sistema debe permitir a la persona mayor y al voluntario registrar sus gustos e intereses a partir de un catálogo. | ✅ Implementado |
 | RF-61 | El sistema debe permitir a cada usuario subir, cambiar o quitar una foto de perfil (JPG, PNG o WebP), que se muestra a sus vínculos en sus listas y junto a su nombre en la barra superior del panel; si no tiene foto, se muestra su inicial o un ícono. | ✅ Implementado |
+| RF-70 | El sistema debe permitir a cada usuario calificar la plataforma desde su perfil, de 0 a 5 estrellas, con una observación u oportunidad de mejora opcional; cada usuario tiene una sola calificación, que puede actualizar. | ✅ Implementado |
 
 ### 2.2 Información de salud de la persona mayor
 

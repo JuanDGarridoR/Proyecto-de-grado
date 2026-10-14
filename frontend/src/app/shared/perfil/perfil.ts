@@ -8,6 +8,7 @@ import { EliminarCuenta } from '../eliminar-cuenta/eliminar-cuenta';
 import { InactivarCuenta } from '../inactivar-cuenta/inactivar-cuenta';
 import { GestorNotificaciones } from '../gestor-notificaciones/gestor-notificaciones';
 import { DatosSalud } from '../datos-salud/datos-salud';
+import { CalificarPlataforma } from '../calificar-plataforma/calificar-plataforma';
 
 import { AuthService } from '../../core/auth/auth.service';
 
@@ -63,7 +64,7 @@ interface PerfilInformacion {
  */
 @Component({
   selector: 'app-perfil',
-  imports: [FormsModule, CampoContrasena, InactivarCuenta, EliminarCuenta, GestorNotificaciones, DatosSalud, Cargando, Icono, Avatar],
+  imports: [FormsModule, CampoContrasena, InactivarCuenta, EliminarCuenta, GestorNotificaciones, CalificarPlataforma, DatosSalud, Cargando, Icono, Avatar],
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })

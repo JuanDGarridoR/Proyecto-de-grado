@@ -1,0 +1,86 @@
+<section class="calificacion" aria-labelledby="calificacionTitle">
+  <div class="calificacion__encabezado">
+    <h2 id="calificacionTitle">Califica VITA+</h2>
+    <p>
+      ¿Qué tan útil te ha sido la plataforma? Tu opinión nos ayuda a mejorarla. Puedes cambiar
+      tu calificación cuando quieras.
+    </p>
+  </div>
+
+  @if (cargando()) {
+    <p class="calificacion__estado">Cargando tu calificación...</p>
+  } @else {
+    <!-- Estrellas: tocar la misma estrella otra vez la quita (así se llega a 0) -->
+    <div class="calificacion__fila">
+      <div
+        class="calificacion__estrellas"
+        role="radiogroup"
+        aria-label="Calificación de 0 a 5 estrellas"
+        tabindex="0"
+        (keydown)="teclado($event)"
+        (mouseleave)="vistaPrevia.set(null)"
+      >
+        @for (posicion of posiciones; track posicion) {
+          <button
+            type="button"
+            role="radio"
+            tabindex="-1"
+            class="calificacion__estrella"
+            [class.calificacion__estrella--llena]="posicion <= pintadas()"
+            [attr.aria-checked]="estrellas() === posicion"
+            [attr.aria-label]="posicion + (posicion === 1 ? ' estrella' : ' estrellas')"
+            (mouseenter)="vistaPrevia.set(posicion)"
+            (click)="elegir(posicion)"
+          >
+            <app-icono name="star" />
+          </button>
+        }
+      </div>
+
+      <span class="calificacion__texto" aria-live="polite">{{ textoActual() }}</span>
+
+      @if (estrellas() !== null && estrellas()! > 0) {
+        <button type="button" class="calificacion__cero" (click)="estrellas.set(0); mensaje.set('')">
+          Dejar en 0
+        </button>
+      }
+    </div>
+
+    <!-- Observación -->
+    <label class="calificacion__etiqueta" for="comentarioCalificacion">
+      Observaciones u oportunidades de mejora <span>(opcional)</span>
+    </label>
+    <textarea
+      id="comentarioCalificacion"
+      class="calificacion__comentario"
+      rows="4"
+      [maxlength]="MAX_COMENTARIO"
+      placeholder="Cuéntanos qué te gusta, qué te cuesta trabajo o qué te gustaría que tuviera la plataforma."
+      [(ngModel)]="comentario"
+      (ngModelChange)="mensaje.set('')"
+    ></textarea>
+    <span class="calificacion__contador">{{ comentario.length }} / {{ MAX_COMENTARIO }}</span>
+
+    @if (error()) {
+      <p class="calificacion__error" role="alert">{{ error() }}</p>
+    }
+
+    <div class="calificacion__acciones">
+      @if (mensaje()) {
+        <span class="calificacion__exito" role="status">
+          <app-icono name="check-circle" /> {{ mensaje() }}
+        </span>
+      }
+
+      <button
+        type="button"
+        class="calificacion__guardar"
+        (click)="guardar()"
+        [disabled]="!hayCambios || guardando()"
+        [title]="estrellas() === null ? 'Elige primero cuántas estrellas le das' : ''"
+      >
+        {{ guardando() ? 'Guardando...' : guardada() ? 'Actualizar calificación' : 'Enviar calificación' }}
+      </button>
+    </div>
+  }
+</section>

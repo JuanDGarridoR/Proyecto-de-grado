@@ -1,0 +1,194 @@
+/* Calificar la plataforma (perfil). Misma tarjeta que el gestor de notificaciones. */
+
+.calificacion {
+  margin-top: 28px;
+  padding: 24px 28px;
+
+  background: var(--vita-white);
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-md);
+}
+
+.calificacion__encabezado h2 {
+  margin: 0 0 6px;
+  color: var(--vita-navy);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.calificacion__encabezado p {
+  margin: 0;
+  max-width: 620px;
+  color: var(--vita-text-gray);
+}
+
+.calificacion__estado {
+  margin: 16px 0 0;
+  color: var(--vita-text-gray);
+}
+
+/* Estrellas */
+
+.calificacion__fila {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 18px 0 20px;
+}
+
+.calificacion__estrellas {
+  display: inline-flex;
+  gap: 4px;
+  border-radius: 10px;
+}
+
+.calificacion__estrellas:focus-visible {
+  outline: 2px solid var(--vita-navy);
+  outline-offset: 4px;
+}
+
+.calificacion__estrella {
+  display: inline-flex;
+  padding: 2px;
+
+  border: none;
+  background: none;
+  color: #c9d2de;
+  font-size: 2.1rem;
+  line-height: 0;
+  cursor: pointer;
+
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.calificacion__estrella:hover {
+  transform: scale(1.1);
+}
+
+/* El ícono es de línea: la estrella llena se rellena con el mismo color. */
+.calificacion__estrella--llena {
+  color: #e0a526;
+}
+
+.calificacion__estrella--llena ::ng-deep svg {
+  fill: currentColor;
+}
+
+.calificacion__texto {
+  min-width: 140px;
+  color: var(--vita-navy);
+  font-weight: 600;
+}
+
+.calificacion__cero {
+  padding: 4px 10px;
+
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-pill);
+  background: var(--vita-white);
+  color: var(--vita-text-gray);
+
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.calificacion__cero:hover {
+  border-color: var(--vita-navy);
+  color: var(--vita-navy);
+}
+
+/* Observación */
+
+.calificacion__etiqueta {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--vita-navy);
+  font-weight: 600;
+}
+
+.calificacion__etiqueta span {
+  color: var(--vita-text-gray);
+  font-weight: 400;
+}
+
+.calificacion__comentario {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+
+  border: 1px solid var(--vita-border);
+  border-radius: 10px;
+  color: var(--vita-navy);
+
+  font: inherit;
+  resize: vertical;
+}
+
+.calificacion__comentario:focus {
+  outline: none;
+  border-color: var(--vita-navy);
+  box-shadow: 0 0 0 3px rgba(18, 53, 91, 0.08);
+}
+
+.calificacion__contador {
+  display: block;
+  margin-top: 4px;
+  color: var(--vita-text-gray);
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+.calificacion__error {
+  margin: 12px 0 0;
+  color: #c0392b;
+}
+
+/* Acciones */
+
+.calificacion__acciones {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin-top: 16px;
+}
+
+.calificacion__exito {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.calificacion__guardar {
+  padding: 10px 18px;
+
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--vita-navy);
+  color: var(--vita-white);
+
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.calificacion__guardar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 520px) {
+  .calificacion {
+    padding: 20px;
+  }
+
+  .calificacion__guardar {
+    width: 100%;
+  }
+}
