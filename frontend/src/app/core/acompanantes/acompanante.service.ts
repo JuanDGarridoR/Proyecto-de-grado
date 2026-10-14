@@ -319,6 +319,25 @@ actualizarInformacion(
   }
 
   /** Acompañantes con relación aceptada de la persona mayor. */
+  /**
+   * Acepta acompañar a la persona mayor a una cita y dice dónde se
+   * encuentran; si ya la había aceptado, cambia el punto de encuentro. La
+   * persona mayor recibe un SMS (salud-service).
+   */
+  aceptarAcompanamientoCita(idPersonaMayor: number, idCita: number, puntoEncuentro: string): Observable<CitaMedica> {
+    return this.http.put<CitaMedica>(
+      `${this.apiUrl}/acompanante/personas-mayores/${idPersonaMayor}/citas-medicas/${idCita}/acompanamiento`,
+      { puntoEncuentro },
+    );
+  }
+
+  /** Ya no puede ir: la cita queda libre para otro acompañante y la persona mayor recibe un SMS. */
+  cancelarAcompanamientoCita(idPersonaMayor: number, idCita: number): Observable<CitaMedica> {
+    return this.http.delete<CitaMedica>(
+      `${this.apiUrl}/acompanante/personas-mayores/${idPersonaMayor}/citas-medicas/${idCita}/acompanamiento`,
+    );
+  }
+
   obtenerAcompanantesSeguimiento(
     idPersonaMayor: number
   ): Observable<AcompananteResumen[]> {

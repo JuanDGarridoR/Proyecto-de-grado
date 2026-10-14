@@ -1,0 +1,165 @@
+/* Acompañamiento a una cita (Seguimiento del acompañante) */
+
+:host {
+  display: block;
+  margin-top: 8px;
+}
+
+.acomp {
+  padding: 10px 12px;
+  border: 1px solid var(--vita-border);
+  border-radius: 12px;
+  background: var(--vita-cream-soft);
+}
+
+/* Nadie se ha ofrecido: llama la atención */
+.acomp--libre {
+  border-color: color-mix(in srgb, var(--vita-complemento) 70%, white);
+  background: color-mix(in srgb, var(--vita-complemento) 14%, white);
+}
+
+/* La acompaña quien está viendo */
+.acomp--mia {
+  border-color: color-mix(in srgb, var(--vita-green) 55%, white);
+  background: color-mix(in srgb, var(--vita-green) 10%, white);
+}
+
+.acomp__estado {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.acomp__icono {
+  flex-shrink: 0;
+  color: var(--vita-navy);
+  font-size: 1.1rem;
+}
+
+.acomp__texto {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.acomp__texto strong {
+  color: var(--vita-navy);
+  font-size: 0.88rem;
+}
+
+.acomp__texto span {
+  color: var(--vita-text-gray);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.acomp__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.acomp__acciones--fin {
+  justify-content: flex-end;
+}
+
+.acomp__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-pill);
+  background: var(--vita-white);
+  color: var(--vita-navy);
+
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.acomp__boton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.acomp__boton--primario {
+  border-color: var(--vita-navy);
+  background: var(--vita-navy);
+  color: var(--vita-white);
+}
+
+.acomp__boton--peligro {
+  color: #b42318;
+}
+
+.acomp__boton--peligro-lleno {
+  border-color: #b42318;
+  background: #b42318;
+  color: var(--vita-white);
+}
+
+/* Punto de encuentro */
+
+.acomp__formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.acomp__formulario label {
+  color: var(--vita-navy);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.acomp__formulario textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+
+  border: 1px solid var(--vita-border);
+  border-radius: 10px;
+  color: var(--vita-navy);
+
+  font: inherit;
+  font-size: 0.88rem;
+  resize: vertical;
+}
+
+.acomp__formulario textarea:focus {
+  outline: none;
+  border-color: var(--vita-navy);
+}
+
+.acomp__ayuda {
+  margin: 0;
+  color: var(--vita-text-gray);
+  font-size: 0.8rem;
+}
+
+.acomp__confirmar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+
+  color: #b42318;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.acomp__error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  color: #b42318;
+  font-size: 0.85rem;
+}

@@ -3,6 +3,7 @@ package com.proyectogrado.salud_backend.controller;
 import com.proyectogrado.salud_backend.config.ZonaHoraria;
 import com.proyectogrado.salud_backend.model.CitaMedica;
 import com.proyectogrado.salud_backend.repository.CitaMedicaRepository;
+import com.proyectogrado.salud_backend.repository.UsuarioLookupRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -45,7 +46,7 @@ class CitaMedicaControllerTest {
         citaMedicaRepository = mock(CitaMedicaRepository.class);
         when(citaMedicaRepository.save(any(CitaMedica.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        mockMvc = MockMvcBuilders.standaloneSetup(new CitaMedicaController(citaMedicaRepository)).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(new CitaMedicaController(citaMedicaRepository, mock(UsuarioLookupRepository.class))).build();
     }
 
     private String cita(String titulo, String lugar, String fecha, String hora) {

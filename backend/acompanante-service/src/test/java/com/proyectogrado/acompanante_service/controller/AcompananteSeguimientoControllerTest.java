@@ -127,6 +127,32 @@ class AcompananteSeguimientoControllerTest {
     }
 
     @Test
+    void veSiLaCitaNecesitaAcompanamientoQuienLaAcompanaYDondeSeEncuentran() throws Exception {
+        // RF-75
+        CitaMedicaLookup cita = mock(CitaMedicaLookup.class);
+        when(cita.getTitulo()).thenReturn("Colonoscopia");
+        when(cita.getFecha()).thenReturn(LocalDate.of(2026, 10, 22));
+        when(cita.getHora()).thenReturn(LocalTime.of(8, 0));
+        when(cita.getAcompanamiento()).thenReturn("REQUERIDO");
+        when(cita.getIdAcompananteCita()).thenReturn(21);
+        when(cita.getPuntoEncuentro()).thenReturn("Portería del conjunto");
+        when(citaMedicaLookupRepository.findByIdPersonaMayorOrderByFechaAscHoraAsc(PERSONA_MAYOR))
+                .thenReturn(List.of(cita));
+
+        UsuarioLookup marta = mock(UsuarioLookup.class);
+        when(marta.getNombreUsuario()).thenReturn("Marta Gil");
+        when(usuarioLookupRepository.findById(21)).thenReturn(Optional.of(marta));
+
+        mockMvc.perform(get("/api/acompanante/seguimiento/" + PERSONA_MAYOR + "/citas-medicas")
+                        .header("X-User-Id", ACOMPANANTE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].acompanamiento").value("REQUERIDO"))
+                .andExpect(jsonPath("$[0].idAcompananteCita").value(21))
+                .andExpect(jsonPath("$[0].nombreAcompananteCita").value("Marta Gil"))
+                .andExpect(jsonPath("$[0].puntoEncuentro").value("Portería del conjunto"));
+    }
+
+    @Test
     void conVinculoAceptadoVeLosDemasContactosDeLaPersonaMayor() throws Exception {
         PersonaMayorAcompanante otroVinculo = new PersonaMayorAcompanante(PERSONA_MAYOR, 21);
         otroVinculo.setEstado("ACEPTADA");

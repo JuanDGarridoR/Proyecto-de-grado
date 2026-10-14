@@ -6,6 +6,7 @@ import com.proyectogrado.salud_backend.model.Medicamento;
 import com.proyectogrado.salud_backend.model.PersonaMayorCondicionSalud;
 import com.proyectogrado.salud_backend.model.TipoCondicionSalud;
 import com.proyectogrado.salud_backend.repository.CitaMedicaRepository;
+import com.proyectogrado.salud_backend.repository.UsuarioLookupRepository;
 import com.proyectogrado.salud_backend.repository.CondicionSaludRepository;
 import com.proyectogrado.salud_backend.repository.MedicamentoRepository;
 import com.proyectogrado.salud_backend.repository.PersonaMayorCondicionSaludRepository;
@@ -76,7 +77,7 @@ class AcompananteSaludControllerTest {
         AcompananteSaludController controller = new AcompananteSaludController(
                 relaciones,
                 new MedicamentoController(medicamentoRepository),
-                new CitaMedicaController(citaMedicaRepository),
+                new CitaMedicaController(citaMedicaRepository, mock(UsuarioLookupRepository.class)),
                 new CondicionSaludController(catalogo, condicionesRepository)
         );
 

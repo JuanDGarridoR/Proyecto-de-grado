@@ -619,3 +619,59 @@ textarea.form-input {
     grid-template-columns: 1fr;
   }
 }
+
+/* Acompañamiento a la cita */
+
+.etiqueta--acompanamiento {
+  background: color-mix(in srgb, var(--vita-complemento) 30%, white);
+}
+
+.cita-card__acompanamiento {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--vita-green) 12%, white);
+  color: var(--vita-navy);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.cita-card__acompanamiento strong {
+  display: block;
+}
+
+.cita-card__acompanamiento--pendiente {
+  background: color-mix(in srgb, var(--vita-complemento) 18%, white);
+}
+
+.form-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 4px;
+  padding: 0;
+  border: none;
+}
+
+.form-opcion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--vita-border);
+  border-radius: 10px;
+  color: var(--vita-navy);
+  cursor: pointer;
+}
+
+.form-opcion--elegida {
+  border-color: var(--vita-navy);
+  background: #edf5fc;
+}
+
+.form-opcion input {
+  accent-color: var(--vita-navy);
+}

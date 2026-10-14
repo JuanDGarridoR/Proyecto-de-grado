@@ -23,7 +23,9 @@
 --     errores de digitación para probar los reportes
 --   - citas médicas: cada persona tiene una próxima cita en las
 --     siguientes 2 semanas (la mitad, otra más adelante) y un historial
---     de citas pasadas, con lugar y consultorio
+--     de citas pasadas, con lugar y consultorio. ~25% de las próximas
+--     necesitan acompañamiento y en la mitad de ellas un acompañante ya
+--     confirmó, con el punto de encuentro
 --   - 64 actividades con inscripciones y asistencia (algunas recientes
 --     quedan sin asistencia registrada, para la alerta del inicio de la
 --     organización)
@@ -160,6 +162,12 @@ CREATE TABLE IF NOT EXISTS emergencia (
 ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS recordatorio_dia_enviado_para timestamp;
 ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS recordatorio_hora_enviado_para timestamp;
 ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS consultorio varchar(255);
+
+-- Acompañamiento a las citas; lo agregan salud-service y acompanante-service al arrancar.
+ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS acompanamiento varchar(20);
+ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS id_acompanante_cita integer;
+ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS punto_encuentro varchar(300);
+ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS fecha_acompanamiento_aceptado timestamp;
 
 -- Dirección de la IPS y si vive sola; las agrega auth-service al arrancar.
 ALTER TABLE persona_mayor ADD COLUMN IF NOT EXISTS direccion_ips varchar(255);
@@ -1176,6 +1184,43 @@ SELECT ci.id_usuario, c.titulo,
        ci.fecha + ci.hora, ci.fecha + ci.hora
 FROM citas ci
 JOIN catalogo c ON c.id = ci.id_catalogo;
+
+-- 14b. Acompañamiento a las próximas citas: ~15% las requiere y ~10% no lo
+--      requiere pero la persona quiere ir acompañada. En la mitad, uno de
+--      sus acompañantes aceptados ya confirmó con el punto de encuentro.
+WITH proximas AS (
+    SELECT c.id_cita, c.id_persona_mayor, random() AS r
+    FROM cita_medica c
+    JOIN usuario u ON u.id_usuario = c.id_persona_mayor AND u.correo LIKE 'pm%@vitaplus.test'
+    CROSS JOIN seed_tmp.seed_reloj rel
+    WHERE c.fecha > rel.hoy
+)
+UPDATE cita_medica c
+   SET acompanamiento = CASE WHEN p.r < 0.15 THEN 'REQUERIDO' ELSE 'PREFERIDO' END
+  FROM proximas p
+ WHERE p.id_cita = c.id_cita AND p.r < 0.25;
+
+WITH sin_acompanante AS (
+    SELECT c.id_cita, c.fecha, c.hora,
+           (SELECT pa.id_acompanante FROM persona_mayor_acompanante pa
+             WHERE pa.id_persona_mayor = c.id_persona_mayor AND pa.estado = 'ACEPTADA'
+             ORDER BY pa.id_acompanante LIMIT 1) AS id_acompanante
+    FROM cita_medica c
+    JOIN usuario u ON u.id_usuario = c.id_persona_mayor AND u.correo LIKE 'pm%@vitaplus.test'
+    WHERE c.acompanamiento IN ('REQUERIDO', 'PREFERIDO') AND random() + c.id_cita * 0 < 0.5
+)
+UPDATE cita_medica c
+   SET id_acompanante_cita = s.id_acompanante,
+       punto_encuentro = (ARRAY['En la portería de su casa',
+                                'En el paradero de la esquina de su casa',
+                                'Paso por ella en carro a su casa',
+                                'Nos vemos directamente en la entrada del hospital'])
+                             [1 + floor(random() * 4)::int + c.id_cita * 0]
+                         || ', ' || to_char(s.hora - interval '45 minutes', 'FMHH12:MI')
+                         || CASE WHEN s.hora - interval '45 minutes' < time '12:00' THEN ' a. m.' ELSE ' p. m.' END,
+       fecha_acompanamiento_aceptado = (SELECT ahora FROM seed_tmp.seed_reloj) - interval '1 day'
+  FROM sin_acompanante s
+ WHERE s.id_cita = c.id_cita AND s.id_acompanante IS NOT NULL;
 
 -- 15. Actividades de las organizaciones (16 plantillas x 4 rondas =
 --     64 actividades). La ronda 1 cae en los próximos 10 días (para ver

@@ -62,6 +62,11 @@
               @if (faltaPara(cita); as falta) {
                 <span class="etiqueta">{{ falta }}</span>
               }
+              @if (cita.acompanamiento === 'REQUERIDO') {
+                <span class="etiqueta etiqueta--acompanamiento">Requiere acompañante</span>
+              } @else if (cita.acompanamiento === 'PREFERIDO') {
+                <span class="etiqueta etiqueta--acompanamiento">Con acompañante</span>
+              }
             </div>
 
             <h3>{{ cita.titulo }}</h3>
@@ -86,6 +91,23 @@
               <p class="cita-card__nota">
                 <app-icono name="info" />
                 <span>{{ cita.observaciones }}</span>
+              </p>
+            }
+
+            @if (necesitaAcompanamiento(cita)) {
+              <p class="cita-card__acompanamiento" [class.cita-card__acompanamiento--pendiente]="!cita.nombreAcompananteCita">
+                <app-icono name="users" />
+                @if (cita.nombreAcompananteCita) {
+                  <span>
+                    <strong>{{ paraAcompanante() ? 'La acompaña' : 'Te acompaña' }} {{ cita.nombreAcompananteCita }}</strong>
+                    Punto de encuentro: {{ cita.puntoEncuentro }}
+                  </span>
+                } @else {
+                  <span>
+                    <strong>Aún nadie ha confirmado que {{ paraAcompanante() ? 'la acompaña' : 'te acompaña' }}.</strong>
+                    {{ paraAcompanante() ? 'Sus acompañantes' : 'Tus acompañantes' }} pueden ofrecerse desde su seguimiento.
+                  </span>
+                }
               </p>
             }
           </div>
@@ -286,6 +308,23 @@
           {{ paraAcompanante() ? 'Se la recordaremos' : 'Te la recordaremos' }} {{ textoAvisos }}.
         </p>
       }
+
+      <fieldset class="form-opciones">
+        <legend class="form-label">¿Necesita acompañamiento?</legend>
+        @for (opcion of opcionesAcompanamiento(); track opcion.valor) {
+          <label class="form-opcion" [class.form-opcion--elegida]="acompanamiento === opcion.valor">
+            <input type="radio" name="acompanamiento" [value]="opcion.valor" [(ngModel)]="acompanamiento" />
+            {{ opcion.texto }}
+          </label>
+        }
+        @if (acompanamiento !== 'NO') {
+          <p class="form-hint">
+            <app-icono name="users" />
+            {{ paraAcompanante() ? 'Sus acompañantes verán' : 'Tus acompañantes verán' }} la cita en su seguimiento y uno
+            de ellos podrá confirmar que va, con el punto de encuentro.
+          </p>
+        }
+      </fieldset>
 
       <label class="form-label" for="observaciones">Indicaciones</label>
       <textarea

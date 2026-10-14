@@ -12,6 +12,12 @@ public class CitaMedicaResponse {
     private String fecha;   // "yyyy-MM-dd"
     private String hora;    // "HH:mm"
     private String observaciones;
+    /** NO, REQUERIDO o PREFERIDO. */
+    private String acompanamiento;
+    /** Quién aceptó acompañarla y dónde se encuentran; null si nadie ha aceptado. */
+    private Integer idAcompananteCita;
+    private String nombreAcompananteCita;
+    private String puntoEncuentro;
 
     public CitaMedicaResponse(
             Integer idCita,
@@ -20,8 +26,16 @@ public class CitaMedicaResponse {
             String consultorio,
             String fecha,
             String hora,
-            String observaciones
+            String observaciones,
+            String acompanamiento,
+            Integer idAcompananteCita,
+            String nombreAcompananteCita,
+            String puntoEncuentro
     ) {
+        this.acompanamiento = acompanamiento;
+        this.idAcompananteCita = idAcompananteCita;
+        this.nombreAcompananteCita = nombreAcompananteCita;
+        this.puntoEncuentro = puntoEncuentro;
         this.idCita = idCita;
         this.titulo = titulo;
         this.lugar = lugar;
@@ -57,5 +71,21 @@ public class CitaMedicaResponse {
 
     public String getObservaciones() {
         return observaciones;
+    }
+
+    public String getAcompanamiento() {
+        return acompanamiento;
+    }
+
+    public Integer getIdAcompananteCita() {
+        return idAcompananteCita;
+    }
+
+    public String getNombreAcompananteCita() {
+        return nombreAcompananteCita;
+    }
+
+    public String getPuntoEncuentro() {
+        return puntoEncuentro;
     }
 }

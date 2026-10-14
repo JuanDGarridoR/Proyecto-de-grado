@@ -68,6 +68,7 @@ Registro, consulta y actualización de la información de personas mayores, acom
 | --- | --- | --- |
 | RF-24 | El sistema debe permitir registrar, consultar, editar y eliminar los medicamentos de la persona mayor, con su dosis, frecuencia, hora de la primera toma, intervalo entre tomas y fechas de inicio y fin del tratamiento. | ✅ Implementado |
 | RF-26 | El sistema debe permitir registrar, consultar, editar y eliminar citas médicas de la persona mayor, incluyendo el consultorio. | ✅ Implementado |
+| RF-75 | El sistema debe permitir indicar, al registrar o editar una cita médica, si necesita acompañamiento (porque la cita lo requiere o porque la persona mayor quiere ir acompañada); mostrar esas citas en el seguimiento de sus acompañantes para que uno de ellos acepte acompañarla indicando el punto de encuentro, y avisar por SMS a la persona mayor quién la acompañará y dónde se encontrarán. | ✅ Implementado |
 | RF-28 | El sistema debe permitir registrar las condiciones de salud de la persona mayor (enfermedades, alergias y discapacidades) a partir de un catálogo. | ✅ Implementado |
 | RF-29 | El sistema debe permitir registrar signos vitales (presión arterial, pulso, temperatura corporal, saturación de oxígeno, frecuencia respiratoria, peso y estatura) tanto a la persona mayor como a la organización. | ✅ Implementado |
 | RF-30 | El sistema debe rechazar valores de signos vitales que estén fuera de los límites físicamente posibles. | ✅ Implementado |

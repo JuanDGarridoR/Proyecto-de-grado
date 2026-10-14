@@ -154,7 +154,15 @@ public class AcompananteSeguimientoController {
                         c.getConsultorio(),
                         c.getFecha() != null ? c.getFecha().toString() : null,
                         c.getHora() != null ? c.getHora().format(formatoHora) : null,
-                        c.getObservaciones()
+                        c.getObservaciones(),
+                        c.getAcompanamiento(),
+                        c.getIdAcompananteCita(),
+                        c.getIdAcompananteCita() != null
+                                ? usuarioLookupRepository.findById(c.getIdAcompananteCita())
+                                        .map(UsuarioLookup::getNombreUsuario)
+                                        .orElse(null)
+                                : null,
+                        c.getPuntoEncuentro()
                 ))
                 .toList();
 

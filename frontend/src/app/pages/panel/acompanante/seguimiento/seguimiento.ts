@@ -15,9 +15,11 @@ import {
   formatearConsultorio,
   formatearFechaCita,
   momentoDeCita,
+  necesitaAcompanamiento,
   separarCitas,
   tiempoParaCita
 } from '../../../../core/citas-medicas/cita-medica.service';
+import { AcompanamientoCita } from '../../../../shared/acompanamiento-cita/acompanamiento-cita';
 import { SignoVitalResponse } from '../../../../core/signos-vitales/signos-vitales.services';
 import {
   INDICADORES,
@@ -60,7 +62,7 @@ interface ValorSigno {
 @Component({
   selector: 'app-seguimiento',
   standalone: true,
-  imports: [Icono, SignosVitalesLista, Cargando],
+  imports: [Icono, SignosVitalesLista, Cargando, AcompanamientoCita],
   templateUrl: './seguimiento.html',
   styleUrl: './seguimiento.css'
 })
@@ -69,6 +71,7 @@ export class Seguimiento implements OnInit, OnDestroy {
   protected readonly formatearHora = formatearHora;
   protected readonly formatearProximaToma = formatearProximaToma;
   protected readonly formatearConsultorio = formatearConsultorio;
+  protected readonly necesitaAcompanamiento = necesitaAcompanamiento;
 
   /** Hora actual; se refresca cada minuto para "en 3 horas", "hace 2 días", etc. */
   protected readonly ahora = signal(new Date());
@@ -161,6 +164,11 @@ export class Seguimiento implements OnInit, OnDestroy {
     alCambiar(['medicamentos'], () => this.recargarDetalle('medicamentos'));
     alCambiar(['citas-medicas'], () => this.recargarDetalle('citas'));
     alCambiar(['signos-vitales'], () => this.recargarDetalle('signos'));
+  }
+
+  /** Al aceptar o cancelar un acompañamiento, se actualiza la cita en la lista. */
+  protected citaActualizada(cita: CitaMedica): void {
+    this.citas.update((citas) => citas.map((c) => (c.idCita === cita.idCita ? { ...c, ...cita } : c)));
   }
 
   ngOnInit(): void {

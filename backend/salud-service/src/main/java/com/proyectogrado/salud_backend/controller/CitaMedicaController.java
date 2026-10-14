@@ -5,6 +5,8 @@ import com.proyectogrado.salud_backend.dto.CitaMedicaRequest;
 import com.proyectogrado.salud_backend.dto.CitaMedicaResponse;
 import com.proyectogrado.salud_backend.model.CitaMedica;
 import com.proyectogrado.salud_backend.repository.CitaMedicaRepository;
+import com.proyectogrado.salud_backend.model.UsuarioLookup;
+import com.proyectogrado.salud_backend.repository.UsuarioLookupRepository;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Citas médicas de la persona mayor autenticada: crear, listar, editar y
@@ -28,10 +31,18 @@ import java.util.List;
 @RequestMapping("/api/persona-mayor/citas-medicas")
 public class CitaMedicaController {
 
-    private final CitaMedicaRepository citaMedicaRepository;
+    private static final Set<String> OPCIONES_ACOMPANAMIENTO = Set.of(
+            CitaMedica.SIN_ACOMPANAMIENTO, CitaMedica.ACOMPANAMIENTO_REQUERIDO, CitaMedica.ACOMPANAMIENTO_PREFERIDO);
 
-    public CitaMedicaController(CitaMedicaRepository citaMedicaRepository) {
+    private final CitaMedicaRepository citaMedicaRepository;
+    private final UsuarioLookupRepository usuarioLookupRepository;
+
+    public CitaMedicaController(
+            CitaMedicaRepository citaMedicaRepository,
+            UsuarioLookupRepository usuarioLookupRepository
+    ) {
         this.citaMedicaRepository = citaMedicaRepository;
+        this.usuarioLookupRepository = usuarioLookupRepository;
     }
 
     /** Citas de la persona mayor autenticada, ordenadas por fecha y hora. */
@@ -162,6 +173,11 @@ public class CitaMedicaController {
             return "La fecha y la hora de la cita deben ser posteriores a este momento";
         }
 
+        if (!estaVacio(request.getAcompanamiento())
+                && !OPCIONES_ACOMPANAMIENTO.contains(request.getAcompanamiento())) {
+            return "Indica si la cita necesita acompañamiento";
+        }
+
         return null;
     }
 
@@ -192,9 +208,14 @@ public class CitaMedicaController {
         );
         cita.setFecha(LocalDate.parse(request.getFecha()));
         cita.setHora(LocalTime.parse(request.getHora()));
+        // Si ya no necesita acompañamiento, se libera a quien había aceptado.
+        cita.setAcompanamiento(estaVacio(request.getAcompanamiento())
+                ? CitaMedica.SIN_ACOMPANAMIENTO
+                : request.getAcompanamiento());
     }
 
-    private CitaMedicaResponse aRespuesta(CitaMedica cita) {
+    /** También la usa AcompanamientoCitaController al aceptar o cancelar. */
+    CitaMedicaResponse aRespuesta(CitaMedica cita) {
 
         DateTimeFormatter formatoHora =
                 DateTimeFormatter.ofPattern("HH:mm");
@@ -210,7 +231,15 @@ public class CitaMedicaController {
                 cita.getHora() != null
                         ? cita.getHora().format(formatoHora)
                         : null,
-                cita.getObservaciones()
+                cita.getObservaciones(),
+                cita.getAcompanamiento(),
+                cita.getIdAcompananteCita(),
+                cita.getIdAcompananteCita() != null
+                        ? usuarioLookupRepository.findById(cita.getIdAcompananteCita())
+                                .map(UsuarioLookup::getNombreUsuario)
+                                .orElse(null)
+                        : null,
+                cita.getPuntoEncuentro()
         );
     }
 }

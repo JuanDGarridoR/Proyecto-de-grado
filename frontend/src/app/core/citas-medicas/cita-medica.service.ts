@@ -7,6 +7,12 @@ import { API_URL } from '../api';
  * Cita médica tal como la devuelve salud-service (y acompanante-service en
  * el seguimiento). fecha va en "yyyy-MM-dd" y hora en "HH:mm".
  */
+/**
+ * Si la cita necesita acompañamiento: NO; REQUERIDO (la cita lo requiere) o
+ * PREFERIDO (no lo requiere, pero la persona quiere ir acompañada).
+ */
+export type Acompanamiento = 'NO' | 'REQUERIDO' | 'PREFERIDO';
+
 export interface CitaMedica {
   idCita: number;
   titulo: string;
@@ -15,6 +21,16 @@ export interface CitaMedica {
   fecha: string;
   hora: string;
   observaciones: string | null;
+  acompanamiento?: Acompanamiento;
+  /** Acompañante que aceptó ir y dónde se encuentran; null si nadie ha aceptado. */
+  idAcompananteCita?: number | null;
+  nombreAcompananteCita?: string | null;
+  puntoEncuentro?: string | null;
+}
+
+/** true si la cita necesita que alguien acompañe a la persona mayor. */
+export function necesitaAcompanamiento(cita: CitaMedica): boolean {
+  return cita.acompanamiento === 'REQUERIDO' || cita.acompanamiento === 'PREFERIDO';
 }
 
 /** Datos del formulario de cita médica. */
@@ -25,6 +41,7 @@ export interface CitaMedicaRequest {
   fecha: string;
   hora: string;
   observaciones?: string;
+  acompanamiento?: Acompanamiento;
 }
 
 /**

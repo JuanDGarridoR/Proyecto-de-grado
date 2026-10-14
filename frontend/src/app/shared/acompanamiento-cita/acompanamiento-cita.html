@@ -1,0 +1,84 @@
+<div class="acomp" [class.acomp--libre]="!cita().idAcompananteCita" [class.acomp--mia]="esMia()">
+  <div class="acomp__estado">
+    <app-icono name="users" class="acomp__icono" />
+
+    <div class="acomp__texto">
+      @if (esMia()) {
+        <strong>Tú acompañas a {{ nombre() }} a esta cita</strong>
+        <span>Punto de encuentro: {{ cita().puntoEncuentro }}</span>
+      } @else if (tomada()) {
+        <strong>La acompaña {{ cita().nombreAcompananteCita ?? 'otro acompañante' }}</strong>
+        @if (cita().puntoEncuentro) {
+          <span>Punto de encuentro: {{ cita().puntoEncuentro }}</span>
+        }
+      } @else {
+        <strong>
+          @if (cita().acompanamiento === 'REQUERIDO') {
+            Esta cita requiere acompañante
+          } @else {
+            {{ nombre() }} quiere ir acompañado(a)
+          }
+        </strong>
+        <span>Nadie se ha ofrecido todavía.</span>
+      }
+    </div>
+
+    @if (!formularioAbierto() && !confirmandoCancelacion()) {
+      <div class="acomp__acciones">
+        @if (esMia()) {
+          <button type="button" class="acomp__boton" (click)="abrirFormulario()">Cambiar punto</button>
+          <button type="button" class="acomp__boton acomp__boton--peligro" (click)="error.set(null); confirmandoCancelacion.set(true)">
+            Ya no puedo ir
+          </button>
+        } @else if (!tomada()) {
+          <button type="button" class="acomp__boton acomp__boton--primario" (click)="abrirFormulario()">
+            <app-icono name="check" /> Yo la acompaño
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Punto de encuentro -->
+  @if (formularioAbierto()) {
+    <div class="acomp__formulario">
+      <label [for]="'punto' + cita().idCita">¿Dónde se encuentran para salir a la cita?</label>
+      <textarea
+        [id]="'punto' + cita().idCita"
+        rows="2"
+        [maxlength]="MAX_PUNTO"
+        placeholder="Ej.: En la portería de su casa a las 8:45 a. m."
+        [(ngModel)]="punto"
+        [disabled]="procesando()"
+      ></textarea>
+      <p class="acomp__ayuda">{{ nombre() }} recibirá un mensaje con quién la acompaña y este punto de encuentro.</p>
+      <div class="acomp__acciones acomp__acciones--fin">
+        <button type="button" class="acomp__boton" (click)="formularioAbierto.set(false)" [disabled]="procesando()">
+          Cancelar
+        </button>
+        <button type="button" class="acomp__boton acomp__boton--primario" (click)="confirmar()" [disabled]="procesando()">
+          {{ procesando() ? 'Confirmando...' : esMia() ? 'Guardar punto' : 'Confirmar' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Ya no puede ir -->
+  @if (confirmandoCancelacion()) {
+    <div class="acomp__confirmar" role="alert">
+      <span>¿Seguro que ya no puedes ir? Le avisaremos a {{ nombre() }} para que otro acompañante pueda ofrecerse.</span>
+      <div class="acomp__acciones">
+        <button type="button" class="acomp__boton" (click)="confirmandoCancelacion.set(false)" [disabled]="procesando()">
+          No
+        </button>
+        <button type="button" class="acomp__boton acomp__boton--peligro-lleno" (click)="cancelar()" [disabled]="procesando()">
+          {{ procesando() ? 'Cancelando...' : 'Sí, no puedo ir' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (error()) {
+    <p class="acomp__error" role="alert"><app-icono name="alert-circle" /> {{ error() }}</p>
+  }
+</div>

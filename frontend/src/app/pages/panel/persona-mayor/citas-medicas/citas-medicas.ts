@@ -1,6 +1,8 @@
 import { Component, OnDestroy, OnInit, computed, effect, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
+  Acompanamiento,
+  necesitaAcompanamiento,
   CitaMedicaService,
   CitaMedica,
   CitaMedicaRequest,
@@ -90,6 +92,24 @@ export class CitasMedicas implements OnInit, OnDestroy {
   fecha = '';
   hora = '';
   observaciones = '';
+  acompanamiento: Acompanamiento = 'NO';
+
+  /** Opciones del campo "¿Necesita acompañamiento?", en primera o tercera persona. */
+  protected readonly opcionesAcompanamiento = computed<{ valor: Acompanamiento; texto: string }[]>(() =>
+    this.paraAcompanante()
+      ? [
+          { valor: 'NO', texto: 'No' },
+          { valor: 'REQUERIDO', texto: 'Sí, la cita lo requiere' },
+          { valor: 'PREFERIDO', texto: 'No lo requiere, pero quiere ir acompañado(a)' }
+        ]
+      : [
+          { valor: 'NO', texto: 'No' },
+          { valor: 'REQUERIDO', texto: 'Sí, la cita lo requiere' },
+          { valor: 'PREFERIDO', texto: 'No lo requiere, pero quiero ir acompañado(a)' }
+        ]
+  );
+
+  protected readonly necesitaAcompanamiento = necesitaAcompanamiento;
 
   constructor(private citaMedicaService: CitaMedicaService) {
     alCambiar(['citas-medicas'], () => this.cargar(false));
@@ -191,6 +211,7 @@ export class CitasMedicas implements OnInit, OnDestroy {
     this.fecha = cita.fecha;
     this.hora = cita.hora;
     this.observaciones = cita.observaciones ?? '';
+    this.acompanamiento = cita.acompanamiento ?? 'NO';
     this.errorFormulario.set(null);
     this.intentoGuardar.set(false);
     this.mostrandoFormulario.set(true);
@@ -210,6 +231,7 @@ export class CitasMedicas implements OnInit, OnDestroy {
     this.fecha = '';
     this.hora = '';
     this.observaciones = '';
+    this.acompanamiento = 'NO';
   }
 
   /** Crea o actualiza la cita, según si se está editando. */
@@ -237,7 +259,8 @@ export class CitasMedicas implements OnInit, OnDestroy {
       consultorio: this.consultorio || undefined,
       fecha: this.fecha,
       hora: this.hora,
-      observaciones: this.observaciones || undefined
+      observaciones: this.observaciones || undefined,
+      acompanamiento: this.acompanamiento
     };
 
     const idEditando = this.idEditando();

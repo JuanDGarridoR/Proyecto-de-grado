@@ -47,6 +47,17 @@ public class CitaMedicaLookup {
     @Column(name = "observaciones")
     private String observaciones;
 
+    /** NO, REQUERIDO o PREFERIDO (ver CitaMedica en salud-service); null cuenta como NO. */
+    @Column(name = "acompanamiento", length = 20)
+    private String acompanamiento;
+
+    /** Acompañante que aceptó ir a la cita, o null. */
+    @Column(name = "id_acompanante_cita")
+    private Integer idAcompananteCita;
+
+    @Column(name = "punto_encuentro", length = 300)
+    private String puntoEncuentro;
+
     /** Lo exige JPA. */
     protected CitaMedicaLookup() {
     }
@@ -81,5 +92,17 @@ public class CitaMedicaLookup {
 
     public String getObservaciones() {
         return observaciones;
+    }
+
+    public String getAcompanamiento() {
+        return acompanamiento != null ? acompanamiento : "NO";
+    }
+
+    public Integer getIdAcompananteCita() {
+        return idAcompananteCita;
+    }
+
+    public String getPuntoEncuentro() {
+        return puntoEncuentro;
     }
 }

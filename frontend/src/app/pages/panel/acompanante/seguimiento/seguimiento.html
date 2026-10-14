@@ -248,6 +248,14 @@
                         @if (cita.observaciones) {
                           <span class="fila__indicacion"><app-icono name="info" /> {{ cita.observaciones }}</span>
                         }
+                        @if (necesitaAcompanamiento(cita) && personaSeleccionada(); as persona) {
+                          <app-acompanamiento-cita
+                            [cita]="cita"
+                            [idPersonaMayor]="persona.idUsuario"
+                            [nombrePersona]="persona.nombre"
+                            (actualizada)="citaActualizada($event)"
+                          />
+                        }
                       </div>
 
                       @if (faltaParaCita(cita); as falta) {

@@ -11,8 +11,18 @@ public class CitaMedicaRequest {
     private String fecha;   // "yyyy-MM-dd"
     private String hora;    // "HH:mm"
     private String observaciones;
+    /** NO, REQUERIDO o PREFERIDO (ver CitaMedica); vacío cuenta como NO. */
+    private String acompanamiento;
 
     public CitaMedicaRequest() {
+    }
+
+    public String getAcompanamiento() {
+        return acompanamiento;
+    }
+
+    public void setAcompanamiento(String acompanamiento) {
+        this.acompanamiento = acompanamiento;
     }
 
     public String getTitulo() {
