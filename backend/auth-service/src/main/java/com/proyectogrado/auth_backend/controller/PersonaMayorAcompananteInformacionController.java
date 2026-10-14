@@ -139,7 +139,8 @@ public class PersonaMayorAcompananteInformacionController {
                 personaMayor.getDireccionIps(),
                 personaMayor.getViveSolo(),
                 false,
-                !Boolean.FALSE.equals(usuario.getActivo())
+                !Boolean.FALSE.equals(usuario.getActivo()),
+                usuario.getFotoPerfil()
         );
     }
 }

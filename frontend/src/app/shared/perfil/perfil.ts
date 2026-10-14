@@ -24,6 +24,8 @@ import {
 } from '../../core/organizacion/organizacion.service';
 import { API_URL } from '../../core/api';
 import { Cargando } from '../cargando/cargando';
+import { Icono } from '../icono/icono';
+import { reducirFoto } from '../../core/foto-perfil/reducir-foto';
 
 /** Rol del perfil que se muestra; llega en data.tipoPerfil de la ruta. */
 export type TipoPerfil = 'PERSONA_MAYOR' | 'ACOMPANANTE' | 'VOLUNTARIO' | 'ORGANIZACION';
@@ -43,6 +45,8 @@ interface PerfilInformacion {
   direccionIps?: string;
   /** Si vive sola; null si no lo ha indicado. */
   viveSolo?: boolean | null;
+  /** URL de la foto de perfil (solo persona mayor), o null si no tiene. */
+  fotoPerfil?: string | null;
   tieneContrasena: boolean;
 }
 
@@ -58,7 +62,7 @@ interface PerfilInformacion {
  */
 @Component({
   selector: 'app-perfil',
-  imports: [FormsModule, CampoContrasena, InactivarCuenta, EliminarCuenta, GestorNotificaciones, DatosSalud, Cargando],
+  imports: [FormsModule, CampoContrasena, InactivarCuenta, EliminarCuenta, GestorNotificaciones, DatosSalud, Cargando, Icono],
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })
@@ -87,6 +91,10 @@ export class Perfil implements OnInit {
   errorContrasena = '';
   mensajeContrasena = '';
   guardandoContrasena = false;
+
+  // Foto de perfil (solo persona mayor)
+  subiendoFoto = false;
+  errorFoto = '';
 
   constructor(
     private personaMayorService: PersonaMayorService,
@@ -159,6 +167,7 @@ export class Perfil implements OnInit {
             ips: data.ips,
             direccionIps: data.direccionIps,
             viveSolo: data.viveSolo ?? null,
+            fotoPerfil: data.fotoPerfil ?? null,
             tieneContrasena: data.tieneContrasena,
           };
 
@@ -314,6 +323,7 @@ export class Perfil implements OnInit {
               ips: data.ips,
               direccionIps: data.direccionIps,
               viveSolo: data.viveSolo ?? null,
+              fotoPerfil: data.fotoPerfil ?? null,
               tieneContrasena: data.tieneContrasena,
             };
 
@@ -434,6 +444,91 @@ export class Perfil implements OnInit {
     this.editando = false;
     this.formulario = null;
     this.errorGuardado = '';
+  }
+
+  /**
+   * Sube la foto elegida. Antes se reduce en el navegador (ver reducirFoto),
+   * así que una foto de celular de varios MB llega en pocos KB.
+   */
+  async seleccionarFoto(evento: Event): Promise<void> {
+    const input = evento.target as HTMLInputElement;
+    const archivo = input.files?.[0];
+    // Se limpia para que elegir otra vez la misma foto también dispare el cambio.
+    input.value = '';
+
+    if (!archivo || this.subiendoFoto) {
+      return;
+    }
+
+    this.errorFoto = '';
+
+    if (!archivo.type.startsWith('image/')) {
+      this.errorFoto = 'Elige una imagen (JPG, PNG o WebP).';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.subiendoFoto = true;
+    this.cdr.detectChanges();
+
+    let foto: Blob;
+    try {
+      foto = await reducirFoto(archivo);
+    } catch {
+      this.subiendoFoto = false;
+      this.errorFoto = 'No se pudo leer la imagen. Prueba con otra foto.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const datos = new FormData();
+    datos.append('foto', foto, 'foto.jpg');
+
+    this.http
+      .put<{ fotoPerfil: string | null }>(`${API_URL}/auth/informacion/foto`, datos)
+      .pipe(timeout(30000))
+      .subscribe({
+        next: (respuesta) => this.finalizarCambioFoto(respuesta.fotoPerfil),
+        error: (error) => this.manejarErrorFoto(error, 'No se pudo subir la foto. Intenta de nuevo.'),
+      });
+  }
+
+  quitarFoto(): void {
+    if (this.subiendoFoto) {
+      return;
+    }
+
+    this.subiendoFoto = true;
+    this.errorFoto = '';
+    this.cdr.detectChanges();
+
+    this.http
+      .delete<{ fotoPerfil: string | null }>(`${API_URL}/auth/informacion/foto`)
+      .pipe(timeout(15000))
+      .subscribe({
+        next: () => this.finalizarCambioFoto(null),
+        error: (error) => this.manejarErrorFoto(error, 'No se pudo quitar la foto. Intenta de nuevo.'),
+      });
+  }
+
+  private finalizarCambioFoto(url: string | null): void {
+    this.subiendoFoto = false;
+
+    if (this.informacion) {
+      this.informacion.fotoPerfil = url;
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  private manejarErrorFoto(error: any, mensajePorDefecto: string): void {
+    console.error('Error con la foto de perfil:', error);
+
+    this.subiendoFoto = false;
+    this.errorFoto =
+      typeof error.error === 'string' && error.error ? error.error : mensajePorDefecto;
+
+    this.cdr.detectChanges();
   }
 
   abrirModalContrasena(): void {

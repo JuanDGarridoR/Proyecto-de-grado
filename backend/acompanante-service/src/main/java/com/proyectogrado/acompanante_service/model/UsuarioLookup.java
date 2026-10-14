@@ -29,6 +29,10 @@ public class UsuarioLookup {
     @Column(name = "correo")
     private String correo;
 
+    /** URL pública de la foto de perfil (la sube la persona mayor), o null. */
+    @Column(name = "foto_perfil")
+    private String fotoPerfil;
+
     /** Lo exige JPA. */
 
     protected UsuarioLookup() {
@@ -48,5 +52,9 @@ public class UsuarioLookup {
 
     public String getCorreo() {
         return correo;
+    }
+
+    public String getFotoPerfil() {
+        return fotoPerfil;
     }
 }

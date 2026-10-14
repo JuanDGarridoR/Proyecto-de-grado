@@ -556,3 +556,66 @@
     transform: rotate(360deg);
   }
 }
+
+/* Foto de perfil (persona mayor) */
+
+.informacion__foto {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.informacion__foto-avatar {
+  width: 112px;
+  height: 112px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  border-radius: 50%;
+  background: #edf5fc;
+  color: var(--vita-navy);
+  font-size: 3rem;
+}
+
+.informacion__foto-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.informacion__foto-info h2 {
+  margin: 0 0 6px;
+}
+
+.informacion__foto-info p {
+  margin: 0;
+}
+
+.informacion__foto-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.informacion__foto-acciones .informacion__save-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.informacion__foto-boton--ocupado {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+@media (max-width: 520px) {
+  .informacion__foto {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

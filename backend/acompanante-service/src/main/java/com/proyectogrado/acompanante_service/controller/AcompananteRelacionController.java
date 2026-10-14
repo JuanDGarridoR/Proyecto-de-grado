@@ -246,7 +246,8 @@ public class AcompananteRelacionController {
                             idPersonaMayor,
                             usuario != null ? usuario.getNombreUsuario() : null,
                             usuario != null ? usuario.getCelular() : null,
-                            usuario != null ? usuario.getCorreo() : null
+                            usuario != null ? usuario.getCorreo() : null,
+                            usuario != null ? usuario.getFotoPerfil() : null
                     );
                 })
                 .toList();

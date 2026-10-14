@@ -52,6 +52,13 @@ public class Usuario {
     @Column(name = "activo")
     private Boolean activo;
 
+    /**
+     * URL pública de la foto de perfil en Supabase Storage (bucket
+     * fotos-perfil), o null si no tiene. Hoy solo la sube la persona mayor.
+     */
+    @Column(name = "foto_perfil")
+    private String fotoPerfil;
+
     public Usuario() {
     }
 
@@ -141,6 +148,14 @@ public void setDireccion(String direccion) {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
+    }
+
+    public String getFotoPerfil() {
+        return fotoPerfil;
+    }
+
+    public void setFotoPerfil(String fotoPerfil) {
+        this.fotoPerfil = fotoPerfil;
     }
 
     @PrePersist

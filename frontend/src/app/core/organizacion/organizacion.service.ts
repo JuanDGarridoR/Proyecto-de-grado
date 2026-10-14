@@ -17,6 +17,8 @@ export interface PersonaMayorOrganizacion {
   idUsuario: number;
   nombre: string;
   celular: string;
+  /** URL de la foto de perfil, o null si no ha subido una. */
+  fotoPerfil?: string | null;
 }
 
 /** Organización vinculada a la persona mayor, o que le envió una solicitud. */

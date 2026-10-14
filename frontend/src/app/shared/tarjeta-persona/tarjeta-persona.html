@@ -2,7 +2,11 @@
 
 <div class="person-card__identity">
   <div class="person-card__avatar" aria-hidden="true">
-    <app-icono [name]="icono()" />
+    @if (foto() && foto() !== fotoRota()) {
+      <img [src]="foto()" alt="" loading="lazy" (error)="fotoRota.set(foto() ?? null)" />
+    } @else {
+      <app-icono [name]="icono()" />
+    }
   </div>
 
   <div class="person-card__name">

@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { Icono } from '../icono/icono';
 
 /** Color de la etiqueta de estado: activo (verde), pendiente o rechazado. */
@@ -36,6 +36,8 @@ export class TarjetaPersona {
   readonly correo = input<string | null | undefined>(null);
   readonly direccion = input<string | null | undefined>(null);
   readonly icono = input('user');
+  /** URL de la foto de perfil; si no hay, se muestra el ícono. */
+  readonly foto = input<string | null | undefined>(null);
 
   readonly estado = input<string | null>(null);
   readonly estadoTipo = input<TarjetaPersonaEstado>('activo');
@@ -44,6 +46,9 @@ export class TarjetaPersona {
   readonly clickable = input(false);
   readonly seleccionada = input(false);
   readonly cardClick = output<void>();
+
+  /** Si la foto no carga (por ejemplo, la borraron), se vuelve al ícono. */
+  protected readonly fotoRota = signal<string | null>(null);
 
   protected onClick(): void {
     if (this.clickable()) {

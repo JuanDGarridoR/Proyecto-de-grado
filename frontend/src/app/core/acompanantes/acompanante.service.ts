@@ -20,6 +20,8 @@ export interface PersonaMayorAcompanada {
   idUsuario: number;
   nombre: string;
   celular: string;
+  /** URL de la foto de perfil, o null si no ha subido una. */
+  fotoPerfil?: string | null;
 }
 
 /** Solicitud de acompañamiento pendiente: datos de la persona mayor (que la envió o a quien se le envió). */
@@ -27,6 +29,8 @@ export interface SolicitudAcompanamiento {
   idUsuario: number;
   nombre: string;
   celular: string;
+  /** URL de la foto de perfil, o null si no ha subido una. */
+  fotoPerfil?: string | null;
 }
 
 /** Datos de "Mi información" del acompañante. */
