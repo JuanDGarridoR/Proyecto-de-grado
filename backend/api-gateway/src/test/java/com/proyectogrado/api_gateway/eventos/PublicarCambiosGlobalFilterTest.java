@@ -14,7 +14,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
- * Avisos de cambio (RF-51): cada escritura exitosa que pasa por el gateway
+ * Avisos de cambio (RNF-04): cada escritura exitosa que pasa por el gateway
  * avisa qué recurso cambió para que los demás usuarios lo vean sin recargar.
  */
 class PublicarCambiosGlobalFilterTest {

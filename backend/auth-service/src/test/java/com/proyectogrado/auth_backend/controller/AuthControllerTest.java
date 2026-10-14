@@ -2,11 +2,13 @@ package com.proyectogrado.auth_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.proyectogrado.auth_backend.client.MensajeriaClient;
+import com.proyectogrado.auth_backend.model.Acompanante;
 import com.proyectogrado.auth_backend.model.Organizacion;
 import com.proyectogrado.auth_backend.model.PersonaMayor;
 import com.proyectogrado.auth_backend.model.Rol;
 import com.proyectogrado.auth_backend.model.Usuario;
 import com.proyectogrado.auth_backend.model.UsuarioRol;
+import com.proyectogrado.auth_backend.model.Voluntario;
 import com.proyectogrado.auth_backend.repository.AcompananteRepository;
 import com.proyectogrado.auth_backend.repository.OrganizacionRepository;
 import com.proyectogrado.auth_backend.repository.PersonaMayorRepository;
@@ -34,6 +36,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -49,7 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Registro, inicio de sesión (con contraseña y con OTP) y recuperación de
- * contraseña (RF-01, RF-02 y RF-06). Usa el AuthService real, con BCrypt y
+ * contraseña (RF-01 y RF-03 a RF-06). Usa el AuthService real, con BCrypt y
  * JwtService reales; solo se simulan los repositorios, mensajeria-service y
  * Hunter, así que no se toca la base de datos ni se envían SMS.
  */
@@ -65,7 +68,9 @@ class AuthControllerTest {
     private RolRepository rolRepository;
     private UsuarioRolRepository usuarioRolRepository;
     private PersonaMayorRepository personaMayorRepository;
+    private AcompananteRepository acompananteRepository;
     private OrganizacionRepository organizacionRepository;
+    private VoluntarioRepository voluntarioRepository;
     private MensajeriaClient mensajeriaClient;
     private ValidacionCorreoService validacionCorreoService;
     private JwtService jwtService;
@@ -77,7 +82,9 @@ class AuthControllerTest {
         rolRepository = mock(RolRepository.class);
         usuarioRolRepository = mock(UsuarioRolRepository.class);
         personaMayorRepository = mock(PersonaMayorRepository.class);
+        acompananteRepository = mock(AcompananteRepository.class);
         organizacionRepository = mock(OrganizacionRepository.class);
+        voluntarioRepository = mock(VoluntarioRepository.class);
         mensajeriaClient = mock(MensajeriaClient.class);
         validacionCorreoService = mock(ValidacionCorreoService.class);
 
@@ -90,9 +97,9 @@ class AuthControllerTest {
                 rolRepository,
                 usuarioRolRepository,
                 personaMayorRepository,
-                mock(AcompananteRepository.class),
+                acompananteRepository,
                 organizacionRepository,
-                mock(VoluntarioRepository.class),
+                voluntarioRepository,
                 passwordEncoder,
                 jwtService,
                 mensajeriaClient,
@@ -203,6 +210,46 @@ class AuthControllerTest {
         ArgumentCaptor<Usuario> cuenta = ArgumentCaptor.forClass(Usuario.class);
         verify(usuarioRepository).save(cuenta.capture());
         assertEquals(7, cuenta.getValue().getIdOrganizacion());
+    }
+
+    /** Registro sin correo: el acompañante y el voluntario piden los mismos datos que la persona mayor. */
+    private String registroSinCorreo(String rol, String celular) {
+        return """
+                {"nombreUsuario": "Carlos Pérez", "rol": "%s", "fechaNacimiento": "1985-06-20",
+                 "genero": "Masculino", "direccion": "Carrera 4 Este # 76-20 Sur", "celular": "%s"}
+                """.formatted(rol, celular);
+    }
+
+    @Test
+    void registroDeAcompananteCreaSuCuentaSinParentesco() throws Exception {
+        when(rolRepository.findByNombre("ACOMPANANTE")).thenReturn(Optional.of(rol(2, "ACOMPANANTE")));
+
+        mockMvc.perform(post("/api/auth/registro")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registroSinCorreo("ACOMPANANTE", "+573005556677")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.rol").value("ACOMPANANTE"));
+
+        // El parentesco lo indica la persona mayor cuando lo agrega como contacto.
+        ArgumentCaptor<Acompanante> acompanante = ArgumentCaptor.forClass(Acompanante.class);
+        verify(acompananteRepository).save(acompanante.capture());
+        assertNull(acompanante.getValue().getRelacion());
+        // Sin correo no hay nada que validar con Hunter.
+        verify(validacionCorreoService, never()).validarCorreo(anyString());
+    }
+
+    @Test
+    void registroDeVoluntarioCreaSuCuenta() throws Exception {
+        when(rolRepository.findByNombre("VOLUNTARIO")).thenReturn(Optional.of(rol(4, "VOLUNTARIO")));
+
+        mockMvc.perform(post("/api/auth/registro")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registroSinCorreo("VOLUNTARIO", "+573007778899")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.rol").value("VOLUNTARIO"));
+
+        verify(voluntarioRepository).save(any(Voluntario.class));
+        verify(personaMayorRepository, never()).save(any());
     }
 
     @Test

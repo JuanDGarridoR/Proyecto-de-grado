@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
- * Filtro JwtAuth del gateway (RNF-07 a RNF-10): sin un token válido la
+ * Filtro JwtAuth del gateway (RNF-02): sin un token válido la
  * petición no llega al servicio; con uno válido llega con X-User-Id y
  * X-User-Rol tomados del token, nunca de lo que mande el cliente.
  */

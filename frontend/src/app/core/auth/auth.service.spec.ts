@@ -33,7 +33,7 @@ function almacenamientoEnMemoria(): Storage {
 const EN_UNA_HORA = new Date(Date.now() + 60 * 60 * 1000);
 const HACE_UNA_HORA = new Date(Date.now() - 60 * 60 * 1000);
 
-// Sesión en el navegador (RNF-09): se crea al iniciar sesión, se borra al
+// Sesión en el navegador (RF-09 y RF-11): se crea al iniciar sesión, se borra al
 // cerrarla y una sesión recordada vencida no se restaura.
 describe('AuthService', () => {
   beforeEach(() => {

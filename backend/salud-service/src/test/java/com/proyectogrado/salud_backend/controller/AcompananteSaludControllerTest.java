@@ -1,7 +1,10 @@
 package com.proyectogrado.salud_backend.controller;
 
 import com.proyectogrado.salud_backend.model.CitaMedica;
+import com.proyectogrado.salud_backend.model.CondicionSalud;
 import com.proyectogrado.salud_backend.model.Medicamento;
+import com.proyectogrado.salud_backend.model.PersonaMayorCondicionSalud;
+import com.proyectogrado.salud_backend.model.TipoCondicionSalud;
 import com.proyectogrado.salud_backend.repository.CitaMedicaRepository;
 import com.proyectogrado.salud_backend.repository.CondicionSaludRepository;
 import com.proyectogrado.salud_backend.repository.MedicamentoRepository;
@@ -42,6 +45,7 @@ class AcompananteSaludControllerTest {
 
     private MedicamentoRepository medicamentoRepository;
     private CitaMedicaRepository citaMedicaRepository;
+    private PersonaMayorCondicionSaludRepository condicionesRepository;
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -60,12 +64,20 @@ class AcompananteSaludControllerTest {
         citaMedicaRepository = mock(CitaMedicaRepository.class);
         when(citaMedicaRepository.save(any(CitaMedica.class))).thenAnswer(inv -> inv.getArgument(0));
 
+        CondicionSaludRepository catalogo = mock(CondicionSaludRepository.class);
+        CondicionSalud hipertension = new CondicionSalud(
+                TipoCondicionSalud.ENFERMEDAD, "Hipertensión arterial", "Cardiovascular", false);
+        hipertension.setIdCondicionSalud(1);
+        when(catalogo.findById(1)).thenReturn(Optional.of(hipertension));
+
+        condicionesRepository = mock(PersonaMayorCondicionSaludRepository.class);
+        when(condicionesRepository.save(any(PersonaMayorCondicionSalud.class))).thenAnswer(inv -> inv.getArgument(0));
+
         AcompananteSaludController controller = new AcompananteSaludController(
                 relaciones,
                 new MedicamentoController(medicamentoRepository),
                 new CitaMedicaController(citaMedicaRepository),
-                new CondicionSaludController(mock(CondicionSaludRepository.class),
-                        mock(PersonaMayorCondicionSaludRepository.class))
+                new CondicionSaludController(catalogo, condicionesRepository)
         );
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
@@ -102,6 +114,20 @@ class AcompananteSaludControllerTest {
 
         ArgumentCaptor<CitaMedica> guardada = ArgumentCaptor.forClass(CitaMedica.class);
         verify(citaMedicaRepository).save(guardada.capture());
+        assertEquals(PERSONA_MAYOR, guardada.getValue().getIdPersonaMayor());
+    }
+
+    @Test
+    void registraUnaCondicionDeSaludParaLaPersonaQueAcompana() throws Exception {
+        mockMvc.perform(post("/api/acompanante/personas-mayores/{id}/condiciones-salud", PERSONA_MAYOR)
+                        .header("X-User-Id", ACOMPANANTE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"idCondicionSalud\": 1, \"severidad\": \"LEVE\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nombre").value("Hipertensión arterial"));
+
+        ArgumentCaptor<PersonaMayorCondicionSalud> guardada = ArgumentCaptor.forClass(PersonaMayorCondicionSalud.class);
+        verify(condicionesRepository).save(guardada.capture());
         assertEquals(PERSONA_MAYOR, guardada.getValue().getIdPersonaMayor());
     }
 

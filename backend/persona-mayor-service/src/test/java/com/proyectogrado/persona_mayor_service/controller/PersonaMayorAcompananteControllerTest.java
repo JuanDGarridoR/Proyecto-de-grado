@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Contactos de emergencia de la persona mayor (RF-07 a RF-11 y RF-14): sus
+ * Contactos de emergencia de la persona mayor (RF-17, RF-20, RF-21 y RF-37): sus
  * acompañantes. Los agrega por celular, quedan pendientes hasta que el
  * acompañante acepta, los consulta y los quita.
  */
@@ -155,11 +155,11 @@ class PersonaMayorAcompananteControllerTest {
     }
 
     /**
-     * Hallazgo del QC (CP-GCE-006): al repetir la solicitud a un acompañante
+     * Hallazgo H-03 del QC: al repetir la solicitud a un acompañante
      * ya aceptado responde 400, pero antes ya guardó el parentesco nuevo.
      */
     @Test
-    @Disabled("Hallazgo CP-GCE-006: una solicitud rechazada cambia el parentesco del contacto")
+    @Disabled("Hallazgo H-03: una solicitud rechazada cambia el parentesco del contacto")
     void unaSolicitudRechazadaNoCambiaElParentescoDelContacto() throws Exception {
         when(relacionRepository.findById(any())).thenReturn(Optional.of(relacion("ACEPTADA", "PERSONA_MAYOR")));
 

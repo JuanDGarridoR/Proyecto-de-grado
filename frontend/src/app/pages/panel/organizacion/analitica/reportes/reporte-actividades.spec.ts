@@ -18,7 +18,7 @@ interface VistaReporte {
   tablaTipos(): { columnas: string[]; filas: (string | number)[][] };
 }
 
-// Reporte de actividades de la analítica (RF-19, RF-21 y RF-33): indicadores
+// Reporte de actividades de la analítica (RF-45): indicadores
 // de participación y las tablas que acompañan a las gráficas.
 describe('ReporteActividades', () => {
   let fixture: ComponentFixture<ReporteActividades>;

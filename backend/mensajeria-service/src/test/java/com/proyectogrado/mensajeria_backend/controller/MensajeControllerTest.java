@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Envío de SMS que piden los demás servicios (alertas de emergencia y
- * recordatorios, RF-17 y RF-23): respeta las preferencias del usuario y deja
+ * recordatorios, RF-35 y RF-51): respeta las preferencias del usuario y deja
  * una copia para la campanita. TextBee está simulado.
  */
 class MensajeControllerTest {

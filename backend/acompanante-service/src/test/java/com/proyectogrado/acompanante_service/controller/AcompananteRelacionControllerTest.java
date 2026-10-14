@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Vínculo desde el lado del acompañante (RF-11 y RF-14): ve a las personas
+ * Vínculo desde el lado del acompañante (RF-17, RF-20 y RF-21): ve a las personas
  * mayores que acompaña, les envía solicitudes por celular y responde las que
  * ellas le envían.
  */

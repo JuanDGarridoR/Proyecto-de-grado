@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Vinculación de voluntarios con organizaciones (RF-03): el voluntario pide
+ * Vinculación de voluntarios con organizaciones (RF-19 y RF-20): el voluntario pide
  * vincularse y la organización acepta o rechaza; cada lado solo usa sus
  * propios endpoints.
  */

@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Vínculo entre la persona mayor y las organizaciones (RF-14 y RF-03): ella
+ * Vínculo entre la persona mayor y las organizaciones (RF-18, RF-20 a RF-22 y RF-37): ella
  * acepta o rechaza las invitaciones, también puede pedir unirse a una
  * organización, y la organización solo ve los acompañantes de las personas
  * vinculadas a ella.

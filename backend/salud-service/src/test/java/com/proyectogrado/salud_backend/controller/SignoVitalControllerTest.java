@@ -1,5 +1,6 @@
 package com.proyectogrado.salud_backend.controller;
 
+import com.proyectogrado.salud_backend.config.ZonaHoraria;
 import com.proyectogrado.salud_backend.model.PersonaMayorOrganizacion;
 import com.proyectogrado.salud_backend.model.SignoVital;
 import com.proyectogrado.salud_backend.model.UsuarioLookup;
@@ -7,18 +8,22 @@ import com.proyectogrado.salud_backend.repository.PersonaMayorOrganizacionReposi
 import com.proyectogrado.salud_backend.repository.SignoVitalRepository;
 import com.proyectogrado.salud_backend.repository.UsuarioLookupRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -31,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Signos vitales (RF-13 y RF-16): la persona mayor registra y consulta su
+ * Signos vitales (RF-29, RF-30 y RF-32): la persona mayor registra y consulta su
  * historial, y la organización registra y consulta los de las personas
  * vinculadas a ella. Ambos usan la misma validación.
  */
@@ -95,6 +100,34 @@ class SignoVitalControllerTest {
         verify(signoVitalRepository).save(guardada.capture());
         assertEquals(PERSONA_MAYOR, guardada.getValue().getIdPersonaMayor());
         assertNotNull(guardada.getValue().getFechaHora());
+    }
+
+    /**
+     * Hallazgo H-07 del QC: la fecha de la medición se toma con la zona del
+     * servidor y no con la de Colombia (RNF-06). En el contenedor de Docker,
+     * que corre en UTC, quedaría cinco horas adelantada. Se deja deshabilitada
+     * hasta que se use ZonaHoraria.ahora().
+     */
+    @Test
+    @Disabled("Hallazgo H-07: la fecha de la medición usa la zona del servidor")
+    void laFechaDeLaMedicionEsLaHoraDeColombiaAunqueElServidorEsteEnUtc() throws Exception {
+        TimeZone zonaDelServidor = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        try {
+            mockMvc.perform(post("/api/persona-mayor/signos-vitales")
+                            .header("X-User-Id", PERSONA_MAYOR)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"frecuenciaCardiaca\": 70}"))
+                    .andExpect(status().isCreated());
+        } finally {
+            TimeZone.setDefault(zonaDelServidor);
+        }
+
+        ArgumentCaptor<SignoVital> guardada = ArgumentCaptor.forClass(SignoVital.class);
+        verify(signoVitalRepository).save(guardada.capture());
+        long segundos = Duration.between(ZonaHoraria.ahora(), guardada.getValue().getFechaHora()).abs().toSeconds();
+        assertTrue(segundos < 60,
+                "La medición quedó " + Math.round(segundos / 60.0) + " minutos corrida de la hora de Colombia");
     }
 
     @Test

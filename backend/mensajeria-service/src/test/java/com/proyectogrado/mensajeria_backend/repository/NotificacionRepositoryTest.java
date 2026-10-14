@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Consultas del historial de notificaciones sobre una base H2 en memoria
- * (RF-26 y RF-27): orden y límite de la campanita, conteo de no leídas y
+ * (RF-50): orden y límite de la campanita, conteo de no leídas y
  * marcado como leídas.
  */
 @DataJpaTest

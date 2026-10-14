@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Descarga de los reportes de analítica en PDF (RF-18 y RF-21): el PDF lleva
+ * Descarga de los reportes de analítica en PDF (RF-48): el PDF lleva
  * el nombre de la organización, los indicadores, la gráfica y la tabla, y se
  * rechazan los reportes sin título o desproporcionados.
  */

@@ -63,7 +63,7 @@ interface VistaReporte {
   tablaTiempo(): { columnas: string[]; filas: (string | number)[][] };
 }
 
-// Reporte de salud de la analítica (RF-15, RF-16 y RF-19): quién requiere
+// Reporte de salud de la analítica (RF-46): quién requiere
 // atención, los indicadores y los filtros. Solo se prueba la lógica; las
 // gráficas no se dibujan.
 describe('ReporteSalud', () => {

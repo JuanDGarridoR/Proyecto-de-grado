@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Flujo completo de un contacto de emergencia sobre una base H2 en memoria
- * (RF-53): la persona mayor ya registrada agrega a su acompañante, él acepta,
+ * (RF-17 y RF-35): la persona mayor ya registrada agrega a su acompañante, él acepta,
  * aparece en sus contactos y le llega la alerta del botón de emergencia. Los
  * controladores usan los repositorios reales; solo mensajeria-service está
  * simulado.
@@ -154,13 +154,13 @@ class ContactoDeEmergenciaIntegracionTest {
     }
 
     /**
-     * Hallazgo del QC (CP-GCE-003): el parentesco se guarda en la tabla
+     * Hallazgo H-04 del QC: el parentesco se guarda en la tabla
      * acompanante (uno por acompañante) y no en el vínculo, así que si el
      * mismo acompañante cuida a dos personas, la segunda cambia lo que ve la
      * primera.
      */
     @Test
-    @Disabled("Hallazgo CP-GCE-003: el parentesco es uno por acompañante y no uno por vínculo")
+    @Disabled("Hallazgo H-04: el parentesco es uno por acompañante y no uno por vínculo")
     void cadaPersonaMayorConservaElParentescoQueLeDioASuContacto() throws Exception {
         agregarContacto(10, "Hijo");
         elAcompananteAcepta(10);

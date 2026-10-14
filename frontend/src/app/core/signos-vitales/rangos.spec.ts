@@ -11,7 +11,7 @@ const NORMAL: ValoresSignos = {
 };
 
 // Criterios con los que se marca "Normal" o "Revisar" un signo vital y se
-// detectan valores imposibles (RF-15 y RF-16).
+// detectan valores imposibles (RF-30 y RF-32).
 describe('rangos de signos vitales', () => {
   it('una medición dentro de los rangos no tiene indicadores por revisar', () => {
     expect(indicadoresFueraDeRango(NORMAL)).toEqual([]);

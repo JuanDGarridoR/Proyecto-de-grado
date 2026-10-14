@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Datos de los reportes de analítica (RF-18 a RF-22 y RF-33). Las consultas
+ * Datos de los reportes de analítica (RF-45 a RF-47). Las consultas
  * SQL reales corren sobre una base H2 en memoria, en modo PostgreSQL, con
  * los datos ficticios de analitica/datos.sql: se comprueba qué personas y
  * actividades entran en cada reporte, los conteos y los filtros por fecha.

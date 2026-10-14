@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Persistencia de las cuentas en una base H2 en memoria (BD-01 a BD-03):
+ * Persistencia de las cuentas en una base H2 en memoria (RNF-08):
  * inserción, consulta, actualización, borrado, llaves únicas y llaves
  * foráneas de usuario, rol y usuario_rol. Cada prueba se deshace al terminar.
  */

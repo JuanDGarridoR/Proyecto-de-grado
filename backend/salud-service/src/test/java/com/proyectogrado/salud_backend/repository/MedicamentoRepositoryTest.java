@@ -18,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Persistencia de los medicamentos en una base H2 en memoria (BD-01, BD-02
- * y BD-03): inserción, consulta, actualización, borrado, columnas
+ * Persistencia de los medicamentos en una base H2 en memoria (RNF-05
+ * y RNF-08): inserción, consulta, actualización, borrado, columnas
  * obligatorias y las actualizaciones condicionales con las que el scheduler
  * evita repetir un aviso.
  */
@@ -104,7 +104,7 @@ class MedicamentoRepositoryTest {
     @Test
     void unNombreVacioSiLlegaALaBase() {
         // La base solo exige que no sea null: el texto vacío pasa. Por eso la
-        // validación tiene que estar en el controlador (ver hallazgo CP-GMI-002).
+        // validación tiene que estar en el controlador (ver hallazgo H-05).
         Medicamento guardado = medicamentoRepository.saveAndFlush(medicamento("", 12));
 
         assertNotNull(guardado.getIdMedicamento());

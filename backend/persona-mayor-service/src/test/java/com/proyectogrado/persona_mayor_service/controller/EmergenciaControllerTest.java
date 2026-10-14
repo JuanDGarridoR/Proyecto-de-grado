@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Botón de emergencia (RF-17 y RF-23): la alerta, con el nombre de la persona
+ * Botón de emergencia (RF-35 y RF-36): la alerta, con el nombre de la persona
  * mayor, llega por SMS a todos sus acompañantes y organizaciones aceptados.
  * mensajeria-service está simulado, así que no sale ningún SMS.
  */

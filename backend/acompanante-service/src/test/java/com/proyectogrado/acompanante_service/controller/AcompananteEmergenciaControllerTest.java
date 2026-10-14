@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Emergencias en el inicio del acompañante (RF-17): ve las que activaron en
+ * Emergencias en el inicio del acompañante (RF-36 y RF-54): ve las que activaron en
  * las últimas 24 horas las personas mayores con las que tiene un vínculo
  * aceptado.
  */

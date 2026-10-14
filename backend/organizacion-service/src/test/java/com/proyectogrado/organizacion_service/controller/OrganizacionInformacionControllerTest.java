@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Perfil de la organización (RF-04 y RF-05): nombre y contacto de su cuenta,
+ * Perfil de la organización (RF-15): nombre y contacto de su cuenta,
  * y la dirección, que es lo único que se edita aquí.
  */
 class OrganizacionInformacionControllerTest {

@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -31,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * "Mi información" (RF-04 y RF-05): consulta y actualización de los datos de
+ * "Mi información" (RF-12 a RF-14): consulta y actualización de los datos de
  * la cuenta, incluidas la EPS y la IPS de la persona mayor. El usuario sale
  * del token, como en producción.
  */
@@ -120,6 +121,34 @@ class UsuarioInformacionControllerTest {
     }
 
     @Test
+    void laPersonaMayorIndicaSiViveSolaOLoDejaSinDecir() throws Exception {
+        PersonaMayor personaMayor = personaMayor();
+        when(personaMayorRepository.findById(40)).thenReturn(Optional.of(personaMayor));
+        String datos = """
+                {"nombre": "Rosa Díaz", "correo": "rosa@vitamas.co", "fechaNacimiento": "1948-07-02",
+                 "genero": "Femenino", "direccion": "Calle 100 Sur # 1-10", "viveSolo": %s}
+                """;
+
+        mockMvc.perform(put("/api/auth/informacion")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(datos.formatted("true")))
+                .andExpect(status().isOk());
+        assertEquals(true, personaMayor.getViveSolo());
+
+        mockMvc.perform(get("/api/auth/informacion").header("Authorization", "Bearer " + token))
+                .andExpect(jsonPath("$.viveSolo").value(true));
+
+        // null es "no lo ha indicado", distinto de "no vive sola"
+        mockMvc.perform(put("/api/auth/informacion")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(datos.formatted("null")))
+                .andExpect(status().isOk());
+        assertNull(personaMayor.getViveSolo());
+    }
+
+    @Test
     void actualizarSinNombreSeRechazaYNoGuardaNada() throws Exception {
         mockMvc.perform(put("/api/auth/informacion")
                         .header("Authorization", "Bearer " + token)
@@ -185,11 +214,11 @@ class UsuarioInformacionControllerTest {
     }
 
     /**
-     * Hallazgo del QC (CP-GUA-009): el backend guarda una fecha de nacimiento
+     * Hallazgo H-01 del QC: el backend guarda una fecha de nacimiento
      * futura. Se deja deshabilitada hasta que se agregue esa validación.
      */
     @Test
-    @Disabled("Hallazgo CP-GUA-009: se acepta una fecha de nacimiento futura")
+    @Disabled("Hallazgo H-01: se acepta una fecha de nacimiento futura")
     void actualizarConFechaDeNacimientoFuturaSeRechaza() throws Exception {
         mockMvc.perform(put("/api/auth/informacion")
                         .header("Authorization", "Bearer " + token)

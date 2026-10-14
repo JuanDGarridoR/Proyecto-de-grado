@@ -24,7 +24,7 @@ function almacenamientoEnMemoria(): Storage {
   };
 }
 
-// El token viaja en cada petición al backend, menos en las públicas (RNF-07).
+// El token viaja en cada petición al backend, menos en las públicas (RNF-02).
 describe('authInterceptor', () => {
   let http: HttpClient;
   let backend: HttpTestingController;

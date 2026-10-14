@@ -7,7 +7,7 @@ const PANELES: Record<string, string> = {
   VOLUNTARIO: '/panel/voluntario'
 };
 
-// Menú lateral de cada rol (RF-03 y UI-02): cada rol ve solo las opciones de
+// Menú lateral de cada rol (RF-11): cada rol ve solo las opciones de
 // su propio panel.
 describe('CONFIGURACION_PANEL', () => {
   it('hay un menú para cada uno de los cuatro roles', () => {

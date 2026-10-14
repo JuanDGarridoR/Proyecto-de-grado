@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Actividades y participación (RF-28 a RF-31 y RF-03): la organización crea,
+ * Actividades y participación (RF-11, RF-38, RF-40 a RF-42 y RF-44): la organización crea,
  * edita y borra sus actividades y registra la asistencia; la persona mayor se
  * inscribe en las de sus organizaciones; cada rol ve solo lo que le
  * corresponde; voluntarios y personas mayores proponen actividades.
@@ -360,6 +360,37 @@ class ActividadControllerTest {
     }
 
     @Test
+    void laPersonaMayorCancelaSuInscripcion() throws Exception {
+        Participacion inscripcion = new Participacion(PERSONA_MAYOR, 1);
+        when(participacionRepository.findById_IdPersonaMayorAndId_IdActividad(PERSONA_MAYOR, 1))
+                .thenReturn(Optional.of(inscripcion));
+        when(actividadRepository.findById(1)).thenReturn(Optional.of(actividad(1, manana, 10)));
+
+        mockMvc.perform(delete("/api/actividades/1/inscribirse").header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isNoContent());
+
+        verify(participacionRepository).delete(inscripcion);
+    }
+
+    @Test
+    void noSeCancelaUnaInscripcionDeUnaActividadPasadaNiUnaQueNoExiste() throws Exception {
+        when(participacionRepository.findById_IdPersonaMayorAndId_IdActividad(PERSONA_MAYOR, 2))
+                .thenReturn(Optional.of(new Participacion(PERSONA_MAYOR, 2)));
+        when(actividadRepository.findById(2)).thenReturn(Optional.of(actividad(2, manana.minusDays(3), 10)));
+
+        mockMvc.perform(delete("/api/actividades/2/inscribirse").header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isConflict());
+
+        when(participacionRepository.findById_IdPersonaMayorAndId_IdActividad(PERSONA_MAYOR, 1))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(delete("/api/actividades/1/inscribirse").header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isNotFound());
+
+        verify(participacionRepository, never()).delete(any());
+    }
+
+    @Test
     void unaPropuestaPendienteNoExisteParaLaPersonaMayor() throws Exception {
         Actividad propuesta = actividad(3, manana, 20);
         propuesta.setIdVoluntario(VOLUNTARIO);
@@ -452,6 +483,34 @@ class ActividadControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(formulario("Taller de memoria", manana, 15)
                                 .replace("{", "{\"idOrganizacion\": " + ORGANIZACION + ", ")))
+                .andExpect(status().isForbidden());
+
+        verify(actividadRepository, never()).save(any());
+    }
+
+    @Test
+    void unaPersonaMayorVinculadaProponeUnaActividadQueQuedaPendiente() throws Exception {
+        mockMvc.perform(post("/api/actividades/propuestas")
+                        .header("X-User-Id", PERSONA_MAYOR)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formulario("Tarde de boleros", manana, 20)
+                                .replace("{", "{\"idOrganizacion\": " + ORGANIZACION + ", ")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.estado").value("PENDIENTE"));
+
+        ArgumentCaptor<Actividad> propuesta = ArgumentCaptor.forClass(Actividad.class);
+        verify(actividadRepository).save(propuesta.capture());
+        assertEquals(PERSONA_MAYOR, propuesta.getValue().getIdPersonaMayorProponente());
+        assertNull(propuesta.getValue().getIdVoluntario());
+    }
+
+    @Test
+    void unaPersonaMayorNoProponeAUnaOrganizacionALaQueNoPertenece() throws Exception {
+        mockMvc.perform(post("/api/actividades/propuestas")
+                        .header("X-User-Id", PERSONA_MAYOR)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formulario("Tarde de boleros", manana, 20)
+                                .replace("{", "{\"idOrganizacion\": 6, ")))
                 .andExpect(status().isForbidden());
 
         verify(actividadRepository, never()).save(any());

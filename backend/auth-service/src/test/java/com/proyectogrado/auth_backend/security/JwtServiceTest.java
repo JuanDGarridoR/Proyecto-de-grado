@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tokens de sesión (RNF-09): llevan el id y el rol del usuario, vencen y no
+ * Tokens de sesión (RNF-02): llevan el id y el rol del usuario, vencen y no
  * se pueden falsificar sin la clave.
  */
 class JwtServiceTest {

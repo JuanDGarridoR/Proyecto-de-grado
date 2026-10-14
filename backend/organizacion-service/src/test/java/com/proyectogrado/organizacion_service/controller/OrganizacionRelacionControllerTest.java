@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Personas mayores de la organización (RF-04 y RF-14): las consulta, les
+ * Personas mayores de la organización (RF-18, RF-20 y RF-21): las consulta, les
  * envía una solicitud de vínculo por celular, responde las que ellas le
  * enviaron y cancela el vínculo. Solo ve a las personas vinculadas.
  */

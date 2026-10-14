@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Medicamentos de la persona mayor (RF-34 a RF-36): registro con cálculo de
+ * Medicamentos de la persona mayor (RF-24): registro con cálculo de
  * la próxima toma, consulta, edición y borrado, cada persona solo los suyos.
  */
 class MedicamentoControllerTest {
@@ -177,11 +177,11 @@ class MedicamentoControllerTest {
     }
 
     /**
-     * Hallazgo del QC (CP-GMI-002): el controlador no valida los campos
+     * Hallazgo H-05 del QC: el controlador no valida los campos
      * obligatorios y guarda un medicamento sin nombre.
      */
     @Test
-    @Disabled("Hallazgo CP-GMI-002: se registra un medicamento sin nombre")
+    @Disabled("Hallazgo H-05: se registra un medicamento sin nombre")
     void registrarUnMedicamentoSinNombreSeRechaza() throws Exception {
         mockMvc.perform(post("/api/persona-mayor/medicamentos")
                         .header("X-User-Id", PERSONA_MAYOR)
@@ -192,9 +192,9 @@ class MedicamentoControllerTest {
         verify(medicamentoRepository, never()).save(any());
     }
 
-    /** Hallazgo del QC (CP-GMI-006): la edición tampoco valida los datos. */
+    /** Hallazgo H-05 del QC: la edición tampoco valida los datos. */
     @Test
-    @Disabled("Hallazgo CP-GMI-006: se guarda un medicamento con intervalo negativo y sin nombre")
+    @Disabled("Hallazgo H-05: se guarda un medicamento con intervalo negativo y sin nombre")
     void editarConDatosInvalidosSeRechaza() throws Exception {
         when(medicamentoRepository.findById(1)).thenReturn(Optional.of(medicamentoDe(PERSONA_MAYOR)));
 

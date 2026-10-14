@@ -22,12 +22,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Rutas reales de application.yml (RF-49, RF-51 y RNF-10): cada ruta llega al
+ * Rutas reales de application.yml (RNF-01 y RNF-02): cada ruta llega al
  * servicio que le corresponde, las protegidas exigen token y las que no se
  * deben exponer no tienen ruta. Arranca el contexto del gateway sin abrir el
  * puerto 8080 y sin llamar a ningún servicio.
+ *
+ * JWT_SECRET va aquí porque application.yml lo toma de secretos.properties o
+ * del entorno: sin él, la prueba solo pasaría en el computador de quien tenga
+ * ese archivo.
  */
-@SpringBootTest
+@SpringBootTest(properties = "JWT_SECRET=clave_de_pruebas_de_vita_mas_con_al_menos_32_bytes")
 class RutasGatewayTest {
 
     @Autowired

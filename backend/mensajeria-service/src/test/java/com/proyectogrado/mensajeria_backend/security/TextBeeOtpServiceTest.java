@@ -6,6 +6,9 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.RecordComponent;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -13,6 +16,9 @@ import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +35,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Códigos OTP y envío de SMS con TextBee (RF-02, RF-06, RNF-09 y SW-01).
+ * Códigos OTP y envío de SMS con TextBee (RF-05, RF-06, RNF-03 y RNF-09).
  * El cliente HTTP es simulado: se revisa la petición que se enviaría a
  * TextBee sin mandar ningún SMS real. El generador de códigos se fija en
  * 123456 para poder verificarlo.
@@ -121,6 +127,59 @@ class TextBeeOtpServiceTest {
 
         assertTrue(servicio.verificarCodigo(CELULAR, CODIGO));
         assertFalse(servicio.verificarCodigo(CELULAR, CODIGO));
+    }
+
+    /** Código guardado para CELULAR (un CodigoOtp, record privado del servicio). */
+    private Object codigoGuardado() {
+        return codigosPendientes().get(CELULAR);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> codigosPendientes() {
+        return (Map<String, Object>) ReflectionTestUtils.getField(servicio, "codigosPendientes");
+    }
+
+    private static Object componente(Object registro, String nombre) throws Exception {
+        for (RecordComponent componente : registro.getClass().getRecordComponents()) {
+            if (componente.getName().equals(nombre)) {
+                Method accesor = componente.getAccessor();
+                accesor.setAccessible(true);
+                return accesor.invoke(registro);
+            }
+        }
+        throw new IllegalArgumentException("CodigoOtp no tiene " + nombre);
+    }
+
+    @Test
+    void elCodigoSeGuardaComoHmacYVenceALosDiezMinutos() throws Exception {
+        Instant antes = Instant.now();
+        servicio.enviarCodigo(CELULAR);
+        Instant despues = Instant.now();
+
+        Object guardado = codigoGuardado();
+        byte[] hash = (byte[]) componente(guardado, "hash");
+        assertEquals(32, hash.length);
+        assertFalse(new String(hash, StandardCharsets.UTF_8).contains(CODIGO));
+
+        Instant expiracion = (Instant) componente(guardado, "expiracion");
+        assertFalse(expiracion.isBefore(antes.plus(Duration.ofMinutes(10))));
+        assertFalse(expiracion.isAfter(despues.plus(Duration.ofMinutes(10))));
+    }
+
+    @Test
+    void unCodigoVencidoNoSirveYSeBorra() throws Exception {
+        servicio.enviarCodigo(CELULAR);
+
+        // Como si ya hubieran pasado los diez minutos
+        Object guardado = codigoGuardado();
+        Constructor<?> constructor = guardado.getClass()
+                .getDeclaredConstructor(byte[].class, Instant.class, Instant.class, int.class);
+        constructor.setAccessible(true);
+        codigosPendientes().put(CELULAR, constructor.newInstance(
+                componente(guardado, "hash"), componente(guardado, "enviado"), Instant.now().minusSeconds(1), 0));
+
+        assertFalse(servicio.verificarCodigo(CELULAR, CODIGO));
+        assertFalse(codigosPendientes().containsKey(CELULAR));
     }
 
     @Test

@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Gustos e intereses (caracterización, RF-12): el catálogo y los que marca
+ * Gustos e intereses (caracterización, RF-16): el catálogo y los que marca
  * cada persona mayor. Solo la propia persona mayor cambia los suyos.
  */
 class GustoControllerTest {

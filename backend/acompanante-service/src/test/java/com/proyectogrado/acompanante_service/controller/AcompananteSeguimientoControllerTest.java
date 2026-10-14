@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Seguimiento del acompañante (RF-13 y RF-57): con un vínculo aceptado ve
+ * Seguimiento del acompañante (RF-22 y RF-34): con un vínculo aceptado ve
  * los signos vitales, medicamentos, citas y demás contactos de la persona
  * mayor, que vienen de varios módulos; sin ese vínculo no ve nada.
  */

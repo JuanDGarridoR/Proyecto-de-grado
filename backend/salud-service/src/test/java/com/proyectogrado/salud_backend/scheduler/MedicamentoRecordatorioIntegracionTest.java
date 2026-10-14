@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Del registro del medicamento a sus recordatorios, sobre una base H2 en
- * memoria (RF-54): la persona mayor registra el medicamento y el scheduler,
+ * memoria (RF-25 y RNF-05): la persona mayor registra el medicamento y el scheduler,
  * con las consultas reales, avisa 15 minutos antes y a la hora exacta a ella
  * y a su acompañante, sin repetir avisos. Cada consulta corre en su propia
  * transacción, como en producción; mensajeria-service está simulado.

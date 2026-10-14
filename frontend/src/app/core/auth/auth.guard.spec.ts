@@ -4,7 +4,7 @@ import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree, provideRo
 import { authGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 
-// Acceso a los paneles según la sesión y el rol (RF-03 y RNF-08).
+// Acceso a los paneles según la sesión y el rol (RF-11).
 describe('authGuard', () => {
   let sesion: { autenticado: boolean; rol: string | null };
   const redirigirSegunRol = vi.fn();

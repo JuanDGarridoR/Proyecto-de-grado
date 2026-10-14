@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Campanita del panel (RF-17, RF-24, RF-26 y RF-27): historial de
+ * Campanita del panel (RF-50 y RF-51): historial de
  * notificaciones del usuario, cuántas faltan por leer, marcarlas como
  * leídas y elegir qué tipos recibir.
  */
