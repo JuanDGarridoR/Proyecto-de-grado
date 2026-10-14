@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, Input, OnDestroy, OnInit, signal }
 import { IsActiveMatchOptions, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { Icono } from '../icono/icono';
+import { CambioRol } from '../cambio-rol/cambio-rol';
 import { alCambiar } from '../../core/tiempo-real/tiempo-real.service';
 import { Notificacion, NotificacionService } from '../../core/notificaciones/notificacion.service';
 
@@ -28,7 +29,7 @@ const RUTA_MI_INFORMACION: Record<string, string> = {
  */
 @Component({
   selector: 'app-marco-panel',
-  imports: [RouterLink, RouterLinkActive, Icono],
+  imports: [RouterLink, RouterLinkActive, Icono, CambioRol],
   templateUrl: './marco-panel.html',
   styleUrl: './marco-panel.css',
   host: {

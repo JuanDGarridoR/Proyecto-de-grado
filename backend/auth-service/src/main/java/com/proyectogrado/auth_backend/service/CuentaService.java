@@ -138,13 +138,17 @@ public class CuentaService {
         }
     }
 
-    /** Primer rol del usuario (PERSONA_MAYOR, ACOMPANANTE...), o null si no tiene. */
+    /**
+     * Rol del usuario (PERSONA_MAYOR, ACOMPANANTE...), o null si no tiene. Si
+     * es persona mayor y también acompañante, cuenta como persona mayor: así
+     * sus organizaciones ven el retiro.
+     */
     private String rolDe(Integer idUsuario) {
         List<?> roles = entityManager.createNativeQuery("""
                         SELECT r.nombre FROM usuario_rol ur
                           JOIN rol r ON r.id_rol = ur.id_rol
                          WHERE ur.id_usuario = :id
-                         ORDER BY r.id_rol
+                         ORDER BY (r.nombre = 'PERSONA_MAYOR') DESC, r.id_rol
                         """)
                 .setParameter("id", idUsuario)
                 .getResultList();

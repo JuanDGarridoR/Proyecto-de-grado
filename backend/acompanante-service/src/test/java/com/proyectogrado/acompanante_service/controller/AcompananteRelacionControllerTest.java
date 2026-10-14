@@ -116,6 +116,22 @@ class AcompananteRelacionControllerTest {
     }
 
     @Test
+    void unAcompananteQueTambienEsPersonaMayorNoSeAcompanaASiMismo() throws Exception {
+        // La cuenta 10 tiene los dos roles (RF-76) y escribe su propio celular.
+        when(acompananteInfoLookupRepository.findById(PERSONA_MAYOR))
+                .thenReturn(Optional.of(mock(AcompananteInfoLookup.class)));
+
+        mockMvc.perform(post("/api/acompanante/personas-mayores")
+                        .header("X-User-Id", PERSONA_MAYOR)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"celular\": \"" + CELULAR_PERSONA + "\", \"relacion\": \"Yo\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("No puedes acompañarte a ti mismo"));
+
+        verify(relacionRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
     void soloUnAcompananteEnviaSolicitudesDeAcompanamiento() throws Exception {
         when(acompananteInfoLookupRepository.findById(31)).thenReturn(Optional.empty());
 

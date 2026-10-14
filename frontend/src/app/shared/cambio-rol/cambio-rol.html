@@ -1,0 +1,54 @@
+@if (otroRol) {
+  <button
+    type="button"
+    class="rol rol--boton"
+    (click)="abrir()"
+    [title]="'Cambiar a ' + nombreOtroRol"
+    aria-haspopup="dialog"
+  >
+    {{ roleLabel }}
+    <app-icono name="repeat" />
+  </button>
+} @else {
+  <span class="rol">{{ roleLabel }}</span>
+}
+
+<!-- Confirmación del cambio de rol -->
+@if (confirmando()) {
+  <div class="eliminar-overlay">
+    <div class="eliminar-modal" role="dialog" aria-modal="true" aria-labelledby="cambioRolTitulo">
+      @if (tieneOtroRol()) {
+        <h2 id="cambioRolTitulo">¿Cambiar a {{ nombreOtroRol }}?</h2>
+        <p>Vas a cambiar de rol: entrarás a tu panel de {{ nombreOtroRol }}.</p>
+      } @else {
+        <h2 id="cambioRolTitulo">¿Usar tu cuenta también como {{ nombreOtroRol }}?</h2>
+        <p>
+          Vas a cambiar de rol. Como aún no eres {{ nombreOtroRol }}, activaremos
+          ese rol en tu cuenta: no tienes que registrarte de nuevo.
+        </p>
+      }
+      <p>
+        Tu información personal (nombre, celular, dirección y foto) es la misma en
+        los dos roles. Puedes volver cuando quieras desde este mismo botón.
+      </p>
+
+      @if (error()) {
+        <p class="eliminar-modal__error">{{ error() }}</p>
+      }
+
+      <div class="eliminar-modal__acciones">
+        <button type="button" class="eliminar-modal__cancelar" (click)="cerrar()" [disabled]="procesando()">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="eliminar-modal__confirmar cambio-rol__confirmar"
+          (click)="cambiar()"
+          [disabled]="procesando()"
+        >
+          {{ procesando() ? 'Cambiando…' : 'Sí, cambiar a ' + nombreOtroRol }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

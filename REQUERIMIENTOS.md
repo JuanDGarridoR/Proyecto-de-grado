@@ -42,6 +42,7 @@ Autenticación de los usuarios, verificación de sus correos electrónicos y adm
 | ID | Requerimiento | Estado |
 | --- | --- | --- |
 | RF-11 | El sistema debe redirigir a cada usuario, después de iniciar sesión, al panel que corresponde a su rol y restringir el acceso a los paneles de los demás roles. | ✅ Implementado |
+| RF-76 | El sistema debe permitir que una misma cuenta sea persona mayor y acompañante, con la misma información personal, y cambiar entre los dos roles desde el óvalo del rol en la barra superior, previa confirmación; si la cuenta aún no tiene el otro rol, se activa al confirmar sin un nuevo registro. Una cuenta no puede ser acompañante de sí misma. | ✅ Implementado |
 
 ---
 

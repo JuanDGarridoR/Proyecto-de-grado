@@ -392,6 +392,23 @@ class AuthControllerTest {
     }
 
     @Test
+    void conLosDosRolesEntraConElUltimoQueUsoYSiNoComoPersonaMayor() throws Exception {
+        Usuario usuario = usuarioConContrasena("secreta1");
+        when(usuarioRepository.findByCorreo(CORREO)).thenReturn(Optional.of(usuario));
+        when(usuarioRolRepository.findByUsuario_IdUsuario(25)).thenReturn(List.of(
+                new UsuarioRol(usuario, rol(2, "ACOMPANANTE")),
+                new UsuarioRol(usuario, rol(1, "PERSONA_MAYOR"))));
+        String login = "{\"correo\": \"Ana.Rojas@vitamas.co\", \"contrasena\": \"secreta1\"}";
+
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(login))
+                .andExpect(jsonPath("$.rol").value("PERSONA_MAYOR"));
+
+        usuario.setUltimoRol("ACOMPANANTE");
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(login))
+                .andExpect(jsonPath("$.rol").value("ACOMPANANTE"));
+    }
+
+    @Test
     void loginConContrasenaIncorrectaResponde401() throws Exception {
         when(usuarioRepository.findByCorreo(CORREO)).thenReturn(Optional.of(usuarioConContrasena("secreta1")));
 

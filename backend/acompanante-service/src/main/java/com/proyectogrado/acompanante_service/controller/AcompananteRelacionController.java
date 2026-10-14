@@ -108,6 +108,11 @@ public class AcompananteRelacionController {
 
         Integer idPersonaMayor = usuario.getIdUsuario();
 
+        // Una cuenta puede ser persona mayor y acompañante, pero no de sí misma.
+        if (idPersonaMayor.equals(idAcompanante)) {
+            return ResponseEntity.badRequest().body("No puedes acompañarte a ti mismo");
+        }
+
         if (!usuarioLookupRepository.tieneRol(idPersonaMayor, "PERSONA_MAYOR")) {
             return ResponseEntity.badRequest()
                     .body("El usuario existe, pero no está registrado como persona mayor");

@@ -59,6 +59,14 @@ public class Usuario {
     @Column(name = "foto_perfil")
     private String fotoPerfil;
 
+    /**
+     * Último rol con el que se usó la cuenta, para quien es persona mayor y
+     * acompañante a la vez (RF-76): al iniciar sesión entra con ese. Null si
+     * nunca ha cambiado de rol.
+     */
+    @Column(name = "ultimo_rol", length = 30)
+    private String ultimoRol;
+
     public Usuario() {
     }
 
@@ -152,6 +160,14 @@ public void setDireccion(String direccion) {
 
     public String getFotoPerfil() {
         return fotoPerfil;
+    }
+
+    public String getUltimoRol() {
+        return ultimoRol;
+    }
+
+    public void setUltimoRol(String ultimoRol) {
+        this.ultimoRol = ultimoRol;
     }
 
     public void setFotoPerfil(String fotoPerfil) {

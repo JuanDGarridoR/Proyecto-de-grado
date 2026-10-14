@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -233,7 +234,11 @@ public void restablecerContrasena(
         return usuarioRepository.existsByCelular(celular);
     }
 
-    /** Respuesta de login con un token nuevo. Si el usuario tiene varios roles, se usa el primero. */
+    /**
+     * Respuesta de login con un token nuevo. Si el usuario tiene varios roles
+     * (persona mayor y acompañante), entra con el último que usó; si nunca ha
+     * cambiado, como persona mayor.
+     */
     private LoginResponse generarRespuestaLogin(Usuario usuario, String mensaje) {
 
         List<UsuarioRol> usuariosRoles =
@@ -241,11 +246,15 @@ public void restablecerContrasena(
                         usuario.getIdUsuario()
                 );
 
-        String rol = usuariosRoles.stream()
+        List<String> roles = usuariosRoles.stream()
                 .filter(usuarioRol -> usuarioRol.getRol() != null)
                 .map(usuarioRol -> usuarioRol.getRol().getNombre())
-                .findFirst()
-                .orElse("SIN_ROL");
+                .sorted(Comparator.comparing((String nombre) -> !"PERSONA_MAYOR".equals(nombre)))
+                .toList();
+
+        String rol = roles.contains(usuario.getUltimoRol())
+                ? usuario.getUltimoRol()
+                : roles.stream().findFirst().orElse("SIN_ROL");
 
         String token = jwtService.generarToken(
                 usuario.getIdUsuario(),

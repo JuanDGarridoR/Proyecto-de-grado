@@ -722,6 +722,33 @@ SELECT id_persona_mayor, id_acompanante, estado,
 FROM con_estado
 ON CONFLICT DO NOTHING;
 
+-- 8b. Cuentas con los dos roles (RF-76): pm001 a pm005 también son
+--     acompañantes, con la misma cuenta y la misma información. Cada una
+--     acompaña a la persona mayor siguiente (pm001 -> pm002...), como un
+--     vecino o una pareja. Desde el óvalo de la barra superior cambian de rol.
+INSERT INTO usuario_rol (id_usuario, id_rol)
+SELECT u.id_usuario, r.id_rol
+FROM usuario u JOIN rol r ON r.nombre = 'ACOMPANANTE'
+WHERE u.correo IN ('pm001@vitaplus.test', 'pm002@vitaplus.test', 'pm003@vitaplus.test',
+                   'pm004@vitaplus.test', 'pm005@vitaplus.test')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO acompanante (id_usuario, relacion)
+SELECT u.id_usuario, 'Vecino(a)'
+FROM usuario u
+WHERE u.correo IN ('pm001@vitaplus.test', 'pm002@vitaplus.test', 'pm003@vitaplus.test',
+                   'pm004@vitaplus.test', 'pm005@vitaplus.test')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO persona_mayor_acompanante (id_persona_mayor, id_acompanante, estado, solicitada_por)
+SELECT siguiente.id_usuario, u.id_usuario, 'ACEPTADA', 'PERSONA_MAYOR'
+FROM usuario u
+JOIN usuario siguiente
+  ON siguiente.correo = 'pm' || lpad((substring(u.correo FROM 3 FOR 3)::int + 1)::text, 3, '0') || '@vitaplus.test'
+WHERE u.correo IN ('pm001@vitaplus.test', 'pm002@vitaplus.test', 'pm003@vitaplus.test',
+                   'pm004@vitaplus.test', 'pm005@vitaplus.test')
+ON CONFLICT DO NOTHING;
+
 -- 9. Vínculo persona mayor - organización. Cada persona mayor queda con
 --    una organización principal (75% ACEPTADA, 15% PENDIENTE, 10%
 --    RECHAZADA; el botón de emergencia solo notifica organizaciones
@@ -1960,6 +1987,7 @@ COMMIT;
 SELECT 'organizaciones' AS dato, count(*) AS cantidad FROM usuario WHERE correo LIKE 'org%@vitaplus.test'
 UNION ALL SELECT 'personas_mayores', count(*) FROM usuario WHERE correo LIKE 'pm%@vitaplus.test'
 UNION ALL SELECT 'acompanantes', count(*) FROM usuario WHERE correo LIKE 'acomp%@vitaplus.test'
+UNION ALL SELECT 'cuentas_con_dos_roles', count(*) FROM (SELECT id_usuario FROM usuario_rol GROUP BY id_usuario HAVING count(*) > 1) d
 UNION ALL SELECT 'voluntarios', count(*) FROM usuario WHERE correo LIKE 'vol%@vitaplus.test'
 UNION ALL SELECT 'vinculos_voluntario_organizacion', count(*) FROM voluntario_organizacion
     WHERE id_voluntario IN (SELECT id_usuario FROM usuario WHERE correo LIKE 'vol%@vitaplus.test')

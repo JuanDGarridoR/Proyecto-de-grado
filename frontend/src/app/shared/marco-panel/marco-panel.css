@@ -165,17 +165,6 @@
   border-bottom: 1px solid var(--vita-border);
 }
 
-.shell__role-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 16px;
-  border-radius: var(--radius-pill);
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--vita-white);
-  background: var(--role-accent);
-}
-
 .shell__topbar-right {
   display: flex;
   align-items: center;
@@ -493,10 +482,6 @@
 
 :host(.shell-host--accessible) .shell__user-name {
   font-size: 1rem;
-}
-
-:host(.shell-host--accessible) .shell__role-pill {
-  font-size: 0.85rem;
 }
 
 /* Responsive */

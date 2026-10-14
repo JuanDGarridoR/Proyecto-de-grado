@@ -46,7 +46,8 @@
     <header class="shell__topbar">
       <div class="shell__topbar-left">
         <div class="shell__role-info">
-          <span class="shell__role-pill">{{ roleLabel }}</span>
+          <!-- Persona mayor y acompañante pueden cambiar de rol desde aquí (RF-76) -->
+          <app-cambio-rol [roleLabel]="roleLabel" />
           <button
             type="button"
             class="shell__privacy-message"

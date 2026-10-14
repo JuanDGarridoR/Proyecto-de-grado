@@ -120,6 +120,11 @@ public class PersonaMayorAcompananteController {
                     .body("No existe un usuario registrado con ese celular");
         }
 
+        // Una cuenta puede ser persona mayor y acompañante, pero no de sí misma.
+        if (usuario.getIdUsuario().equals(idPersonaMayor)) {
+            return ResponseEntity.badRequest().body("No puedes ser tu propio acompañante");
+        }
+
         AcompananteLookup acompanante = acompananteLookupRepository
                 .findById(usuario.getIdUsuario())
                 .orElse(null);

@@ -283,6 +283,24 @@ restablecerContrasena(
     return this.http.put(`${this.apiUrl}/cuenta/reactivar`, {}, { responseType: 'text' });
   }
 
+  /** Roles de la cuenta: una persona mayor también puede ser acompañante y al revés (RF-76). */
+  roles(): Observable<string[]> {
+    return this.http
+      .get<{ roles: string[] }>(`${this.apiUrl}/roles`)
+      .pipe(map((respuesta) => respuesta.roles));
+  }
+
+  /**
+   * Pasa la misma cuenta a otro rol (persona mayor ↔ acompañante) con un
+   * token nuevo. Si aún no tenía ese rol, el backend se lo activa con su
+   * misma información. Después hay que llevarla a su panel (redirigirSegunRol).
+   */
+  cambiarRol(rol: string): Observable<LoginResponse> {
+    return this.http
+      .post<LoginResponse>(`${this.apiUrl}/roles/cambiar`, { rol })
+      .pipe(tap((response) => this.guardarSesion(response)));
+  }
+
   /** Guarda la sesión en la pestaña y una copia "recordada" para las ventanas nuevas. */
   private guardarSesion(response: LoginResponse): void {
     sessionStorage.setItem('token', response.token);

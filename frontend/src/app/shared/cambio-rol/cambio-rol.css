@@ -1,0 +1,31 @@
+/* El óvalo del rol (antes .shell__role-pill en marco-panel.css). El modal usa
+   las clases de eliminar-cuenta.css con el tono del rol: no borra nada. */
+
+.rol {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border: none;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--vita-white);
+  background: var(--role-accent, var(--vita-navy));
+}
+
+.rol--boton {
+  cursor: pointer;
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rol--boton:hover,
+.rol--boton:focus-visible {
+  filter: brightness(1.1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--role-accent, var(--vita-navy)) 30%, transparent);
+}
+
+.cambio-rol__confirmar {
+  background: var(--vita-navy);
+}

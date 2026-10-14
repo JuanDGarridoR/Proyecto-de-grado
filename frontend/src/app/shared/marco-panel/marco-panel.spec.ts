@@ -33,7 +33,8 @@ describe('MarcoPanel', () => {
             cuentaActiva: () => of(cuentaActiva),
             reactivarCuenta,
             logout: vi.fn(),
-            getRol: () => 'PERSONA_MAYOR'
+            getRol: () => 'PERSONA_MAYOR',
+            roles: () => of(['PERSONA_MAYOR'])
           }
         },
         {
