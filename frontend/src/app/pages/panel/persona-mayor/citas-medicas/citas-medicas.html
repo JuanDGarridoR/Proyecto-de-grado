@@ -48,11 +48,7 @@
 
         <article class="cita-card" [class.cita-card--siguiente]="primera">
 
-          <div class="hoja-fecha" aria-hidden="true">
-            <span class="hoja-fecha__mes">{{ partes.mes }}</span>
-            <strong class="hoja-fecha__dia">{{ partes.dia }}</strong>
-            <span class="hoja-fecha__semana">{{ partes.semana }}</span>
-          </div>
+          <app-hoja-fecha [fecha]="cita.fecha" [tono]="primera ? 'destacada' : 'normal'" />
 
           <div class="cita-card__cuerpo">
             <div class="cita-card__etiquetas">
@@ -74,7 +70,7 @@
             <ul class="cita-card__info">
               <li>
                 <app-icono name="clock" />
-                <span>{{ formatearHora(cita.hora) }}</span>
+                <span class="cita-card__cuando">{{ partes.semana }}, {{ formatearHora(cita.hora) }}</span>
               </li>
               <li>
                 <app-icono name="map-pin" />
@@ -165,17 +161,13 @@
           @let partes = partesFecha(cita);
 
           <li class="historial__item">
-            <div class="hoja-fecha hoja-fecha--pequena" aria-hidden="true">
-              <span class="hoja-fecha__mes">{{ partes.mes }}</span>
-              <strong class="hoja-fecha__dia">{{ partes.dia }}</strong>
-              <span class="hoja-fecha__semana">{{ partes.anio }}</span>
-            </div>
+            <app-hoja-fecha [fecha]="cita.fecha" tono="pasada" />
 
             <div class="historial__cuerpo">
               <strong>{{ cita.titulo }}</strong>
               <span class="historial__detalle historial__detalle--cuando">
                 <app-icono name="clock" />
-                {{ partes.semana }}, {{ formatearHora(cita.hora) }}
+                {{ partes.semana }}, {{ formatearHora(cita.hora) }} · {{ partes.anio }}
               </span>
               <span class="historial__detalle">
                 <app-icono name="map-pin" />

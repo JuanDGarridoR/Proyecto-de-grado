@@ -229,12 +229,8 @@
               @if (citasProximas().length > 0) {
                 <ul class="filas">
                   @for (cita of citasProximas(); track cita.idCita; let primera = $first) {
-                    @let partes = partesFecha(cita);
                     <li class="fila" [class.fila--destacada]="primera">
-                      <span class="hoja-fecha" aria-hidden="true">
-                        <span class="hoja-fecha__mes">{{ partes.mes }}</span>
-                        <strong class="hoja-fecha__dia">{{ partes.dia }}</strong>
-                      </span>
+                      <app-hoja-fecha [fecha]="cita.fecha" [tono]="primera ? 'destacada' : 'normal'" />
 
                       <div class="fila__cuerpo">
                         <strong class="fila__titulo">{{ cita.titulo }}</strong>

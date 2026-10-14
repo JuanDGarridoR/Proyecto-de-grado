@@ -22,36 +22,6 @@
   opacity: 0.82;
 }
 
-.activity-date {
-  width: 70px;
-  min-width: 70px;
-  height: 75px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #eff6ff;
-  border-radius: 12px;
-}
-
-.past .activity-date {
-  background: #f3f4f6;
-}
-
-.date-day {
-  font-size: 1.65rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.date-month {
-  margin-top: 0.3rem;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: #6b7280;
-}
-
 .activity-content {
   flex: 1;
   display: flex;
@@ -127,15 +97,5 @@
   .activity-card {
     gap: 0.8rem;
     padding: 1rem;
-  }
-
-  .activity-date {
-    width: 58px;
-    min-width: 58px;
-    height: 65px;
-  }
-
-  .date-day {
-    font-size: 1.35rem;
   }
 }

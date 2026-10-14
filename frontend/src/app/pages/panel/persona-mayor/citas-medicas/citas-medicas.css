@@ -116,69 +116,6 @@
 
 /* Hoja de calendario con la fecha (próximas y pasadas) */
 
-.hoja-fecha {
-  width: 84px;
-  flex-shrink: 0;
-  align-self: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow: hidden;
-  border-radius: 16px;
-  background: var(--vita-white);
-  border: 1px solid var(--vita-border);
-  text-align: center;
-}
-
-.hoja-fecha__mes {
-  width: 100%;
-  padding: 5px 0;
-  background: var(--vita-navy);
-  color: var(--vita-white);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.hoja-fecha__dia {
-  padding-top: 6px;
-  color: var(--vita-navy);
-  font-size: 2rem;
-  font-weight: 800;
-  line-height: 1.1;
-}
-
-.hoja-fecha__semana {
-  padding: 0 4px 8px;
-  color: var(--vita-text-gray);
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: capitalize;
-}
-
-.hoja-fecha--pequena {
-  width: 64px;
-  border-radius: 12px;
-}
-
-.hoja-fecha--pequena .hoja-fecha__mes {
-  padding: 3px 0;
-  background: #8996a8;
-  font-size: 0.68rem;
-}
-
-.hoja-fecha--pequena .hoja-fecha__dia {
-  padding-top: 3px;
-  color: var(--vita-text-gray);
-  font-size: 1.45rem;
-}
-
-.hoja-fecha--pequena .hoja-fecha__semana {
-  padding-bottom: 5px;
-  font-size: 0.68rem;
-}
-
 /* Próximas citas */
 
 .citas-grid {
@@ -203,14 +140,6 @@
   border-color: color-mix(in srgb, var(--vita-green) 55%, white);
   background: linear-gradient(180deg, color-mix(in srgb, var(--vita-green) 7%, white), var(--vita-white) 60%);
   box-shadow: 0 10px 30px color-mix(in srgb, var(--vita-green) 18%, transparent);
-}
-
-.cita-card--siguiente .hoja-fecha {
-  border-color: color-mix(in srgb, var(--vita-green) 55%, white);
-}
-
-.cita-card--siguiente .hoja-fecha__mes {
-  background: var(--vita-green);
 }
 
 .cita-card__cuerpo {
@@ -594,18 +523,6 @@ textarea.form-input {
     padding: 18px;
   }
 
-  .hoja-fecha {
-    align-self: flex-start;
-  }
-
-  .hoja-fecha {
-    width: 70px;
-  }
-
-  .hoja-fecha__dia {
-    font-size: 1.6rem;
-  }
-
   .cita-card__acciones {
     width: 100%;
   }
@@ -674,4 +591,8 @@ textarea.form-input {
 
 .form-opcion input {
   accent-color: var(--vita-navy);
+}
+
+.cita-card__cuando::first-letter {
+  text-transform: uppercase;
 }

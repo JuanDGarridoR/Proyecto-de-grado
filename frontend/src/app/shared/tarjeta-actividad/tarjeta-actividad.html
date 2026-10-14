@@ -1,15 +1,7 @@
 <article class="activity-card" [class.past]="pasada">
 
-  <!-- Fecha -->
-  <div class="activity-date">
-    @if (actividad.fecha) {
-      <span class="date-day">{{ actividad.fecha | date:'d' }}</span>
-      <span class="date-month">{{ actividad.fecha | date:'MMM':'':'es-CO' }}</span>
-    } @else {
-      <span class="date-day">—</span>
-      <span class="date-month">Sin fecha</span>
-    }
-  </div>
+  <!-- Fecha (sin fecha, la hoja muestra "—") -->
+  <app-hoja-fecha [fecha]="actividad.fecha" [tono]="pasada ? 'pasada' : 'normal'" />
 
   <!-- Información -->
   <div class="activity-content">

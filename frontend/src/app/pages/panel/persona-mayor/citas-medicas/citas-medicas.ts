@@ -16,6 +16,7 @@ import {
 import { formatearHora } from '../../../../core/medicamentos/medicamento.service';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { Icono } from '../../../../shared/icono/icono';
+import { HojaFecha } from '../../../../shared/hoja-fecha/hoja-fecha';
 
 /** Citas pasadas que se muestran antes de pulsar "Ver todas". */
 const PASADAS_VISIBLES = 5;
@@ -41,7 +42,7 @@ interface PartesFecha {
 @Component({
   selector: 'app-citas-medicas',
   standalone: true,
-  imports: [FormsModule, Icono],
+  imports: [FormsModule, Icono, HojaFecha],
   templateUrl: './citas-medicas.html',
   styleUrl: './citas-medicas.css'
 })
@@ -160,7 +161,7 @@ export class CitasMedicas implements OnInit, OnDestroy {
     return tiempoParaCita(cita, this.ahora());
   }
 
-  /** Día, mes y día de la semana de la cita, para la hoja de calendario. */
+  /** Día, mes, día de la semana y año de la cita (la hoja muestra mes y día; el resto va en el texto). */
   protected partesFecha(cita: CitaMedica): PartesFecha {
     const momento = momentoDeCita(cita);
     return {

@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { HojaFecha } from '../hoja-fecha/hoja-fecha';
 
 import { Icono } from '../icono/icono';
 import { fechaHoy, textoFrecuencia } from '../../core/actividades/actividad.service';
@@ -27,7 +28,7 @@ export interface ActividadTarjeta {
  */
 @Component({
   selector: 'app-tarjeta-actividad',
-  imports: [DatePipe, Icono],
+  imports: [DatePipe, Icono, HojaFecha],
   templateUrl: './tarjeta-actividad.html',
   styleUrl: './tarjeta-actividad.css'
 })

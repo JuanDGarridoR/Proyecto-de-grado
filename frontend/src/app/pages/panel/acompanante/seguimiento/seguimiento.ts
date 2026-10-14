@@ -20,6 +20,7 @@ import {
   tiempoParaCita
 } from '../../../../core/citas-medicas/cita-medica.service';
 import { AcompanamientoCita } from '../../../../shared/acompanamiento-cita/acompanamiento-cita';
+import { HojaFecha } from '../../../../shared/hoja-fecha/hoja-fecha';
 import { SignoVitalResponse } from '../../../../core/signos-vitales/signos-vitales.services';
 import {
   INDICADORES,
@@ -62,7 +63,7 @@ interface ValorSigno {
 @Component({
   selector: 'app-seguimiento',
   standalone: true,
-  imports: [Icono, SignosVitalesLista, Cargando, AcompanamientoCita],
+  imports: [Icono, SignosVitalesLista, Cargando, AcompanamientoCita, HojaFecha],
   templateUrl: './seguimiento.html',
   styleUrl: './seguimiento.css'
 })
@@ -331,15 +332,6 @@ export class Seguimiento implements OnInit, OnDestroy {
 
   protected faltaParaCita(cita: CitaMedica): string | null {
     return tiempoParaCita(cita, this.ahora());
-  }
-
-  /** Día y mes de la cita para la hoja de calendario. */
-  protected partesFecha(cita: CitaMedica): { dia: number; mes: string } {
-    const momento = momentoDeCita(cita);
-    return {
-      dia: momento.getDate(),
-      mes: momento.toLocaleDateString('es-CO', { month: 'short' }).replace('.', '')
-    };
   }
 
   /** "hoy", "ayer" o "hace N días" (lo usa la plantilla). */

@@ -552,44 +552,6 @@
   color: var(--vita-text-gray);
 }
 
-/* Hoja de calendario de las citas */
-
-.hoja-fecha {
-  width: 58px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow: hidden;
-  border: 1px solid var(--vita-border);
-  border-radius: 12px;
-  background: var(--vita-white);
-}
-
-.hoja-fecha__mes {
-  width: 100%;
-  padding: 3px 0;
-  background: var(--vita-navy);
-  color: var(--vita-white);
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.fila--destacada .hoja-fecha__mes {
-  background: var(--vita-green);
-}
-
-.hoja-fecha__dia {
-  padding: 3px 0 5px;
-  color: var(--vita-navy);
-  font-size: 1.4rem;
-  font-weight: 800;
-  line-height: 1.1;
-}
-
 /* Historial de citas */
 
 .historial {
