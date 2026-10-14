@@ -224,7 +224,9 @@ private registrar(): void {
         ? this.genero
         : undefined,
 
-    direccion: this.direccion.trim()
+    direccion: this.direccion.trim(),
+
+    aceptaTerminos: this.aceptaTerminos
 
   }).subscribe({
 

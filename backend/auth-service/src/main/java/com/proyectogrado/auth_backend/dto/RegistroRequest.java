@@ -24,7 +24,18 @@ public class RegistroRequest {
     /** Obligatorio para todos: +57 seguido de 10 dígitos. */
     private String celular;
 
+    /** Debe ser true: sin aceptar los términos y condiciones no se crea la cuenta. */
+    private Boolean aceptaTerminos;
+
     public RegistroRequest() {
+    }
+
+    public Boolean getAceptaTerminos() {
+        return aceptaTerminos;
+    }
+
+    public void setAceptaTerminos(Boolean aceptaTerminos) {
+        this.aceptaTerminos = aceptaTerminos;
     }
 
     public String getNombreUsuario() {

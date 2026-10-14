@@ -22,6 +22,7 @@ Autenticación de los usuarios, verificación de sus correos electrónicos y adm
 | --- | --- | --- |
 | RF-01 | El sistema debe permitir que un usuario se registre con uno de los cuatro roles, ingresando sus datos personales en un único formulario que marca los campos obligatorios. | ✅ Implementado |
 | RF-02 | El sistema debe exigir que el usuario acepte los términos y condiciones antes de completar el registro. | ✅ Implementado |
+| RF-69 | El sistema debe guardar una constancia de la aceptación de los términos y condiciones de cada cuenta creada, con el usuario, la fecha y la hora (hora de Colombia) y la versión de los términos aceptada. La constancia se conserva aunque la cuenta se elimine. | ✅ Implementado |
 | RF-03 | El sistema debe verificar, mediante un servicio externo (Hunter), que el correo electrónico ingresado existe y puede recibir mensajes; si no es válido, la cuenta no se crea. | ✅ Implementado |
 | RF-04 | El sistema debe permitir iniciar sesión con correo electrónico y contraseña. | ✅ Implementado |
 | RF-05 | El sistema debe permitir iniciar sesión con número de celular y un código de un solo uso (OTP) enviado por SMS, validando previamente que el número esté registrado. | ✅ Implementado |

@@ -52,6 +52,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final MensajeriaClient mensajeriaClient;
     private final ValidacionCorreoService validacionCorreoService;
+    private final TerminosService terminosService;
 
     public AuthService(
             UsuarioRepository usuarioRepository,
@@ -64,7 +65,8 @@ public class AuthService {
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
             MensajeriaClient mensajeriaClient,
-            ValidacionCorreoService validacionCorreoService
+            ValidacionCorreoService validacionCorreoService,
+            TerminosService terminosService
     ) {
 
         this.usuarioRepository = usuarioRepository;
@@ -78,6 +80,7 @@ public class AuthService {
         this.jwtService = jwtService;
         this.mensajeriaClient = mensajeriaClient;
         this.validacionCorreoService = validacionCorreoService;
+        this.terminosService = terminosService;
     }
 
     /** Inicio de sesión con correo y contraseña. */
@@ -384,6 +387,10 @@ case "ORGANIZACION" -> {
             );
         }
 
+        // Constancia de que aceptó los términos: va en la misma transacción,
+        // así no puede quedar una cuenta sin su constancia.
+        terminosService.registrarAceptacion(usuarioGuardado.getIdUsuario());
+
         String token = jwtService.generarToken(
                 usuarioGuardado.getIdUsuario(),
                 rol.getNombre()
@@ -489,5 +496,13 @@ if (rol.equals("ORGANIZACION")) {
         );
     }
 }
+
+        // El formulario ya lo exige, pero la constancia solo vale si el
+        // backend también lo comprueba.
+        if (!Boolean.TRUE.equals(request.getAceptaTerminos())) {
+            throw new RuntimeException(
+                    "Debes aceptar los términos y condiciones para crear tu cuenta"
+            );
+        }
     }
 }

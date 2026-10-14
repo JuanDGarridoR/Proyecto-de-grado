@@ -50,7 +50,9 @@ describe('Registro', () => {
       fechaNacimiento: '1950-03-14',
       genero: 'Femenino',
       correo: undefined,
-      contrasena: undefined
+      contrasena: undefined,
+      // El backend guarda la constancia de aceptación (RF-69).
+      aceptaTerminos: true
     }));
     expect(redirigirSegunRol).toHaveBeenCalledWith('PERSONA_MAYOR');
   });

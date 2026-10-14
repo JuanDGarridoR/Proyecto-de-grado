@@ -21,6 +21,8 @@ export interface RegistroRequest {
   fechaNacimiento?: string;
   genero?: string;
   codigo?: string;
+  /** El backend no crea la cuenta sin esto y guarda la constancia de aceptación. */
+  aceptaTerminos?: boolean;
 }
 
 /** Celular al que se envía el código OTP. */

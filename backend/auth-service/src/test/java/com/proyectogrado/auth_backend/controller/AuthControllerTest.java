@@ -2,6 +2,7 @@ package com.proyectogrado.auth_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.proyectogrado.auth_backend.client.MensajeriaClient;
+import com.proyectogrado.auth_backend.model.AceptacionTerminos;
 import com.proyectogrado.auth_backend.model.Acompanante;
 import com.proyectogrado.auth_backend.model.Organizacion;
 import com.proyectogrado.auth_backend.model.PersonaMayor;
@@ -9,6 +10,7 @@ import com.proyectogrado.auth_backend.model.Rol;
 import com.proyectogrado.auth_backend.model.Usuario;
 import com.proyectogrado.auth_backend.model.UsuarioRol;
 import com.proyectogrado.auth_backend.model.Voluntario;
+import com.proyectogrado.auth_backend.repository.AceptacionTerminosRepository;
 import com.proyectogrado.auth_backend.repository.AcompananteRepository;
 import com.proyectogrado.auth_backend.repository.OrganizacionRepository;
 import com.proyectogrado.auth_backend.repository.PersonaMayorRepository;
@@ -18,6 +20,7 @@ import com.proyectogrado.auth_backend.repository.UsuarioRolRepository;
 import com.proyectogrado.auth_backend.repository.VoluntarioRepository;
 import com.proyectogrado.auth_backend.security.JwtService;
 import com.proyectogrado.auth_backend.service.AuthService;
+import com.proyectogrado.auth_backend.service.TerminosService;
 import com.proyectogrado.auth_backend.service.ValidacionCorreoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +33,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,6 +80,7 @@ class AuthControllerTest {
     private MensajeriaClient mensajeriaClient;
     private ValidacionCorreoService validacionCorreoService;
     private JwtService jwtService;
+    private AceptacionTerminosRepository aceptacionTerminosRepository;
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -87,6 +94,7 @@ class AuthControllerTest {
         voluntarioRepository = mock(VoluntarioRepository.class);
         mensajeriaClient = mock(MensajeriaClient.class);
         validacionCorreoService = mock(ValidacionCorreoService.class);
+        aceptacionTerminosRepository = mock(AceptacionTerminosRepository.class);
 
         jwtService = new JwtService();
         ReflectionTestUtils.setField(jwtService, "jwtSecret", "clave_de_pruebas_de_vita_mas_con_al_menos_32_bytes");
@@ -103,7 +111,8 @@ class AuthControllerTest {
                 passwordEncoder,
                 jwtService,
                 mensajeriaClient,
-                validacionCorreoService
+                validacionCorreoService,
+                new TerminosService(aceptacionTerminosRepository, "2026-10")
         );
 
         mockMvc = MockMvcBuilders
@@ -151,7 +160,8 @@ class AuthControllerTest {
                   "fechaNacimiento": "%s",
                   "genero": "Femenino",
                   "direccion": "Calle 91 Sur # 3-20, Usme",
-                  "celular": "%s"
+                  "celular": "%s",
+                  "aceptaTerminos": true
                 }
                 """.formatted(CORREO, fechaNacimiento, celular);
     }
@@ -202,7 +212,8 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"nombreUsuario": "Fundación Entrenubes", "rol": "ORGANIZACION",
-                                 "direccion": "Carrera 5 # 80-10 Sur", "celular": "+573004445566"}
+                                 "direccion": "Carrera 5 # 80-10 Sur", "celular": "+573004445566",
+                                 "aceptaTerminos": true}
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.rol").value("ORGANIZACION"));
@@ -216,7 +227,8 @@ class AuthControllerTest {
     private String registroSinCorreo(String rol, String celular) {
         return """
                 {"nombreUsuario": "Carlos Pérez", "rol": "%s", "fechaNacimiento": "1985-06-20",
-                 "genero": "Masculino", "direccion": "Carrera 4 Este # 76-20 Sur", "celular": "%s"}
+                 "genero": "Masculino", "direccion": "Carrera 4 Este # 76-20 Sur", "celular": "%s",
+                 "aceptaTerminos": true}
                 """.formatted(rol, celular);
     }
 
@@ -250,6 +262,41 @@ class AuthControllerTest {
 
         verify(voluntarioRepository).save(any(Voluntario.class));
         verify(personaMayorRepository, never()).save(any());
+    }
+
+    @Test
+    void registroGuardaLaConstanciaDeQueAceptoLosTerminos() throws Exception {
+        hunterResponde(CORREO, "valid");
+        when(rolRepository.findByNombre("PERSONA_MAYOR")).thenReturn(Optional.of(rol(1, "PERSONA_MAYOR")));
+
+        mockMvc.perform(post("/api/auth/registro")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registroPersonaMayor(CELULAR, "1950-03-14")))
+                .andExpect(status().isCreated());
+
+        ArgumentCaptor<AceptacionTerminos> constancia = ArgumentCaptor.forClass(AceptacionTerminos.class);
+        verify(aceptacionTerminosRepository).save(constancia.capture());
+        assertEquals(25, constancia.getValue().getIdUsuario());
+        assertTrue(constancia.getValue().isAcepto());
+        assertEquals("2026-10", constancia.getValue().getVersionTerminos());
+        assertEquals(AceptacionTerminos.REGISTRO, constancia.getValue().getOrigen());
+        // Fecha y hora de ahora, en hora de Colombia.
+        LocalDateTime ahora = LocalDateTime.now(ZoneId.of("America/Bogota"));
+        assertTrue(Duration.between(constancia.getValue().getFechaAceptacion(), ahora).abs().toMinutes() < 1);
+    }
+
+    @Test
+    void registroSinAceptarLosTerminosSeRechazaYNoGuardaNada() throws Exception {
+        String sinAceptar = registroPersonaMayor(CELULAR, "1950-03-14").replace("\"aceptaTerminos\": true", "\"aceptaTerminos\": false");
+
+        mockMvc.perform(post("/api/auth/registro")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(sinAceptar))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value("Debes aceptar los términos y condiciones para crear tu cuenta"));
+
+        verify(usuarioRepository, never()).saveAndFlush(any());
+        verify(aceptacionTerminosRepository, never()).save(any());
     }
 
     @Test
