@@ -34,13 +34,23 @@ const GENEROS: { valor: string; color: string }[] = [
   { valor: 'Sin dato', color: GRIS }
 ];
 
+/**
+ * Si vive sola. Quien vive sola va en naranja: es el dato que llama a más
+ * seguimiento, no un "mal" estado, así que no se usan colores de estado.
+ */
+const CONVIVENCIA: { valor: boolean | null; nombre: string; color: string }[] = [
+  { valor: true, nombre: 'Vive sola', color: SERIE[1] },
+  { valor: false, nombre: 'Vive con otras personas', color: SERIE[0] },
+  { valor: null, nombre: 'Sin dato', color: GRIS }
+];
+
 /** Porcentaje entero; 0 si el total es 0. */
 const pct = (parte: number, total: number) => (total > 0 ? Math.round((parte / total) * 100) : 0);
 
 /**
  * Reporte 3: quiénes son las personas mayores de la organización
- * (edad, género, EPS, intereses y profesión u oficio). No depende del
- * período.
+ * (edad, género, si viven solas, EPS, intereses y profesión u oficio). No
+ * depende del período.
  */
 @Component({
   selector: 'app-reporte-poblacion',
@@ -156,7 +166,46 @@ export class ReportePoblacion implements ReporteExportable {
     filas: this.porGenero().map((g) => [g.valor, g.personas, `${g.porcentaje} %`])
   }));
 
-  // Gráfica 3: EPS
+  // Gráfica 3: ¿viven solas?
+
+  private readonly porConvivencia = computed(() => {
+    const total = this.datos().personas.length;
+    return CONVIVENCIA
+      .map((c) => {
+        const personas = this.datos().personas.filter((p) => (p.viveSolo ?? null) === c.valor).length;
+        return { ...c, personas, porcentaje: pct(personas, total) };
+      })
+      .filter((c) => c.personas > 0);
+  });
+
+  protected readonly graficaViveSolo = computed<OpcionesGrafica>(() => {
+    const datos = this.porConvivencia();
+    const solas = datos.find((d) => d.valor === true)?.personas ?? 0;
+    return base({
+      legend: { ...leyenda(), top: 'auto', bottom: 0, left: 'center' },
+      tooltip: tooltip({ trigger: 'item', formatter: '{b}: {c} ({d} %)' }),
+      series: [{
+        name: '¿Vive sola?', type: 'pie', radius: ['52%', '74%'], center: ['50%', '45%'],
+        avoidLabelOverlap: true,
+        itemStyle: { borderColor: '#ffffff', borderWidth: 2 },
+        label: { show: true, color: '#12355b', fontSize: 12, fontWeight: 600, formatter: '{d} %' },
+        data: datos.map((d) => ({ name: d.nombre, value: d.personas, itemStyle: { color: d.color } }))
+      }],
+      // En el centro, cuántas viven solas
+      title: {
+        text: String(solas), subtext: 'viven solas', left: 'center', top: '36%',
+        textStyle: { color: '#12355b', fontSize: 24, fontWeight: 700 },
+        subtextStyle: { color: '#586576', fontSize: 12 }
+      }
+    });
+  });
+
+  protected readonly tablaViveSolo = computed<TablaGrafica>(() => ({
+    columnas: ['Situación', 'Personas', 'Porcentaje'],
+    filas: this.porConvivencia().map((c) => [c.nombre, c.personas, `${c.porcentaje} %`])
+  }));
+
+  // Gráfica 4: EPS
 
   private readonly porEps = computed(() => {
     const conteo = new Map<string, number>();
@@ -199,7 +248,7 @@ export class ReportePoblacion implements ReporteExportable {
     filas: this.porEps().map((d) => [d.eps, d.personas])
   }));
 
-  // Gráfica 4: intereses más comunes
+  // Gráfica 5: intereses más comunes
 
   private readonly topIntereses = computed(() => this.datos().intereses.slice(0, 10));
 
@@ -239,7 +288,7 @@ export class ReportePoblacion implements ReporteExportable {
     ])
   }));
 
-  // Gráfica 5: profesiones u oficios
+  // Gráfica 6: profesiones u oficios
 
   private readonly topProfesiones = computed(() => this.datos().profesiones.slice(0, 10));
 
@@ -327,6 +376,30 @@ export class ReportePoblacion implements ReporteExportable {
       + 'permite diseñar actividades y campañas de salud que respondan a las necesidades de cada grupo.';
   }
 
+  private explicacionViveSolo(): string {
+    const total = this.datos().personas.length;
+    if (total === 0) {
+      return `${this.sinPersonas}cuántas viven solas.`;
+    }
+
+    const datos = this.porConvivencia();
+    const solas = datos.find((d) => d.valor === true);
+    const sinDato = datos.find((d) => d.valor === null)?.personas ?? 0;
+    const principal = solas
+      ? `${solas.personas} ${solas.personas === 1 ? 'persona vive sola' : 'personas viven solas'} `
+        + `(${solas.porcentaje} % de las asociadas). `
+      : 'Ninguna de las personas que lo indicaron vive sola. ';
+    const faltantes = sinDato > 0
+      ? `${sinDato} ${sinDato === 1 ? 'persona no ha indicado' : 'personas no han indicado'} si vive sola; `
+        + 'completar ese dato en su perfil ayuda a identificar a quién priorizar. '
+      : '';
+
+    return 'La dona muestra cuántas personas asociadas viven solas y cuántas viven con otras personas. '
+      + principal + faltantes
+      + 'Las personas mayores que viven solas tienen más riesgo de aislamiento y de que una emergencia pase '
+      + 'desapercibida, por lo que conviene darles prioridad en las llamadas, visitas y actividades de la organización.';
+  }
+
   private explicacionEps(): string {
     const total = this.datos().personas.length;
     if (total === 0) {
@@ -397,6 +470,9 @@ export class ReportePoblacion implements ReporteExportable {
         { titulo: 'Género', descripcion: 'Distribución por género de las personas asociadas.',
           opciones: hayPersonas ? this.graficaGenero() : null, tabla: this.tablaGenero(),
           explicacion: this.explicacionGenero() },
+        { titulo: '¿Viven solas?', descripcion: 'Cuántas personas asociadas viven solas.',
+          opciones: hayPersonas ? this.graficaViveSolo() : null, tabla: this.tablaViveSolo(),
+          explicacion: this.explicacionViveSolo() },
         { titulo: 'EPS', descripcion: 'Entidades de salud de las personas asociadas.',
           opciones: hayPersonas ? this.graficaEps() : null, tabla: this.tablaEps(),
           explicacion: this.explicacionEps() },

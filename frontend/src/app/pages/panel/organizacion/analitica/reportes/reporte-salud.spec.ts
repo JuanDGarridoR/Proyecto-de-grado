@@ -21,6 +21,7 @@ function medicion(idPersonaMayor: number, dias: number, valores: Partial<Medicio
     saturacionOxigeno: null,
     frecuenciaRespiratoria: null,
     peso: null,
+    estatura: null,
     ...valores
   };
 }
@@ -61,6 +62,7 @@ interface VistaReporte {
   personaActual(): number | null;
   serieEvolucion(): MedicionAnalitica[];
   tablaTiempo(): { columnas: string[]; filas: (string | number)[][] };
+  tablaImc(): { columnas: string[]; filas: (string | number)[][] };
 }
 
 // Reporte de salud de la analítica (RF-46): quién requiere
@@ -161,5 +163,28 @@ describe('ReporteSalud', () => {
     const luis = reporte.atencion().find((p) => p.nombre === 'Luis Gómez');
     expect(luis?.motivos).toContain('1 medición con valores imposibles (posible error de registro)');
     expect(reporte.kpis().errores).toBe(1);
+  });
+  // RF-72: IMC más reciente de cada persona, por categoría de la OMS.
+  it('agrupa a las personas por su IMC más reciente y no usa pesos imposibles', () => {
+    const conPeso = datos();
+    conPeso.mediciones = [
+      // Marta: peso imposible (error de registro), no cuenta.
+      medicion(12, 45, { ...NORMAL, peso: 300, estatura: 150 }),
+      // Rosa: 80 kg y 155 cm → IMC 33,3 (obesidad). Su última medición no trae peso.
+      medicion(10, 40, { ...NORMAL, peso: 80, estatura: 155 }),
+      // Luis: 70 kg y 170 cm → IMC 24,2 (normal).
+      medicion(11, 3, { ...NORMAL, peso: 70, estatura: 170 }),
+      medicion(10, 2, { presionSistolica: 150, presionDiastolica: 95 })
+    ];
+    fixture.componentRef.setInput('datos', conPeso);
+
+    expect(reporte.tablaImc().filas).toEqual([
+      ['Bajo peso', 'Menos de 18,5', 0, '0 %'],
+      ['Peso normal', '18,5 a 24,9', 1, '25 %'],
+      ['Sobrepeso', '25 a 29,9', 0, '0 %'],
+      ['Obesidad', '30 o más', 1, '25 %'],
+      // Marta (peso imposible) y Pedro (sin mediciones)
+      ['Sin peso o estatura', '—', 2, '50 %']
+    ]);
   });
 });

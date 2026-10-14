@@ -1531,7 +1531,9 @@ tipos (rol, tipo, probabilidad) AS (
 INSERT INTO preferencia_notificacion (id_usuario, tipo, activa)
 SELECT c.id_usuario, t.tipo, false
 FROM cuentas c JOIN tipos t ON t.rol = c.rol
-WHERE random() < t.probabilidad
+-- "+ c.id_usuario * 0" hace que se sortee por cada usuario: sin eso,
+-- Postgres sortea una sola vez por tipo y casi nunca queda ninguna.
+WHERE random() + c.id_usuario * 0 < t.probabilidad
 ON CONFLICT (id_usuario, tipo) DO NOTHING;
 
 -- 20. Donaciones de acompañantes y voluntarios.

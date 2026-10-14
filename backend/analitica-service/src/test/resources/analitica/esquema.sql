@@ -12,7 +12,18 @@ CREATE TABLE usuario (
 
 CREATE TABLE persona_mayor (
     id_usuario       INTEGER PRIMARY KEY,
-    eps              VARCHAR(120)
+    eps              VARCHAR(120),
+    vive_solo        BOOLEAN
+);
+
+CREATE TABLE retiro_cuenta (
+    id_retiro       INTEGER PRIMARY KEY,
+    id_organizacion INTEGER,
+    nombre          VARCHAR(255),
+    rol             VARCHAR(255),
+    razon           VARCHAR(255),
+    comentario      VARCHAR(500),
+    fecha           TIMESTAMP
 );
 
 -- persona-mayor-service y organizacion-service
@@ -72,5 +83,6 @@ CREATE TABLE signo_vital (
     temperatura             DOUBLE PRECISION,
     saturacion_oxigeno      INTEGER,
     frecuencia_respiratoria INTEGER,
-    peso                    DOUBLE PRECISION
+    peso                    DOUBLE PRECISION,
+    estatura                DOUBLE PRECISION
 );

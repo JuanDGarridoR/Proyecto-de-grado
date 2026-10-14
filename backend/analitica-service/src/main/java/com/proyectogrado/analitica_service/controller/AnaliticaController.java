@@ -6,6 +6,8 @@ import com.proyectogrado.analitica_service.dto.AnaliticaDtos.MedicionAnalitica;
 import com.proyectogrado.analitica_service.dto.AnaliticaDtos.PersonaAnalitica;
 import com.proyectogrado.analitica_service.dto.AnaliticaDtos.PersonaPoblacion;
 import com.proyectogrado.analitica_service.dto.AnaliticaDtos.PoblacionAnalitica;
+import com.proyectogrado.analitica_service.dto.AnaliticaDtos.RetiroAnalitica;
+import com.proyectogrado.analitica_service.dto.AnaliticaDtos.RetirosAnalitica;
 import com.proyectogrado.analitica_service.dto.AnaliticaDtos.SaludAnalitica;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -132,7 +134,7 @@ public class AnaliticaController {
         List<MedicionAnalitica> mediciones = jdbc.query("""
                 SELECT s.id_persona_mayor, s.fecha_hora,
                        s.presion_sistolica, s.presion_diastolica, s.frecuencia_cardiaca,
-                       s.temperatura, s.saturacion_oxigeno, s.frecuencia_respiratoria, s.peso
+                       s.temperatura, s.saturacion_oxigeno, s.frecuencia_respiratoria, s.peso, s.estatura
                   FROM signo_vital s
                  WHERE s.id_persona_mayor IN (%s)
                  ORDER BY s.fecha_hora
@@ -146,7 +148,8 @@ public class AnaliticaController {
                         decimal(rs, "temperatura"),
                         entero(rs, "saturacion_oxigeno"),
                         entero(rs, "frecuencia_respiratoria"),
-                        decimal(rs, "peso")
+                        decimal(rs, "peso"),
+                        decimal(rs, "estatura")
                 ));
 
         return ResponseEntity.ok(new SaludAnalitica(personas, mediciones));
@@ -167,12 +170,13 @@ public class AnaliticaController {
         MapSqlParameterSource params = new MapSqlParameterSource("org", idOrganizacion);
 
         // La fecha de nacimiento y el género están en usuario (registro y "Mi
-        // información"); de persona_mayor solo sale la EPS.
+        // información"); de persona_mayor salen la EPS y si vive sola.
         List<PersonaPoblacion> personas = jdbc.query("""
                 SELECT u.id_usuario, u.nombre_usuario,
                        u.fecha_nacimiento,
                        NULLIF(u.genero, '') AS genero,
-                       NULLIF(TRIM(pm.eps), '') AS eps
+                       NULLIF(TRIM(pm.eps), '') AS eps,
+                       pm.vive_solo
                   FROM usuario u
                   LEFT JOIN persona_mayor pm ON pm.id_usuario = u.id_usuario
                  WHERE u.id_usuario IN (%s)
@@ -183,7 +187,8 @@ public class AnaliticaController {
                         rs.getString("nombre_usuario"),
                         fecha(rs, "fecha_nacimiento"),
                         rs.getString("genero"),
-                        rs.getString("eps")
+                        rs.getString("eps"),
+                        (Boolean) rs.getObject("vive_solo")
                 ));
 
         List<InteresConteo> intereses = conteoDeGustos(false, params);
@@ -242,6 +247,39 @@ public class AnaliticaController {
         return profesiones
                 ? "g.categoria = 'PROFESION'"
                 : "COALESCE(g.categoria, '') <> 'PROFESION'";
+    }
+
+    /**
+     * Retiros: personas mayores de la organización que eliminaron su cuenta
+     * y por qué (auth-service guarda una fila por organización al borrarla).
+     * Trae todos, del más reciente al más antiguo; el frontend los filtra por
+     * período. personasActuales sirve para calcular la tasa de retiro.
+     */
+    @GetMapping("/retiros")
+    public ResponseEntity<?> retiros(@RequestHeader("X-User-Id") Integer idUsuario) {
+        Integer idOrganizacion = obtenerIdOrganizacion(idUsuario);
+        if (idOrganizacion == null) {
+            return sinOrganizacion();
+        }
+
+        MapSqlParameterSource params = new MapSqlParameterSource("org", idOrganizacion);
+
+        List<RetiroAnalitica> retiros = jdbc.query("""
+                SELECT r.nombre, r.razon, NULLIF(TRIM(r.comentario), '') AS comentario, r.fecha
+                  FROM retiro_cuenta r
+                 WHERE r.id_organizacion = :org
+                 ORDER BY r.fecha DESC
+                """, params, (rs, i) -> new RetiroAnalitica(
+                rs.getString("nombre"),
+                rs.getString("razon"),
+                rs.getString("comentario"),
+                fechaHora(rs, "fecha")
+        ));
+
+        Long personasActuales = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM (%s) p".formatted(PERSONAS_ASOCIADAS), params, Long.class);
+
+        return ResponseEntity.ok(new RetirosAnalitica(retiros, personasActuales != null ? personasActuales : 0));
     }
 
     /** Organización de la cuenta, o null si el usuario no es una organización. */

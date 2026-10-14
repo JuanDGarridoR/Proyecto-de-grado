@@ -7,10 +7,10 @@ import { ReportePoblacion } from './reporte-poblacion';
 function poblacion(): PoblacionAnalitica {
   return {
     personas: [
-      { idUsuario: 10, nombre: 'Rosa Díaz', fechaNacimiento: '1950-03-14', genero: 'Femenino', eps: 'Capital Salud' },
-      { idUsuario: 11, nombre: 'Luis Gómez', fechaNacimiento: '1944-07-01', genero: 'Masculino', eps: 'Capital Salud' },
-      { idUsuario: 12, nombre: 'Marta Ruiz', fechaNacimiento: '1962-07-08', genero: 'Femenino', eps: 'Famisanar' },
-      { idUsuario: 13, nombre: 'Oliva', fechaNacimiento: null, genero: null, eps: null }
+      { idUsuario: 10, nombre: 'Rosa Díaz', fechaNacimiento: '1950-03-14', genero: 'Femenino', eps: 'Capital Salud', viveSolo: true },
+      { idUsuario: 11, nombre: 'Luis Gómez', fechaNacimiento: '1944-07-01', genero: 'Masculino', eps: 'Capital Salud', viveSolo: false },
+      { idUsuario: 12, nombre: 'Marta Ruiz', fechaNacimiento: '1962-07-08', genero: 'Femenino', eps: 'Famisanar', viveSolo: true },
+      { idUsuario: 13, nombre: 'Oliva', fechaNacimiento: null, genero: null, eps: null, viveSolo: null }
     ],
     intereses: [
       { nombre: 'Baile', categoria: 'HOBBY', personas: 2 },
@@ -35,6 +35,7 @@ interface VistaReporte {
   tablaEps(): { filas: (string | number)[][] };
   tablaIntereses(): { filas: (string | number)[][] };
   tablaProfesiones(): { filas: (string | number)[][] };
+  tablaViveSolo(): { filas: (string | number)[][] };
 }
 
 // Reporte de población de la analítica (RF-47): rangos de edad, género, EPS e
@@ -104,5 +105,13 @@ describe('ReportePoblacion', () => {
   it('muestra las profesiones u oficios aparte de los intereses', () => {
     expect(reporte.tablaProfesiones().filas).toEqual([['Cocina', 2], ['Docencia', 1]]);
     expect(reporte.tablaIntereses().filas.map((f) => f[0])).not.toContain('Docencia');
+  });
+  // RF-72: cuántas personas viven solas.
+  it('cuenta cuántas personas viven solas, con otras personas o sin dato', () => {
+    expect(reporte.tablaViveSolo().filas).toEqual([
+      ['Vive sola', 2, '50 %'],
+      ['Vive con otras personas', 1, '25 %'],
+      ['Sin dato', 1, '25 %']
+    ]);
   });
 });

@@ -13,7 +13,8 @@ INSERT INTO usuario (id_usuario, nombre_usuario, fecha_nacimiento, genero) VALUE
 INSERT INTO usuario (id_usuario, nombre_usuario, fecha_nacimiento, genero) VALUES (13, 'Pedro León', '1948-11-02', 'Masculino');
 INSERT INTO usuario (id_usuario, nombre_usuario, fecha_nacimiento, genero) VALUES (14, 'Ana Torres', '1955-05-05', 'Femenino');
 
-INSERT INTO persona_mayor (id_usuario, eps) VALUES (10, 'Capital Salud');
+-- Rosa vive sola; Luis no lo ha indicado.
+INSERT INTO persona_mayor (id_usuario, eps, vive_solo) VALUES (10, 'Capital Salud', TRUE);
 INSERT INTO persona_mayor (id_usuario, eps) VALUES (11, '  ');
 INSERT INTO persona_mayor (id_usuario) VALUES (12);
 INSERT INTO persona_mayor (id_usuario) VALUES (13);
@@ -52,8 +53,8 @@ INSERT INTO participacion VALUES (10, 101, TRUE);
 INSERT INTO participacion VALUES (13, 200, TRUE);
 
 -- Signos vitales; los de Marta y Pedro no son de personas vinculadas a la organización 5
-INSERT INTO signo_vital (id_signo_vital, id_persona_mayor, fecha_hora, presion_sistolica, presion_diastolica, frecuencia_cardiaca, temperatura, saturacion_oxigeno, peso)
-VALUES (1, 10, '2026-09-01 08:00:00', 120, 80, 70, 36.5, 97, 60.0);
+INSERT INTO signo_vital (id_signo_vital, id_persona_mayor, fecha_hora, presion_sistolica, presion_diastolica, frecuencia_cardiaca, temperatura, saturacion_oxigeno, peso, estatura)
+VALUES (1, 10, '2026-09-01 08:00:00', 120, 80, 70, 36.5, 97, 60.0, 155.0);
 INSERT INTO signo_vital (id_signo_vital, id_persona_mayor, fecha_hora, presion_sistolica, presion_diastolica)
 VALUES (2, 10, '2026-09-20 08:00:00', 150, 95);
 INSERT INTO signo_vital (id_signo_vital, id_persona_mayor, fecha_hora, saturacion_oxigeno)
@@ -75,3 +76,9 @@ INSERT INTO persona_mayor_gusto VALUES (11, 1);
 INSERT INTO persona_mayor_gusto VALUES (10, 2);
 INSERT INTO persona_mayor_gusto VALUES (13, 3);
 INSERT INTO persona_mayor_gusto VALUES (11, 4);
+
+-- Retiros: dos personas mayores dejaron la organización 5 (una con
+-- comentario) y una dejó la organización 6.
+INSERT INTO retiro_cuenta VALUES (1, 5, 'Carmen Peña', 'PERSONA_MAYOR', 'FALLECIMIENTO', 'Gracias por todo', '2026-08-10 09:00:00');
+INSERT INTO retiro_cuenta VALUES (2, 5, 'Jorge Ríos', 'PERSONA_MAYOR', 'DIFICULTAD_USO', '  ', '2026-09-28 15:30:00');
+INSERT INTO retiro_cuenta VALUES (3, 6, 'Elvia Mora', 'PERSONA_MAYOR', 'CAMBIO_RESIDENCIA', NULL, '2026-09-01 10:00:00');

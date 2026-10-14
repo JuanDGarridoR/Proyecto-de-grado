@@ -100,5 +100,12 @@
         <app-cargando class="cargando" texto="Cargando reporte..." />
       }
     }
+    @case ('retiros') {
+      @if (retiros().datos; as datos) {
+        <app-reporte-retiros [datos]="datos" [desde]="desde()" />
+      } @else if (retiros().cargando) {
+        <app-cargando class="cargando" texto="Cargando reporte..." />
+      }
+    }
   }
 </div>

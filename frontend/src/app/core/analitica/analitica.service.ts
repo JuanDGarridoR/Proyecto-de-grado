@@ -32,6 +32,8 @@ export interface MedicionAnalitica {
   saturacionOxigeno: number | null;
   frecuenciaRespiratoria: number | null;
   peso: number | null;
+  /** cm; con el peso da el IMC. */
+  estatura: number | null;
 }
 
 /** Respuesta de /salud: las personas y todas sus mediciones. */
@@ -47,6 +49,8 @@ export interface PersonaPoblacion {
   fechaNacimiento: string | null;
   genero: string | null;
   eps: string | null;
+  /** null si no lo ha indicado. */
+  viveSolo: boolean | null;
 }
 
 /** Cuántas personas tienen marcado un gusto. */
@@ -66,6 +70,20 @@ export interface PoblacionAnalitica {
   /** Profesiones u oficios (categoría PROFESION), aparte de los intereses. */
   profesiones: InteresConteo[];
   personasConProfesion: number;
+}
+
+/** Persona mayor que eliminó su cuenta. razon es un código de RAZONES_RETIRO. */
+export interface RetiroAnalitica {
+  nombre: string | null;
+  razon: string;
+  comentario: string | null;
+  fecha: string;          // YYYY-MM-DDTHH:mm
+}
+
+/** Respuesta de /retiros: todos los retiros y cuántas personas tiene hoy la organización. */
+export interface RetirosAnalitica {
+  retiros: RetiroAnalitica[];
+  personasActuales: number;
 }
 
 /** Organización recomendada a la persona mayor (puntaje de 0 a 100). */
@@ -133,6 +151,11 @@ export class AnaliticaService {
   /** Edad, género, EPS e intereses de las personas vinculadas. */
   poblacion(): Observable<PoblacionAnalitica> {
     return this.http.get<PoblacionAnalitica>(`${this.apiUrl}/poblacion`);
+  }
+
+  /** Por qué las personas mayores eliminaron su cuenta (se filtra por período en el navegador). */
+  retiros(): Observable<RetirosAnalitica> {
+    return this.http.get<RetirosAnalitica>(`${this.apiUrl}/retiros`);
   }
 
   /** Persona mayor: organizaciones recomendadas según sus gustos y la cercanía. */

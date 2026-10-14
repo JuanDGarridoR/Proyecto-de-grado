@@ -1,0 +1,37 @@
+/* Tabla de retiros. La estructura de la tabla viene de reporte-salud.css (.atencion). */
+
+.retiros__fecha {
+  white-space: nowrap;
+}
+
+.retiros__persona {
+  color: var(--vita-navy) !important;
+  font-weight: 600;
+}
+
+.retiros__razon {
+  display: inline-block;
+  padding: 3px 10px;
+
+  border-radius: var(--radius-pill);
+  background: #edf5fc;
+  color: var(--vita-navy);
+
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* Las que se pueden mejorar: mismo naranja que en la gráfica */
+.retiros__razon--plataforma {
+  background: rgba(235, 104, 52, 0.12);
+  color: #a6431b;
+}
+
+.retiros__comentario {
+  color: var(--vita-navy);
+  font-style: italic;
+}
+
+.retiros__sin-comentario {
+  color: var(--vita-text-gray-light);
+}

@@ -6,6 +6,7 @@ import {
   AnaliticaService,
   PoblacionAnalitica,
   ReportePdf,
+  RetirosAnalitica,
   SaludAnalitica
 } from '../../../../core/analitica/analitica.service';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
@@ -15,10 +16,11 @@ import { ReporteExportable } from './contenido-reporte';
 import { ReporteActividades } from './reportes/reporte-actividades';
 import { ReportePoblacion } from './reportes/reporte-poblacion';
 import { ReporteSalud } from './reportes/reporte-salud';
+import { ReporteRetiros } from './reportes/reporte-retiros';
 import { Cargando } from '../../../../shared/cargando/cargando';
 
 /** Pestañas del informe. */
-type Reporte = 'actividades' | 'salud' | 'poblacion';
+type Reporte = 'actividades' | 'salud' | 'poblacion' | 'retiros';
 /** Período de los filtros, en días; "todo" no tiene límite. */
 type Periodo = '30' | '90' | '365' | 'todo';
 
@@ -40,7 +42,7 @@ const vacio = <T>(): Estado<T> => ({ datos: null, cargando: false, error: null, 
  */
 @Component({
   selector: 'app-analitica',
-  imports: [Icono, ReporteActividades, ReporteSalud, ReportePoblacion, Cargando],
+  imports: [Icono, ReporteActividades, ReporteSalud, ReportePoblacion, ReporteRetiros, Cargando],
   templateUrl: './analitica.html',
   styleUrl: './analitica.css'
 })
@@ -54,7 +56,9 @@ export class Analitica implements OnInit {
     { id: 'salud', nombre: 'Salud de la población', icono: 'heart',
       descripcion: 'Estado de los signos vitales y personas que requieren atención.' },
     { id: 'poblacion', nombre: 'Perfil de la población', icono: 'users',
-      descripcion: 'Quiénes son tus personas mayores: edad, género, EPS e intereses.' }
+      descripcion: 'Quiénes son tus personas mayores: edad, género, si viven solas, EPS, intereses y profesión.' },
+    { id: 'retiros', nombre: 'Retiros', icono: 'power',
+      descripcion: 'Cuántas personas mayores eliminaron su cuenta y por qué.' }
   ];
 
   protected readonly periodos: { id: Periodo; nombre: string }[] = [
@@ -70,6 +74,7 @@ export class Analitica implements OnInit {
   protected readonly actividades = signal<Estado<ActividadAnalitica[]>>(vacio());
   protected readonly salud = signal<Estado<SaludAnalitica>>(vacio());
   protected readonly poblacion = signal<Estado<PoblacionAnalitica>>(vacio());
+  protected readonly retiros = signal<Estado<RetirosAnalitica>>(vacio());
 
   /** El reporte de población no depende del período. */
   protected readonly usaPeriodo = computed(() => this.reporteActivo() !== 'poblacion');
@@ -78,6 +83,7 @@ export class Analitica implements OnInit {
   private readonly reporteActividades = viewChild(ReporteActividades);
   private readonly reporteSalud = viewChild(ReporteSalud);
   private readonly reportePoblacion = viewChild(ReportePoblacion);
+  private readonly reporteRetiros = viewChild(ReporteRetiros);
 
   protected readonly descargandoPdf = signal(false);
   protected readonly errorPdf = signal<string | null>(null);
@@ -99,6 +105,7 @@ export class Analitica implements OnInit {
       case 'actividades': return this.actividades();
       case 'salud': return this.salud();
       case 'poblacion': return this.poblacion();
+      case 'retiros': return this.retiros();
     }
   });
 
@@ -107,6 +114,8 @@ export class Analitica implements OnInit {
     alCambiar(['actividades'], () => this.actividades().datos && this.cargarActividades());
     alCambiar(['signos-vitales', 'organizaciones', 'usuarios'], () => this.salud().datos && this.cargarSalud());
     alCambiar(['organizaciones', 'usuarios', 'gustos'], () => this.poblacion().datos && this.cargarPoblacion());
+    // Al eliminar una cuenta llega un aviso de "todo cambió" (también lo escucha alCambiar).
+    alCambiar(['organizaciones', 'usuarios'], () => this.retiros().datos && this.cargarRetiros());
   }
 
   ngOnInit(): void {
@@ -117,6 +126,7 @@ export class Analitica implements OnInit {
     this.reporteActivo.set(reporte);
     if (reporte === 'salud' && !this.salud().datos) this.cargarSalud();
     if (reporte === 'poblacion' && !this.poblacion().datos) this.cargarPoblacion();
+    if (reporte === 'retiros' && !this.retiros().datos) this.cargarRetiros();
   }
 
   protected elegirPeriodo(periodo: Periodo): void {
@@ -130,6 +140,7 @@ export class Analitica implements OnInit {
       case 'actividades': this.cargarActividades(); break;
       case 'salud': this.cargarSalud(); break;
       case 'poblacion': this.cargarPoblacion(); break;
+      case 'retiros': this.cargarRetiros(); break;
     }
   }
 
@@ -146,6 +157,10 @@ export class Analitica implements OnInit {
 
   private cargarPoblacion(): void {
     this.cargar(this.poblacion, this.analiticaService.poblacion());
+  }
+
+  private cargarRetiros(): void {
+    this.cargar(this.retiros, this.analiticaService.retiros());
   }
 
   /** Mantiene los datos anteriores mientras recarga (sin parpadeo). */
@@ -171,7 +186,8 @@ export class Analitica implements OnInit {
     const reporte: ReporteExportable | undefined = {
       actividades: this.reporteActividades(),
       salud: this.reporteSalud(),
-      poblacion: this.reportePoblacion()
+      poblacion: this.reportePoblacion(),
+      retiros: this.reporteRetiros()
     }[this.reporteActivo()];
 
     if (!reporte || this.descargandoPdf()) {

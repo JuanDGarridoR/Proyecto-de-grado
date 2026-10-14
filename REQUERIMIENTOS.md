@@ -164,6 +164,8 @@ Indicadores, reportes y visualizaciones para identificar patrones, apoyar el per
 | RF-46 | El sistema debe mostrar a la organización un reporte de salud con el estado actual de cada indicador y la lista de personas mayores que requieren atención. | ✅ Implementado |
 | RF-47 | El sistema debe mostrar a la organización un reporte de población con la distribución por rangos de edad, género, EPS e intereses más comunes, como apoyo al perfilamiento de las personas mayores. | ✅ Implementado |
 | RF-48 | El sistema debe permitir descargar cada reporte en PDF, incluyendo una explicación de cada gráfica. | ✅ Implementado |
+| RF-72 | El sistema debe mostrar a la organización, en el reporte de población, cuántas personas mayores viven solas y, en el reporte de salud, cuántas están en cada categoría de índice de masa corporal (IMC) según su medición más reciente. | ✅ Implementado |
+| RF-73 | El sistema debe mostrar a la organización un reporte de retiros con las personas mayores que eliminaron su cuenta en el período: cuántas fueron, la tasa de retiro, las razones (separando las relacionadas con la plataforma), los retiros por mes y los comentarios que dejaron. | ✅ Implementado |
 
 ### 4.2 Alertas básicas de seguimiento
 

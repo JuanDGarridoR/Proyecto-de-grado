@@ -64,6 +64,9 @@ class AnaliticaControllerTest {
                 .andExpect(jsonPath("$.personas[0].eps").doesNotExist())
                 .andExpect(jsonPath("$.personas[1].genero").value("Femenino"))
                 .andExpect(jsonPath("$.personas[1].eps").value("Capital Salud"))
+                // Rosa vive sola; Luis no lo ha indicado.
+                .andExpect(jsonPath("$.personas[1].viveSolo").value(true))
+                .andExpect(jsonPath("$.personas[0].viveSolo").doesNotExist())
                 .andExpect(jsonPath("$.intereses[*].nombre", contains("Boleros", "Tejer")))
                 .andExpect(jsonPath("$.intereses[0].personas").value(2))
                 .andExpect(jsonPath("$.personasConIntereses").value(2))
@@ -132,7 +135,10 @@ class AnaliticaControllerTest {
                 .andExpect(jsonPath("$.mediciones[2].presionSistolica").value(150))
                 .andExpect(jsonPath("$.mediciones[1].saturacionOxigeno").value(92))
                 // Lo que no se midió llega vacío, no en cero.
-                .andExpect(jsonPath("$.mediciones[1].presionSistolica").doesNotExist());
+                .andExpect(jsonPath("$.mediciones[1].presionSistolica").doesNotExist())
+                // Peso y estatura, para el IMC (RF-72).
+                .andExpect(jsonPath("$.mediciones[0].peso").value(60.0))
+                .andExpect(jsonPath("$.mediciones[0].estatura").value(155.0));
     }
 
     @Test
@@ -155,8 +161,26 @@ class AnaliticaControllerTest {
                 .andExpect(jsonPath("$.intereses[*].nombre", contains("Caminar")));
     }
 
+    @Test
+    void elReporteDeRetirosTraeLosDeLaOrganizacionDelMasReciente() throws Exception {
+        // RF-73: por qué las personas mayores eliminaron su cuenta.
+        mockMvc.perform(get("/api/analitica/retiros").header("X-User-Id", CUENTA_ORGANIZACION))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.retiros[*].nombre", contains("Jorge Ríos", "Carmen Peña")))
+                .andExpect(jsonPath("$.retiros[0].razon").value("DIFICULTAD_USO"))
+                .andExpect(jsonPath("$.retiros[0].fecha").value("2026-09-28T15:30"))
+                // Un comentario en blanco no se reporta.
+                .andExpect(jsonPath("$.retiros[0].comentario").doesNotExist())
+                .andExpect(jsonPath("$.retiros[1].comentario").value("Gracias por todo"))
+                // Rosa y Luis siguen vinculados.
+                .andExpect(jsonPath("$.personasActuales").value(2));
+
+        mockMvc.perform(get("/api/analitica/retiros").header("X-User-Id", CUENTA_OTRA_ORGANIZACION))
+                .andExpect(jsonPath("$.retiros[*].nombre", contains("Elvia Mora")));
+    }
+
     @ParameterizedTest
-    @ValueSource(strings = {"actividades", "salud", "poblacion"})
+    @ValueSource(strings = {"actividades", "salud", "poblacion", "retiros"})
     void soloUnaOrganizacionVeLaAnalitica(String reporte) throws Exception {
         // La cuenta 10 es de una persona mayor.
         mockMvc.perform(get("/api/analitica/" + reporte).header("X-User-Id", 10))

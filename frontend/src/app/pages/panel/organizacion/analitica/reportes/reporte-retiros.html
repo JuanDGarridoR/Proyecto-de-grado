@@ -1,0 +1,83 @@
+<!-- Indicadores -->
+<div class="kpis">
+  @for (k of tarjetas(); track k.etiqueta) {
+    <app-kpi [etiqueta]="k.etiqueta" [valor]="k.valor" [detalle]="k.detalle" [icono]="k.icono" [tono]="k.tono" />
+  }
+</div>
+
+<!-- Gráficas; cada una se puede ver también como tabla -->
+<div class="graficas">
+  <app-tarjeta-grafica
+    titulo="Razones de retiro"
+    descripcion="Por qué las personas mayores eliminaron su cuenta. En naranja, las razones relacionadas con la plataforma: son las que se pueden mejorar."
+    [opciones]="graficaRazones()"
+    [tabla]="tablaRazones()"
+    [vacio]="retiros().length === 0"
+    textoVacio="Ninguna persona mayor eliminó su cuenta en este período."
+  />
+
+  <app-tarjeta-grafica
+    titulo="Retiros por mes"
+    descripcion="Cuántas personas mayores eliminaron su cuenta cada mes del período."
+    [opciones]="graficaMeses()"
+    [tabla]="tablaMeses()"
+    [vacio]="retiros().length === 0"
+    textoVacio="Ninguna persona mayor eliminó su cuenta en este período."
+  />
+
+  <!-- Quién se retiró y qué comentó -->
+  <section class="atencion card ancho-completo">
+    <header class="atencion__header">
+      <div>
+        <h3>Personas que se retiraron</h3>
+        <p>Del retiro más reciente al más antiguo, con lo que cada persona comentó al eliminar su cuenta.</p>
+      </div>
+    </header>
+
+    @if (retiros().length === 0) {
+      <p class="atencion__vacio">
+        <app-icono name="check-circle" />
+        Ninguna persona mayor eliminó su cuenta en este período.
+      </p>
+    } @else {
+      <div class="atencion__tabla">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Fecha</th>
+              <th scope="col">Persona</th>
+              <th scope="col">Razón</th>
+              <th scope="col">Comentario</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of retiros(); track $index) {
+              <tr>
+                <td class="retiros__fecha">{{ fecha(r.fecha) }}</td>
+                <td class="retiros__persona">{{ r.nombre ?? '—' }}</td>
+                <td>
+                  <span class="retiros__razon" [class.retiros__razon--plataforma]="esDeLaPlataforma(r.razon)">
+                    {{ textoRazon(r.razon) }}
+                  </span>
+                </td>
+                <td>
+                  @if (r.comentario) {
+                    <q class="retiros__comentario">{{ r.comentario }}</q>
+                  } @else {
+                    <span class="retiros__sin-comentario">Sin comentario</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>
+
+<p class="nota">
+  La tasa de retiro compara las personas que eliminaron su cuenta en el período con las que tuvo la
+  organización (las que tiene hoy más las que se retiraron). Las razones las elige cada persona al eliminar
+  su cuenta.
+</p>

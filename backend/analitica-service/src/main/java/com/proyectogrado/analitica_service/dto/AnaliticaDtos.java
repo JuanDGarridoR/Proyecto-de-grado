@@ -39,7 +39,8 @@ public final class AnaliticaDtos {
             Double temperatura,
             Integer saturacionOxigeno,
             Integer frecuenciaRespiratoria,
-            Double peso
+            Double peso,
+            Double estatura        // cm; con el peso da el IMC
     ) {
     }
 
@@ -56,7 +57,8 @@ public final class AnaliticaDtos {
             String nombre,
             String fechaNacimiento, // YYYY-MM-DD o null
             String genero,
-            String eps
+            String eps,
+            Boolean viveSolo       // null si no lo ha indicado
     ) {
     }
 
@@ -73,6 +75,30 @@ public final class AnaliticaDtos {
             /** Profesiones u oficios (categoría PROFESION), aparte de los intereses. */
             List<InteresConteo> profesiones,
             long personasConProfesion
+    ) {
+    }
+
+    /**
+     * Una persona mayor que eliminó su cuenta (tabla retiro_cuenta de
+     * auth-service): su nombre, la razón (código de RetiroCuenta.RAZONES),
+     * el comentario opcional y cuándo.
+     */
+    public record RetiroAnalitica(
+            String nombre,
+            String razon,
+            String comentario,
+            String fecha           // YYYY-MM-DDTHH:mm
+    ) {
+    }
+
+    /**
+     * Respuesta de /retiros: todos los retiros de la organización (el
+     * frontend los filtra por período) y cuántas personas tiene hoy, para
+     * calcular la tasa de retiro.
+     */
+    public record RetirosAnalitica(
+            List<RetiroAnalitica> retiros,
+            long personasActuales
     ) {
     }
 }

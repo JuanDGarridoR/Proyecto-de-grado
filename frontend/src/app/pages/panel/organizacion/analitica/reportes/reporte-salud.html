@@ -26,6 +26,17 @@
   />
 
   <app-tarjeta-grafica
+    class="ancho-completo"
+    titulo="Índice de masa corporal (IMC)"
+    [descripcion]="descripcionImc()"
+    [opciones]="graficaImc()"
+    [tabla]="tablaImc()"
+    [alto]="260"
+    [vacio]="datos().personas.length === 0"
+    textoVacio="Aún no tienes personas mayores asociadas."
+  />
+
+  <app-tarjeta-grafica
     id="evolucion-persona"
     class="ancho-completo"
     titulo="Evolución de una persona"
@@ -127,7 +138,7 @@
 
 <p class="nota">
   Los rangos "normales" son referencias generales para adultos (presión 90–139 / 60–89 mmHg, pulso 60–100 lpm,
-  oxígeno 95 % o más). Son orientativos y no reemplazan el criterio médico. Un "posible error de registro" es un
+  oxígeno 95 % o más). El IMC usa la clasificación de la OMS para adultos (normal entre 18,5 y 24,9). Son orientativos y no reemplazan el criterio médico. Un "posible error de registro" es un
   valor que no puede ser real (por ejemplo, presión sistólica mayor a 260) y probablemente corresponde a un
   error de digitación.
 </p>

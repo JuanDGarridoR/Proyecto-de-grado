@@ -2,12 +2,13 @@ import { Component, computed, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { MedicionAnalitica, SaludAnalitica } from '../../../../../core/analitica/analitica.service';
+import { Imc, imcPorRegistro } from '../../../../../core/signos-vitales/imc';
 import {
   CampoSigno, Indicador, LIMITES, NOMBRE_INDICADOR, RANGOS, camposImposibles, evaluarIndicador
 } from '../../../../../core/signos-vitales/rangos';
 import {
-  ANCHO_BARRA, ESTADO, GRIS_SUAVE, SERIE, base, ejeCategorias, ejeValores,
-  estiloLinea, estiloSegmento, leyenda, tooltip
+  ANCHO_BARRA, ESTADO, GRIS, GRIS_SUAVE, SERIE, base, ejeCategorias, ejeValores,
+  estiloBarra, estiloLinea, estiloSegmento, etiquetaValor, formatoNumero, leyenda, tooltip
 } from '../../../../../shared/echart/tema';
 import { ClicGrafica, OpcionesGrafica } from '../../../../../shared/echart/echart';
 import { Icono } from '../../../../../shared/icono/icono';
@@ -36,6 +37,20 @@ const CAMPOS: Record<IndicadorAnalitica, CampoSigno[]> = {
  * salud, así que va en gris oscuro y no en los colores de estado.
  */
 const COLOR_ERROR = '#6b7785';
+
+/**
+ * Categorías del IMC (las de core/signos-vitales/imc.ts, clasificación de la
+ * OMS para adultos). El color sí indica estado: normal en verde, bajo peso y
+ * sobrepeso en amarillo, obesidad en rojo; siempre con su nombre.
+ */
+const CATEGORIAS_IMC = [
+  { categoria: 'Bajo peso', rango: 'Menos de 18,5', color: ESTADO.aviso },
+  { categoria: 'Peso normal', rango: '18,5 a 24,9', color: ESTADO.bueno },
+  { categoria: 'Sobrepeso', rango: '25 a 29,9', color: ESTADO.aviso },
+  { categoria: 'Obesidad', rango: '30 o más', color: ESTADO.critico }
+];
+
+const SIN_IMC = 'Sin peso o estatura';
 
 /** Persona de la tabla "Personas que requieren atención". */
 interface PersonaAtencion {
@@ -93,6 +108,30 @@ export class ReporteSalud implements ReporteExportable {
     const mapa = new Map<number, MedicionAnalitica>();
     for (const [id, lista] of this.medicionesPorPersona()) {
       mapa.set(id, lista[lista.length - 1]); // vienen ordenadas por fecha
+    }
+    return mapa;
+  });
+
+  /**
+   * IMC más reciente de cada persona (no depende del período, como el estado
+   * actual). Si la última medición con peso no trae estatura, se usa la
+   * estatura anterior (ver imcPorRegistro). Los pesos o estaturas imposibles
+   * (errores de registro) no se usan.
+   */
+  private readonly imcPorPersona = computed(() => {
+    const mapa = new Map<number, Imc>();
+    for (const [id, lista] of this.medicionesPorPersona()) {
+      const registros = [...lista].reverse().map((m) => {
+        const imposibles = camposImposibles(m);
+        return {
+          peso: imposibles.includes('peso') ? null : m.peso,
+          estatura: imposibles.includes('estatura') ? null : m.estatura
+        };
+      });
+      const imc = imcPorRegistro(registros).find((i) => i !== null);
+      if (imc) {
+        mapa.set(id, imc);
+      }
     }
     return mapa;
   });
@@ -340,6 +379,63 @@ export class ReporteSalud implements ReporteExportable {
   protected readonly tituloTiempo = computed(() =>
     this.medicionesEnElTiempo().porMes ? 'Mediciones por mes' : 'Mediciones por semana');
 
+  // Gráfica: índice de masa corporal
+
+  private readonly porImc = computed(() => {
+    const total = this.datos().personas.length;
+    const imcs = [...this.imcPorPersona().values()];
+    const filas = CATEGORIAS_IMC.map((c) => {
+      const personas = imcs.filter((i) => i.categoria === c.categoria).length;
+      return { ...c, personas, porcentaje: total > 0 ? Math.round((personas / total) * 100) : 0 };
+    });
+    const sinDato = total - imcs.length;
+    filas.push({
+      categoria: SIN_IMC, rango: '—', color: GRIS, personas: sinDato,
+      porcentaje: total > 0 ? Math.round((sinDato / total) * 100) : 0
+    });
+    return filas;
+  });
+
+  /** IMC promedio de las personas que lo tienen, o null. */
+  private readonly imcPromedio = computed(() => {
+    const imcs = [...this.imcPorPersona().values()];
+    return imcs.length > 0 ? imcs.reduce((s, i) => s + i.valor, 0) / imcs.length : null;
+  });
+
+  protected readonly descripcionImc = computed(() => {
+    const promedio = this.imcPromedio();
+    return 'Cuántas personas hay en cada categoría según su IMC más reciente (peso y estatura).'
+      + (promedio !== null ? ` IMC promedio: ${formatoNumero(promedio)}.` : '');
+  });
+
+  protected readonly graficaImc = computed<OpcionesGrafica>(() => {
+    const datos = this.porImc();
+    return base({
+      grid: { left: 8, right: 16, top: 28, bottom: 8, containLabel: true },
+      tooltip: tooltip({
+        trigger: 'item',
+        formatter: (p: { dataIndex: number }) => {
+          const d = datos[p.dataIndex];
+          return `<strong>${d.categoria}</strong>`
+            + (d.rango !== '—' ? `<br>IMC ${d.rango}` : '')
+            + `<br>${d.personas} ${d.personas === 1 ? 'persona' : 'personas'} (${d.porcentaje} %)`;
+        }
+      }),
+      xAxis: ejeCategorias(datos.map((d) => d.categoria)),
+      yAxis: ejeValores(),
+      series: [{
+        name: 'Personas', type: 'bar', barMaxWidth: ANCHO_BARRA,
+        label: etiquetaValor('top'),
+        data: datos.map((d) => ({ value: d.personas, itemStyle: estiloBarra(d.color) }))
+      }]
+    });
+  });
+
+  protected readonly tablaImc = computed<TablaGrafica>(() => ({
+    columnas: ['Categoría', 'IMC', 'Personas', 'Porcentaje'],
+    filas: this.porImc().map((d) => [d.categoria, d.rango, d.personas, `${d.porcentaje} %`])
+  }));
+
   // Gráfica 3: evolución de una persona
 
   /** Personas con al menos una medición (para el selector). */
@@ -583,6 +679,36 @@ export class ReporteSalud implements ReporteExportable {
       + 'ayuda a planear un seguimiento continuo de la salud.';
   }
 
+  private explicacionImc(): string {
+    const total = this.datos().personas.length;
+    const conImc = this.imcPorPersona().size;
+    if (conImc === 0) {
+      return 'Ninguna persona asociada tiene registrados su peso y su estatura, por eso no es posible calcular '
+        + 'su índice de masa corporal (IMC). Registrar ambos datos junto con los signos vitales permite '
+        + 'vigilar el estado nutricional de las personas mayores.';
+    }
+
+    const filas = this.porImc().filter((d) => d.categoria !== SIN_IMC);
+    const normal = filas.find((d) => d.categoria === 'Peso normal')!;
+    const fuera = filas.filter((d) => d.categoria !== 'Peso normal' && d.personas > 0);
+    const mayorFuera = fuera.reduce<(typeof fuera)[number] | null>(
+      (a, b) => (!a || b.personas > a.personas ? b : a), null);
+    const sinDato = total - conImc;
+
+    return `La gráfica agrupa a las personas según su IMC más reciente. ${conImc} de ${total} personas tienen `
+      + `peso y estatura registrados, con un IMC promedio de ${formatoNumero(this.imcPromedio()!)}. `
+      + `${normal.personas} ${normal.personas === 1 ? 'está' : 'están'} en peso normal`
+      + (mayorFuera
+        ? ` y el grupo más grande fuera de ese rango es "${mayorFuera.categoria}" (${mayorFuera.personas}). `
+        : '. ')
+      + (sinDato > 0
+        ? `${sinDato} ${sinDato === 1 ? 'persona no tiene' : 'personas no tienen'} peso o estatura registrados. `
+        : '')
+      + 'Tanto el bajo peso como el sobrepeso y la obesidad aumentan los riesgos de salud en las personas '
+      + 'mayores; conviene revisarlos con el personal de salud y tenerlos en cuenta en la alimentación y la '
+      + 'actividad física que ofrece la organización.';
+  }
+
   private explicacionEvolucion(nombre: string): string {
     const indicador = this.indicadorEvolucion();
     const rango = indicador === 'presion'
@@ -632,6 +758,10 @@ export class ReporteSalud implements ReporteExportable {
           descripcion: 'Cuántas mediciones de signos vitales se registraron en el período.',
           opciones: this.tablaTiempo().filas.length > 0 ? this.graficaTiempo() : null, tabla: this.tablaTiempo(),
           explicacion: this.explicacionTiempo() },
+        { titulo: 'Índice de masa corporal (IMC)',
+          descripcion: 'Cuántas personas hay en cada categoría según su IMC más reciente.',
+          opciones: this.datos().personas.length > 0 ? this.graficaImc() : null, tabla: this.tablaImc(),
+          explicacion: this.explicacionImc() },
         ...(persona
           ? [{ titulo: `Evolución de ${persona.nombre}: ${this.nombreIndicador[this.indicadorEvolucion()].toLowerCase()}`,
                descripcion: this.descripcionEvolucion(),
@@ -647,7 +777,8 @@ export class ReporteSalud implements ReporteExportable {
           } }
       ],
       nota: 'Los rangos "normales" son referencias generales para adultos (presión 90–139 / 60–89 mmHg, pulso 60–100 lpm, '
-        + 'oxígeno 95 % o más). Son orientativos y no reemplazan el criterio médico. Un "posible error de registro" '
+        + 'oxígeno 95 % o más). El IMC usa la clasificación de la OMS para adultos (normal entre 18,5 y 24,9). '
+        + 'Son orientativos y no reemplazan el criterio médico. Un "posible error de registro" '
         + 'es un valor que no puede ser real y probablemente corresponde a un error de digitación.'
     };
   }
