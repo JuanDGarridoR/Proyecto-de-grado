@@ -115,16 +115,16 @@ public class RecomendadorOrganizaciones {
 
         // ---------- Organizaciones activas a las que NO pertenece (ni tiene solicitud ni vínculo pausado) ----------
 
+        // El celular y el correo son los de la primera cuenta de la organización.
+        // Van en subconsultas y no en un JOIN LATERAL para que la consulta
+        // también corra en H2, donde se prueba.
         List<Organizacion> organizaciones = jdbc.query("""
-                SELECT o.id_organizacion, o.nombre, o.direccion, cuenta.celular, cuenta.correo
+                SELECT o.id_organizacion, o.nombre, o.direccion,
+                       (SELECT u.celular FROM usuario u WHERE u.id_organizacion = o.id_organizacion
+                         ORDER BY u.id_usuario LIMIT 1) AS celular,
+                       (SELECT u.correo FROM usuario u WHERE u.id_organizacion = o.id_organizacion
+                         ORDER BY u.id_usuario LIMIT 1) AS correo
                   FROM organizacion o
-                  LEFT JOIN LATERAL (
-                        SELECT u.celular, u.correo
-                          FROM usuario u
-                         WHERE u.id_organizacion = o.id_organizacion
-                         ORDER BY u.id_usuario
-                         LIMIT 1
-                  ) cuenta ON TRUE
                  WHERE EXISTS (SELECT 1 FROM usuario ua
                                 WHERE ua.id_organizacion = o.id_organizacion
                                   AND COALESCE(ua.activo, TRUE))
