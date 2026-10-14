@@ -40,10 +40,12 @@ export const CONFIGURACION_PANEL: Record<string, ConfiguracionPanel> = {
       { icon: 'activity', label: 'Signos vitales', path: '/panel/organizacion/signos-vitales' },
       { icon: 'calendar', label: 'Actividades', path: '/panel/organizacion/actividades' },
       { icon: 'star', label: 'Voluntarios', path: '/panel/organizacion/voluntarios' },
+      { icon: 'gift', label: 'Donaciones', path: '/panel/organizacion/donaciones' },
+      { icon: 'clipboard', label: 'Inventario', path: '/panel/organizacion/inventario' },
       { icon: 'bar-chart', label: 'Analítica', path: '/panel/organizacion/analitica' },
-      // Acompañantes, alertas, medicamentos, donaciones y mapa irán aquí, en
-      // ese orden, cuando existan. Mientras tanto no aparecen en el menú y sus
-      // rutas muestran EnConstruccion.
+      // Acompañantes, alertas, medicamentos y mapa irán aquí, en ese orden,
+      // cuando existan. Mientras tanto no aparecen en el menú y sus rutas
+      // muestran EnConstruccion.
       { icon: 'user', label: 'Perfil', path: '/panel/organizacion/perfil' }
     ]
   },
@@ -57,6 +59,7 @@ export const CONFIGURACION_PANEL: Record<string, ConfiguracionPanel> = {
       { icon: 'clipboard', label: 'Seguimiento', path: '/panel/acompanante/seguimiento' },
       { icon: 'stethoscope', label: 'Gestionar cuidado', path: '/panel/acompanante/gestion' },
       { icon: 'calendar', label: 'Actividades', path: '/panel/acompanante/actividades' },
+      { icon: 'gift', label: 'Donaciones', path: '/panel/acompanante/donaciones' },
       { icon: 'user', label: 'Perfil', path: '/panel/acompanante/perfil' }
     ]
   },
@@ -69,6 +72,7 @@ export const CONFIGURACION_PANEL: Record<string, ConfiguracionPanel> = {
       { icon: 'building', label: 'Organizaciones', path: '/panel/voluntario/organizaciones' },
       { icon: 'calendar', label: 'Actividades', path: '/panel/voluntario/actividades' },
       { icon: 'heart', label: 'Intereses', path: '/panel/voluntario/intereses' },
+      { icon: 'gift', label: 'Donaciones', path: '/panel/voluntario/donaciones' },
       { icon: 'user', label: 'Perfil', path: '/panel/voluntario/perfil' }
     ]
   }

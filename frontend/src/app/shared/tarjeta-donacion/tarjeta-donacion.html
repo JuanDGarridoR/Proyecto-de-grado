@@ -1,0 +1,79 @@
+<!-- Encabezado: quién o a quién, y el estado -->
+
+<div class="donacion__encabezado">
+  <div class="donacion__avatar" aria-hidden="true">
+    <app-avatar [foto]="foto()" [icono]="vista() === 'donante' ? 'building' : 'user'" />
+  </div>
+
+  <div class="donacion__quien">
+    <span class="donacion__eyebrow">{{ vista() === 'donante' ? 'Donación para' : 'Donación de' }}</span>
+    <h3>{{ nombre() }}</h3>
+    @if (detalle()) {
+      <span class="donacion__detalle">{{ detalle() }}</span>
+    }
+  </div>
+
+  <span class="donacion__estado donacion__estado--{{ estado().tipo }}">
+    <span class="donacion__estado-punto"></span>
+    {{ estado().texto }}
+  </span>
+</div>
+
+<!-- Fecha de entrega -->
+
+<p class="donacion__fecha" [class.donacion__fecha--atrasada]="atrasada()">
+  <app-icono [name]="atrasada() ? 'alert-triangle' : 'calendar'" />
+  <span>
+    Entrega: <strong>{{ formatearFecha(donacion().fechaEntrega) }}</strong>
+    @if (donacion().horaEntrega) {
+      a las <strong>{{ donacion().horaEntrega }}</strong>
+    }
+    @if (atrasada()) {
+      · la fecha ya pasó
+    }
+  </span>
+</p>
+
+<!-- Lo que trae -->
+
+<ul class="donacion__articulos">
+  @for (articulo of donacion().articulos; track articulo.idArticulo) {
+    <li class="donacion__articulo">
+      <span class="donacion__articulo-icono" [title]="textoCategoria(articulo.categoria)">
+        <app-icono [name]="iconoCategoria(articulo.categoria)" />
+      </span>
+      <div>
+        <strong>{{ articulo.descripcion }}</strong>
+        <span>
+          {{ formatearCantidad(articulo.cantidad, articulo.unidad) }}
+          @if (articulo.fechaVencimiento) {
+            · vence el {{ formatearFechaCorta(articulo.fechaVencimiento) }}
+          }
+        </span>
+        @if (articulo.cantidadRecibida !== null && articulo.cantidadRecibida !== articulo.cantidad) {
+          <span class="donacion__recibido">
+            Llegó: {{ formatearCantidad(articulo.cantidadRecibida, articulo.unidad) }}
+          </span>
+        }
+      </div>
+    </li>
+  }
+</ul>
+
+@if (donacion().observaciones) {
+  <p class="donacion__nota">
+    <app-icono name="message-circle" />
+    <span>{{ donacion().observaciones }}</span>
+  </p>
+}
+
+@if (donacion().notaOrganizacion) {
+  <p class="donacion__nota donacion__nota--organizacion">
+    <app-icono name="info" />
+    <span><strong>Nota de la organización:</strong> {{ donacion().notaOrganizacion }}</span>
+  </p>
+}
+
+<div class="donacion__acciones">
+  <ng-content select="[tarjeta-acciones]" />
+</div>

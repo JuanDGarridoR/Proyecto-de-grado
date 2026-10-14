@@ -20,6 +20,8 @@ export type Recurso =
   | 'voluntarios'       // voluntario <-> organización, solicitudes
   | 'gustos'
   | 'notificaciones'    // SMS de emergencia enviados, notificaciones leídas
+  | 'donaciones'        // donaciones programadas, canceladas, recibidas
+  | 'inventario'        // artículos y movimientos del inventario de la organización
   | 'usuarios';         // nombres/datos de perfil, registros nuevos
 
 /** Aviso especial: recargar todo (cuenta eliminada o reconexión tras un corte). */

@@ -1,4 +1,4 @@
-# VITA+ en producción: los 10 servicios, el api-gateway y el frontend (Caddy
+# VITA+ en producción: los 11 servicios, el api-gateway y el frontend (Caddy
 # con HTTPS). Se levanta todo con:  docker compose up -d --build
 #
 # Las claves y el dominio van en el archivo .env (copiar .env.example).
@@ -20,6 +20,7 @@ x-servicio: &servicio
     ORGANIZACION_SERVICE_URL: http://organizacion-service:8088
     ACTIVIDAD_SERVICE_URL: http://actividad-service:8089
     ANALITICA_SERVICE_URL: http://analitica-service:8090
+    DONACION_SERVICE_URL: http://donacion-service:8091
     # El gateway solo acepta peticiones del navegador desde la página publicada
     CORS_ORIGINS: https://${DOMINIO}
 
@@ -59,6 +60,10 @@ services:
   analitica-service:
     <<: *servicio
     build: { context: ./backend, args: { SERVICIO: analitica-service } }
+
+  donacion-service:
+    <<: *servicio
+    build: { context: ./backend, args: { SERVICIO: donacion-service } }
 
   gateway:
     <<: *servicio

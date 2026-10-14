@@ -57,6 +57,7 @@ Registro, consulta y actualización de la información de personas mayores, acom
 | RF-14 | El sistema debe permitir a la persona mayor registrar su EPS, su IPS y la dirección de la IPS. | ✅ Implementado |
 | RF-15 | El sistema debe permitir a la organización registrar y actualizar su información institucional. | ✅ Implementado |
 | RF-16 | El sistema debe permitir a la persona mayor y al voluntario registrar sus gustos e intereses a partir de un catálogo. | ✅ Implementado |
+| RF-61 | El sistema debe permitir a cada usuario subir, cambiar o quitar una foto de perfil (JPG, PNG o WebP), que se muestra a sus vínculos en sus listas y junto a su nombre en la barra superior del panel; si no tiene foto, se muestra su inicial o un ícono. | ✅ Implementado |
 
 ### 2.2 Información de salud de la persona mayor
 
@@ -132,6 +133,20 @@ Relaciones de apoyo entre usuarios, contactos de emergencia, actividades de acom
 | RF-51 | El sistema debe permitir a cada usuario activar o desactivar cada tipo de notificación (emergencias, cumpleaños, cumpleaños de personas mayores vinculadas, actividades, citas médicas y medicamentos). | ✅ Implementado |
 | RF-52 | El sistema debe felicitar por SMS a las personas mayores, acompañantes y voluntarios el día de su cumpleaños, y avisar a los acompañantes y organizaciones vinculados cuando una persona mayor cumpla años. | ✅ Implementado |
 
+### 3.6 Donaciones e inventario
+
+Las donaciones registran lo que un acompañante o un voluntario se compromete a llevar a una organización (alimentos, ropa, medicamentos, artículos de aseo, dinero u otros). La plataforma no procesa pagos: el dinero se registra como un artículo más, con su monto en pesos.
+
+| ID | Requerimiento | Estado |
+| --- | --- | --- |
+| RF-62 | El sistema debe permitir al acompañante y al voluntario programar una donación para una organización con la que estén vinculados, indicando la fecha de entrega, una hora aproximada opcional, observaciones y uno o más artículos, cada uno con categoría, descripción, cantidad, unidad y fecha de vencimiento opcional. El voluntario puede donar a las organizaciones en las que está aceptado; el acompañante, a las organizaciones de las personas mayores que acompaña. | ✅ Implementado |
+| RF-63 | El sistema debe permitir al donante consultar sus donaciones con su estado (programada, recibida, no entregada o cancelada) y cancelar las que aún estén programadas. | ✅ Implementado |
+| RF-64 | El sistema debe permitir a la organización consultar las donaciones programadas para ella y marcar cada una como recibida, indicando la cantidad que llegó de cada artículo, o como no entregada, con una nota opcional para el donante. Una donación solo se procesa una vez. | ✅ Implementado |
+| RF-65 | El sistema debe sumar automáticamente al inventario de la organización lo recibido de cada donación, agregándolo al artículo existente con el mismo nombre, categoría y unidad, o creando uno nuevo. | ✅ Implementado |
+| RF-66 | El sistema debe permitir a la organización crear, editar y eliminar artículos de su inventario, con nombre, categoría, unidad, cantidad mínima de aviso y fecha de vencimiento opcional. | ✅ Implementado |
+| RF-67 | El sistema debe permitir a la organización registrar entradas y salidas de cada artículo con su motivo (compra, entrega a personas mayores, uso en actividades, vencimiento, daño o ajuste), sin permitir salidas mayores que la existencia, y consultar el historial de movimientos de cada artículo. | ✅ Implementado |
+| RF-68 | El sistema debe señalar en el inventario los artículos agotados o por debajo de su cantidad mínima y los vencidos o que vencen en los próximos 30 días, y mostrar el dinero disponible. | ✅ Implementado |
+
 ---
 
 ## 4. Analítica de datos y visualización
@@ -200,4 +215,3 @@ Indicadores, reportes y visualizaciones para identificar patrones, apoyar el per
 Estas secciones del panel de la organización aparecen en el menú, pero todavía muestran la página "En construcción" y no se incluyen como requerimientos:
 
 * **Mapa**: aún no está definido qué debe mostrar.
-* **Donaciones**: el SPMP (sección 1.2.2) excluye los módulos financieros del alcance del proyecto.

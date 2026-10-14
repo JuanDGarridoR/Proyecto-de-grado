@@ -1,0 +1,286 @@
+/*
+ * Estructura común de las páginas de donaciones e inventario (donante y
+ * organización): encabezado con botón, estados vacíos, formulario de
+ * donación y resumen. Se usa junto con vinculos-pagina.css (contenedor,
+ * mensajes y secciones) y actividades-modales.css (modales y campos).
+ */
+
+.donaciones__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+}
+
+.donaciones__header h1 {
+  margin: 0 0 8px;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.btn-primary:disabled,
+.btn-cancel:disabled,
+.btn-delete:disabled,
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.donaciones__nueva {
+  flex-shrink: 0;
+}
+
+/* Estados vacíos */
+
+.donaciones__vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+
+  margin-bottom: 32px;
+  padding: 40px 24px;
+
+  border: 1px dashed var(--vita-border);
+  border-radius: 20px;
+  background: var(--vita-white);
+  text-align: center;
+}
+
+.donaciones__vacio > app-icono {
+  color: var(--vita-navy);
+  font-size: 2.4rem;
+}
+
+.donaciones__vacio h2 {
+  margin: 0;
+  color: var(--vita-navy);
+  font-size: 1.2rem;
+}
+
+.donaciones__vacio p {
+  max-width: 520px;
+  margin: 0 0 8px;
+  color: var(--vita-text-gray);
+  line-height: 1.5;
+}
+
+/* Modal del formulario */
+
+.donaciones__modal {
+  width: min(720px, 100%);
+}
+
+.donaciones__confirmacion {
+  width: min(480px, 100%);
+  padding: 1.75rem;
+}
+
+.donaciones__confirmacion h2 {
+  margin: 0 0 0.75rem;
+  color: var(--vita-navy);
+  font-size: 1.3rem;
+}
+
+.donaciones__confirmacion p {
+  margin: 0;
+  color: var(--vita-text-gray);
+  line-height: 1.5;
+}
+
+.donaciones__etiqueta {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Elegir organización */
+
+.donaciones__organizaciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+.donaciones__organizacion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: var(--vita-white);
+
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.donaciones__organizacion:hover {
+  border-color: var(--vita-navy);
+}
+
+.donaciones__organizacion--elegida {
+  border-color: var(--vita-green);
+  box-shadow: 0 0 0 2px var(--vita-green);
+}
+
+.donaciones__organizacion-avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+
+  display: flex;
+  overflow: hidden;
+
+  border-radius: 10px;
+  background: #edf5fc;
+  color: var(--vita-navy);
+  font-size: 1.2rem;
+}
+
+.donaciones__organizacion-datos {
+  flex: 1;
+  min-width: 0;
+}
+
+.donaciones__organizacion-datos strong {
+  display: block;
+  color: var(--vita-navy);
+  font-size: 0.92rem;
+}
+
+.donaciones__organizacion-datos span {
+  display: block;
+  margin-top: 2px;
+  color: var(--vita-text-gray);
+  font-size: 0.8rem;
+}
+
+.donaciones__organizacion-check {
+  flex-shrink: 0;
+  color: #0f766e;
+  font-size: 1.2rem;
+}
+
+/* Artículos del formulario */
+
+.donaciones__articulo {
+  margin: 0 0 0.75rem;
+  padding: 1rem 1rem 0.25rem;
+
+  border: 1px solid var(--vita-border);
+  border-radius: 12px;
+  background: var(--vita-cream-soft);
+}
+
+.donaciones__articulo-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 6px;
+
+  color: var(--vita-navy);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.donaciones__quitar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+
+  border: none;
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #dc2626;
+
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.donaciones__categorias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.donaciones__categoria {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 20px;
+  background: var(--vita-white);
+  color: #374151;
+
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.donaciones__categoria--elegida {
+  border-color: var(--vita-navy);
+  background: var(--vita-navy);
+  color: var(--vita-white);
+}
+
+.donaciones__agregar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+}
+
+/* Resumen de la confirmación */
+
+.donaciones__resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+}
+
+.donaciones__resumen dt {
+  margin-bottom: 3px;
+  color: var(--vita-text-gray);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.donaciones__resumen dd {
+  margin: 0;
+  color: var(--vita-navy);
+  font-size: 0.95rem;
+}
+
+.donaciones__resumen ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+@media (max-width: 600px) {
+  .vinculos {
+    padding: 20px 16px;
+  }
+
+  .donaciones__nueva {
+    width: 100%;
+  }
+}

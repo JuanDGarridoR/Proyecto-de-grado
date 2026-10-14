@@ -1,0 +1,413 @@
+<div class="vinculos inventario">
+
+  <div class="vinculos__header donaciones__header">
+    <div>
+      <h1>Inventario</h1>
+      <p>
+        Lo que tiene tu organización. Las donaciones recibidas se suman solas; registra aquí las
+        compras y lo que entregas o usas, para que el conteo siempre esté al día.
+      </p>
+    </div>
+
+    <div class="inventario__acciones-header">
+      <a class="btn-cancel inventario__enlace" routerLink="/panel/organizacion/donaciones">
+        <app-icono name="gift" /> Donaciones
+      </a>
+      <button type="button" class="btn-primary" (click)="abrirNuevo()">
+        <app-icono name="plus" /> Nuevo artículo
+      </button>
+    </div>
+  </div>
+
+  @if (mensaje()) {
+    <div class="vinculos__message vinculos__message--success" role="status">
+      <app-icono name="check-circle" />
+      {{ mensaje() }}
+    </div>
+  }
+
+  @if (error()) {
+    <div class="vinculos__message vinculos__message--error" role="alert">
+      <app-icono name="alert-circle" />
+      {{ error() }}
+    </div>
+  }
+
+  @if (cargando()) {
+    <app-cargando texto="Cargando inventario..." />
+  } @else {
+
+    <!-- Resumen -->
+    <div class="inventario__resumen">
+      <div class="inventario__kpi">
+        <span>Artículos</span>
+        <strong>{{ resumen().total }}</strong>
+      </div>
+      <button type="button" class="inventario__kpi inventario__kpi--alerta"
+              [class.inventario__kpi--activo]="soloAlertas()"
+              [disabled]="resumen().porAgotarse === 0 && !soloAlertas()"
+              (click)="soloAlertas.set(!soloAlertas())">
+        <span>Agotados o por agotarse</span>
+        <strong>{{ resumen().porAgotarse }}</strong>
+      </button>
+      <button type="button" class="inventario__kpi inventario__kpi--alerta"
+              [class.inventario__kpi--activo]="soloAlertas()"
+              [disabled]="resumen().porVencer === 0 && !soloAlertas()"
+              (click)="soloAlertas.set(!soloAlertas())">
+        <span>Vencidos o por vencer</span>
+        <strong>{{ resumen().porVencer }}</strong>
+      </button>
+      <div class="inventario__kpi">
+        <span>Dinero disponible</span>
+        <strong>{{ formatearCantidad(resumen().dinero, 'COP') }}</strong>
+      </div>
+    </div>
+
+    @if (articulos().length === 0) {
+      <div class="donaciones__vacio">
+        <app-icono name="clipboard" />
+        <h2>Tu inventario está vacío</h2>
+        <p>Agrega lo que ya tienes, o espera a recibir una donación: lo que llegue aparecerá aquí.</p>
+        <button type="button" class="btn-primary" (click)="abrirNuevo()">Agregar el primer artículo</button>
+      </div>
+    } @else {
+
+      <!-- Filtros -->
+      <div class="inventario__filtros">
+        <app-buscador-nombre [(texto)]="busqueda" placeholder="Buscar artículo..." />
+
+        <div class="inventario__chips" role="group" aria-label="Filtrar por categoría">
+          <button type="button" class="inventario__chip" [class.inventario__chip--activo]="categoria() === null"
+                  (click)="categoria.set(null)">Todas</button>
+          @for (c of CATEGORIAS; track c.codigo) {
+            <button type="button" class="inventario__chip" [class.inventario__chip--activo]="categoria() === c.codigo"
+                    (click)="categoria.set(categoria() === c.codigo ? null : c.codigo)">
+              <app-icono [name]="c.icono" /> {{ c.texto }}
+            </button>
+          }
+          @if (soloAlertas()) {
+            <button type="button" class="inventario__chip inventario__chip--alerta" (click)="soloAlertas.set(false)">
+              Solo con avisos <app-icono name="x" />
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (filtrados().length === 0) {
+        <p class="vinculos__sin-resultados">Ningún artículo coincide con los filtros.</p>
+      }
+
+      <!-- Artículos -->
+      <div class="inventario__lista" role="list">
+        @for (articulo of filtrados(); track articulo.idInventario) {
+          <div class="inventario__fila" role="listitem">
+            <div class="inventario__articulo">
+              <span class="inventario__icono" [title]="textoCategoria(articulo.categoria)">
+                <app-icono [name]="iconoCategoria(articulo.categoria)" />
+              </span>
+              <div>
+                <strong>{{ articulo.nombre }}</strong>
+                <span>{{ textoCategoria(articulo.categoria) }}</span>
+              </div>
+            </div>
+
+            <div class="inventario__cantidad">
+              <strong>{{ formatearCantidad(articulo.cantidad, articulo.unidad) }}</strong>
+              @if (articulo.cantidadMinima !== null) {
+                <span>Mínimo: {{ formatearCantidad(articulo.cantidadMinima, articulo.unidad) }}</span>
+              }
+            </div>
+
+            <div class="inventario__vence">
+              @if (articulo.fechaVencimiento) {
+                <span>Vence</span>
+                <strong>{{ formatearFechaCorta(articulo.fechaVencimiento) }}</strong>
+              }
+            </div>
+
+            <div class="inventario__alertas">
+              @for (alerta of alertas(articulo); track alerta) {
+                <span class="inventario__alerta inventario__alerta--{{ alerta }}">{{ textoAlerta(alerta) }}</span>
+              }
+            </div>
+
+            <div class="inventario__botones">
+              <button type="button" class="inventario__boton inventario__boton--entrada"
+                      (click)="abrirMovimiento(articulo, 'ENTRADA')" [attr.aria-label]="'Registrar entrada de ' + articulo.nombre">
+                <app-icono name="plus" /> Entrada
+              </button>
+              <button type="button" class="inventario__boton inventario__boton--salida"
+                      (click)="abrirMovimiento(articulo, 'SALIDA')" [disabled]="articulo.cantidad <= 0"
+                      [attr.aria-label]="'Registrar salida de ' + articulo.nombre">
+                <span aria-hidden="true">−</span> Salida
+              </button>
+              <button type="button" class="inventario__boton" (click)="abrirHistorial(articulo)"
+                      title="Historial" [attr.aria-label]="'Historial de ' + articulo.nombre">
+                <app-icono name="clock" />
+              </button>
+              <button type="button" class="inventario__boton" (click)="abrirEditar(articulo)"
+                      title="Editar" [attr.aria-label]="'Editar ' + articulo.nombre">
+                <app-icono name="pen" />
+              </button>
+              <button type="button" class="inventario__boton inventario__boton--eliminar"
+                      (click)="errorModal.set(null); articuloAEliminar.set(articulo)"
+                      title="Eliminar" [attr.aria-label]="'Eliminar ' + articulo.nombre">
+                <app-icono name="x" />
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+<datalist id="unidadesInventario">
+  @for (unidad of UNIDADES_SUGERIDAS; track unidad) {
+    <option [value]="unidad"></option>
+  }
+</datalist>
+
+<!-- Nuevo / editar artículo -->
+
+@if (formularioArticuloAbierto()) {
+  <div class="modal-backdrop" (click)="cerrarModales()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloArticulo" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 id="tituloArticulo">{{ articuloEditado() ? 'Editar artículo' : 'Nuevo artículo' }}</h2>
+          <p>
+            {{ articuloEditado() ? 'La cantidad se cambia con entradas y salidas, no aquí.' : 'Agrega algo que tu organización tiene o va a recibir.' }}
+          </p>
+        </div>
+        <button class="modal-close" type="button" (click)="cerrarModales()" aria-label="Cerrar">×</button>
+      </div>
+
+      <div class="activity-form">
+        <div class="form-group">
+          <span class="donaciones__etiqueta">Categoría <span class="required">*</span></span>
+          <div class="donaciones__categorias" role="radiogroup" aria-label="Categoría">
+            @for (c of CATEGORIAS; track c.codigo) {
+              <button type="button" role="radio" class="donaciones__categoria"
+                      [class.donaciones__categoria--elegida]="formArticulo.categoria === c.codigo"
+                      [attr.aria-checked]="formArticulo.categoria === c.codigo"
+                      (click)="formArticulo.categoria = c.codigo; cambioCategoria()">
+                <app-icono [name]="c.icono" /> {{ c.texto }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nombreArticulo">Nombre <span class="required">*</span></label>
+            <input id="nombreArticulo" type="text" maxlength="120"
+                   [placeholder]="formArticulo.categoria === 'DINERO' ? 'Ej.: Caja de la fundación' : 'Ej.: Arroz'"
+                   [(ngModel)]="formArticulo.nombre" />
+          </div>
+          <div class="form-group">
+            <label for="unidadArticulo">Unidad <span class="required">*</span></label>
+            @if (formArticulo.categoria === 'DINERO') {
+              <input id="unidadArticulo" type="text" value="COP (pesos)" disabled />
+            } @else {
+              <input id="unidadArticulo" type="text" maxlength="30" list="unidadesInventario"
+                     placeholder="kg, unidades, litros..." [(ngModel)]="formArticulo.unidad" />
+            }
+          </div>
+        </div>
+
+        @if (!articuloEditado()) {
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cantidadArticulo">Cantidad que tienes hoy</label>
+              <input id="cantidadArticulo" type="number" min="0" step="any" inputmode="decimal"
+                     placeholder="0" [(ngModel)]="formArticulo.cantidad" />
+            </div>
+            <div class="form-group">
+              <label for="motivoInicial">¿De dónde viene?</label>
+              <select id="motivoInicial" [(ngModel)]="formArticulo.motivoEntrada">
+                @for (m of MOTIVOS_ENTRADA; track m.codigo) {
+                  <option [value]="m.codigo">{{ m.texto }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        }
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="minimoArticulo">Avisarme cuando queden</label>
+            <input id="minimoArticulo" type="number" min="0" step="any" inputmode="decimal"
+                   placeholder="Sin aviso" [(ngModel)]="formArticulo.cantidadMinima" />
+            <p class="form-hint">Se marcará "Por agotarse" al llegar a esta cantidad.</p>
+          </div>
+          @if (tieneVencimiento(formArticulo.categoria)) {
+            <div class="form-group">
+              <label for="venceArticulo">Fecha de vencimiento</label>
+              <input id="venceArticulo" type="date" [(ngModel)]="formArticulo.fechaVencimiento" />
+              <p class="form-hint">La más próxima de lo que tienes guardado.</p>
+            </div>
+          }
+        </div>
+
+        @if (errorModal()) {
+          <p class="form-error" role="alert">{{ errorModal() }}</p>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModales()" [disabled]="procesando()">Cancelar</button>
+          <button type="button" class="btn-primary" (click)="guardarArticulo()" [disabled]="procesando()">
+            {{ procesando() ? 'Guardando...' : articuloEditado() ? 'Guardar cambios' : 'Agregar al inventario' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Entrada / salida -->
+
+@if (articuloMovimiento(); as articulo) {
+  <div class="modal-backdrop" (click)="cerrarModales()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloMovimiento" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 id="tituloMovimiento">{{ articulo.nombre }}</h2>
+          <p>Hay {{ formatearCantidad(articulo.cantidad, articulo.unidad) }}</p>
+        </div>
+        <button class="modal-close" type="button" (click)="cerrarModales()" aria-label="Cerrar">×</button>
+      </div>
+
+      <div class="activity-form">
+        <div class="inventario__tipo" role="radiogroup" aria-label="Tipo de movimiento">
+          <button type="button" role="radio" class="inventario__tipo-opcion"
+                  [class.inventario__tipo-opcion--entrada]="formMovimiento.tipo === 'ENTRADA'"
+                  [attr.aria-checked]="formMovimiento.tipo === 'ENTRADA'"
+                  (click)="formMovimiento.tipo = 'ENTRADA'; cambioTipoMovimiento()">
+            <app-icono name="plus" /> Entrada
+          </button>
+          <button type="button" role="radio" class="inventario__tipo-opcion"
+                  [class.inventario__tipo-opcion--salida]="formMovimiento.tipo === 'SALIDA'"
+                  [attr.aria-checked]="formMovimiento.tipo === 'SALIDA'"
+                  [disabled]="articulo.cantidad <= 0"
+                  (click)="formMovimiento.tipo = 'SALIDA'; cambioTipoMovimiento()">
+            <span aria-hidden="true">−</span> Salida
+          </button>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cantidadMovimiento">Cantidad ({{ articulo.unidad }}) <span class="required">*</span></label>
+            <input id="cantidadMovimiento" type="number" min="0.01" step="any" inputmode="decimal"
+                   [(ngModel)]="formMovimiento.cantidad" />
+          </div>
+          <div class="form-group">
+            <label for="motivoMovimiento">Motivo <span class="required">*</span></label>
+            <select id="motivoMovimiento" [(ngModel)]="formMovimiento.motivo">
+              @for (m of formMovimiento.tipo === 'ENTRADA' ? MOTIVOS_ENTRADA : MOTIVOS_SALIDA; track m.codigo) {
+                <option [value]="m.codigo">{{ m.texto }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        @if (formMovimiento.tipo === 'ENTRADA' && tieneVencimiento(articulo.categoria)) {
+          <div class="form-group">
+            <label for="venceMovimiento">Vencimiento de lo que entra</label>
+            <input id="venceMovimiento" type="date" [(ngModel)]="formMovimiento.fechaVencimiento" />
+          </div>
+        }
+
+        <div class="form-group">
+          <label for="detalleMovimiento">Detalle</label>
+          <input id="detalleMovimiento" type="text" maxlength="300"
+                 [placeholder]="formMovimiento.tipo === 'ENTRADA' ? 'Ej.: Compra en el supermercado' : 'Ej.: Mercados del mes para 12 personas mayores'"
+                 [(ngModel)]="formMovimiento.detalle" />
+        </div>
+
+        @if (errorModal()) {
+          <p class="form-error" role="alert">{{ errorModal() }}</p>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModales()" [disabled]="procesando()">Cancelar</button>
+          <button type="button" class="btn-primary" (click)="guardarMovimiento()" [disabled]="procesando()">
+            {{ procesando() ? 'Guardando...' : formMovimiento.tipo === 'ENTRADA' ? 'Registrar entrada' : 'Registrar salida' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Historial -->
+
+@if (articuloHistorial(); as articulo) {
+  <div class="modal-backdrop" (click)="cerrarModales()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloHistorial" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 id="tituloHistorial">Historial de {{ articulo.nombre }}</h2>
+          <p>Hoy hay {{ formatearCantidad(articulo.cantidad, articulo.unidad) }}</p>
+        </div>
+        <button class="modal-close" type="button" (click)="cerrarModales()" aria-label="Cerrar">×</button>
+      </div>
+
+      <div class="activity-form">
+        @if (historial() === null) {
+          <app-cargando texto="Cargando historial..." />
+        } @else if (historial()!.length === 0) {
+          <p class="form-hint">Este artículo aún no tiene movimientos.</p>
+        } @else {
+          <ul class="inventario__historial">
+            @for (movimiento of historial(); track movimiento.idMovimiento) {
+              <li class="inventario__movimiento">
+                <span class="inventario__movimiento-signo inventario__movimiento-signo--{{ movimiento.tipo === 'ENTRADA' ? 'entrada' : 'salida' }}">
+                  {{ movimiento.tipo === 'ENTRADA' ? '+' : '−' }}
+                </span>
+                <div>
+                  <strong>
+                    {{ formatearCantidad(movimiento.cantidad, articulo.unidad) }} · {{ textoMotivo(movimiento.motivo) }}
+                  </strong>
+                  @if (movimiento.detalle) {
+                    <span>{{ movimiento.detalle }}</span>
+                  }
+                  <small>
+                    {{ formatearFechaHora(movimiento.fecha) }}
+                    @if (movimiento.registradoPor) { · {{ movimiento.registradoPor }} }
+                  </small>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Eliminar -->
+
+@if (articuloAEliminar(); as articulo) {
+  <div class="modal-backdrop" (click)="cerrarModales()">
+    <div class="modal donaciones__confirmacion" role="dialog" aria-modal="true" aria-labelledby="tituloEliminar"
+         (click)="$event.stopPropagation()">
+      <h2 id="tituloEliminar">¿Eliminar {{ articulo.nombre }}?</h2>
+      <p>
+        Se borrará del inventario junto con todo su historial. Si solo se acabó, mejor registra una salida:
+        así queda la constancia.
+      </p>
+
+      @if (errorModal()) {
+        <p class="form-error" role="alert">{{ errorModal() }}</p>
+      }
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarModales()" [disabled]="procesando()">Volver</button>
+        <button type="button" class="btn-delete" (click)="confirmarEliminar()" [disabled]="procesando()">
+          {{ procesando() ? 'Eliminando...' : 'Sí, eliminar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

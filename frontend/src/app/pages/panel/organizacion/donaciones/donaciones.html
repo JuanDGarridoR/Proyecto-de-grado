@@ -1,0 +1,179 @@
+<div class="vinculos">
+
+  <div class="vinculos__header donaciones__header">
+    <div>
+      <div class="vinculos__titulo">
+        <h1>Donaciones</h1>
+        @if (porRecibir().length > 0) {
+          <span class="vinculos__badge" [title]="porRecibir().length + ' por recibir'">{{ porRecibir().length }}</span>
+        }
+      </div>
+      <p>
+        Donaciones que te programaron tus voluntarios y los acompañantes de tus personas mayores.
+        Cuando lleguen, márcalas como recibidas y lo que llegó entrará a tu inventario.
+      </p>
+    </div>
+
+    <a class="btn-primary donaciones__nueva" routerLink="/panel/organizacion/inventario">
+      <app-icono name="clipboard" />
+      Ver inventario
+    </a>
+  </div>
+
+  @if (mensaje()) {
+    <div class="vinculos__message vinculos__message--success" role="status">
+      <app-icono name="check-circle" />
+      {{ mensaje() }}
+    </div>
+  }
+
+  @if (error()) {
+    <div class="vinculos__message vinculos__message--error" role="alert">
+      <app-icono name="alert-circle" />
+      {{ error() }}
+    </div>
+  }
+
+  @if (cargando()) {
+    <app-cargando texto="Cargando donaciones..." />
+  } @else {
+
+    <!-- Por recibir -->
+    <section class="vinculos__section">
+      <div class="vinculos__section-header">
+        <div>
+          <h2>Por recibir</h2>
+          <p>Ordenadas por fecha de entrega. Las que tienen la fecha vencida aparecen en rojo.</p>
+        </div>
+      </div>
+
+      @if (porRecibir().length === 0) {
+        <div class="donaciones__vacio">
+          <app-icono name="gift" />
+          <h2>No hay donaciones por recibir</h2>
+          <p>Cuando un voluntario o un acompañante programe una donación, aparecerá aquí.</p>
+        </div>
+      } @else {
+        <div class="vinculos__list">
+          @for (donacion of porRecibir(); track donacion.idDonacion) {
+            <app-tarjeta-donacion [donacion]="donacion" vista="organizacion">
+              <button tarjeta-acciones type="button" class="btn-cancel" (click)="abrirNoEntregada(donacion)">
+                No llegó
+              </button>
+              <button tarjeta-acciones type="button" class="btn-primary" (click)="abrirRecibir(donacion)">
+                <app-icono name="check" />
+                Marcar recibida
+              </button>
+            </app-tarjeta-donacion>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Historial -->
+    @if (totalHistorial() > 0) {
+      <section class="vinculos__section">
+        <div class="vinculos__section-header">
+          <div>
+            <h2>Historial</h2>
+            <p>Donaciones recibidas, no entregadas o canceladas por el donante.</p>
+          </div>
+          <app-buscador-nombre [(texto)]="busqueda" placeholder="Buscar por donante..." />
+        </div>
+
+        @if (historial().length === 0) {
+          <p class="vinculos__sin-resultados">Ninguna donación coincide con "{{ busqueda() }}".</p>
+        }
+
+        <div class="vinculos__list">
+          @for (donacion of historial(); track donacion.idDonacion) {
+            <app-tarjeta-donacion [donacion]="donacion" vista="organizacion" />
+          }
+        </div>
+      </section>
+    }
+  }
+</div>
+
+<!-- Marcar recibida -->
+
+@if (donacionARecibir(); as donacion) {
+  <div class="modal-backdrop" (click)="cerrarModales()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloRecibir" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 id="tituloRecibir">Recibir donación</h2>
+          <p>De {{ donacion.nombreDonante }} · {{ formatearFecha(donacion.fechaEntrega) }}</p>
+        </div>
+        <button class="modal-close" type="button" (click)="cerrarModales()" aria-label="Cerrar">×</button>
+      </div>
+
+      <div class="activity-form">
+        <p class="form-hint">
+          Revisa cuánto llegó de cada cosa. Si llegó menos, corrige la cantidad; escribe 0 si no llegó.
+          Lo recibido se sumará a tu inventario.
+        </p>
+
+        <div class="recibir__lista">
+          @for (cantidad of cantidades; track cantidad.idArticulo) {
+            <div class="recibir__fila">
+              <label [for]="'recibida' + cantidad.idArticulo">
+                <strong>{{ cantidad.descripcion }}</strong>
+                <span>Anunciado: {{ formatearCantidad(cantidad.anunciada, cantidad.unidad) }}</span>
+              </label>
+              <div class="recibir__campo">
+                <input [id]="'recibida' + cantidad.idArticulo" type="number" min="0" step="any"
+                       inputmode="decimal" [(ngModel)]="cantidad.recibida" />
+                <span>{{ cantidad.unidad }}</span>
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (errorModal()) {
+          <p class="form-error" role="alert">{{ errorModal() }}</p>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModales()" [disabled]="procesando()">Cancelar</button>
+          <button type="button" class="btn-primary" (click)="confirmarRecibida()" [disabled]="procesando()">
+            {{ procesando() ? 'Guardando...' : 'Confirmar recibida' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Marcar no entregada -->
+
+@if (donacionNoEntregada(); as donacion) {
+  <div class="modal-backdrop" (click)="cerrarModales()">
+    <div class="modal donaciones__confirmacion" role="dialog" aria-modal="true" aria-labelledby="tituloNoEntregada"
+         (click)="$event.stopPropagation()">
+      <h2 id="tituloNoEntregada">¿La donación no llegó?</h2>
+      <p>
+        La donación de <strong>{{ donacion.nombreDonante }}</strong> quedará como no entregada y no
+        se sumará nada al inventario.
+      </p>
+
+      <div class="form-group no-entregada__nota">
+        <label for="notaNoEntregada">Nota para el donante (opcional)</label>
+        <textarea id="notaNoEntregada" rows="3" maxlength="300"
+                  placeholder="Ej.: Te esperamos el día acordado, pero nadie vino."
+                  [(ngModel)]="nota"></textarea>
+      </div>
+
+      @if (errorModal()) {
+        <p class="form-error" role="alert">{{ errorModal() }}</p>
+      }
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarModales()" [disabled]="procesando()">Volver</button>
+        <button type="button" class="btn-delete" (click)="confirmarNoEntregada()" [disabled]="procesando()">
+          {{ procesando() ? 'Guardando...' : 'Marcar no entregada' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -97,8 +97,17 @@ export const routes: Routes = [
       {
         path: 'donaciones',
         loadComponent: () =>
-          import('./shared/en-construccion/en-construccion').then((m) => m.EnConstruccion),
-        data: { titulo: 'Donaciones' },
+          import('./pages/panel/organizacion/donaciones/donaciones').then(
+            (m) => m.OrganizacionDonaciones,
+          ),
+      },
+
+      {
+        path: 'inventario',
+        loadComponent: () =>
+          import('./pages/panel/organizacion/inventario/inventario').then(
+            (m) => m.OrganizacionInventario,
+          ),
       },
 
       {
@@ -172,6 +181,13 @@ export const routes: Routes = [
       },
 
       {
+        path: 'donaciones',
+        loadComponent: () =>
+          import('./shared/donaciones-donante/donaciones-donante').then((m) => m.DonacionesDonante),
+        data: { rol: 'VOLUNTARIO' },
+      },
+
+      {
         path: 'perfil',
         loadComponent: () => import('./shared/perfil/perfil').then((m) => m.Perfil),
         data: {
@@ -226,6 +242,13 @@ export const routes: Routes = [
           import('./pages/panel/acompanante/actividades/actividades').then(
             (m) => m.ActividadesComponent,
           ),
+      },
+
+      {
+        path: 'donaciones',
+        loadComponent: () =>
+          import('./shared/donaciones-donante/donaciones-donante').then((m) => m.DonacionesDonante),
+        data: { rol: 'ACOMPANANTE' },
       },
 
       {

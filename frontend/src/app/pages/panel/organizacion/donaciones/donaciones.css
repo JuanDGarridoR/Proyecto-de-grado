@@ -1,0 +1,65 @@
+/* Modal "Recibir donación": una fila por artículo con lo que llegó */
+
+.recibir__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.recibir__fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 12px 14px;
+  border: 1px solid var(--vita-border);
+  border-radius: 12px;
+  background: var(--vita-cream-soft);
+}
+
+.recibir__fila label strong {
+  display: block;
+  color: var(--vita-navy);
+  font-size: 0.95rem;
+}
+
+.recibir__fila label span {
+  display: block;
+  margin-top: 2px;
+  color: var(--vita-text-gray);
+  font-size: 0.84rem;
+}
+
+.recibir__campo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.recibir__campo input {
+  width: 110px;
+  box-sizing: border-box;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 9px;
+  font: inherit;
+}
+
+.recibir__campo span {
+  color: var(--vita-text-gray);
+  font-size: 0.88rem;
+}
+
+.no-entregada__nota {
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 520px) {
+  .recibir__fila {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

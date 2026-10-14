@@ -1,0 +1,343 @@
+<div class="vinculos">
+
+  <div class="vinculos__header donaciones__header">
+    <div>
+      <h1>Donaciones</h1>
+      <p>
+        Dona alimentos, ropa, medicamentos, artículos de aseo o dinero a tus organizaciones.
+        Elige qué llevarás y cuándo; la organización confirmará cuando la reciba.
+      </p>
+    </div>
+
+    @if (organizaciones().length > 0) {
+      <button type="button" class="btn-primary donaciones__nueva" (click)="abrirFormulario()">
+        <app-icono name="plus" />
+        Nueva donación
+      </button>
+    }
+  </div>
+
+  @if (mensaje()) {
+    <div class="vinculos__message vinculos__message--success" role="status">
+      <app-icono name="check-circle" />
+      {{ mensaje() }}
+    </div>
+  }
+
+  @if (error()) {
+    <div class="vinculos__message vinculos__message--error" role="alert">
+      <app-icono name="alert-circle" />
+      {{ error() }}
+    </div>
+  }
+
+  @if (cargando()) {
+    <app-cargando texto="Cargando tus donaciones..." />
+  } @else {
+
+    <!-- Sin organizaciones a las que donar -->
+    @if (organizaciones().length === 0) {
+      <div class="donaciones__vacio">
+        <app-icono name="building" />
+        <h2>Aún no tienes organizaciones a las que donar</h2>
+        @if (esVoluntario) {
+          <p>Puedes donar a las organizaciones en las que eres voluntario. Envía una solicitud y, cuando te acepten, podrás programar tu donación.</p>
+          <a class="btn-primary" routerLink="/panel/voluntario/organizaciones">Ver organizaciones</a>
+        } @else {
+          <p>Puedes donar a las organizaciones de las personas mayores que acompañas. Por ahora ninguna de ellas está vinculada a una organización.</p>
+        }
+      </div>
+    }
+
+    <!-- Programadas -->
+    @if (programadas().length > 0) {
+      <section class="vinculos__section">
+        <div class="vinculos__section-header">
+          <div>
+            <h2>Programadas</h2>
+            <p>Donaciones que aún no has llevado. Si no puedes ir, cancélala.</p>
+          </div>
+          <span class="vinculos__badge">{{ programadas().length }}</span>
+        </div>
+
+        <div class="vinculos__list">
+          @for (donacion of programadas(); track donacion.idDonacion) {
+            <app-tarjeta-donacion [donacion]="donacion" vista="donante">
+              <button tarjeta-acciones type="button" class="btn-delete" (click)="donacionACancelar.set(donacion)">
+                Cancelar donación
+              </button>
+            </app-tarjeta-donacion>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Historial -->
+    @if (historial().length > 0) {
+      <section class="vinculos__section">
+        <div class="vinculos__section-header">
+          <div>
+            <h2>Historial</h2>
+            <p>Donaciones recibidas, no entregadas o canceladas.</p>
+          </div>
+        </div>
+
+        <div class="vinculos__list">
+          @for (donacion of historial(); track donacion.idDonacion) {
+            <app-tarjeta-donacion [donacion]="donacion" vista="donante" />
+          }
+        </div>
+      </section>
+    }
+
+    @if (organizaciones().length > 0 && donaciones().length === 0) {
+      <div class="donaciones__vacio">
+        <app-icono name="gift" />
+        <h2>Todavía no has hecho donaciones</h2>
+        <p>Cuando programes una, aparecerá aquí con su estado.</p>
+        <button type="button" class="btn-primary" (click)="abrirFormulario()">Programar mi primera donación</button>
+      </div>
+    }
+  }
+</div>
+
+<!-- Nueva donación -->
+
+@if (formularioAbierto()) {
+  <div class="modal-backdrop" (click)="cerrarFormulario()">
+    <div class="modal donaciones__modal" role="dialog" aria-modal="true" aria-labelledby="tituloDonacion"
+         (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div>
+          <h2 id="tituloDonacion">{{ confirmando() ? 'Confirma tu donación' : 'Nueva donación' }}</h2>
+          <p>{{ confirmando() ? 'Revisa que todo esté bien antes de programarla.' : 'Cuéntale a la organización qué llevarás y cuándo.' }}</p>
+        </div>
+        <button class="modal-close" type="button" (click)="cerrarFormulario()" aria-label="Cerrar">×</button>
+      </div>
+
+      <div class="activity-form">
+
+        @if (!confirmando()) {
+
+          <!-- Organización -->
+          <div class="form-group">
+            <span class="donaciones__etiqueta">Organización <span class="required">*</span></span>
+            <div class="donaciones__organizaciones" role="radiogroup" aria-label="Organización">
+              @for (organizacion of organizaciones(); track organizacion.idOrganizacion) {
+                <button
+                  type="button"
+                  role="radio"
+                  class="donaciones__organizacion"
+                  [class.donaciones__organizacion--elegida]="idOrganizacion === organizacion.idOrganizacion"
+                  [attr.aria-checked]="idOrganizacion === organizacion.idOrganizacion"
+                  (click)="idOrganizacion = organizacion.idOrganizacion"
+                >
+                  <span class="donaciones__organizacion-avatar">
+                    <app-avatar [foto]="organizacion.fotoPerfil" icono="building" />
+                  </span>
+                  <span class="donaciones__organizacion-datos">
+                    <strong>{{ organizacion.nombre }}</strong>
+                    @if (organizacion.direccion) {
+                      <span>{{ organizacion.direccion }}</span>
+                    }
+                  </span>
+                  @if (idOrganizacion === organizacion.idOrganizacion) {
+                    <app-icono name="check-circle" class="donaciones__organizacion-check" />
+                  }
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Fecha y hora -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fechaEntrega">¿Qué día la llevarás? <span class="required">*</span></label>
+              <input id="fechaEntrega" type="date" [min]="hoy" [(ngModel)]="fechaEntrega" />
+            </div>
+            <div class="form-group">
+              <label for="horaEntrega">Hora aproximada</label>
+              <input id="horaEntrega" type="time" [(ngModel)]="horaEntrega" />
+            </div>
+          </div>
+
+          <!-- Artículos -->
+          <div class="form-group">
+            <span class="donaciones__etiqueta">¿Qué vas a donar? <span class="required">*</span></span>
+
+            @for (articulo of articulos; track $index; let i = $index) {
+              <fieldset class="donaciones__articulo">
+                <legend class="donaciones__articulo-titulo">
+                  Artículo {{ i + 1 }}
+                  @if (articulos.length > 1) {
+                    <button type="button" class="donaciones__quitar" (click)="quitarArticulo(i)"
+                            [attr.aria-label]="'Quitar artículo ' + (i + 1)">
+                      <app-icono name="x" /> Quitar
+                    </button>
+                  }
+                </legend>
+
+                <div class="donaciones__categorias" role="radiogroup" [attr.aria-label]="'Categoría del artículo ' + (i + 1)">
+                  @for (categoria of CATEGORIAS; track categoria.codigo) {
+                    <button
+                      type="button"
+                      role="radio"
+                      class="donaciones__categoria"
+                      [class.donaciones__categoria--elegida]="articulo.categoria === categoria.codigo"
+                      [attr.aria-checked]="articulo.categoria === categoria.codigo"
+                      (click)="articulo.categoria = categoria.codigo; cambioCategoria(articulo)"
+                    >
+                      <app-icono [name]="categoria.icono" />
+                      {{ categoria.texto }}
+                    </button>
+                  }
+                </div>
+
+                @if (articulo.categoria === 'DINERO') {
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label [for]="'monto' + i">Monto en pesos <span class="required">*</span></label>
+                      <input [id]="'monto' + i" type="number" min="1" step="1000" inputmode="numeric"
+                             placeholder="Ej.: 50000" [(ngModel)]="articulo.cantidad" />
+                    </div>
+                    <div class="form-group">
+                      <label [for]="'descripcion' + i">¿Cómo lo darás?</label>
+                      <input [id]="'descripcion' + i" type="text" maxlength="120"
+                             placeholder="Ej.: Efectivo, transferencia" [(ngModel)]="articulo.descripcion" />
+                    </div>
+                  </div>
+                } @else {
+                  <div class="form-group">
+                    <label [for]="'descripcion' + i">Descripción <span class="required">*</span></label>
+                    <input [id]="'descripcion' + i" type="text" maxlength="120"
+                           [placeholder]="articulo.categoria === 'ALIMENTOS' ? 'Ej.: Arroz, leche en polvo, enlatados' : articulo.categoria === 'ROPA' ? 'Ej.: Chaquetas talla M' : 'Ej.: ¿Qué vas a llevar?'"
+                           [(ngModel)]="articulo.descripcion" />
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label [for]="'cantidad' + i">Cantidad <span class="required">*</span></label>
+                      <input [id]="'cantidad' + i" type="number" min="0.01" step="any" inputmode="decimal"
+                             [(ngModel)]="articulo.cantidad" />
+                    </div>
+                    <div class="form-group">
+                      <label [for]="'unidad' + i">Unidad <span class="required">*</span></label>
+                      <input [id]="'unidad' + i" type="text" maxlength="30" list="unidadesDonacion"
+                             placeholder="kg, unidades, litros..." [(ngModel)]="articulo.unidad" />
+                    </div>
+                  </div>
+                  @if (tieneVencimiento(articulo.categoria)) {
+                    <div class="form-group">
+                      <label [for]="'vence' + i">Fecha de vencimiento</label>
+                      <input [id]="'vence' + i" type="date" [min]="hoy" [(ngModel)]="articulo.fechaVencimiento" />
+                    </div>
+                  }
+                }
+              </fieldset>
+            }
+
+            @if (articulos.length < MAX_ARTICULOS) {
+              <button type="button" class="btn-secondary donaciones__agregar" (click)="agregarArticulo()">
+                <app-icono name="plus" /> Agregar otro artículo
+              </button>
+            }
+
+            <datalist id="unidadesDonacion">
+              @for (unidad of UNIDADES_SUGERIDAS; track unidad) {
+                <option [value]="unidad"></option>
+              }
+            </datalist>
+          </div>
+
+          <!-- Observaciones -->
+          <div class="form-group">
+            <label for="observaciones">Observaciones</label>
+            <textarea id="observaciones" maxlength="500" rows="3"
+                      placeholder="Ej.: Llevo las cosas en carro; necesito ayuda para descargar."
+                      [(ngModel)]="observaciones"></textarea>
+          </div>
+
+          @if (errorFormulario()) {
+            <p class="form-error" role="alert">{{ errorFormulario() }}</p>
+          }
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="cerrarFormulario()">Cancelar</button>
+            <button type="button" class="btn-primary" (click)="revisar()">Continuar</button>
+          </div>
+
+        } @else {
+
+          <!-- Confirmación -->
+          <dl class="donaciones__resumen">
+            <div>
+              <dt>Organización</dt>
+              <dd>{{ organizacionElegida()?.nombre }}</dd>
+            </div>
+            <div>
+              <dt>Entrega</dt>
+              <dd>{{ formatearFecha(fechaEntrega) }}@if (horaEntrega) { a las {{ horaEntrega }}}</dd>
+            </div>
+            @if (organizacionElegida()?.direccion) {
+              <div>
+                <dt>Dirección</dt>
+                <dd>{{ organizacionElegida()?.direccion }}</dd>
+              </div>
+            }
+            <div>
+              <dt>Lo que llevarás</dt>
+              <dd>
+                <ul>
+                  @for (articulo of articulos; track $index) {
+                    <li>
+                      {{ formatearCantidad(articulo.cantidad ?? 0, articulo.categoria === 'DINERO' ? 'COP' : articulo.unidad.trim()) }}
+                      {{ articulo.categoria === 'DINERO' ? (articulo.descripcion.trim() ? '· ' + articulo.descripcion.trim() : '') : 'de ' + articulo.descripcion.trim() }}
+                    </li>
+                  }
+                </ul>
+              </dd>
+            </div>
+            @if (observaciones.trim()) {
+              <div>
+                <dt>Observaciones</dt>
+                <dd>{{ observaciones.trim() }}</dd>
+              </div>
+            }
+          </dl>
+
+          @if (errorFormulario()) {
+            <p class="form-error" role="alert">{{ errorFormulario() }}</p>
+          }
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="volverAEditar()" [disabled]="guardando()">Volver a editar</button>
+            <button type="button" class="btn-primary" (click)="guardar()" [disabled]="guardando()">
+              {{ guardando() ? 'Programando...' : 'Programar donación' }}
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Confirmar cancelación -->
+
+@if (donacionACancelar(); as donacion) {
+  <div class="modal-backdrop" (click)="cancelando() || donacionACancelar.set(null)">
+    <div class="modal donaciones__confirmacion" role="dialog" aria-modal="true" aria-labelledby="tituloCancelar"
+         (click)="$event.stopPropagation()">
+      <h2 id="tituloCancelar">¿Cancelar la donación?</h2>
+      <p>
+        La donación para <strong>{{ donacion.nombreOrganizacion }}</strong> del
+        {{ formatearFecha(donacion.fechaEntrega) }} quedará cancelada. Si luego puedes llevarla, programa una nueva.
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="donacionACancelar.set(null)" [disabled]="cancelando()">Volver</button>
+        <button type="button" class="btn-delete" (click)="confirmarCancelacion()" [disabled]="cancelando()">
+          {{ cancelando() ? 'Cancelando...' : 'Sí, cancelar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

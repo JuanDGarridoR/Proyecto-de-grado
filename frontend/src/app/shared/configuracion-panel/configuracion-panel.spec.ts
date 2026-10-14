@@ -27,9 +27,23 @@ describe('CONFIGURACION_PANEL', () => {
   it('las secciones en construcción no aparecen en el menú de la organización', () => {
     const rutas = CONFIGURACION_PANEL['ORGANIZACION'].navItems.map((opcion) => opcion.path);
 
-    for (const seccion of ['donaciones', 'alertas', 'mapa', 'medicamentos', 'acompanantes']) {
+    for (const seccion of ['alertas', 'mapa', 'medicamentos', 'acompanantes']) {
       expect(rutas).not.toContain(`/panel/organizacion/${seccion}`);
     }
+  });
+
+  // RF-62 a RF-68
+  it('la organización tiene Donaciones e Inventario en el menú', () => {
+    const rutas = CONFIGURACION_PANEL['ORGANIZACION'].navItems.map((opcion) => opcion.path);
+
+    expect(rutas).toContain('/panel/organizacion/donaciones');
+    expect(rutas).toContain('/panel/organizacion/inventario');
+  });
+
+  it('el acompañante y el voluntario pueden donar desde su menú; la persona mayor no', () => {
+    expect(CONFIGURACION_PANEL['ACOMPANANTE'].navItems.map((o) => o.path)).toContain('/panel/acompanante/donaciones');
+    expect(CONFIGURACION_PANEL['VOLUNTARIO'].navItems.map((o) => o.path)).toContain('/panel/voluntario/donaciones');
+    expect(CONFIGURACION_PANEL['PERSONA_MAYOR'].navItems.some((o) => o.path?.includes('donaciones'))).toBe(false);
   });
 
   it('el menú del voluntario no tiene secciones vacías', () => {

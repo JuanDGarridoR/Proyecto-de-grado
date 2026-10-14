@@ -126,6 +126,16 @@ spring:
               filters:
                 - JwtAuth
 
+            # Donaciones que recibe la organización y su inventario
+            # (donacion-service). Va antes de organizacion-service porque
+            # /api/organizacion/** la capturaría.
+            - id: organizacion-donaciones
+              uri: ${DONACION_SERVICE_URL:http://localhost:8091}
+              predicates:
+                - Path=/api/organizacion/donaciones,/api/organizacion/donaciones/**,/api/organizacion/inventario,/api/organizacion/inventario/**
+              filters:
+                - JwtAuth
+
             # Información de la organización y sus personas mayores.
             - id: organizacion-service
               uri: ${ORGANIZACION_SERVICE_URL:http://localhost:8088}
@@ -186,6 +196,14 @@ spring:
               predicates:
                 - Path=/api/persona-mayor/signos-vitales
                 - Method=GET,POST,OPTIONS
+              filters:
+                - JwtAuth
+
+            # Donaciones que programan los acompañantes y voluntarios.
+            - id: donacion-service
+              uri: ${DONACION_SERVICE_URL:http://localhost:8091}
+              predicates:
+                - Path=/api/donaciones,/api/donaciones/**
               filters:
                 - JwtAuth
 

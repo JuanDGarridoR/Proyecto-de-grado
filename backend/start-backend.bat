@@ -1,5 +1,5 @@
 @echo off
-REM Arranca los nueve servicios del backend, cada uno en su propia ventana
+REM Arranca los once servicios del backend, cada uno en su propia ventana
 REM de consola. %~dp0 es la carpeta de este script, así que funciona sin
 REM importar desde dónde se ejecute.
 
@@ -29,6 +29,8 @@ start "Persona Mayor Service" cmd /k "cd /d %~dp0persona-mayor-service && .\mvnw
 start "Salud Service" cmd /k "cd /d %~dp0salud-service && .\mvnw.cmd spring-boot:run"
 
 start "Voluntario Service" cmd /k "cd /d %~dp0voluntario-service && .\mvnw.cmd spring-boot:run"
+
+start "Donacion Service" cmd /k "cd /d %~dp0donacion-service && .\mvnw.cmd spring-boot:run"
 
 echo.
 echo Todos los servicios fueron iniciados.

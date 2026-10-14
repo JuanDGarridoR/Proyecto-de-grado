@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Foto de perfil: cualquier rol la sube, solo se aceptan imágenes reales y
+ * Foto de perfil (RF-61): cualquier rol la sube, solo se aceptan imágenes reales y
  * al reemplazarla se borra la anterior de Storage.
  */
 class FotoPerfilControllerTest {

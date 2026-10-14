@@ -16,6 +16,6 @@ FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=compilacion /app/target/*.jar app.jar
 
-# Memoria acotada para que los 11 servicios quepan en un servidor de 8 GB
+# Memoria acotada para que los 12 servicios quepan en un servidor de 8 GB
 ENV JAVA_OPTS="-Xms64m -Xmx256m -XX:MaxMetaspaceSize=192m -Xss512k -XX:+UseSerialGC"
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]

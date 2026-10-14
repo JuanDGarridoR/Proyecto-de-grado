@@ -1,0 +1,237 @@
+/* Tarjeta de una donación (compartida por el donante y la organización) */
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  padding: 22px 24px;
+  box-sizing: border-box;
+
+  border-radius: 20px;
+  background: var(--vita-white, #ffffff);
+  box-shadow: 0 8px 26px rgba(20, 46, 78, 0.07);
+}
+
+/* Encabezado */
+
+.donacion__encabezado {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.donacion__avatar {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  border-radius: 14px;
+  background: #edf5fc;
+  color: var(--vita-navy);
+  font-size: 1.5rem;
+}
+
+.donacion__quien {
+  flex: 1;
+  min-width: 0;
+}
+
+.donacion__eyebrow {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--vita-text-gray);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.donacion__quien h3 {
+  margin: 0;
+  color: var(--vita-navy);
+  font-size: 1.1rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.donacion__detalle {
+  display: block;
+  margin-top: 2px;
+  color: var(--vita-text-gray);
+  font-size: 0.85rem;
+}
+
+.donacion__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+
+  padding: 8px 14px;
+  border-radius: 20px;
+
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.donacion__estado-punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.donacion__estado--activo {
+  background: rgba(45, 197, 191, 0.12);
+  color: #0f766e;
+}
+
+.donacion__estado--pendiente {
+  background: rgba(178, 106, 0, 0.1);
+  color: #b26a00;
+}
+
+.donacion__estado--rechazado {
+  background: rgba(180, 35, 24, 0.08);
+  color: #b42318;
+}
+
+/* Fecha */
+
+.donacion__fecha {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+
+  color: var(--vita-navy);
+  font-size: 0.92rem;
+}
+
+.donacion__fecha app-icono {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 1.1rem;
+}
+
+.donacion__fecha--atrasada {
+  color: #b42318;
+}
+
+/* Artículos */
+
+.donacion__articulos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.donacion__articulo {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  padding: 10px 12px;
+  border: 1px solid var(--vita-border);
+  border-radius: 12px;
+  background: var(--vita-cream-soft);
+}
+
+.donacion__articulo-icono {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+  background: #edf5fc;
+  color: var(--vita-navy);
+  font-size: 1.05rem;
+}
+
+.donacion__articulo strong {
+  display: block;
+  color: var(--vita-navy);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.donacion__articulo span {
+  display: block;
+  margin-top: 2px;
+  color: var(--vita-text-gray);
+  font-size: 0.84rem;
+}
+
+.donacion__articulo .donacion__recibido {
+  color: #0f766e;
+  font-weight: 600;
+}
+
+/* Notas */
+
+.donacion__nota {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 14px;
+
+  border-radius: 12px;
+  background: var(--vita-cream);
+  color: var(--vita-text-gray);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.donacion__nota app-icono {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.donacion__nota--organizacion {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+/* Acciones */
+
+.donacion__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.donacion__acciones:empty {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  :host {
+    padding: 18px;
+  }
+
+  .donacion__encabezado {
+    flex-wrap: wrap;
+  }
+
+  .donacion__estado {
+    order: 3;
+  }
+
+  .donacion__acciones {
+    justify-content: stretch;
+  }
+}
