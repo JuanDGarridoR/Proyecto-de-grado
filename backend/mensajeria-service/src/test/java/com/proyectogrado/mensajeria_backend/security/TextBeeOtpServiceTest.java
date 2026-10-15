@@ -238,6 +238,28 @@ class TextBeeOtpServiceTest {
     }
 
     @Test
+    void aLosCelularesFicticiosNoSeLesEnviaNadaYNoGastanCupo() throws Exception {
+        // Los tres prefijos del script de datos ficticios
+        servicio.enviarMensaje("+570000100001", "Recordatorio de medicamento");
+        servicio.enviarMensaje("+570000200001", "Alerta de emergencia");
+        servicio.enviarCodigo("+570000300001");
+
+        verify(httpClient, never()).send(any(HttpRequest.class), any());
+    }
+
+    @Test
+    void soloSonFicticiosLosCelularesQueEmpiezanPor000() {
+        assertTrue(TextBeeOtpService.esCelularFicticio("+570000100001"));
+        assertTrue(TextBeeOtpService.esCelularFicticio("+57 000 020 0001"));
+        assertTrue(TextBeeOtpService.esCelularFicticio("0001234567"));
+
+        assertFalse(TextBeeOtpService.esCelularFicticio(CELULAR));
+        assertFalse(TextBeeOtpService.esCelularFicticio("3001112233"));
+        assertFalse(TextBeeOtpService.esCelularFicticio("+57 300 000 1234"));
+        assertFalse(TextBeeOtpService.esCelularFicticio(null));
+    }
+
+    @Test
     void unMensajeVacioSeRechazaSinLlamarATextBee() throws Exception {
         assertThrows(IllegalArgumentException.class, () -> servicio.enviarMensaje(CELULAR, "  "));
         assertThrows(IllegalArgumentException.class, () -> servicio.enviarMensaje(" ", "Hola"));

@@ -76,21 +76,13 @@
 -- Contraseña de todas las cuentas ficticias: Vita2025*
 --
 -- SMS: los celulares ficticios usan el prefijo +570000, que no existe en
--- Colombia, para que ningún SMS llegue a una persona real. Aun así:
---   - las inscripciones a actividades y las citas médicas quedan con el
---     recordatorio marcado como enviado, así esos schedulers no mandan
---     nada;
---   - los medicamentos quedan con la próxima toma a 3-6 días en el
---     futuro. Cuando llegue esa fecha, si el backend está prendido, el
---     scheduler de medicamentos intentará enviar el SMS a esos números
---     inexistentes y TextBee fallará. Vuelve a correr el script para
---     correr las fechas otra vez hacia el futuro.
---   - El scheduler de cumpleaños (8 a. m.) felicita a todo el que cumpla
---     años ese día, y las cuentas ficticias tienen fechas de nacimiento
---     en todo el año: casi todos los días intentará enviar algún SMS a
---     estos números y TextBee fallará. No afecta nada más.
---   - Los celulares ficticios tampoco reciben el código OTP, así que
---     para entrar con estas cuentas usa correo y contraseña.
+-- Colombia, para que ningún SMS llegue a una persona real. mensajeria-service
+-- no le envía nada a un celular que después del +57 empieza por 000
+-- (TextBeeOtpService.esCelularFicticio): los recordatorios de medicamentos,
+-- citas y actividades, los cumpleaños y las alertas de estas cuentas se
+-- guardan en la campanita del panel, pero no gastan el cupo de SMS de
+-- TextBee. Por eso tampoco reciben el código OTP: para entrar con estas
+-- cuentas usa correo y contraseña.
 --
 -- Los voluntarios no tienen una tabla que los conecte con personas
 -- mayores (no existe en el modelo actual): quedan conectados de forma

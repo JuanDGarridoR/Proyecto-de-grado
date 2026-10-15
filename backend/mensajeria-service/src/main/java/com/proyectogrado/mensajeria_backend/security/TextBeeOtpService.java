@@ -190,9 +190,39 @@ public class TextBeeOtpService {
     }
 
     /**
-     * Hace la petición a TextBee para enviar el SMS.
+     * true si el celular es de los datos ficticios: después del indicativo
+     * +57 empieza por 000 (el script de datos ficticios usa +5700001...,
+     * +5700002... y +5700003...). Ningún celular real de Colombia empieza
+     * así: todos empiezan por 3.
+     */
+    public static boolean esCelularFicticio(String celular) {
+
+        if (celular == null) {
+            return false;
+        }
+
+        String digitos = celular.replaceAll("[^0-9]", "");
+
+        if (digitos.startsWith("57") && digitos.length() > 10) {
+            digitos = digitos.substring(2);
+        }
+
+        return digitos.startsWith("000");
+    }
+
+    /**
+     * Hace la petición a TextBee para enviar el SMS. A los celulares
+     * ficticios no se les envía nada: sin este filtro, los recordatorios y
+     * los cumpleaños de las cuentas de prueba gastan el cupo de SMS de
+     * TextBee en números que no existen. Para quien llama, el envío cuenta
+     * como hecho (la notificación del panel se guarda igual).
      */
     private void enviarSms(String celular, String mensaje) {
+
+        if (esCelularFicticio(celular)) {
+            System.out.println("SMS omitido: celular ficticio de los datos de prueba");
+            return;
+        }
 
         try {
 
