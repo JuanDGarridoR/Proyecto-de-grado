@@ -11,7 +11,7 @@ export interface ConfiguracionPanel {
  * Configuración del panel de cada rol. Convención de la barra lateral:
  * "Inicio" siempre va primero y "Perfil" siempre al final; en medio, las
  * secciones de más a menos importantes. Los nombres son cortos y sin
- * posesivos ("Recordatorios", no "Mis recordatorios"), y una misma sección
+ * posesivos ("Medicamentos", no "Mis medicamentos"), y una misma sección
  * se llama igual y usa el mismo ícono en todos los roles.
  */
 export const CONFIGURACION_PANEL: Record<string, ConfiguracionPanel> = {
@@ -20,8 +20,8 @@ export const CONFIGURACION_PANEL: Record<string, ConfiguracionPanel> = {
     roleAccent: 'var(--vita-green)',
     navItems: [
       { icon: 'home', label: 'Inicio', path: '/panel/persona-mayor' },
-      { icon: 'clock', label: 'Recordatorios', path: '/panel/persona-mayor/recordatorios' },
-      { icon: 'phone', label: 'Contactos', path: '/panel/persona-mayor/contactos' },
+      { icon: 'pill', label: 'Medicamentos', path: '/panel/persona-mayor/recordatorios' },
+      { icon: 'users', label: 'Acompañantes', path: '/panel/persona-mayor/contactos' },
       { icon: 'activity', label: 'Signos vitales', path: '/panel/persona-mayor/signos-vitales' },
       { icon: 'stethoscope', label: 'Citas médicas', path: '/panel/persona-mayor/citas-medicas' },
       { icon: 'calendar', label: 'Actividades', path: '/panel/persona-mayor/actividades' },

@@ -19,7 +19,7 @@ const MAX_TEXTO = 400;
  * ("cerrar").
  */
 const ACCIONES: [RegExp, string][] = [
-  [/emergencia|\bsos\b|auxilio/, 'pide ayuda de emergencia a tus contactos'],
+  [/emergencia|\bsos\b|auxilio/, 'pide ayuda de emergencia a tus acompañantes'],
   [/cerrar sesion|salir de la cuenta|^salir$/, 'sale de tu cuenta'],
   [/iniciar sesion|ingresar|^entrar/, 'entra a tu cuenta'],
   [/crear cuenta|registrarme|^registrarse/, 'crea tu cuenta en la plataforma'],

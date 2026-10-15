@@ -152,7 +152,7 @@ public class PersonaMayorAcompananteController {
 
             if ("PENDIENTE".equals(relacionExistente.getEstado())) {
                 return ResponseEntity.badRequest().body(relacionExistente.laEnvioElAcompanante()
-                        ? "Este acompañante ya te envió una solicitud: acéptala en tus contactos"
+                        ? "Este acompañante ya te envió una solicitud: acéptala en Acompañantes"
                         : "Ya existe una solicitud pendiente para este acompañante");
             }
 
@@ -203,7 +203,7 @@ public class PersonaMayorAcompananteController {
                 .orElse(null);
 
         if (relacion == null || !"ACEPTADA".equals(relacion.getEstado())) {
-            return ResponseEntity.status(404).body("Este acompañante no está entre tus contactos");
+            return ResponseEntity.status(404).body("Este acompañante no está entre tus acompañantes");
         }
 
         relacion.setRelacion(nueva);
