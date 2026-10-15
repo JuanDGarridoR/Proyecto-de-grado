@@ -1,0 +1,83 @@
+/* Círculo flotante del lector de voz. Va por encima de los modales
+   (z-index 1000 y 2000) para poder prenderlo o apagarlo desde ellos. */
+
+.lector {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 2500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 76px;
+  height: 76px;
+  padding: 0;
+  border: 3px solid var(--vita-white);
+  border-radius: 50%;
+  font: inherit;
+  color: var(--vita-white);
+  background: var(--vita-navy);
+  box-shadow: var(--shadow-card-lg);
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.lector app-icono {
+  font-size: 1.9rem;
+}
+
+.lector__texto {
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.lector:hover {
+  transform: scale(1.06);
+}
+
+.lector:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--vita-acento), var(--shadow-card-lg);
+}
+
+.lector--activo {
+  color: var(--vita-navy);
+  background: var(--vita-secundario);
+}
+
+/* Mientras habla, un anillo que late alrededor del círculo. */
+.lector--hablando {
+  animation: lector-latido 1.2s ease-out infinite;
+}
+
+@keyframes lector-latido {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--vita-secundario) 60%, transparent), var(--shadow-card-lg); }
+  100% { box-shadow: 0 0 0 18px transparent, var(--shadow-card-lg); }
+}
+
+@media (max-width: 600px) {
+  .lector {
+    right: 16px;
+    bottom: 16px;
+    width: 64px;
+    height: 64px;
+  }
+
+  .lector app-icono {
+    font-size: 1.6rem;
+  }
+
+  .lector__texto {
+    font-size: 0.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lector--hablando {
+    animation: none;
+  }
+}

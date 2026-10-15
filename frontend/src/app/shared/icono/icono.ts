@@ -58,6 +58,10 @@ const ICONS: Record<string, string> = {
     '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.75"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>',
   hourglass:
     '<path d="M6 3h12"/><path d="M6 21h12"/><path d="M7 3c0 4.5 4.5 6 4.5 9S7 16.5 7 21"/><path d="M17 3c0 4.5-4.5 6-4.5 9S17 16.5 17 21"/>',
+  volume:
+    '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4Z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/>',
+  'volume-off':
+    '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4Z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/>',
   info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 8h.01"/>',
   sprout:
     '<path d="M12 21v-9"/><path d="M12 12c-2.8 0-5-2-5-5.5 2.8 0 5 2 5 5.5Z"/><path d="M12 12c0-3 2.2-5.5 5-5.5 0 3.5-2.2 5.5-5 5.5Z"/>',

@@ -1,0 +1,16 @@
+@if (lector.disponible) {
+  <button
+    type="button"
+    class="lector"
+    data-lector-ignorar
+    [class.lector--activo]="lector.activo()"
+    [class.lector--hablando]="lector.hablando()"
+    [attr.aria-pressed]="lector.activo()"
+    [attr.aria-label]="lector.activo() ? 'Desactivar lector de voz' : 'Activar lector de voz'"
+    [title]="lector.activo() ? 'Lector de voz activado: toca para apagarlo' : 'Activar lector de voz'"
+    (click)="lector.alternar()"
+  >
+    <app-icono [name]="lector.activo() ? 'volume' : 'volume-off'" strokeWidth="2" />
+    <span class="lector__texto">{{ lector.activo() ? 'Lector activo' : 'Lector' }}</span>
+  </button>
+}

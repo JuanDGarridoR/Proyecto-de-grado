@@ -312,3 +312,18 @@ button {
     animation: none;
   }
 }
+
+/* Lector de voz (ver shared/lector-voz): con el lector prendido, lo que se
+   puede tocar se marca al pasar por encima, y lo que se está leyendo queda
+   resaltado mientras suena. */
+
+body.lector-activo :is(button, a[href], input, textarea, select, label, [role="button"], [data-lector]):hover {
+  outline: 3px dashed var(--vita-secundario);
+  outline-offset: 3px;
+}
+
+.lector-resaltado {
+  outline: 4px solid var(--vita-acento) !important;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
