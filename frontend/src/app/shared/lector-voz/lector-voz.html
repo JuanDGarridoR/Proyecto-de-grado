@@ -11,6 +11,12 @@
     (click)="lector.alternar()"
   >
     <app-icono [name]="lector.activo() ? 'volume' : 'volume-off'" strokeWidth="2" />
-    <span class="lector__texto">{{ lector.activo() ? 'Lector activo' : 'Lector' }}</span>
+    <!-- "activo" va en su propia línea: en una sola no cabe dentro del círculo -->
+    <span class="lector__texto">
+      Lector
+      @if (lector.activo()) {
+        <span class="lector__estado">activo</span>
+      }
+    </span>
   </button>
 }
