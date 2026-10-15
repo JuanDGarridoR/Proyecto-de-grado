@@ -9,16 +9,18 @@ registerLocaleData(localeEsCo);
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
+import { reintentosInterceptor } from './core/reintentos/reintentos.interceptor';
 
 /**
- * Configuración global: rutas, cliente HTTP con el interceptor que agrega el
- * token, e idioma es-CO.
+ * Configuración global: rutas, cliente HTTP con los interceptores (el que
+ * agrega el token y el que repite las consultas que fallan por un corte
+ * pasajero), e idioma es-CO.
  */
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, reintentosInterceptor])),
     {provide: LOCALE_ID, 
     useValue: 'es-CO' }
   ]

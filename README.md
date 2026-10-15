@@ -67,6 +67,8 @@ La solución consiste en una plataforma web, **VITA+**, orientada a apoyar la ge
 
 El backend está dividido en **Servicios**. El frontend nunca habla directamente con ellos: todas las peticiones pasan por el **API Gateway**, que valida el token JWT y las redirige al servicio correspondiente.
 
+Cómo se mantiene disponible la plataforma (health checks, réplicas y balanceo, circuit breaker, reintentos, caché, etc.) está en [ARQUITECTURA_DISPONIBILIDAD.md](ARQUITECTURA_DISPONIBILIDAD.md).
+
 ```text
 ┌──────────────────────┐
 │       Frontend       │

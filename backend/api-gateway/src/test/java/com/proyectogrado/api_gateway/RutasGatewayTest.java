@@ -49,8 +49,9 @@ class RutasGatewayTest {
         return null;
     }
 
-    private int puerto(HttpMethod metodo, String ruta) {
-        return rutaPara(metodo, ruta).getUri().getPort();
+    /** Servicio al que apunta la ruta (lb://<servicio>: el balanceador elige la instancia). */
+    private String servicio(HttpMethod metodo, String ruta) {
+        return rutaPara(metodo, ruta).getUri().getHost();
     }
 
     /** true si los filtros de la ruta dejan pasar una petición sin token. */
@@ -81,25 +82,25 @@ class RutasGatewayTest {
 
     @Test
     void cadaRutaLlegaAlServicioQueLeCorresponde() {
-        assertEquals(8081, puerto(HttpMethod.POST, "/api/auth/login"));
-        assertEquals(8082, puerto(HttpMethod.POST, "/api/otp/send"));
-        assertEquals(8082, puerto(HttpMethod.GET, "/api/notificaciones"));
-        assertEquals(8084, puerto(HttpMethod.GET, "/api/persona-mayor/medicamentos"));
-        assertEquals(8084, puerto(HttpMethod.PUT, "/api/persona-mayor/citas-medicas/3"));
-        assertEquals(8085, puerto(HttpMethod.POST, "/api/persona-mayor/emergencia"));
-        assertEquals(8085, puerto(HttpMethod.GET, "/api/persona-mayor/acompanantes"));
-        assertEquals(8086, puerto(HttpMethod.GET, "/api/acompanante/seguimiento/7/medicamentos"));
-        assertEquals(8087, puerto(HttpMethod.GET, "/api/voluntario/organizaciones"));
-        assertEquals(8088, puerto(HttpMethod.GET, "/api/organizacion/personas-mayores"));
-        assertEquals(8089, puerto(HttpMethod.GET, "/api/actividades/mias"));
-        assertEquals(8090, puerto(HttpMethod.GET, "/api/analitica/actividades"));
+        assertEquals("auth-service", servicio(HttpMethod.POST, "/api/auth/login"));
+        assertEquals("mensajeria-service", servicio(HttpMethod.POST, "/api/otp/send"));
+        assertEquals("mensajeria-service", servicio(HttpMethod.GET, "/api/notificaciones"));
+        assertEquals("salud-service", servicio(HttpMethod.GET, "/api/persona-mayor/medicamentos"));
+        assertEquals("salud-service", servicio(HttpMethod.PUT, "/api/persona-mayor/citas-medicas/3"));
+        assertEquals("persona-mayor-service", servicio(HttpMethod.POST, "/api/persona-mayor/emergencia"));
+        assertEquals("persona-mayor-service", servicio(HttpMethod.GET, "/api/persona-mayor/acompanantes"));
+        assertEquals("acompanante-service", servicio(HttpMethod.GET, "/api/acompanante/seguimiento/7/medicamentos"));
+        assertEquals("voluntario-service", servicio(HttpMethod.GET, "/api/voluntario/organizaciones"));
+        assertEquals("organizacion-service", servicio(HttpMethod.GET, "/api/organizacion/personas-mayores"));
+        assertEquals("actividad-service", servicio(HttpMethod.GET, "/api/actividades/mias"));
+        assertEquals("analitica-service", servicio(HttpMethod.GET, "/api/analitica/actividades"));
     }
 
     @Test
     void lasRutasEspecificasDeLaOrganizacionVanAntesQueLaGeneral() {
-        assertEquals(8085, puerto(HttpMethod.GET, "/api/organizacion/personas-mayores/7/acompanantes"));
-        assertEquals(8084, puerto(HttpMethod.POST, "/api/organizacion/signos-vitales/7"));
-        assertEquals(8087, puerto(HttpMethod.GET, "/api/organizacion/voluntarios/solicitudes"));
+        assertEquals("persona-mayor-service", servicio(HttpMethod.GET, "/api/organizacion/personas-mayores/7/acompanantes"));
+        assertEquals("salud-service", servicio(HttpMethod.POST, "/api/organizacion/signos-vitales/7"));
+        assertEquals("voluntario-service", servicio(HttpMethod.GET, "/api/organizacion/voluntarios/solicitudes"));
     }
 
     @Test

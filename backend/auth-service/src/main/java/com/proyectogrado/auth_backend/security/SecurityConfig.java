@@ -98,6 +98,11 @@ public class SecurityConfig {
                         )
                         .permitAll()
 
+                        // Health check de Docker. No sale a internet: el
+                        // gateway solo enruta /api/**.
+                        .requestMatchers("/actuator/health", "/actuator/health/**")
+                        .permitAll()
+
                         // Todo lo demás exige un token válido.
                         .requestMatchers("/api/auth/**")
                         .authenticated()

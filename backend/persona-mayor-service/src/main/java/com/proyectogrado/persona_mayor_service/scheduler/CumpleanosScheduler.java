@@ -11,6 +11,7 @@ import com.proyectogrado.persona_mayor_service.repository.PersonaMayorLookupRepo
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorOrganizacionRepository;
 import com.proyectogrado.persona_mayor_service.repository.UsuarioLookupRepository;
 
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -53,7 +54,13 @@ public class CumpleanosScheduler {
         this.mensajeriaClient = mensajeriaClient;
     }
 
+    /**
+     * Todos los días a las 8 a. m. Con dos réplicas, solo una la corre (ver
+     * BloqueoTareasConfig): la marca dura al menos 5 minutos, así la otra no
+     * la repite aunque su reloj vaya unos segundos atrasado.
+     */
     @Scheduled(cron = "0 0 8 * * *", zone = "America/Bogota")
+    @SchedulerLock(name = "persona-mayor.cumpleanos", lockAtLeastFor = "PT5M", lockAtMostFor = "PT30M")
     public void revisarCumpleanos() {
         revisarCumpleanos(ZonaHoraria.hoy());
     }

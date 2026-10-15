@@ -4,11 +4,18 @@
 # Las claves y el dominio van en el archivo .env (copiar .env.example).
 # Solo el frontend (Caddy) se expone a internet, en los puertos 80 y 443;
 # los servicios se hablan entre sí por la red interna de Docker.
+#
+# Disponibilidad (ver ARQUITECTURA_DISPONIBILIDAD.md):
+# - Cada servicio tiene health check; si deja de responder, autoheal lo reinicia.
+# - auth, persona mayor y salud corren en dos réplicas (servicio y servicio-2);
+#   el gateway reparte las peticiones entre ellas.
 
 x-servicio: &servicio
   restart: unless-stopped
   env_file: .env
   mem_limit: 600m
+  labels:
+    autoheal: "true"
   environment:
     # Direcciones internas de cada servicio (reemplazan los localhost)
     AUTH_SERVICE_URL: http://auth-service:8081
@@ -23,11 +30,35 @@ x-servicio: &servicio
     DONACION_SERVICE_URL: http://donacion-service:8091
     # El gateway solo acepta peticiones del navegador desde la página publicada
     CORS_ORIGINS: https://${DOMINIO}
+    # Perfil "docker": el gateway suma las réplicas (application-docker.yml)
+    SPRING_PROFILES_ACTIVE: docker
+    # El health check va en un puerto aparte, igual en todos los contenedores
+    MANAGEMENT_SERVER_PORT: "9000"
+  # Responde si la aplicación está viva (no revisa la base de datos: si
+  # Supabase falla, reiniciar los servicios no lo arregla). start_period da
+  # tiempo a que arranque Spring antes de contar los fallos.
+  healthcheck:
+    test: ["CMD", "curl", "-fsS", "http://localhost:9000/actuator/health/liveness"]
+    interval: 15s
+    timeout: 5s
+    retries: 4
+    start_period: 120s
 
 services:
   auth-service:
     <<: *servicio
+    image: vitaplus/auth-service
     build: { context: ./backend, args: { SERVICIO: auth-service } }
+
+  # Segunda réplica: misma imagen. Arranca cuando la primera ya está sana,
+  # para que no hagan a la vez las tareas de arranque (crear tablas, el
+  # bucket de fotos, los catálogos...).
+  auth-service-2:
+    <<: *servicio
+    image: vitaplus/auth-service
+    pull_policy: never
+    depends_on:
+      auth-service: { condition: service_healthy }
 
   mensajeria-service:
     <<: *servicio
@@ -35,11 +66,27 @@ services:
 
   salud-service:
     <<: *servicio
+    image: vitaplus/salud-service
     build: { context: ./backend, args: { SERVICIO: salud-service } }
+
+  salud-service-2:
+    <<: *servicio
+    image: vitaplus/salud-service
+    pull_policy: never
+    depends_on:
+      salud-service: { condition: service_healthy }
 
   persona-mayor-service:
     <<: *servicio
+    image: vitaplus/persona-mayor-service
     build: { context: ./backend, args: { SERVICIO: persona-mayor-service } }
+
+  persona-mayor-service-2:
+    <<: *servicio
+    image: vitaplus/persona-mayor-service
+    pull_policy: never
+    depends_on:
+      persona-mayor-service: { condition: service_healthy }
 
   acompanante-service:
     <<: *servicio
@@ -65,6 +112,8 @@ services:
     <<: *servicio
     build: { context: ./backend, args: { SERVICIO: donacion-service } }
 
+  # No espera a los servicios: arranca aunque alguno falle, y el circuit
+  # breaker responde por ese servicio mientras tanto.
   gateway:
     <<: *servicio
     build: { context: ./backend, args: { SERVICIO: api-gateway } }
@@ -82,7 +131,22 @@ services:
       - caddy_data:/data      # certificados HTTPS (no se pierden al reiniciar)
       - caddy_config:/config
     depends_on:
-      - gateway
+      gateway: { condition: service_healthy }
+
+  # Docker reinicia un contenedor que se cae (restart), pero no uno que sigue
+  # encendido y dejó de responder. autoheal revisa cada 10 s y reinicia los
+  # que tienen la etiqueta autoheal=true y quedaron "unhealthy". Necesita el
+  # socket de Docker para poder reiniciarlos.
+  autoheal:
+    image: willfarrell/autoheal:1.2.0
+    restart: unless-stopped
+    mem_limit: 50m
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+      AUTOHEAL_INTERVAL: 10
+      AUTOHEAL_START_PERIOD: 120
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 volumes:
   caddy_data:

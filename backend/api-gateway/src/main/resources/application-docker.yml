@@ -1,0 +1,21 @@
+# Configuración del gateway en el servidor (perfil "docker", lo activa
+# docker-compose.yml). Se suma a application.yml.
+
+spring:
+  cloud:
+    # Servicios con dos réplicas (ver docker-compose.yml): auth (inicio de
+    # sesión), persona mayor (botón de emergencia) y salud (medicamentos y
+    # citas). Si una réplica se cae, la otra atiende todo.
+    discovery:
+      client:
+        simple:
+          instances:
+            auth-service:
+              - uri: http://auth-service:8081
+              - uri: http://auth-service-2:8081
+            persona-mayor-service:
+              - uri: http://persona-mayor-service:8085
+              - uri: http://persona-mayor-service-2:8085
+            salud-service:
+              - uri: http://salud-service:8084
+              - uri: http://salud-service-2:8084

@@ -6,6 +6,8 @@ import com.proyectogrado.persona_mayor_service.model.Gusto;
 import com.proyectogrado.persona_mayor_service.repository.GustoRepository;
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorGustoRepository;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -39,8 +41,12 @@ public class GustoController {
         this.personaMayorGustoRepository = personaMayorGustoRepository;
     }
 
-    /** Todo el catálogo, o solo una categoría si se indica. */
+    /**
+     * Todo el catálogo, o solo una categoría si se indica. Va en caché:
+     * casi no cambia y lo piden todos los formularios de intereses.
+     */
     @GetMapping
+    @Cacheable(cacheNames = "gustos", key = "#categoria ?: 'todas'")
     public List<GustoResponse> listar(@RequestParam(required = false) String categoria) {
         List<Gusto> gustos = categoria == null
                 ? gustoRepository.findAll()
@@ -53,6 +59,7 @@ public class GustoController {
 
     /** Agrega un gusto al catálogo; el nombre no se puede repetir. */
     @PostMapping
+    @CacheEvict(cacheNames = "gustos", allEntries = true)
     public ResponseEntity<?> crear(@RequestBody GustoRequest request) {
         if (request.getNombre() == null || request.getNombre().isBlank()) {
             return ResponseEntity.badRequest().body("El nombre es obligatorio");
@@ -68,6 +75,7 @@ public class GustoController {
 
     /** Cambia el nombre o la categoría de un gusto. */
     @PutMapping("/{id}")
+    @CacheEvict(cacheNames = "gustos", allEntries = true)
     public ResponseEntity<?> actualizar(@PathVariable Integer id, @RequestBody GustoRequest request) {
         Gusto gusto = gustoRepository.findById(id).orElse(null);
         if (gusto == null) {
@@ -85,6 +93,7 @@ public class GustoController {
 
     /** Borra un gusto si nadie lo tiene asignado; si alguien lo tiene, responde 409. */
     @DeleteMapping("/{id}")
+    @CacheEvict(cacheNames = "gustos", allEntries = true)
     public ResponseEntity<?> eliminar(@PathVariable Integer id) {
         if (!gustoRepository.existsById(id)) {
             return ResponseEntity.notFound().build();

@@ -9,6 +9,7 @@ import com.proyectogrado.salud_backend.model.SeveridadCondicion;
 import com.proyectogrado.salud_backend.repository.CondicionSaludRepository;
 import com.proyectogrado.salud_backend.repository.PersonaMayorCondicionSaludRepository;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -46,8 +47,9 @@ public class CondicionSaludController {
         this.personaMayorCondicionSaludRepository = personaMayorCondicionSaludRepository;
     }
 
-    /** Catálogo completo, del que la persona mayor elige. */
+    /** Catálogo completo, del que la persona mayor elige. Va en caché: solo cambia al arrancar. */
     @GetMapping("/catalogo")
+    @Cacheable("catalogoCondicionesSalud")
     public List<CondicionSaludResponse> catalogo() {
         return condicionSaludRepository.findAllByOrderByTipoAscCategoriaAscNombreAsc()
                 .stream()

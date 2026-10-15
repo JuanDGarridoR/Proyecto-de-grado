@@ -25,6 +25,12 @@
 
     <dependencies>
 
+        <!-- /actuator/health para los health checks de Docker. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- Spring Boot y Jackson -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

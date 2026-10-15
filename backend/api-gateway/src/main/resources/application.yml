@@ -7,15 +7,98 @@ spring:
   config:
     import: "optional:file:../secretos.properties"
 
-  # No se usa descubrimiento de servicios: cada ruta apunta a una URL fija.
-  autoconfigure:
-    exclude:
-      - org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration
-
   cloud:
+    # Dónde está cada servicio. Las rutas usan lb://<servicio> y el balanceador
+    # reparte las peticiones entre sus instancias (round robin). En desarrollo
+    # cada servicio tiene una sola instancia en localhost; en el servidor,
+    # application-docker.yml agrega las réplicas.
+    discovery:
+      client:
+        simple:
+          instances:
+            auth-service:
+              - uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+            mensajeria-service:
+              - uri: ${MENSAJERIA_SERVICE_URL:http://localhost:8082}
+            salud-service:
+              - uri: ${SALUD_SERVICE_URL:http://localhost:8084}
+            persona-mayor-service:
+              - uri: ${PERSONA_MAYOR_SERVICE_URL:http://localhost:8085}
+            acompanante-service:
+              - uri: ${ACOMPANANTE_SERVICE_URL:http://localhost:8086}
+            voluntario-service:
+              - uri: ${VOLUNTARIO_SERVICE_URL:http://localhost:8087}
+            organizacion-service:
+              - uri: ${ORGANIZACION_SERVICE_URL:http://localhost:8088}
+            actividad-service:
+              - uri: ${ACTIVIDAD_SERVICE_URL:http://localhost:8089}
+            analitica-service:
+              - uri: ${ANALITICA_SERVICE_URL:http://localhost:8090}
+            donacion-service:
+              - uri: ${DONACION_SERVICE_URL:http://localhost:8091}
+
+    # Round robin entre las instancias. Con retry.enabled, cuando el filtro
+    # Retry (abajo) repite una petición, el balanceador la manda a una
+    # instancia distinta de la que acaba de fallar: si una réplica está caída,
+    # el reintento cae en la otra.
+    #
+    # No se usa el health check activo del balanceador (configurations:
+    # health-check): con la lista fija de instancias de arriba no recibe
+    # ninguna y deja todas las rutas sin servicio. De las réplicas que no
+    # responden se encargan los reintentos y, en el servidor, Docker (las
+    # reinicia al fallar su health check; ver docker-compose.yml).
+    loadbalancer:
+      retry:
+        enabled: true
+
     gateway:
       server:
         webflux:
+          # Tiempo máximo para conectarse a un servicio y para que responda.
+          # Sin esto, un servicio colgado deja la petición esperando para siempre.
+          httpclient:
+            connect-timeout: 3000
+            response-timeout: 60s
+
+          # Se aplican a todas las rutas, en este orden (el primero envuelve a
+          # los demás, así el circuit breaker solo ve el resultado final):
+          # 1. CircuitBreaker: uno por ruta (toma el id de la ruta). Si una ruta
+          #    falla mucho seguido, deja de llamar al servicio un rato y responde
+          #    de inmediato con /fallback/servicio-no-disponible (ver
+          #    FallbackController), en vez de acumular peticiones colgadas.
+          # 2. Retry de GET: los GET no cambian nada, así que repetirlos es
+          #    seguro aunque el servicio alcanzara a recibirlos. Se repiten si
+          #    no hubo respuesta a tiempo o si llegó 502/503/504.
+          # 3. Retry de cualquier método, solo si no se pudo ni conectar
+          #    (conexión rechazada, réplica apagada o reiniciándose): la
+          #    petición nunca llegó, así que repetir un POST no duplica nada.
+          default-filters:
+            - name: CircuitBreaker
+              args:
+                fallbackUri: forward:/fallback/servicio-no-disponible
+                statusCodes:
+                  - BAD_GATEWAY
+                  - SERVICE_UNAVAILABLE
+                  - GATEWAY_TIMEOUT
+            - name: Retry
+              args:
+                retries: 2
+                methods: GET
+                series: ""
+                statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE,GATEWAY_TIMEOUT
+                exceptions: java.io.IOException,java.util.concurrent.TimeoutException
+                backoff:
+                  firstBackoff: 200ms
+                  maxBackoff: 1s
+                  factor: 2
+                  basedOnPreviousValue: false
+            - name: Retry
+              args:
+                retries: 2
+                methods: GET,POST,PUT,DELETE,PATCH
+                series: ""
+                exceptions: java.net.ConnectException,java.net.UnknownHostException
+
           # CORS para el frontend: en desarrollo, Angular en localhost:4200; en
           # el servidor, la dirección pública (variable CORS_ORIGINS, separada
           # por comas). Aplica a las rutas de abajo, no a los controladores del
@@ -42,7 +125,7 @@ spring:
             # registro son públicos; auth-service valida el token por su cuenta
             # en las demás rutas.
             - id: auth-backend
-              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+              uri: lb://auth-service
               predicates:
                 - Path=/api/auth/**
 
@@ -50,13 +133,13 @@ spring:
             # lo llama auth-service directamente, y si estuviera abierto se
             # podrían adivinar códigos de otros celulares sin pasar por el login.
             - id: mensajeria-otp
-              uri: ${MENSAJERIA_SERVICE_URL:http://localhost:8082}
+              uri: lb://mensajeria-service
               predicates:
                 - Path=/api/otp/send
 
             # Campanita del panel: SMS enviados al usuario autenticado.
             - id: mensajeria-notificaciones
-              uri: ${MENSAJERIA_SERVICE_URL:http://localhost:8082}
+              uri: lb://mensajeria-service
               predicates:
                 - Path=/api/notificaciones/**
               filters:
@@ -65,7 +148,7 @@ spring:
             # Gustos, acompañantes, organizaciones y botón de emergencia
             # de la persona mayor.
             - id: personamayor-service
-              uri: ${PERSONA_MAYOR_SERVICE_URL:http://localhost:8085}
+              uri: lb://persona-mayor-service
               predicates:
                 - Path=/api/persona-mayor/acompanantes/**,/api/persona-mayor/organizaciones/**,/api/persona-mayor/emergencia,/api/persona-mayor/*/gustos,/api/gustos/**
               filters:
@@ -75,7 +158,7 @@ spring:
             # gestiona por una persona mayor (salud-service). Van antes de
             # acompanante-service porque /api/acompanante/** las capturaría.
             - id: acompanante-salud
-              uri: ${SALUD_SERVICE_URL:http://localhost:8084}
+              uri: lb://salud-service
               predicates:
                 - Path=/api/acompanante/personas-mayores/*/medicamentos/**,/api/acompanante/personas-mayores/*/citas-medicas/**,/api/acompanante/personas-mayores/*/condiciones-salud/**
               filters:
@@ -84,7 +167,7 @@ spring:
             # Perfil de una persona mayor editado por su acompañante
             # (auth-service, dueño de la tabla usuario).
             - id: acompanante-informacion-persona-mayor
-              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+              uri: lb://auth-service
               predicates:
                 - Path=/api/acompanante/personas-mayores/*/informacion
               filters:
@@ -92,7 +175,7 @@ spring:
 
             # Personas mayores a cargo del acompañante y su seguimiento.
             - id: acompanante-service
-              uri: ${ACOMPANANTE_SERVICE_URL:http://localhost:8086}
+              uri: lb://acompanante-service
               predicates:
                 - Path=/api/acompanante/**
               filters:
@@ -102,7 +185,7 @@ spring:
             # Los atiende persona-mayor-service. Va antes de organizacion-service
             # porque /api/organizacion/** la capturaría.
             - id: organizacion-personas-mayores-acompanantes
-              uri: ${PERSONA_MAYOR_SERVICE_URL:http://localhost:8085}
+              uri: lb://persona-mayor-service
               predicates:
                 - Path=/api/organizacion/personas-mayores/*/acompanantes
               filters:
@@ -111,7 +194,7 @@ spring:
             # Signos vitales que registra la organización (salud-service). Va
             # antes de organizacion-service porque /api/organizacion/** la capturaría.
             - id: organizacion-signos-vitales
-              uri: ${SALUD_SERVICE_URL:http://localhost:8084}
+              uri: lb://salud-service
               predicates:
                 - Path=/api/organizacion/signos-vitales/**
               filters:
@@ -120,7 +203,7 @@ spring:
             # Voluntarios de la organización: la vinculación vive en
             # voluntario-service. Va antes de organizacion-service por la misma razón.
             - id: organizacion-voluntarios
-              uri: ${VOLUNTARIO_SERVICE_URL:http://localhost:8087}
+              uri: lb://voluntario-service
               predicates:
                 - Path=/api/organizacion/voluntarios,/api/organizacion/voluntarios/**
               filters:
@@ -130,7 +213,7 @@ spring:
             # (donacion-service). Va antes de organizacion-service porque
             # /api/organizacion/** la capturaría.
             - id: organizacion-donaciones
-              uri: ${DONACION_SERVICE_URL:http://localhost:8091}
+              uri: lb://donacion-service
               predicates:
                 - Path=/api/organizacion/donaciones,/api/organizacion/donaciones/**,/api/organizacion/inventario,/api/organizacion/inventario/**
               filters:
@@ -138,7 +221,7 @@ spring:
 
             # Información de la organización y sus personas mayores.
             - id: organizacion-service
-              uri: ${ORGANIZACION_SERVICE_URL:http://localhost:8088}
+              uri: lb://organizacion-service
               predicates:
                 - Path=/api/organizacion/**
               filters:
@@ -146,7 +229,7 @@ spring:
 
             # Analítica de la organización: datos de los reportes y su PDF.
             - id: analitica-service
-              uri: ${ANALITICA_SERVICE_URL:http://localhost:8090}
+              uri: lb://analitica-service
               predicates:
                 - Path=/api/analitica/**
               filters:
@@ -154,7 +237,7 @@ spring:
 
             # Perfil del voluntario y sus vínculos con organizaciones.
             - id: voluntario-service
-              uri: ${VOLUNTARIO_SERVICE_URL:http://localhost:8087}
+              uri: lb://voluntario-service
               predicates:
                 - Path=/api/voluntario/**
               filters:
@@ -162,7 +245,7 @@ spring:
 
             # Medicamentos y recordatorios de la persona mayor.
             - id: salud-backend
-              uri: ${SALUD_SERVICE_URL:http://localhost:8084}
+              uri: lb://salud-service
               predicates:
                 - Path=/api/persona-mayor/medicamentos/**
               filters:
@@ -171,7 +254,7 @@ spring:
             # Citas médicas de la persona mayor: registrarlas, editarlas,
             # borrarlas y ver las próximas y las pasadas.
             - id: salud-citas-medicas
-              uri: ${SALUD_SERVICE_URL:http://localhost:8084}
+              uri: lb://salud-service
               predicates:
                 - Path=/api/persona-mayor/citas-medicas/**
               filters:
@@ -180,7 +263,7 @@ spring:
             # Datos de salud de la persona mayor: enfermedades, alergias y
             # discapacidades, y el catálogo del que las elige.
             - id: salud-condiciones-salud
-              uri: ${SALUD_SERVICE_URL:http://localhost:8084}
+              uri: lb://salud-service
               predicates:
                 - Path=/api/persona-mayor/condiciones-salud,/api/persona-mayor/condiciones-salud/**
               filters:
@@ -192,7 +275,7 @@ spring:
             # OPTIONS hace falta para el preflight de CORS del navegador: sin
             # él no hay ruta y el gateway responde sin cabeceras CORS.
             - id: salud-signos-vitales-persona-mayor
-              uri: ${SALUD_SERVICE_URL:http://localhost:8084}
+              uri: lb://salud-service
               predicates:
                 - Path=/api/persona-mayor/signos-vitales
                 - Method=GET,POST,OPTIONS
@@ -201,7 +284,7 @@ spring:
 
             # Donaciones que programan los acompañantes y voluntarios.
             - id: donacion-service
-              uri: ${DONACION_SERVICE_URL:http://localhost:8091}
+              uri: lb://donacion-service
               predicates:
                 - Path=/api/donaciones,/api/donaciones/**
               filters:
@@ -209,7 +292,7 @@ spring:
 
             # Actividades de las organizaciones y participación en ellas.
             - id: actividad-service
-              uri: ${ACTIVIDAD_SERVICE_URL:http://localhost:8089}
+              uri: lb://actividad-service
               predicates:
                 - Path=/api/actividades/**
               filters:
@@ -218,7 +301,46 @@ spring:
 # Puerto del gateway; es el único que usa el frontend.
 server:
   port: 8080
+  shutdown: graceful
 
 # Clave para validar los tokens. Tiene que ser igual a jwt.secret de auth-service.
 jwt:
   secret: ${JWT_SECRET}
+# Al apagarse (p. ej. al actualizar), termina las peticiones en curso antes de cerrar.
+spring.lifecycle.timeout-per-shutdown-phase: 20s
+
+# Health check para Docker (/actuator/health/liveness y /readiness). Solo se
+# expone health; en el servidor va en el puerto 9000, que no se publica.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+# Circuit breaker de cada ruta (el id es el de la ruta). Se abre si en las
+# últimas 20 peticiones (mínimo 10) falla la mitad o más; abierto, responde
+# de una vez con el fallback durante 20 s y luego deja pasar 3 de prueba.
+# timeout-duration: tiempo máximo de una petición antes de contarla como
+# fallida; el reporte en PDF de analítica tiene más margen.
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 20s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 20s
+    instances:
+      analitica-service:
+        timeout-duration: 60s

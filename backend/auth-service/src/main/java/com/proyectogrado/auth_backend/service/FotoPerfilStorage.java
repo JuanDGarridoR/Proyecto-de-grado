@@ -8,10 +8,13 @@ import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 
@@ -48,8 +51,15 @@ public class FotoPerfilStorage {
         this.configurado = secretKey != null && !secretKey.isBlank();
         this.urlPublica = supabaseUrl + "/storage/v1/object/public/" + bucket + "/";
 
+        // Si Supabase Storage no responde, la subida falla en vez de dejar el
+        // hilo esperando para siempre (las fotos pesan hasta 2 MB: 30 s alcanzan).
+        JdkClientHttpRequestFactory conexion = new JdkClientHttpRequestFactory(
+                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build());
+        conexion.setReadTimeout(Duration.ofSeconds(30));
+
         RestClient.Builder builder = RestClient.builder()
                 .baseUrl(supabaseUrl + "/storage/v1")
+                .requestFactory(conexion)
                 .defaultHeader("apikey", secretKey);
 
         // Las claves nuevas (sb_secret_...) bastan en "apikey". La service_role

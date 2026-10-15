@@ -17,6 +17,17 @@
 	handle {
 		root * /srv
 		try_files {path} /index.html
+
+		# Caché del navegador. Los .js y .css de Angular llevan un hash en el
+		# nombre (main-ABC123.js) que cambia con cada versión, así que se
+		# pueden guardar un año sin riesgo de ver una versión vieja. index.html
+		# no se guarda: siempre se pide, para que apunte a los archivos nuevos.
+		@conHash path_regexp -[A-Za-z0-9_-]{8,}\.(js|css)$
+		header @conHash Cache-Control "public, max-age=31536000, immutable"
+
+		@index path / /index.html
+		header @index Cache-Control "no-cache"
+
 		file_server
 	}
 }
