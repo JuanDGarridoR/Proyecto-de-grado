@@ -2,6 +2,7 @@ package com.proyectogrado.persona_mayor_service.controller;
 
 import com.proyectogrado.persona_mayor_service.dto.AcompananteResponse;
 import com.proyectogrado.persona_mayor_service.dto.AgregarAcompananteRequest;
+import com.proyectogrado.persona_mayor_service.dto.CambiarRelacionRequest;
 import com.proyectogrado.persona_mayor_service.model.AcompananteLookup;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorAcompanante;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorAcompananteId;
@@ -37,6 +38,9 @@ import java.util.List;
 @RequestMapping("/api/persona-mayor/acompanantes")
 public class PersonaMayorAcompananteController {
 
+    /** Lo que cabe en la tarjeta: "Hija", "Vecina del piso de arriba"... */
+    private static final int LARGO_MAXIMO_RELACION = 50;
+
     private final PersonaMayorAcompananteRepository relacionRepository;
     private final UsuarioLookupRepository usuarioLookupRepository;
     private final AcompananteLookupRepository acompananteLookupRepository;
@@ -60,7 +64,7 @@ public class PersonaMayorAcompananteController {
                 relacionRepository.findById_IdPersonaMayorAndEstado(idPersonaMayor, "ACEPTADA");
 
         List<AcompananteResponse> respuesta = relaciones.stream()
-                .map(relacion -> construirRespuesta(relacion.getId().getIdAcompanante()))
+                .map(this::construirRespuesta)
                 .toList();
 
         return ResponseEntity.ok(respuesta);
@@ -75,7 +79,7 @@ public class PersonaMayorAcompananteController {
                 .findById_IdPersonaMayorAndEstado(idPersonaMayor, "PENDIENTE")
                 .stream()
                 .filter(PersonaMayorAcompanante::laEnvioElAcompanante)
-                .map(relacion -> construirRespuesta(relacion.getId().getIdAcompanante()))
+                .map(this::construirRespuesta)
                 .toList();
 
         return ResponseEntity.ok(respuesta);
@@ -140,9 +144,6 @@ public class PersonaMayorAcompananteController {
         PersonaMayorAcompanante relacionExistente =
                 relacionRepository.findById(idRelacion).orElse(null);
 
-        acompanante.setRelacion(request.relacion());
-        acompananteLookupRepository.saveAndFlush(acompanante);
-
         if (relacionExistente != null) {
 
             if ("ACEPTADA".equals(relacionExistente.getEstado())) {
@@ -164,6 +165,7 @@ public class PersonaMayorAcompananteController {
             // Estaba RECHAZADA: se permite volver a intentar.
             relacionExistente.setEstado("PENDIENTE");
             relacionExistente.setSolicitadaPor(PersonaMayorAcompanante.PERSONA_MAYOR);
+            relacionExistente.setRelacion(limpiar(request.relacion()));
             relacionRepository.saveAndFlush(relacionExistente);
 
             return ResponseEntity.ok("Solicitud de acompañamiento enviada correctamente");
@@ -174,9 +176,40 @@ public class PersonaMayorAcompananteController {
 
         relacion.setEstado("PENDIENTE");
         relacion.setSolicitadaPor(PersonaMayorAcompanante.PERSONA_MAYOR);
+        relacion.setRelacion(limpiar(request.relacion()));
         relacionRepository.saveAndFlush(relacion);
 
         return ResponseEntity.ok("Solicitud de acompañamiento enviada correctamente");
+    }
+
+    /** Cambia el parentesco de uno de sus acompañantes (por ejemplo, de "Vecina" a "Sobrina"). */
+    @PutMapping("/{idAcompanante}/relacion")
+    public ResponseEntity<?> cambiarRelacion(
+            @RequestHeader("X-User-Id") Integer idPersonaMayor,
+            @PathVariable Integer idAcompanante,
+            @RequestBody CambiarRelacionRequest request
+    ) {
+        String nueva = limpiar(request.relacion());
+        if (nueva == null) {
+            return ResponseEntity.badRequest().body("El parentesco es obligatorio");
+        }
+        if (nueva.length() > LARGO_MAXIMO_RELACION) {
+            return ResponseEntity.badRequest()
+                    .body("El parentesco puede tener máximo " + LARGO_MAXIMO_RELACION + " caracteres");
+        }
+
+        PersonaMayorAcompanante relacion = relacionRepository
+                .findById(new PersonaMayorAcompananteId(idPersonaMayor, idAcompanante))
+                .orElse(null);
+
+        if (relacion == null || !"ACEPTADA".equals(relacion.getEstado())) {
+            return ResponseEntity.status(404).body("Este acompañante no está entre tus contactos");
+        }
+
+        relacion.setRelacion(nueva);
+        relacionRepository.saveAndFlush(relacion);
+
+        return ResponseEntity.ok(construirRespuesta(relacion));
     }
 
     /** Quita el vínculo con un acompañante, esté en el estado que esté. */
@@ -226,20 +259,38 @@ public class PersonaMayorAcompananteController {
         return ResponseEntity.ok("Solicitud de acompañamiento " + participioParaMensaje);
     }
 
-    private AcompananteResponse construirRespuesta(Integer idAcompanante) {
+    private AcompananteResponse construirRespuesta(PersonaMayorAcompanante vinculo) {
 
+        Integer idAcompanante = vinculo.getId().getIdAcompanante();
         UsuarioLookup usuario = usuarioLookupRepository.findById(idAcompanante).orElse(null);
-
-        String relacion = acompananteLookupRepository.findById(idAcompanante)
-                .map(AcompananteLookup::getRelacion)
-                .orElse(null);
 
         return new AcompananteResponse(
                 idAcompanante,
                 usuario != null ? usuario.getNombreUsuario() : null,
                 usuario != null ? usuario.getCelular() : null,
-                relacion,
+                relacionDe(vinculo),
                 usuario != null ? usuario.getFotoPerfil() : null
         );
+    }
+
+    /**
+     * El parentesco del vínculo; en vínculos anteriores a que se guardara
+     * ahí, el que quedó en la tabla acompanante.
+     */
+    private String relacionDe(PersonaMayorAcompanante vinculo) {
+        if (vinculo.getRelacion() != null) {
+            return vinculo.getRelacion();
+        }
+        return acompananteLookupRepository.findById(vinculo.getId().getIdAcompanante())
+                .map(AcompananteLookup::getRelacion)
+                .orElse(null);
+    }
+
+    /** El texto sin espacios de más, o null si quedó vacío. */
+    private static String limpiar(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+        return texto.trim();
     }
 }

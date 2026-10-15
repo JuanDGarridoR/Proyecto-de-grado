@@ -193,8 +193,10 @@ public class AcompananteSeguimientoController {
                                     .findById(idOtroAcompanante)
                                     .orElse(null);
 
-                    String tipoRelacion =
-                            acompananteInfoLookupRepository
+                    // El del vínculo; si es anterior a que se guardara ahí, el del acompañante.
+                    String tipoRelacion = relacionAcompanante.getRelacion() != null
+                            ? relacionAcompanante.getRelacion()
+                            : acompananteInfoLookupRepository
                                     .findById(idOtroAcompanante)
                                     .map(AcompananteInfoLookup::getRelacion)
                                     .orElse(null);

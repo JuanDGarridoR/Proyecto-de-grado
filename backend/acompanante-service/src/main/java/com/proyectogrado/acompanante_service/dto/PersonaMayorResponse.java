@@ -9,6 +9,8 @@ public record PersonaMayorResponse(
         String celular,
         String correo,
         /** URL pública de la foto de perfil, o null si no tiene. */
-        String fotoPerfil
+        String fotoPerfil,
+        /** Parentesco del acompañante con ella (por ejemplo, "Hijo"); null si no se indicó. */
+        String relacion
 ) {
 }

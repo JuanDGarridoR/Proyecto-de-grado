@@ -6,9 +6,11 @@ import {
 } from '../../../../core/acompanantes/acompanante.service';
 import { EmergenciaService } from '../../../../core/emergencia/emergencia.service';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
+import { mensajeDeError } from '../../../../core/formato/formato';
 import { Icono } from '../../../../shared/icono/icono';
 import { TarjetaPersona } from '../../../../shared/tarjeta-persona/tarjeta-persona';
 import { CancelarAsociacion } from '../../../../shared/cancelar-asociacion/cancelar-asociacion';
+import { EditarParentesco } from '../../../../shared/editar-parentesco/editar-parentesco';
 import {
   SolicitudAcompanamientoModal,
   DatosSolicitudAcompanamiento
@@ -17,12 +19,13 @@ import {
 /**
  * Contactos de la persona mayor: botón de emergencia, sus acompañantes, el
  * formulario para agregar uno nuevo por celular y las solicitudes que le
- * envían los acompañantes (para aceptarlas o rechazarlas).
+ * envían los acompañantes (para aceptarlas o rechazarlas) y el
+ * modal para cambiar el parentesco de un acompañante.
  */
 @Component({
   selector: 'app-contactos',
   standalone: true,
-  imports: [Icono, FormsModule, TarjetaPersona, CancelarAsociacion, SolicitudAcompanamientoModal],
+  imports: [Icono, FormsModule, TarjetaPersona, CancelarAsociacion, EditarParentesco, SolicitudAcompanamientoModal],
   templateUrl: './contactos.html',
   styleUrl: './contactos.css'
 })
@@ -46,6 +49,11 @@ export class Contactos implements OnInit {
   // Solicitudes que le enviaron acompañantes
   protected readonly solicitudes = signal<Acompanante[]>([]);
   protected readonly solicitudProcesando = signal<number | null>(null);
+
+  // Modal para cambiar el parentesco de un acompañante
+  protected readonly acompananteAEditar = signal<Acompanante | null>(null);
+  protected readonly guardandoParentesco = signal(false);
+  protected readonly errorParentesco = signal<string | null>(null);
 
   // Modal para quitar un acompañante
   protected readonly acompananteACancelar = signal<Acompanante | null>(null);
@@ -106,6 +114,36 @@ export class Contactos implements OnInit {
       },
       error: () => {
         this.acompanantes.set([]);
+      }
+    });
+  }
+
+  mostrarEdicionParentesco(acompanante: Acompanante): void {
+    this.acompananteAEditar.set(acompanante);
+    this.errorParentesco.set(null);
+    this.mensajeCancelacion.set(null);
+    this.errorCancelacion.set(null);
+  }
+
+  /** Guarda el nuevo parentesco y lo cambia en la tarjeta sin recargar la lista. */
+  guardarParentesco(relacion: string): void {
+    const acompanante = this.acompananteAEditar();
+    if (!acompanante) return;
+
+    this.guardandoParentesco.set(true);
+    this.errorParentesco.set(null);
+
+    this.acompananteService.cambiarRelacionAcompanante(acompanante.idUsuario, relacion).subscribe({
+      next: (actualizado) => {
+        this.guardandoParentesco.set(false);
+        this.acompananteAEditar.set(null);
+        this.acompanantes.update((lista) =>
+          lista.map((ac) => ac.idUsuario === actualizado.idUsuario ? { ...ac, relacion: actualizado.relacion } : ac)
+        );
+      },
+      error: (error) => {
+        this.guardandoParentesco.set(false);
+        this.errorParentesco.set(mensajeDeError(error, 'No se pudo cambiar el parentesco.'));
       }
     });
   }

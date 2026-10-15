@@ -10,9 +10,11 @@ import { Icono } from '../../../../shared/icono/icono';
 import { BuscadorNombre, filtrarPorNombre } from '../../../../shared/buscador-nombre/buscador-nombre';
 import { TarjetaPersona } from '../../../../shared/tarjeta-persona/tarjeta-persona';
 import { CancelarAsociacion } from '../../../../shared/cancelar-asociacion/cancelar-asociacion';
+import { EditarParentesco } from '../../../../shared/editar-parentesco/editar-parentesco';
 import { ModalSignosVitales } from '../../../../shared/modal-signos-vitales/modal-signos-vitales';
 import { ModalAcompanantes, AcompananteResumen } from '../../../../shared/modal-acompanantes/modal-acompanantes';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
+import { mensajeDeError } from '../../../../core/formato/formato';
 import {
   SolicitudAcompanamientoModal,
   DatosSolicitudAcompanamiento
@@ -22,11 +24,12 @@ import { Cargando } from '../../../../shared/cargando/cargando';
 /**
  * Personas mayores del acompañante: solicitudes pendientes para aceptar o
  * rechazar, la lista de personas a cargo con sus últimos signos vitales y
- * sus acompañantes, y la opción de dejar de acompañar a alguien.
+ * sus acompañantes, la opción de cambiar su parentesco con cada una
+ * y la opción de dejar de acompañar a alguien.
  */
 @Component({
   selector: 'app-mis-personas-mayores',
-  imports: [RouterLink, Icono, TarjetaPersona, CancelarAsociacion, ModalSignosVitales, ModalAcompanantes, SolicitudAcompanamientoModal, BuscadorNombre, Cargando],
+  imports: [RouterLink, Icono, TarjetaPersona, CancelarAsociacion, EditarParentesco, ModalSignosVitales, ModalAcompanantes, SolicitudAcompanamientoModal, BuscadorNombre, Cargando],
   templateUrl: './mis-personas-mayores.html',
   styleUrl: './mis-personas-mayores.css'
 })
@@ -51,6 +54,11 @@ export class MisPersonasMayores implements OnInit {
   cargando = true;
   mensaje = '';
   error = '';
+
+  /** Persona del modal para cambiar el parentesco; null si está cerrado. */
+  personaAEditar: PersonaMayorAcompanada | null = null;
+  guardandoParentesco = false;
+  errorParentesco: string | null = null;
 
   /** Persona del modal de "dejar de acompañar"; null si está cerrado. */
   personaACancelar: PersonaMayorAcompanada | null = null;
@@ -212,6 +220,38 @@ export class MisPersonasMayores implements OnInit {
         console.error('Error al rechazar solicitud:', error);
         this.error = 'No fue posible rechazar la solicitud.';
         this.mensaje = '';
+      }
+    });
+  }
+
+  mostrarEdicionParentesco(persona: PersonaMayorAcompanada): void {
+    this.personaAEditar = persona;
+    this.errorParentesco = null;
+    this.mensaje = '';
+    this.error = '';
+  }
+
+  /** Guarda el nuevo parentesco y lo cambia en la tarjeta sin recargar la lista. */
+  guardarParentesco(relacion: string): void {
+    const persona = this.personaAEditar;
+    if (!persona) return;
+
+    this.guardandoParentesco = true;
+    this.errorParentesco = null;
+
+    this.acompananteService.cambiarRelacionPersonaMayor(persona.idUsuario, relacion).subscribe({
+      next: (actualizada) => {
+        this.guardandoParentesco = false;
+        this.personaAEditar = null;
+        this.personasMayores = this.personasMayores.map((p) =>
+          p.idUsuario === actualizada.idUsuario ? { ...p, relacion: actualizada.relacion } : p
+        );
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.guardandoParentesco = false;
+        this.errorParentesco = mensajeDeError(error, 'No se pudo cambiar el parentesco.');
+        this.cdr.detectChanges();
       }
     });
   }

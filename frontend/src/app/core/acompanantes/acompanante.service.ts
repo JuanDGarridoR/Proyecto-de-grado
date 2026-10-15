@@ -22,6 +22,8 @@ export interface PersonaMayorAcompanada {
   idUsuario: number;
   nombre: string;
   celular: string;
+  /** Parentesco del acompañante con ella; null si no se indicó. */
+  relacion?: string | null;
   /** URL de la foto de perfil, o null si no ha subido una. */
   fotoPerfil?: string | null;
 }
@@ -157,6 +159,14 @@ private readonly authUrl = `${API_URL}/auth`;
     );
   }
 
+  /** La persona mayor cambia el parentesco de uno de sus acompañantes. */
+  cambiarRelacionAcompanante(idAcompanante: number, relacion: string): Observable<Acompanante> {
+    return this.http.put<Acompanante>(
+      `${this.apiUrl}/persona-mayor/acompanantes/${idAcompanante}/relacion`,
+      { relacion }
+    );
+  }
+
   /** Solicitudes que le enviaron acompañantes a la persona mayor y aún no responde. */
   obtenerSolicitudesDeAcompanantes(): Observable<Acompanante[]> {
     return this.http.get<Acompanante[]>(
@@ -194,6 +204,14 @@ private readonly authUrl = `${API_URL}/auth`;
   obtenerPersonasMayores(): Observable<PersonaMayorAcompanada[]> {
     return this.http.get<PersonaMayorAcompanada[]>(
       `${this.apiUrl}/acompanante/personas-mayores`
+    );
+  }
+
+  /** El acompañante cambia su parentesco con una persona mayor que acompaña. */
+  cambiarRelacionPersonaMayor(idPersonaMayor: number, relacion: string): Observable<PersonaMayorAcompanada> {
+    return this.http.put<PersonaMayorAcompanada>(
+      `${this.apiUrl}/acompanante/personas-mayores/${idPersonaMayor}/relacion`,
+      { relacion }
     );
   }
 

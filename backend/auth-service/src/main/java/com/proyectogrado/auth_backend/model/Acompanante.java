@@ -19,7 +19,11 @@ public class Acompanante {
     @JoinColumn(name = "id_usuario")
     private Usuario usuario;
 
-    /** Parentesco con la persona mayor (por ejemplo, "Hija"). Lo indica ella al agregarlo. */
+    /**
+     * Parentesco de los vínculos antiguos. Ahora el parentesco va en cada
+     * vínculo (persona_mayor_acompanante.relacion); esta columna solo se lee
+     * para los vínculos creados antes de ese cambio.
+     */
     @Column(name = "relacion")
     private String relacion;
 

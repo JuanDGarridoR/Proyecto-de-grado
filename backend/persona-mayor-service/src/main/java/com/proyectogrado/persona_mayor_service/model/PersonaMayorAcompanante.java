@@ -34,6 +34,15 @@ public class PersonaMayorAcompanante {
     @Column(name = "solicitada_por")
     private String solicitadaPor;
 
+    /**
+     * Parentesco del acompañante con esta persona mayor (por ejemplo, "Hija").
+     * Va en el vínculo porque un acompañante puede ser hija de una persona
+     * mayor y sobrina de otra. null en vínculos creados antes de que existiera
+     * el campo: para esos vale la columna relacion de la tabla acompanante.
+     */
+    @Column(name = "relacion")
+    private String relacion;
+
     public PersonaMayorAcompanante() {
     }
 
@@ -63,6 +72,14 @@ public class PersonaMayorAcompanante {
 
     public void setSolicitadaPor(String solicitadaPor) {
         this.solicitadaPor = solicitadaPor;
+    }
+
+    public String getRelacion() {
+        return relacion;
+    }
+
+    public void setRelacion(String relacion) {
+        this.relacion = relacion;
     }
 
     /** true si la solicitud la envió el acompañante (la responde la persona mayor). */

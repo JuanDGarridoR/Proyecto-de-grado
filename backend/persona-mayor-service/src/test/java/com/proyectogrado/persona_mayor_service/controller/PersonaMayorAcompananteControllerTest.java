@@ -8,7 +8,6 @@ import com.proyectogrado.persona_mayor_service.repository.AcompananteLookupRepos
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorAcompananteRepository;
 import com.proyectogrado.persona_mayor_service.repository.UsuarioLookupRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
@@ -99,7 +98,7 @@ class PersonaMayorAcompananteControllerTest {
         assertEquals(new PersonaMayorAcompananteId(PERSONA_MAYOR, ACOMPANANTE), guardada.getValue().getId());
         assertEquals("PENDIENTE", guardada.getValue().getEstado());
         assertEquals(PersonaMayorAcompanante.PERSONA_MAYOR, guardada.getValue().getSolicitadaPor());
-        verify(acompanante).setRelacion("Hijo");
+        assertEquals("Hijo", guardada.getValue().getRelacion());
     }
 
     @Test
@@ -168,13 +167,14 @@ class PersonaMayorAcompananteControllerTest {
     }
 
     /**
-     * Hallazgo H-03 del QC: al repetir la solicitud a un acompañante
-     * ya aceptado responde 400, pero antes ya guardó el parentesco nuevo.
+     * Hallazgo H-03 del QC: al repetir la solicitud a un acompañante ya
+     * aceptado respondía 400, pero antes ya había guardado el parentesco nuevo.
      */
     @Test
-    @Disabled("Hallazgo H-03: una solicitud rechazada cambia el parentesco del contacto")
     void unaSolicitudRechazadaNoCambiaElParentescoDelContacto() throws Exception {
-        when(relacionRepository.findById(any())).thenReturn(Optional.of(relacion("ACEPTADA", "PERSONA_MAYOR")));
+        PersonaMayorAcompanante aceptada = relacion("ACEPTADA", "PERSONA_MAYOR");
+        aceptada.setRelacion("Hijo");
+        when(relacionRepository.findById(any())).thenReturn(Optional.of(aceptada));
 
         mockMvc.perform(post("/api/persona-mayor/acompanantes")
                         .header("X-User-Id", PERSONA_MAYOR)
@@ -182,8 +182,8 @@ class PersonaMayorAcompananteControllerTest {
                         .content(agregar(CELULAR_ACOMPANANTE, "Vecino")))
                 .andExpect(status().isBadRequest());
 
-        verify(acompanante, never()).setRelacion("Vecino");
-        verify(acompananteLookupRepository, never()).saveAndFlush(any());
+        assertEquals("Hijo", aceptada.getRelacion());
+        verify(relacionRepository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -284,5 +284,66 @@ class PersonaMayorAcompananteControllerTest {
                 .andExpect(content().string("No existe una asociación registrada"));
 
         verify(relacionRepository, never()).delete(any());
+    }
+
+    @Test
+    void elParentescoGuardadoEnElVinculoTienePrioridadSobreElAntiguo() throws Exception {
+        // El acompañante tiene "Hijo" en la tabla acompanante, pero con esta persona mayor es "Sobrino".
+        PersonaMayorAcompanante aceptada = relacion("ACEPTADA", "PERSONA_MAYOR");
+        aceptada.setRelacion("Sobrino");
+        when(relacionRepository.findById_IdPersonaMayorAndEstado(PERSONA_MAYOR, "ACEPTADA"))
+                .thenReturn(List.of(aceptada));
+
+        mockMvc.perform(get("/api/persona-mayor/acompanantes").header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].relacion").value("Sobrino"));
+    }
+
+    private String cambiarRelacion(String parentesco) {
+        return "{\"relacion\": \"" + parentesco + "\"}";
+    }
+
+    @Test
+    void cambiarElParentescoDeUnAcompananteLoGuardaEnElVinculo() throws Exception {
+        PersonaMayorAcompanante aceptada = relacion("ACEPTADA", "PERSONA_MAYOR");
+        when(relacionRepository.findById(new PersonaMayorAcompananteId(PERSONA_MAYOR, ACOMPANANTE)))
+                .thenReturn(Optional.of(aceptada));
+
+        mockMvc.perform(put("/api/persona-mayor/acompanantes/" + ACOMPANANTE + "/relacion")
+                        .header("X-User-Id", PERSONA_MAYOR)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cambiarRelacion("  Nieto  ")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idUsuario").value(ACOMPANANTE))
+                .andExpect(jsonPath("$.relacion").value("Nieto"));
+
+        assertEquals("Nieto", aceptada.getRelacion());
+        verify(relacionRepository).saveAndFlush(aceptada);
+    }
+
+    @Test
+    void elParentescoNoPuedeQuedarVacio() throws Exception {
+        mockMvc.perform(put("/api/persona-mayor/acompanantes/" + ACOMPANANTE + "/relacion")
+                        .header("X-User-Id", PERSONA_MAYOR)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cambiarRelacion("   ")))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("El parentesco es obligatorio"));
+
+        verify(relacionRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void noSeCambiaElParentescoDeQuienNoEsContacto() throws Exception {
+        when(relacionRepository.findById(new PersonaMayorAcompananteId(PERSONA_MAYOR, ACOMPANANTE)))
+                .thenReturn(Optional.of(relacion("PENDIENTE", "PERSONA_MAYOR")));
+
+        mockMvc.perform(put("/api/persona-mayor/acompanantes/" + ACOMPANANTE + "/relacion")
+                        .header("X-User-Id", PERSONA_MAYOR)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cambiarRelacion("Nieto")))
+                .andExpect(status().isNotFound());
+
+        verify(relacionRepository, never()).saveAndFlush(any());
     }
 }

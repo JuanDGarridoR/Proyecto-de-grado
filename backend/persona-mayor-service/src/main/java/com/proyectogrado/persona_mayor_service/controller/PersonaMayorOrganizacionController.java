@@ -125,9 +125,12 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
                         idAcompanante,
                         usuario.getNombreUsuario(),
                         usuario.getCelular(),
-                        acompanante != null
-                                ? acompanante.getRelacion()
-                                : null,
+                        // El del vínculo; si es anterior a que se guardara ahí, el del acompañante.
+                        relacionAcompanante.getRelacion() != null
+                                ? relacionAcompanante.getRelacion()
+                                : acompanante != null
+                                        ? acompanante.getRelacion()
+                                        : null,
                         usuario.getFotoPerfil()
                 );
             })

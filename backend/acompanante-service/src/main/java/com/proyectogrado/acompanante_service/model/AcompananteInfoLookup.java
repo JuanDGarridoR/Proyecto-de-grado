@@ -7,9 +7,9 @@ import jakarta.persistence.Table;
 
 /**
  * Vista de solo lectura de la tabla acompanante, que pertenece a
- * auth-service. Aquí solo se lee la relación de los otros acompañantes de
- * la persona mayor consultada; ese campo lo escribe persona-mayor-service
- * cuando la persona mayor agrega a un acompañante.
+ * auth-service. Sirve para saber si un usuario es acompañante y para leer el
+ * parentesco de los vínculos creados antes de que se guardara en
+ * persona_mayor_acompanante (ver PersonaMayorAcompanante.relacion).
  */
 @Entity
 @Table(name = "acompanante")
@@ -33,10 +33,5 @@ public class AcompananteInfoLookup {
 
     public String getRelacion() {
         return relacion;
-    }
-
-    /** La escribe el acompañante cuando le envía una solicitud a una persona mayor. */
-    public void setRelacion(String relacion) {
-        this.relacion = relacion;
     }
 }

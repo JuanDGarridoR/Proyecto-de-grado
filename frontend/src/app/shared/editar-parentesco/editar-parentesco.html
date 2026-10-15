@@ -1,0 +1,90 @@
+<div class="add-companion-overlay">
+
+  <div
+    class="add-companion-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="editarParentescoTitulo"
+  >
+
+    <div class="add-companion-modal__header">
+
+      <h2 id="editarParentescoTitulo">
+        Editar parentesco
+      </h2>
+
+      <button
+        type="button"
+        class="add-companion-modal__close"
+        (click)="cerrar.emit()"
+        aria-label="Cerrar"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <p class="add-companion-modal__description">
+      {{ descripcion() }}
+    </p>
+
+    <form (ngSubmit)="validarYGuardar()">
+
+      <div class="add-companion-modal__form-group">
+
+        <label for="relacionEditar">
+          Parentesco con {{ nombre() }}
+        </label>
+
+        <input
+          id="relacionEditar"
+          name="relacion"
+          type="text"
+          [(ngModel)]="relacion"
+          [maxlength]="largoMaximo"
+          [placeholder]="placeholder()"
+        />
+
+      </div>
+
+      @if (error() || errorServidor(); as mensaje) {
+
+        <div class="add-companion-modal__error">
+          <app-icono name="alert-circle" />
+          {{ mensaje }}
+        </div>
+
+      }
+
+      <div class="add-companion-modal__actions">
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cerrar.emit()"
+          [disabled]="guardando()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="btn btn-gold"
+          [disabled]="guardando()"
+        >
+
+          @if (guardando()) {
+            Guardando...
+          } @else {
+            Guardar
+          }
+
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>

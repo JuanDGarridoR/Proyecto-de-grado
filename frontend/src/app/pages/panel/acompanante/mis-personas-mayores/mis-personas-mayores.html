@@ -180,6 +180,7 @@
             [nombre]="persona.nombre"
             [celular]="persona.celular"
             [foto]="persona.fotoPerfil"
+            [relacion]="persona.relacion"
           >
             <div card-actions class="person-card-actions">
               <a
@@ -207,6 +208,15 @@
               >
                 <app-icono name="heart" />
                 Signos vitales
+              </button>
+
+              <button
+                type="button"
+                class="person-card-action"
+                (click)="mostrarEdicionParentesco(persona)"
+              >
+                <app-icono name="pen" />
+                {{ persona.relacion ? 'Editar parentesco' : 'Agregar parentesco' }}
               </button>
 
               <button
@@ -273,5 +283,19 @@
     [cargando]="cargandoAcompanantes"
     [error]="errorAcompanantes"
     (cerrar)="cerrarAcompanantes()"
+  />
+}
+
+<!-- Modal para cambiar el parentesco -->
+@if (personaAEditar) {
+  <app-editar-parentesco
+    [nombre]="personaAEditar.nombre"
+    [relacionActual]="personaAEditar.relacion"
+    descripcion="Escribe qué eres tú para esta persona. Así lo verán ella y sus otros acompañantes."
+    placeholder="Ej. Hijo, sobrina, vecino..."
+    [guardando]="guardandoParentesco"
+    [errorServidor]="errorParentesco"
+    (guardar)="guardarParentesco($event)"
+    (cerrar)="personaAEditar = null"
   />
 }

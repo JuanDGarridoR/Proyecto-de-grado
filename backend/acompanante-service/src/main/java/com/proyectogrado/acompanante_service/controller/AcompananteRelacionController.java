@@ -1,6 +1,7 @@
 package com.proyectogrado.acompanante_service.controller;
 
 import com.proyectogrado.acompanante_service.dto.AgregarPersonaMayorRequest;
+import com.proyectogrado.acompanante_service.dto.CambiarRelacionRequest;
 import com.proyectogrado.acompanante_service.dto.PersonaMayorResponse;
 import com.proyectogrado.acompanante_service.model.AcompananteInfoLookup;
 import com.proyectogrado.acompanante_service.model.PersonaMayorAcompanante;
@@ -36,6 +37,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/acompanante/personas-mayores")
 public class AcompananteRelacionController {
+
+    /** Lo que cabe en la tarjeta: "Hijo", "Vecino del piso de arriba"... */
+    private static final int LARGO_MAXIMO_RELACION = 50;
 
     private final PersonaMayorAcompananteRepository relacionRepository;
     private final UsuarioLookupRepository usuarioLookupRepository;
@@ -147,15 +151,42 @@ public class AcompananteRelacionController {
 
         relacion.setEstado("PENDIENTE");
         relacion.setSolicitadaPor(PersonaMayorAcompanante.ACOMPANANTE);
+        // Mismo parentesco que guarda la persona mayor al agregar un acompañante.
+        relacion.setRelacion(limpiar(request.relacion()));
         relacionRepository.saveAndFlush(relacion);
 
-        // Misma relación que guarda la persona mayor al agregar un acompañante
-        if (request.relacion() != null && !request.relacion().isBlank()) {
-            acompanante.setRelacion(request.relacion().trim());
-            acompananteInfoLookupRepository.saveAndFlush(acompanante);
+        return ResponseEntity.ok("Solicitud de acompañamiento enviada correctamente");
+    }
+
+    /** Cambia su parentesco con una de las personas mayores que acompaña. */
+    @PutMapping("/{idPersonaMayor}/relacion")
+    public ResponseEntity<?> cambiarRelacion(
+            @RequestHeader("X-User-Id") Integer idAcompanante,
+            @PathVariable Integer idPersonaMayor,
+            @RequestBody CambiarRelacionRequest request
+    ) {
+        String nueva = limpiar(request.relacion());
+        if (nueva == null) {
+            return ResponseEntity.badRequest().body("El parentesco es obligatorio");
+        }
+        if (nueva.length() > LARGO_MAXIMO_RELACION) {
+            return ResponseEntity.badRequest()
+                    .body("El parentesco puede tener máximo " + LARGO_MAXIMO_RELACION + " caracteres");
         }
 
-        return ResponseEntity.ok("Solicitud de acompañamiento enviada correctamente");
+        PersonaMayorAcompanante relacion = relacionRepository
+                .findById(new PersonaMayorAcompananteId(idPersonaMayor, idAcompanante))
+                .orElse(null);
+
+        if (relacion == null || !"ACEPTADA".equals(relacion.getEstado())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No acompañas a esta persona mayor");
+        }
+
+        relacion.setRelacion(nueva);
+        relacionRepository.saveAndFlush(relacion);
+
+        return ResponseEntity.ok(aRespuestas(List.of(relacion)).get(0));
     }
 
     @PutMapping("/solicitudes/{idPersonaMayor}/aceptar")
@@ -252,9 +283,31 @@ public class AcompananteRelacionController {
                             usuario != null ? usuario.getNombreUsuario() : null,
                             usuario != null ? usuario.getCelular() : null,
                             usuario != null ? usuario.getCorreo() : null,
-                            usuario != null ? usuario.getFotoPerfil() : null
+                            usuario != null ? usuario.getFotoPerfil() : null,
+                            relacionDe(relacion)
                     );
                 })
                 .toList();
+    }
+
+    /**
+     * El parentesco del vínculo; en vínculos anteriores a que se guardara
+     * ahí, el que quedó en la tabla acompanante.
+     */
+    private String relacionDe(PersonaMayorAcompanante vinculo) {
+        if (vinculo.getRelacion() != null) {
+            return vinculo.getRelacion();
+        }
+        return acompananteInfoLookupRepository.findById(vinculo.getId().getIdAcompanante())
+                .map(AcompananteInfoLookup::getRelacion)
+                .orElse(null);
+    }
+
+    /** El texto sin espacios de más, o null si quedó vacío. */
+    private static String limpiar(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+        return texto.trim();
     }
 }

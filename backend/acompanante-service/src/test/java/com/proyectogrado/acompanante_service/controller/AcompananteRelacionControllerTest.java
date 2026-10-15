@@ -113,6 +113,7 @@ class AcompananteRelacionControllerTest {
         verify(relacionRepository).saveAndFlush(guardada.capture());
         assertEquals("PENDIENTE", guardada.getValue().getEstado());
         assertEquals(PersonaMayorAcompanante.ACOMPANANTE, guardada.getValue().getSolicitadaPor());
+        assertEquals("Hijo", guardada.getValue().getRelacion());
     }
 
     @Test
@@ -215,5 +216,67 @@ class AcompananteRelacionControllerTest {
                 .andExpect(status().isOk());
 
         verify(relacionRepository).delete(aceptada);
+    }
+
+    private String cambiarRelacion(String parentesco) {
+        return "{\"relacion\": \"" + parentesco + "\"}";
+    }
+
+    @Test
+    void elAcompananteCambiaSuParentescoConUnaPersonaMayor() throws Exception {
+        PersonaMayorAcompanante aceptada = relacion("ACEPTADA", PersonaMayorAcompanante.PERSONA_MAYOR);
+        aceptada.setRelacion("Vecino");
+        when(relacionRepository.findById(new PersonaMayorAcompananteId(PERSONA_MAYOR, ACOMPANANTE)))
+                .thenReturn(Optional.of(aceptada));
+
+        mockMvc.perform(put("/api/acompanante/personas-mayores/" + PERSONA_MAYOR + "/relacion")
+                        .header("X-User-Id", ACOMPANANTE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cambiarRelacion("Sobrino")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idUsuario").value(PERSONA_MAYOR))
+                .andExpect(jsonPath("$.relacion").value("Sobrino"));
+
+        assertEquals("Sobrino", aceptada.getRelacion());
+        verify(relacionRepository).saveAndFlush(aceptada);
+    }
+
+    @Test
+    void noCambiaElParentescoConQuienNoAcompana() throws Exception {
+        when(relacionRepository.findById(any())).thenReturn(Optional.empty());
+
+        mockMvc.perform(put("/api/acompanante/personas-mayores/" + PERSONA_MAYOR + "/relacion")
+                        .header("X-User-Id", ACOMPANANTE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cambiarRelacion("Sobrino")))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("No acompañas a esta persona mayor"));
+    }
+
+    @Test
+    void elParentescoNoPuedeQuedarVacioNiSerMuyLargo() throws Exception {
+        mockMvc.perform(put("/api/acompanante/personas-mayores/" + PERSONA_MAYOR + "/relacion")
+                        .header("X-User-Id", ACOMPANANTE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cambiarRelacion("")))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(put("/api/acompanante/personas-mayores/" + PERSONA_MAYOR + "/relacion")
+                        .header("X-User-Id", ACOMPANANTE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cambiarRelacion("x".repeat(51))))
+                .andExpect(status().isBadRequest());
+
+        verify(relacionRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void laListaMuestraElParentescoDelVinculo() throws Exception {
+        PersonaMayorAcompanante aceptada = relacion("ACEPTADA", PersonaMayorAcompanante.PERSONA_MAYOR);
+        aceptada.setRelacion("Nieto");
+        when(relacionRepository.findById_IdAcompananteAndEstado(ACOMPANANTE, "ACEPTADA"))
+                .thenReturn(List.of(aceptada));
+
+        mockMvc.perform(get("/api/acompanante/personas-mayores").header("X-User-Id", ACOMPANANTE))
+                .andExpect(jsonPath("$[0].relacion").value("Nieto"));
     }
 }

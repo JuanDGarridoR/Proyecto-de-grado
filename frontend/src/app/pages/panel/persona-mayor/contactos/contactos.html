@@ -221,6 +221,15 @@
           <div card-actions class="person-card-actions">
             <button
               type="button"
+              class="person-card-action"
+              (click)="mostrarEdicionParentesco(ac)"
+            >
+              <app-icono name="pen" />
+              {{ ac.relacion ? 'Editar parentesco' : 'Agregar parentesco' }}
+            </button>
+
+            <button
+              type="button"
               class="person-card-remove"
               (click)="mostrarConfirmacionCancelacion(ac)"
               title="Cancelar asociación"
@@ -274,5 +283,18 @@
     advertencia="Esta persona dejará de ser tu acompañante y ya no podrá ver tu seguimiento."
     (confirmar)="confirmarCancelacion()"
     (cerrar)="cerrarConfirmacionCancelacion()"
+  />
+}
+
+@if (acompananteAEditar(); as acompanante) {
+  <app-editar-parentesco
+    [nombre]="acompanante.nombre"
+    [relacionActual]="acompanante.relacion"
+    descripcion="Escribe qué es esta persona para ti. Así lo verán tus otros acompañantes y tu organización."
+    placeholder="Ej. Hija, sobrino, vecina..."
+    [guardando]="guardandoParentesco()"
+    [errorServidor]="errorParentesco()"
+    (guardar)="guardarParentesco($event)"
+    (cerrar)="acompananteAEditar.set(null)"
   />
 }

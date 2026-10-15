@@ -112,7 +112,8 @@ class ContactoDeEmergenciaIntegracionTest {
         // Queda guardada la solicitud pendiente y el parentesco.
         assertEquals("PENDIENTE", consultar("select estado from persona_mayor_acompanante"
                 + " where id_persona_mayor = 10 and id_acompanante = 20"));
-        assertEquals("Hijo", consultar("select relacion from acompanante where id_usuario = 20"));
+        assertEquals("Hijo", consultar("select relacion from persona_mayor_acompanante"
+                + " where id_persona_mayor = 10 and id_acompanante = 20"));
 
         // Mientras no acepte, no es su contacto ni recibe alertas.
         mockMvc.perform(get("/api/persona-mayor/acompanantes").header("X-User-Id", 10))
