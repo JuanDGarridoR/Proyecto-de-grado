@@ -13,6 +13,8 @@ import { Avatar } from '../../../../shared/avatar/avatar';
 import { BuscadorNombre, filtrarPorNombre } from '../../../../shared/buscador-nombre/buscador-nombre';
 import { RecomendacionesOrganizacionesComponent } from '../../../../shared/recomendaciones-organizaciones/recomendaciones-organizaciones';
 import { mensajeDeError } from '../../../../core/formato/formato';
+import { PuntoMapa, coordenadasDe } from '../../../../core/mapa/mapa';
+import { Mapa } from '../../../../shared/mapa/mapa';
 
 /**
  * Organizaciones de la persona mayor: invitaciones pendientes para aceptar o
@@ -24,9 +26,10 @@ import { mensajeDeError } from '../../../../core/formato/formato';
 @Component({
   selector: 'app-organizaciones',
   standalone: true,
-  imports: [Icono, Avatar, CommonModule, FormsModule, RecomendacionesOrganizacionesComponent, BuscadorNombre],
+  imports: [Icono, Avatar, CommonModule, FormsModule, RecomendacionesOrganizacionesComponent, BuscadorNombre, Mapa],
   templateUrl: './organizaciones.html',
-  styleUrl: './organizaciones.css'
+  // organizaciones.css ya pasa el límite de tamaño: lo del mapa va aparte.
+  styleUrls: ['./organizaciones.css', './organizaciones-mapa.css']
 })
 export class Organizaciones implements OnInit {
 
@@ -74,6 +77,21 @@ export class Organizaciones implements OnInit {
     const filtro = this.filtro().trim().toLowerCase();
     return this.disponibles().filter((o) => !filtro || o.nombre.toLowerCase().includes(filtro));
   });
+
+  /**
+   * Sedes en el mapa: las suyas (de otro color) y a las que puede pedir
+   * unirse. Solo las que ya tienen la sede ubicada (analitica-service la
+   * saca de su dirección).
+   */
+  protected readonly puntosOrganizaciones = computed<PuntoMapa[]>(() => [
+    ...puntosDe(this.organizaciones(), 'Ya perteneces a esta organización', true),
+    ...puntosDe(this.disponibles(), 'Puedes pedir unirte en "Ver todas las organizaciones"', false)
+  ]);
+
+  /** Organizaciones de las dos listas que todavía no aparecen en el mapa. */
+  protected readonly sinUbicacion = computed(() =>
+    this.organizaciones().length + this.disponibles().length - this.puntosOrganizaciones().length
+  );
 
   /** Organización cuya solicitud se está enviando; deshabilita sus botones. */
   protected readonly procesandoSolicitud =
@@ -438,4 +456,22 @@ confirmarAccion(): void {
   this.accionPendiente.set(null);
 }
 
+}
+
+/** Organizaciones con la sede ya ubicada, como puntos del mapa. */
+function puntosDe(organizaciones: OrganizacionSolicitud[], estado: string, mia: boolean): PuntoMapa[] {
+  return organizaciones.flatMap((organizacion) => {
+    const sede = coordenadasDe(organizacion);
+    if (!sede) {
+      return [];
+    }
+
+    return [{
+      ...sede,
+      id: organizacion.idOrganizacion,
+      titulo: organizacion.nombre,
+      lineas: [organizacion.direccion, estado].filter(Boolean),
+      destacado: mia
+    }];
+  });
 }

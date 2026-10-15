@@ -4,6 +4,7 @@ import { HojaFecha } from '../hoja-fecha/hoja-fecha';
 
 import { Icono } from '../icono/icono';
 import { fechaHoy, textoFrecuencia } from '../../core/actividades/actividad.service';
+import { coordenadasDe, enlaceComoLlegar } from '../../core/mapa/mapa';
 
 /** Campos que comparten Actividad y ActividadDisponible. */
 export interface ActividadTarjeta {
@@ -15,6 +16,8 @@ export interface ActividadTarjeta {
   tipo: string | null;
   cupos: number | null;
   frecuenciaDias?: number | null;
+  latitud?: number | null;
+  longitud?: number | null;
 }
 
 /**
@@ -40,6 +43,12 @@ export class TarjetaActividad {
   protected get pasada(): boolean {
     const fecha = this.actividad.fecha;
     return !!fecha && fecha < fechaHoy();
+  }
+
+  /** Ruta en Google Maps hasta el punto de encuentro, o null si no tiene. */
+  protected get comoLlegar(): string | null {
+    const punto = coordenadasDe(this.actividad);
+    return punto ? enlaceComoLlegar(punto) : null;
   }
 
   protected readonly frecuencia = textoFrecuencia;

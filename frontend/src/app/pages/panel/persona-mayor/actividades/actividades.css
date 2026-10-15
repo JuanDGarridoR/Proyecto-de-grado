@@ -26,3 +26,80 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+/* Próximas actividades: lista o mapa */
+
+.activities-section .section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vista-selector {
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-pill);
+  background: var(--vita-white);
+}
+
+.vista-selector button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--vita-text-gray);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.vista-selector button.activa {
+  background: var(--vita-principal);
+  color: var(--vita-white);
+}
+
+.mapa-actividades {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mapa-leyenda,
+.mapa-nota {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--vita-text-gray);
+  font-size: 0.95rem;
+}
+
+.leyenda-punto {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--vita-principal);
+}
+
+.leyenda-punto--inscrito {
+  margin-left: 10px;
+  background: var(--vita-secundario);
+}
+
+.mapa-nota .enlace {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--vita-principal);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}

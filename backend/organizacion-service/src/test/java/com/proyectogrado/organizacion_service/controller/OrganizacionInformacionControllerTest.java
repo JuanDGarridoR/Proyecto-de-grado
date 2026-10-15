@@ -80,6 +80,17 @@ class OrganizacionInformacionControllerTest {
     }
 
     @Test
+    void elPerfilMuestraLaUbicacionQueSacoAnaliticaDeLaDireccion() throws Exception {
+        when(organizacion.getLatitud()).thenReturn(4.4805);
+        when(organizacion.getLongitud()).thenReturn(-74.1255);
+
+        mockMvc.perform(get("/api/organizacion/informacion").header("X-User-Id", 30))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.latitud").value(4.4805))
+                .andExpect(jsonPath("$.longitud").value(-74.1255));
+    }
+
+    @Test
     void unUsuarioQueNoEsOrganizacionNoTienePerfilDeOrganizacion() throws Exception {
         mockMvc.perform(get("/api/organizacion/informacion").header("X-User-Id", 10))
                 .andExpect(status().isNotFound());

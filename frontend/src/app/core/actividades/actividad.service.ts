@@ -13,6 +13,9 @@ export interface Actividad {
   fecha: string | null;
   hora: string | null;
   lugar: string | null;
+  /** Punto de encuentro en el mapa (lo calcula analitica-service con el lugar); null si aún no se ubica. */
+  latitud: number | null;
+  longitud: number | null;
   tipo: string | null;
   cupos: number | null;
   responsable: string | null;
@@ -28,6 +31,9 @@ export interface ActividadDisponible {
   fecha: string | null;
   hora: string | null;
   lugar: string | null;
+  /** Punto de encuentro en el mapa (lo calcula analitica-service con el lugar); null si aún no se ubica. */
+  latitud: number | null;
+  longitud: number | null;
   tipo: string | null;
   cupos: number | null;
   inscrito: boolean;
@@ -100,6 +106,9 @@ export interface PropuestaActividad {
   fecha: string | null;
   hora: string | null;
   lugar: string | null;
+  /** Punto de encuentro en el mapa (lo calcula analitica-service con el lugar); null si aún no se ubica. */
+  latitud: number | null;
+  longitud: number | null;
   tipo: string | null;
   cupos: number | null;
   responsable: string | null;

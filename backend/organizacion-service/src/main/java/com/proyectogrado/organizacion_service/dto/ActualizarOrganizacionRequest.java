@@ -1,7 +1,8 @@
 package com.proyectogrado.organizacion_service.dto;
 
 /**
- * Cambios del perfil de la organización; por ahora solo la dirección.
+ * Cambios del perfil de la organización: la dirección. Su ubicación en el
+ * mapa no se edita aquí: analitica-service la saca de la dirección.
  */
 public class ActualizarOrganizacionRequest {
 

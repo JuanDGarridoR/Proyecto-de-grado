@@ -24,6 +24,13 @@ public class OrganizacionLookup {
     @Column(name = "direccion")
     private String direccion;
 
+    /** Ubicación de la sede en el mapa; null si la organización no la ha marcado. */
+    @Column(name = "latitud")
+    private Double latitud;
+
+    @Column(name = "longitud")
+    private Double longitud;
+
     /** Lo exige JPA. */
     protected OrganizacionLookup() {
     }
@@ -38,5 +45,13 @@ public class OrganizacionLookup {
 
     public String getDireccion() {
         return direccion;
+    }
+
+    public Double getLatitud() {
+        return latitud;
+    }
+
+    public Double getLongitud() {
+        return longitud;
     }
 }

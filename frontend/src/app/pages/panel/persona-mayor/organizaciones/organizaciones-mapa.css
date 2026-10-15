@@ -1,0 +1,34 @@
+/* Organizaciones en el mapa (aparte: organizaciones.css ya pasa el límite de tamaño). */
+
+.mapa-organizaciones {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.mapa-organizaciones__leyenda,
+.mapa-organizaciones__nota {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--vita-text-gray);
+  font-size: 0.95rem;
+}
+
+.mapa-organizaciones__punto {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--vita-principal);
+}
+
+.mapa-organizaciones__punto--mia {
+  background: var(--vita-secundario);
+}
+
+.mapa-organizaciones__punto:not(:first-child) {
+  margin-left: 10px;
+}

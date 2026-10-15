@@ -10,14 +10,28 @@ public class OrganizacionInformacionResponse {
     private String correo;
     private String celular;
     private String direccion;
+    /** Ubicación en el mapa; null si no la ha marcado. */
+    private Double latitud;
+    private Double longitud;
 
     public OrganizacionInformacionResponse(Integer idOrganizacion, String nombre, String correo,
-                                            String celular, String direccion) {
+                                            String celular, String direccion,
+                                            Double latitud, Double longitud) {
         this.idOrganizacion = idOrganizacion;
         this.nombre = nombre;
         this.correo = correo;
         this.celular = celular;
         this.direccion = direccion;
+        this.latitud = latitud;
+        this.longitud = longitud;
+    }
+
+    public Double getLatitud() {
+        return latitud;
+    }
+
+    public Double getLongitud() {
+        return longitud;
     }
 
     public Integer getIdOrganizacion() {

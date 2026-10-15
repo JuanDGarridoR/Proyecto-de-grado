@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { registerLocaleData } from '@angular/common';
+import { formatDate, registerLocaleData } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import localeEs from '@angular/common/locales/es-CO';
 import {
@@ -19,7 +19,9 @@ import {
   OpcionOrganizacion
 } from '../../../../shared/actividad-formulario/actividad-formulario';
 import { mensajeDeError } from '../../../../core/formato/formato';
+import { PuntoMapa, coordenadasDe } from '../../../../core/mapa/mapa';
 import { Cargando } from '../../../../shared/cargando/cargando';
+import { Mapa } from '../../../../shared/mapa/mapa';
 
 registerLocaleData(localeEs);
 
@@ -28,11 +30,14 @@ registerLocaleData(localeEs);
  * o cancelar la inscripción mientras la actividad no haya pasado. También
  * puede proponer actividades a sus organizaciones, igual que un voluntario,
  * y ver si se las aceptaron o rechazaron.
+ *
+ * Las próximas actividades se ven en lista o en un mapa con los puntos de
+ * encuentro, para saber cuáles le quedan cerca y cómo llegar.
  */
 @Component({
   selector: 'app-actividades',
   standalone: true,
-  imports: [RouterLink, Icono, TarjetaActividad, ActividadFormulario, Cargando],
+  imports: [RouterLink, Icono, TarjetaActividad, ActividadFormulario, Cargando, Mapa],
   templateUrl: './actividades.html',
   styleUrls: [
     '../../../../shared/tarjeta-actividad/actividades-pagina.css',
@@ -54,6 +59,38 @@ export class Actividades implements OnInit {
   // Próximas (de la más cercana a la más lejana) e historial (de la más
   // reciente a la más antigua).
   protected readonly separadas = computed(() => separarPorFecha(this.actividades()));
+
+  // Próximas actividades en lista o en el mapa
+  protected readonly vista = signal<'lista' | 'mapa'>('lista');
+
+  /** Próximas actividades con punto de encuentro; las inscritas se pintan de otro color. */
+  protected readonly puntosProximas = computed<PuntoMapa[]>(() =>
+    this.separadas().proximas.flatMap((actividad) => {
+      const punto = coordenadasDe(actividad);
+      if (!punto) {
+        return [];
+      }
+
+      const cuando = [
+        actividad.fecha ? formatDate(actividad.fecha, "EEEE d 'de' MMMM", 'es-CO') : null,
+        actividad.hora
+      ].filter(Boolean).join(' · ');
+
+      return [{
+        ...punto,
+        id: actividad.idActividad,
+        titulo: actividad.nombre,
+        lineas: [cuando, actividad.lugar ?? '', actividad.inscrito ? 'Estás inscrito' : '']
+          .filter(Boolean),
+        destacado: actividad.inscrito
+      }];
+    })
+  );
+
+  /** Próximas actividades que no se ven en el mapa porque no tienen punto. */
+  protected readonly sinPunto = computed(() =>
+    this.separadas().proximas.length - this.puntosProximas().length
+  );
 
   // Propuestas de la persona mayor
   protected readonly propuestas = signal<PropuestaActividad[]>([]);

@@ -8,6 +8,9 @@ export interface OrganizacionResponse {
   idOrganizacion: number;
   nombre: string;
   direccion: string;
+  /** Sede en el mapa (la calcula analitica-service con la dirección); null si aún no se ubica. */
+  latitud?: number | null;
+  longitud?: number | null;
   celular: string;
   correo: string;
 }
@@ -28,6 +31,9 @@ export interface OrganizacionSolicitud {
   celular: string;
   correo: string;
   direccion: string;
+  /** Sede en el mapa (la calcula analitica-service con la dirección); null si aún no se ubica. */
+  latitud?: number | null;
+  longitud?: number | null;
   /** URL de la foto de perfil, o null si no ha subido una. */
   fotoPerfil?: string | null;
 }
@@ -93,7 +99,7 @@ export class OrganizacionService {
 
   /**
    * El nombre y el correo son de la cuenta (auth-service); organizacion-service
-   * solo guarda la dirección. Primero se guarda la cuenta para que la
+   * guarda la dirección (la ubicación en el mapa la calcula analitica-service). Primero se guarda la cuenta para que la
    * respuesta de organizacion-service ya traiga el nombre nuevo.
    */
   actualizarInformacion(informacion: OrganizacionResponse): Observable<OrganizacionResponse> {

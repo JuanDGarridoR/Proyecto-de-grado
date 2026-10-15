@@ -3,7 +3,9 @@ package com.proyectogrado.persona_mayor_service.controller;
 import com.proyectogrado.persona_mayor_service.dto.OrganizacionSolicitudResponse;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorOrganizacion;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorOrganizacionId;
+import com.proyectogrado.persona_mayor_service.model.OrganizacionLookup;
 import com.proyectogrado.persona_mayor_service.model.UsuarioLookup;
+import com.proyectogrado.persona_mayor_service.repository.OrganizacionLookupRepository;
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorOrganizacionRepository;
 import com.proyectogrado.persona_mayor_service.repository.UsuarioLookupRepository;
 import com.proyectogrado.persona_mayor_service.repository.AcompananteLookupRepository;
@@ -43,18 +45,21 @@ public class PersonaMayorOrganizacionController {
     private final UsuarioLookupRepository usuarioLookupRepository;
     private final AcompananteLookupRepository acompananteLookupRepository;
     private final PersonaMayorAcompananteRepository personaMayorAcompananteRepository;
-    
+    private final OrganizacionLookupRepository organizacionLookupRepository;
+
 
 public PersonaMayorOrganizacionController(
         PersonaMayorOrganizacionRepository relacionRepository,
         UsuarioLookupRepository usuarioLookupRepository,
         AcompananteLookupRepository acompananteLookupRepository,
-        PersonaMayorAcompananteRepository personaMayorAcompananteRepository
+        PersonaMayorAcompananteRepository personaMayorAcompananteRepository,
+        OrganizacionLookupRepository organizacionLookupRepository
 ) {
     this.relacionRepository = relacionRepository;
     this.usuarioLookupRepository = usuarioLookupRepository;
     this.acompananteLookupRepository = acompananteLookupRepository;
     this.personaMayorAcompananteRepository = personaMayorAcompananteRepository;
+    this.organizacionLookupRepository = organizacionLookupRepository;
 }
 
     /**
@@ -370,7 +375,7 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
         return listarOrganizaciones(relacionRepository.findById_IdPersonaMayorAndEstado(idPersonaMayor, estado));
     }
 
-    /** Nombre y contacto de las organizaciones de esos vínculos. */
+    /** Nombre, contacto, dirección y ubicación en el mapa de las organizaciones de esos vínculos. */
     private List<OrganizacionSolicitudResponse> listarOrganizaciones(List<PersonaMayorOrganizacion> relaciones) {
         return relaciones.stream()
                 .map(relacion -> {
@@ -382,12 +387,18 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
                     UsuarioLookup usuarioOrganizacion =
                             usuariosOrganizacion.isEmpty() ? null : usuariosOrganizacion.get(0);
 
+                    OrganizacionLookup organizacion =
+                            organizacionLookupRepository.findById(idOrganizacion).orElse(null);
+
                     return new OrganizacionSolicitudResponse(
                             idOrganizacion,
                             usuarioOrganizacion != null ? usuarioOrganizacion.getNombreUsuario() : "Organización",
                             usuarioOrganizacion != null ? usuarioOrganizacion.getCelular() : null,
                             usuarioOrganizacion != null ? usuarioOrganizacion.getCorreo() : null,
-                            usuarioOrganizacion != null ? usuarioOrganizacion.getFotoPerfil() : null
+                            usuarioOrganizacion != null ? usuarioOrganizacion.getFotoPerfil() : null,
+                            organizacion != null ? organizacion.getDireccion() : null,
+                            organizacion != null ? organizacion.getLatitud() : null,
+                            organizacion != null ? organizacion.getLongitud() : null
                     );
                 })
                 .toList();

@@ -28,6 +28,7 @@ import { Cargando } from '../cargando/cargando';
 import { Icono } from '../icono/icono';
 import { Avatar } from '../avatar/avatar';
 import { reducirFoto } from '../../core/foto-perfil/reducir-foto';
+import { Coordenadas, coordenadasDe, enlaceComoLlegar } from '../../core/mapa/mapa';
 
 /** Rol del perfil que se muestra; llega en data.tipoPerfil de la ruta. */
 export type TipoPerfil = 'PERSONA_MAYOR' | 'ACOMPANANTE' | 'VOLUNTARIO' | 'ORGANIZACION';
@@ -49,6 +50,8 @@ interface PerfilInformacion {
   viveSolo?: boolean | null;
   /** URL de la foto de perfil (solo persona mayor), o null si no tiene. */
   fotoPerfil?: string | null;
+  /** Ubicación de la sede en el mapa (solo organización); null si aún no se ubica. */
+  ubicacion?: Coordenadas | null;
   tieneContrasena: boolean;
 }
 
@@ -57,7 +60,8 @@ interface PerfilInformacion {
  * permite editarlos, cambiar la contraseña, elegir qué notificaciones
  * recibir y eliminar la cuenta. La persona mayor además registra sus datos
  * de salud (enfermedades, alergias y discapacidades). La
- * organización además edita su dirección en organizacion-service.
+ * organización además edita su dirección (con ella analitica-service ubica
+ * su sede en el mapa de las personas mayores).
  *
  * Los campos no son signals: después de cada respuesta del backend se llama
  * a detectChanges() para que Angular vuelva a pintar la vista.
@@ -254,9 +258,15 @@ export class Perfil implements OnInit {
       celular: data.celular,
       correo: data.correo || '',
       direccion: data.direccion,
+      ubicacion: coordenadasDe(data),
       fotoPerfil: identidad.fotoPerfil ?? null,
       tieneContrasena: identidad.tieneContrasena,
     };
+  }
+
+  /** Google Maps en la sede de la organización, para revisar que quedó bien marcada. */
+  protected verEnMapa(ubicacion: Coordenadas): string {
+    return enlaceComoLlegar(ubicacion);
   }
 
   private finalizarCarga(): void {

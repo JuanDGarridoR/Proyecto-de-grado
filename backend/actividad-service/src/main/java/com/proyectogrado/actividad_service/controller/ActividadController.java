@@ -204,6 +204,8 @@ public class ActividadController {
                             idsInscritos.contains(a.getIdActividad())
                     );
                     disponible.setFrecuenciaDias(a.getFrecuenciaDias());
+                    disponible.setLatitud(a.getLatitud());
+                    disponible.setLongitud(a.getLongitud());
                     return disponible;
                 })
                 .toList();
@@ -708,6 +710,8 @@ public class ActividadController {
         actividad.setDescripcion(request.getDescripcion());
         actividad.setFecha(request.getFecha());
         actividad.setHora(request.getHora());
+        // La latitud y la longitud no vienen del formulario: analitica-service
+        // ubica el lugar sola (UbicadorAutomatico) y las llena.
         actividad.setLugar(request.getLugar());
         actividad.setTipo(request.getTipo());
         actividad.setCupos(request.getCupos());
@@ -776,7 +780,9 @@ public class ActividadController {
                 a.getTipo(),
                 a.getCupos(),
                 a.getResponsable(),
-                a.getFrecuenciaDias()
+                a.getFrecuenciaDias(),
+                a.getLatitud(),
+                a.getLongitud()
         );
     }
 
@@ -802,6 +808,8 @@ public class ActividadController {
                 a.getResponsable()
         );
         response.setFrecuenciaDias(a.getFrecuenciaDias());
+        response.setLatitud(a.getLatitud());
+        response.setLongitud(a.getLongitud());
         return response;
     }
 }

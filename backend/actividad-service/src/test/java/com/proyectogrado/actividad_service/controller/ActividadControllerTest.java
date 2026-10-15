@@ -180,6 +180,22 @@ class ActividadControllerTest {
     }
 
     @Test
+    void elFormularioNoPoneLaUbicacionLaCalculaAnalitica() throws Exception {
+        // Aunque lleguen coordenadas, se ignoran: el punto lo pone
+        // analitica-service a partir del lugar escrito.
+        mockMvc.perform(post("/api/actividades")
+                        .header("X-User-Id", CUENTA_ORGANIZACION)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombre": "Caminata", "fecha": "%s", "hora": "08:00", "lugar": "Parque La Flora",
+                                 "latitud": 4.5180, "longitud": -74.1075}
+                                """.formatted(manana)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.lugar").value("Parque La Flora"))
+                .andExpect(jsonPath("$.latitud").doesNotExist());
+    }
+
+    @Test
     void soloUnaOrganizacionCreaActividades() throws Exception {
         mockMvc.perform(post("/api/actividades")
                         .header("X-User-Id", PERSONA_MAYOR)
@@ -411,6 +427,21 @@ class ActividadControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].inscrito").value(false))
                 .andExpect(jsonPath("$[1].inscrito").value(true));
+    }
+
+    @Test
+    void laPersonaMayorRecibeElPuntoDeEncuentroDeCadaActividad() throws Exception {
+        Actividad conPunto = actividad(1, manana, 20);
+        conPunto.setLatitud(4.5180);
+        conPunto.setLongitud(-74.1075);
+        when(actividadRepository.findByIdOrganizacion(ORGANIZACION))
+                .thenReturn(List.of(conPunto, actividad(2, manana, 20)));
+
+        mockMvc.perform(get("/api/actividades/disponibles").header("X-User-Id", PERSONA_MAYOR))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].latitud").value(4.518))
+                .andExpect(jsonPath("$[0].longitud").value(-74.1075))
+                .andExpect(jsonPath("$[1].latitud").doesNotExist());
     }
 
     @Test

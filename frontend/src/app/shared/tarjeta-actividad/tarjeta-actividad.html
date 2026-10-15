@@ -33,6 +33,12 @@
           <span><app-icono name="map-pin" /> {{ actividad.lugar }}</span>
         }
 
+        @if (comoLlegar && !pasada) {
+          <a class="activity-route" [href]="comoLlegar" target="_blank" rel="noopener">
+            <app-icono name="map" /> Cómo llegar
+          </a>
+        }
+
         @if (actividad.cupos !== null) {
           <span><app-icono name="users" /> {{ actividad.cupos }} cupos</span>
         }

@@ -11,6 +11,9 @@ public record OrganizacionDisponibleResponse(
         String celular,
         String correo,
         /** URL pública de la foto de perfil, o null si no tiene. */
-        String fotoPerfil
+        String fotoPerfil,
+        /** Ubicación de la sede en el mapa; null si no la ha marcado. */
+        Double latitud,
+        Double longitud
 ) {
 }

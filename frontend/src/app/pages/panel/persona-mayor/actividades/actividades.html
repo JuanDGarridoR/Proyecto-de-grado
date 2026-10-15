@@ -63,6 +63,27 @@
           <h2>Próximas actividades</h2>
           <p>Actividades de tus organizaciones a las que puedes inscribirte.</p>
         </div>
+
+        @if (separadas().proximas.length > 0) {
+          <div class="vista-selector" role="group" aria-label="Cómo ver las actividades">
+            <button
+              type="button"
+              [class.activa]="vista() === 'lista'"
+              [attr.aria-pressed]="vista() === 'lista'"
+              (click)="vista.set('lista')"
+            >
+              <app-icono name="clipboard" /> Lista
+            </button>
+            <button
+              type="button"
+              [class.activa]="vista() === 'mapa'"
+              [attr.aria-pressed]="vista() === 'mapa'"
+              (click)="vista.set('mapa')"
+            >
+              <app-icono name="map" /> Mapa
+            </button>
+          </div>
+        }
       </div>
 
       @if (separadas().proximas.length === 0) {
@@ -70,6 +91,28 @@
           <div class="empty-icon"><app-icono name="calendar" /></div>
           <h3>No hay próximas actividades</h3>
           <p>Cuando una organización publique una actividad, la verás aquí.</p>
+        </div>
+      } @else if (vista() === 'mapa') {
+        <div class="mapa-actividades">
+          <p class="mapa-leyenda">
+            <span class="leyenda-punto"></span> Actividades
+            <span class="leyenda-punto leyenda-punto--inscrito"></span> Inscrito
+          </p>
+
+          <app-mapa
+            [puntos]="puntosProximas()"
+            descripcion="Mapa con los puntos de encuentro de tus próximas actividades"
+          />
+
+          @if (sinPunto() > 0) {
+            <p class="mapa-nota">
+              <app-icono name="info" />
+              {{ sinPunto() === 1
+                ? '1 actividad todavía no aparece en el mapa.'
+                : sinPunto() + ' actividades todavía no aparecen en el mapa.' }}
+              <button type="button" class="enlace" (click)="vista.set('lista')">Verlas en la lista</button>
+            </p>
+          }
         </div>
       } @else {
         <div class="activities-list">

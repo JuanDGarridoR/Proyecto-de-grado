@@ -1,0 +1,114 @@
+/* Sin encapsular (ver mapa.ts): todo va con prefijo "mapa-". */
+
+.mapa {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mapa-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.mapa-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-pill);
+  background: var(--vita-white);
+  color: var(--vita-principal);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mapa-boton:hover:not(:disabled) {
+  border-color: var(--vita-principal);
+}
+
+.mapa-boton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.mapa-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #b42318;
+  font-size: 0.95rem;
+}
+
+.mapa-lienzo {
+  height: var(--mapa-alto, 380px);
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  /* Por encima de nada: los modales de la página deben taparlo. */
+  z-index: 0;
+  position: relative;
+}
+
+@media (max-width: 640px) {
+  .mapa-lienzo {
+    height: var(--mapa-alto-movil, 300px);
+  }
+}
+
+/* Marcadores: gota con borde blanco */
+
+.mapa-pin span {
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: 1px 3px;
+  border: 3px solid var(--vita-white);
+  border-radius: 50% 50% 50% 0;
+  background: var(--vita-principal);
+  box-shadow: 0 3px 8px rgba(18, 53, 91, 0.35);
+  transform: rotate(-45deg);
+}
+
+.mapa-pin--destacado span {
+  background: var(--vita-secundario);
+}
+
+/* Ventana al tocar un punto */
+
+.mapa-ventana {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--vita-text);
+}
+
+.mapa-ventana strong {
+  font-size: 1.05rem;
+}
+
+.mapa-ventana__distancia {
+  font-weight: 600;
+  color: var(--vita-principal);
+}
+
+.mapa-ventana__ruta {
+  margin-top: 6px;
+  padding: 0.55rem 0.9rem;
+  border-radius: var(--radius-pill);
+  background: var(--vita-principal);
+  /* Leaflet pinta los enlaces de las ventanas de azul; este es un botón. */
+  color: var(--vita-white) !important;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}

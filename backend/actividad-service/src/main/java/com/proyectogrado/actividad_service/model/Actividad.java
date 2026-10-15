@@ -52,6 +52,17 @@ public class Actividad {
     @Column(name = "lugar")
     private String lugar;
 
+    /**
+     * Punto de encuentro en el mapa (grados WGS84). Las dos van juntas: o
+     * están las dos o ninguna. Son opcionales; lugar sigue siendo el texto
+     * que describe el sitio.
+     */
+    @Column(name = "latitud")
+    private Double latitud;
+
+    @Column(name = "longitud")
+    private Double longitud;
+
     /** Texto libre, por ejemplo "Recreativa". */
     @Column(name = "tipo")
     private String tipo;
@@ -139,6 +150,22 @@ public class Actividad {
 
     public void setLugar(String lugar) {
         this.lugar = lugar;
+    }
+
+    public Double getLatitud() {
+        return latitud;
+    }
+
+    public void setLatitud(Double latitud) {
+        this.latitud = latitud;
+    }
+
+    public Double getLongitud() {
+        return longitud;
+    }
+
+    public void setLongitud(Double longitud) {
+        this.longitud = longitud;
     }
 
     public String getTipo() {

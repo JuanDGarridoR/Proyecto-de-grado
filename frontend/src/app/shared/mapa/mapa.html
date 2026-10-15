@@ -1,0 +1,29 @@
+<div class="mapa">
+
+  <div class="mapa-barra">
+    <button
+      type="button"
+      class="mapa-boton"
+      (click)="mostrarDondeEstoy()"
+      [disabled]="buscandoUbicacion()"
+    >
+      <app-icono name="target" />
+      {{ buscandoUbicacion() ? 'Buscando...' : 'Mostrar dónde estoy' }}
+    </button>
+  </div>
+
+  @if (errorUbicacion()) {
+    <p class="mapa-error" role="alert">
+      <app-icono name="alert-triangle" />
+      {{ errorUbicacion() }}
+    </p>
+  }
+
+  <div
+    #contenedor
+    class="mapa-lienzo"
+    role="region"
+    [attr.aria-label]="descripcion()"
+  ></div>
+
+</div>

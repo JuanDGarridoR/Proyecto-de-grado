@@ -135,6 +135,17 @@ ALTER TABLE actividad ADD COLUMN IF NOT EXISTS id_voluntario integer;
 ALTER TABLE signo_vital ADD COLUMN IF NOT EXISTS estatura double precision;
 ALTER TABLE actividad ADD COLUMN IF NOT EXISTS estado varchar(255);
 
+-- Ubicación en el mapa de las actividades y las sedes. Las agrega
+-- analitica-service, que también las llena solo: le pregunta a Google
+-- dónde quedan el lugar de cada actividad y la dirección de cada
+-- organización (UbicadorAutomatico), así que este script no las llena.
+ALTER TABLE actividad ADD COLUMN IF NOT EXISTS latitud double precision;
+ALTER TABLE actividad ADD COLUMN IF NOT EXISTS longitud double precision;
+ALTER TABLE actividad ADD COLUMN IF NOT EXISTS ubicacion_buscada varchar(255);
+ALTER TABLE organizacion ADD COLUMN IF NOT EXISTS latitud double precision;
+ALTER TABLE organizacion ADD COLUMN IF NOT EXISTS longitud double precision;
+ALTER TABLE organizacion ADD COLUMN IF NOT EXISTS ubicacion_buscada varchar(255);
+
 -- Quién envió la solicitud de acompañamiento; la agregan
 -- persona-mayor-service y acompanante-service al arrancar.
 ALTER TABLE persona_mayor_acompanante ADD COLUMN IF NOT EXISTS solicitada_por varchar(255);

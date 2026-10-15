@@ -64,7 +64,9 @@ public class OrganizacionesDisponiblesController {
                             organizacion.getDireccion(),
                             cuenta != null ? cuenta.getCelular() : null,
                             cuenta != null ? cuenta.getCorreo() : null,
-                            cuenta != null ? cuenta.getFotoPerfil() : null
+                            cuenta != null ? cuenta.getFotoPerfil() : null,
+                            organizacion.getLatitud(),
+                            organizacion.getLongitud()
                     );
                 })
                 .toList();

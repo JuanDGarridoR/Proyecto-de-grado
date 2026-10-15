@@ -68,6 +68,17 @@
   font-size: 0.88rem;
 }
 
+/* Abre la ruta en Google Maps */
+.activity-route {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--vita-principal);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .activity-actions {
   display: flex;
   align-items: center;

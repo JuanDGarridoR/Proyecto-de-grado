@@ -31,6 +31,8 @@ class OrganizacionesDisponiblesControllerTest {
         when(organizacion.getIdOrganizacion()).thenReturn(id);
         when(organizacion.getNombre()).thenReturn(nombre);
         when(organizacion.getDireccion()).thenReturn("Calle " + id);
+        when(organizacion.getLatitud()).thenReturn(4.5);
+        when(organizacion.getLongitud()).thenReturn(-74.1);
         return organizacion;
     }
 
@@ -63,6 +65,8 @@ class OrganizacionesDisponiblesControllerTest {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].nombre").value("Comedor Comunitario"))
                 .andExpect(jsonPath("$[0].direccion").value("Calle 6"))
+                .andExpect(jsonPath("$[0].latitud").value(4.5))
+                .andExpect(jsonPath("$[0].longitud").value(-74.1))
                 .andExpect(jsonPath("$[0].correo").value("comedor@vitamas.co"));
     }
 }

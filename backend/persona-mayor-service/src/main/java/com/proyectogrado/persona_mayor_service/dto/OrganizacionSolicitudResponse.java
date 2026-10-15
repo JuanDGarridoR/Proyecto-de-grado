@@ -10,6 +10,10 @@ public record OrganizacionSolicitudResponse(
         String celular,
         String correo,
         /** URL pública de la foto de perfil, o null si no tiene. */
-        String fotoPerfil
+        String fotoPerfil,
+        String direccion,
+        /** Ubicación de la sede en el mapa; null si no la ha marcado. */
+        Double latitud,
+        Double longitud
 ) {
 }

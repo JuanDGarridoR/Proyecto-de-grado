@@ -478,6 +478,38 @@
 
 </section>
 
+<!-- Organizaciones en el mapa: las suyas y a las que puede unirse -->
+
+@if (organizaciones().length + disponibles().length > 0) {
+  <section class="mapa-organizaciones" aria-labelledby="mapaOrganizacionesTitulo">
+    <div class="section-title">
+      <div>
+        <h2 id="mapaOrganizacionesTitulo">Organizaciones en el mapa</h2>
+        <p>Mira dónde queda cada organización y cuáles te quedan más cerca.</p>
+      </div>
+    </div>
+
+    <p class="mapa-organizaciones__leyenda">
+      <span class="mapa-organizaciones__punto mapa-organizaciones__punto--mia"></span> Mis organizaciones
+      <span class="mapa-organizaciones__punto"></span> Puedo unirme
+    </p>
+
+    <app-mapa
+      [puntos]="puntosOrganizaciones()"
+      descripcion="Mapa con la ubicación de tus organizaciones y de las que te puedes unir"
+    />
+
+    @if (sinUbicacion() > 0) {
+      <p class="mapa-organizaciones__nota">
+        <app-icono name="info" />
+        {{ sinUbicacion() === 1
+          ? '1 organización todavía no aparece en el mapa.'
+          : sinUbicacion() + ' organizaciones todavía no aparecen en el mapa.' }}
+      </p>
+    }
+  </section>
+}
+
 <!-- Solicitudes que envió la persona mayor -->
 
 @if (enviadas().length > 0) {

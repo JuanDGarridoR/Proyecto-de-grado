@@ -13,6 +13,11 @@ public class ActividadDisponibleResponse {
     private LocalDate fecha;
     private String hora;
     private String lugar;
+
+    /** Punto de encuentro en el mapa; null si la actividad no tiene. */
+    private Double latitud;
+    private Double longitud;
+
     private String tipo;
     private Integer cupos;
     private boolean inscrito;
@@ -99,6 +104,22 @@ public class ActividadDisponibleResponse {
 
     public void setLugar(String lugar) {
         this.lugar = lugar;
+    }
+
+    public Double getLatitud() {
+        return latitud;
+    }
+
+    public void setLatitud(Double latitud) {
+        this.latitud = latitud;
+    }
+
+    public Double getLongitud() {
+        return longitud;
+    }
+
+    public void setLongitud(Double longitud) {
+        this.longitud = longitud;
     }
 
     public String getTipo() {

@@ -76,6 +76,8 @@ public class ActividadPeriodicaScheduler {
         siguiente.setFecha(actual.getFecha().plusDays(saltos * frecuencia));
         siguiente.setHora(actual.getHora());
         siguiente.setLugar(actual.getLugar());
+        siguiente.setLatitud(actual.getLatitud());
+        siguiente.setLongitud(actual.getLongitud());
         siguiente.setTipo(actual.getTipo());
         siguiente.setCupos(actual.getCupos());
         siguiente.setResponsable(actual.getResponsable());

@@ -81,6 +81,8 @@ public class OrganizacionInformacionController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Organización no encontrada");
         }
 
+        // La ubicación en el mapa no se toca: analitica-service la saca de la
+        // dirección (UbicadorAutomatico) y la actualiza si la dirección cambia.
         organizacion.setDireccion(request.getDireccion());
         organizacion = organizacionLookupRepository.save(organizacion);
 
@@ -93,7 +95,9 @@ public class OrganizacionInformacionController {
                 usuario.getNombreUsuario(),
                 usuario.getCorreo(),
                 usuario.getCelular(),
-                organizacion.getDireccion()
+                organizacion.getDireccion(),
+                organizacion.getLatitud(),
+                organizacion.getLongitud()
         );
     }
 }
