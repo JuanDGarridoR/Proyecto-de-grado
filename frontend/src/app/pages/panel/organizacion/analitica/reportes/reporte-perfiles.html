@@ -1,0 +1,180 @@
+<!-- Indicadores -->
+<div class="kpis">
+  @for (k of tarjetas(); track k.etiqueta) {
+    <app-kpi [etiqueta]="k.etiqueta" [valor]="k.valor" [detalle]="k.detalle" [icono]="k.icono" [tono]="k.tono" />
+  }
+</div>
+
+<!-- Limitaciones de este análisis (calidad y suficiencia de los datos) -->
+@if (datos().advertencias.length > 0) {
+  <section class="limitaciones card" aria-labelledby="limitaciones-titulo">
+    <h3 id="limitaciones-titulo"><app-icono name="alert-triangle" /> Ten en cuenta antes de usar estos perfiles</h3>
+    <ul>
+      @for (a of datos().advertencias; track $index) {
+        <li>{{ a }}</li>
+      }
+    </ul>
+  </section>
+}
+
+<div class="graficas">
+  @if (listo()) {
+    <!-- Mapa de los grupos -->
+    <app-tarjeta-grafica
+      class="ancho-completo"
+      titulo="Mapa de los perfiles"
+      descripcion="Cada punto es una persona mayor; los puntos cercanos tienen características parecidas. El color es el grupo que le asignó el modelo."
+      [opciones]="graficaMapa()"
+      [tabla]="tablaMapa()"
+      [alto]="380"
+    >
+      <label acciones class="selector-k">
+        Grupos
+        <select class="selector" (change)="cambiarK($any($event.target).value)">
+          <option value="" [selected]="!datos().modelo!.kElegidoPorUsuario">
+            Automático ({{ datos().modelo!.kSugerido }})
+          </option>
+          @for (k of opcionesK(); track k) {
+            <option [value]="k" [selected]="datos().modelo!.kElegidoPorUsuario && datos().modelo!.k === k">{{ k }}</option>
+          }
+        </select>
+      </label>
+    </app-tarjeta-grafica>
+
+    <!-- Tarjeta de cada perfil -->
+    <section class="perfiles ancho-completo" aria-label="Perfiles encontrados">
+      @for (g of datos().grupos; track g.numero) {
+        <article class="perfil card" [style.border-top-color]="colorGrupo(g.numero)">
+          <header class="perfil__header">
+            <span class="perfil__marca" [style.background]="colorGrupo(g.numero)" aria-hidden="true"></span>
+            <div>
+              <p class="perfil__numero">Grupo {{ g.numero }} · {{ g.personas }} {{ g.personas === 1 ? 'persona' : 'personas' }} ({{ g.porcentaje }} %)</p>
+              <h3>{{ g.nombre }}</h3>
+            </div>
+          </header>
+          <p class="perfil__descripcion">{{ g.descripcion }}</p>
+
+          @if (g.rasgos.length > 0) {
+            <h4>Qué los distingue</h4>
+            <ul class="perfil__lista">
+              @for (r of g.rasgos; track $index) { <li>{{ r }}</li> }
+            </ul>
+          }
+
+          <h4><app-icono name="stethoscope" /> Atención sugerida</h4>
+          <ul class="perfil__lista">
+            @for (r of g.recomendacionesAtencion; track $index) { <li>{{ r }}</li> }
+          </ul>
+
+          <h4><app-icono name="activity" /> Actividades sugeridas</h4>
+          <ul class="perfil__lista">
+            @for (r of g.recomendacionesActividades; track $index) { <li>{{ r }}</li> }
+          </ul>
+
+          <p class="perfil__pie">
+            @if (g.asistencia !== null) {
+              Asistencia a actividades: <strong>{{ g.asistencia }} %</strong>
+            } @else {
+              Sin asistencia registrada a actividades
+            }
+          </p>
+        </article>
+      }
+    </section>
+
+    <!-- Centroides -->
+    <app-tarjeta-grafica
+      class="ancho-completo"
+      titulo="Qué distingue a cada grupo"
+      descripcion="Promedio de cada grupo frente al de la organización, en desviaciones estándar. En la tabla, los valores en sus unidades."
+      [opciones]="graficaPerfil()"
+      [tabla]="tablaPerfil()"
+      [alto]="altoPerfil()"
+    />
+
+    <!-- Elección de k -->
+    <app-tarjeta-grafica
+      titulo="Número de grupos"
+      descripcion="La silueta (de -1 a 1) mide qué tan bien separados quedan los grupos. Se sugiere el número de grupos con la silueta más alta."
+      [opciones]="graficaK()"
+      [tabla]="tablaK()"
+    />
+  }
+
+  <!-- Completitud de los datos -->
+  <app-tarjeta-grafica
+    [class.ancho-completo]="!listo()"
+    titulo="Calidad de los datos"
+    descripcion="Porcentaje de las personas vinculadas que tiene registrado cada dato. En gris, los que no entraron al modelo."
+    [opciones]="graficaCompletitud()"
+    [tabla]="tablaCompletitud()"
+    [alto]="altoCompletitud()"
+    [vacio]="datos().calidad.personasAsociadas === 0"
+    textoVacio="La organización aún no tiene personas mayores vinculadas."
+  />
+
+  <!-- Personas de cada grupo -->
+  @if (listo()) {
+    <section class="atencion card ancho-completo">
+      <header class="atencion__header">
+        <div>
+          <h3>Personas de cada grupo</h3>
+          <p>Para planear la atención y las invitaciones a actividades de cada perfil.</p>
+        </div>
+      </header>
+      <div class="atencion__tabla">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Grupo</th>
+              <th scope="col">Personas</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (fila of personasPorGrupo(); track fila.grupo.numero) {
+              <tr>
+                <td class="perfiles__grupo">
+                  <span class="perfil__marca perfil__marca--chica" [style.background]="colorGrupo(fila.grupo.numero)" aria-hidden="true"></span>
+                  Grupo {{ fila.grupo.numero }}: {{ fila.grupo.nombre }}
+                </td>
+                <td>{{ fila.personas.join(', ') }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+
+  <!-- Personas excluidas por falta de datos -->
+  @if (datos().excluidas.length > 0) {
+    <section class="atencion card ancho-completo">
+      <header class="atencion__header">
+        <div>
+          <h3>Personas sin datos suficientes</h3>
+          <p>No entraron al análisis. Al registrar estos datos se incluirán la próxima vez que se calculen los perfiles.</p>
+        </div>
+      </header>
+      <div class="atencion__tabla">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Persona</th>
+              <th scope="col">Le falta</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of datos().excluidas; track e.id) {
+              <tr>
+                <td class="perfiles__grupo">{{ e.nombre }}</td>
+                <td>{{ e.faltantes.join(', ') }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</div>
+
+<p class="nota">{{ nota }}</p>

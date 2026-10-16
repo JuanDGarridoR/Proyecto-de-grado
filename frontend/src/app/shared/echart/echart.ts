@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 
 import * as echarts from 'echarts/core';
-import { BarChart, GraphChart, LineChart, PieChart } from 'echarts/charts';
+import { BarChart, GraphChart, LineChart, PieChart, ScatterChart } from 'echarts/charts';
 import {
   AriaComponent,
   GraphicComponent,
@@ -30,6 +30,7 @@ echarts.use([
   GraphChart,
   LineChart,
   PieChart,
+  ScatterChart,
   AriaComponent,
   GraphicComponent,
   GridComponent,

@@ -69,6 +69,8 @@ El backend está dividido en **Servicios**. El frontend nunca habla directamente
 
 Cómo se mantiene disponible la plataforma (health checks, réplicas y balanceo, circuit breaker, reintentos, caché, etc.) está en [ARQUITECTURA_DISPONIBILIDAD.md](ARQUITECTURA_DISPONIBILIDAD.md).
 
+Cómo funcionan los perfiles de las personas mayores (segmentación con K-means en analitica-service) está en [KMEANS_PERFILES.md](KMEANS_PERFILES.md).
+
 ```text
 ┌──────────────────────┐
 │       Frontend       │
@@ -147,6 +149,7 @@ Proyecto-de-grado/
 │   └── package.json
 │
 ├── GUIA_COMENTARIOS.md        ← cómo se comenta el código
+├── KMEANS_PERFILES.md         ← perfiles de las personas mayores con K-means
 └── README.md
 ```
 

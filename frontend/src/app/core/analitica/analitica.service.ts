@@ -142,6 +142,77 @@ export interface RedOrganizacion {
   }[];
 }
 
+/** Variable del modelo de perfiles: completitud (%), promedio y si entró al modelo. */
+export interface VariablePerfil {
+  clave: string;
+  nombre: string;
+  dimension: string;
+  unidad: string;
+  completitud: number;
+  media: number | null;
+  desviacion: number | null;
+  usada: boolean;
+  motivoDescarte: string | null;
+}
+
+/** Un perfil (grupo) encontrado por K-means, con su interpretación. */
+export interface GrupoPerfil {
+  numero: number;
+  nombre: string;
+  descripcion: string;
+  personas: number;
+  porcentaje: number;
+  rasgos: string[];
+  /** Promedio del grupo en cada variable usada: en sus unidades y en desviaciones (z). */
+  centroide: { clave: string; valor: number; z: number }[];
+  dimensiones: { dimension: string; puntaje: number }[];
+  recomendacionesAtencion: string[];
+  recomendacionesActividades: string[];
+  interesesFrecuentes: string[];
+  /** % de asistencia a actividades; null si nadie tiene asistencia registrada. */
+  asistencia: number | null;
+}
+
+/**
+ * Respuesta de /perfiles: segmentación de las personas mayores con K-means
+ * (ver KMEANS_PERFILES.md). Con estado INSUFICIENTE no hay modelo ni grupos.
+ */
+export interface PerfilesAnalitica {
+  estado: 'LISTO' | 'INSUFICIENTE';
+  generado: string;
+  calidad: {
+    personasAsociadas: number;
+    personasIncluidas: number;
+    personasExcluidas: number;
+    minimoPersonas: number;
+    porcentajeImputado: number;
+    registrosDePrueba: number;
+    nivel: 'BUENA' | 'ACEPTABLE' | 'LIMITADA' | 'INSUFICIENTE';
+  };
+  variables: VariablePerfil[];
+  modelo: {
+    k: number;
+    kSugerido: number;
+    kElegidoPorUsuario: boolean;
+    kMaximo: number;
+    silueta: number;
+    estructura: 'FUERTE' | 'RAZONABLE' | 'DEBIL' | 'SIN_ESTRUCTURA';
+    inercia: number;
+    iteraciones: number;
+    reinicios: number;
+    semilla: number;
+    /** Varianza que explica cada eje del mapa (0 a 1). */
+    varianzaExplicada: number[];
+    evaluaciones: { k: number; inercia: number; silueta: number }[];
+  } | null;
+  grupos: GrupoPerfil[];
+  /** Personas incluidas, su grupo y su punto en el mapa. */
+  personas: { id: number; nombre: string; grupo: number; x: number; y: number }[];
+  /** Personas que no entraron por falta de datos y lo que les falta. */
+  excluidas: { id: number; nombre: string; faltantes: string[] }[];
+  advertencias: string[];
+}
+
 /** Contenido de un reporte para el PDF (ver ReportePdfRequest en el backend). */
 export interface ReportePdf {
   titulo: string;
@@ -189,6 +260,12 @@ export class AnaliticaService {
   /** Por qué las personas mayores eliminaron su cuenta (se filtra por período en el navegador). */
   retiros(): Observable<RetirosAnalitica> {
     return this.http.get<RetirosAnalitica>(`${this.apiUrl}/retiros`);
+  }
+
+  /** Perfiles de las personas mayores (K-means); sin k, el número de grupos lo sugiere la silueta. */
+  perfiles(k: number | null): Observable<PerfilesAnalitica> {
+    const params = k ? new HttpParams().set('k', k) : new HttpParams();
+    return this.http.get<PerfilesAnalitica>(`${this.apiUrl}/perfiles`, { params });
   }
 
   /** Red de apoyo de la organización: vínculos, gustos, barrios y actividades. */

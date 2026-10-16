@@ -1,0 +1,124 @@
+/* Reporte de perfiles (K-means). La fila de indicadores, la cuadrícula y
+   las tablas vienen de reporte.css y reporte-salud.css. */
+
+/* Limitaciones del análisis */
+.limitaciones {
+  margin-bottom: 20px;
+  padding: 18px 22px;
+  border-left: 4px solid #fab219;
+  background: #fffaf0;
+}
+
+.limitaciones h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #8a5a00;
+}
+
+.limitaciones ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--vita-navy);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+/* Selector del número de grupos */
+.selector-k {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--vita-text-gray);
+}
+
+/* Tarjetas de los perfiles */
+.perfiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.perfil {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  border-top: 4px solid var(--vita-navy);
+}
+
+.perfil__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.perfil__marca {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-top: 4px;
+  border-radius: 50%;
+}
+
+.perfil__marca--chica {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 6px 0 0;
+}
+
+.perfil__numero {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--vita-text-gray);
+}
+
+.perfil h3 {
+  margin: 2px 0 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--vita-navy);
+}
+
+.perfil__descripcion {
+  margin: 10px 0 4px;
+  font-size: 0.88rem;
+  color: var(--vita-text-gray);
+}
+
+.perfil h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--vita-navy);
+}
+
+.perfil__lista {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--vita-text-gray);
+}
+
+.perfil__pie {
+  margin: auto 0 0;
+  padding-top: 12px;
+  font-size: 0.82rem;
+  color: var(--vita-text-gray);
+}
+
+.perfiles__grupo {
+  color: var(--vita-navy) !important;
+  font-weight: 600;
+  white-space: nowrap;
+}

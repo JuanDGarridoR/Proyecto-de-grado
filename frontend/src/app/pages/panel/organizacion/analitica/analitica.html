@@ -107,5 +107,12 @@
         <app-cargando class="cargando" texto="Cargando reporte..." />
       }
     }
+    @case ('perfiles') {
+      @if (perfiles().datos; as datos) {
+        <app-reporte-perfiles [datos]="datos" (elegirK)="elegirKPerfiles($event)" />
+      } @else if (perfiles().cargando) {
+        <app-cargando class="cargando" texto="Calculando perfiles..." />
+      }
+    }
   }
 </div>
