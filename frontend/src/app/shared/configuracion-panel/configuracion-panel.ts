@@ -43,7 +43,8 @@ export const CONFIGURACION_PANEL: Record<string, ConfiguracionPanel> = {
       { icon: 'gift', label: 'Donaciones', path: '/panel/organizacion/donaciones' },
       { icon: 'clipboard', label: 'Inventario', path: '/panel/organizacion/inventario' },
       { icon: 'bar-chart', label: 'Analítica', path: '/panel/organizacion/analitica' },
-      // Acompañantes, alertas, medicamentos y mapa irán aquí, en ese orden,
+      { icon: 'map', label: 'Red y mapa', path: '/panel/organizacion/mapa' },
+      // Acompañantes, alertas y medicamentos irán aquí, en ese orden,
       // cuando existan. Mientras tanto no aparecen en el menú y sus rutas
       // muestran EnConstruccion.
       { icon: 'user', label: 'Perfil', path: '/panel/organizacion/perfil' }

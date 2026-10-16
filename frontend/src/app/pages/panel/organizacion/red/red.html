@@ -1,0 +1,146 @@
+<div class="page-header">
+  <h1>Red y mapa</h1>
+  <p>
+    Panorama de tu red de apoyo: quién está conectado con quién, qué gustos comparten y desde
+    qué barrios llega la gente a tus actividades.
+  </p>
+</div>
+
+@if (error(); as error) {
+  <div class="aviso-error" role="alert">
+    <app-icono name="alert-circle" /> {{ error }}
+    <button type="button" (click)="cargar()">Reintentar</button>
+  </div>
+}
+
+@if (cargando()) {
+  <app-cargando class="cargando" texto="Armando la red..." />
+}
+
+@if (red(); as red) {
+
+  <!-- Indicadores -->
+  <div class="kpis">
+    @for (k of tarjetas(); track k.etiqueta) {
+      <app-kpi [etiqueta]="k.etiqueta" [valor]="k.valor" [detalle]="k.detalle" [icono]="k.icono" [tono]="k.tono" />
+    }
+  </div>
+
+  <!-- Grafo -->
+  @if (grafo(); as grafo) {
+    <app-tarjeta-grafica
+      [titulo]="vistaGrafo() === 'red' ? 'Red de apoyo' : 'Gustos en común'"
+      [descripcion]="vistaGrafo() === 'red'
+        ? 'Tu organización al centro, unida a sus personas mayores y voluntarios; cada persona, unida a sus acompañantes. Los rombos rojos son personas sin acompañante. Pasa el mouse por un punto para ver sus conexiones; puedes arrastrar y acercar.'
+        : 'Cada gusto unido a las personas mayores y voluntarios que lo tienen. Los gustos más grandes son los más comunes: buenas ideas para actividades.'"
+      [opciones]="grafo.opciones"
+      [tabla]="grafo.tabla"
+      [alto]="540"
+      [vacio]="red.personasMayores.length === 0"
+      textoVacio="Aún no tienes personas mayores asociadas."
+    >
+      <div acciones class="selector" role="group" aria-label="Vista del grafo">
+        <button type="button" [class.activo]="vistaGrafo() === 'red'" [attr.aria-pressed]="vistaGrafo() === 'red'"
+                (click)="vistaGrafo.set('red')">Red de apoyo</button>
+        <button type="button" [class.activo]="vistaGrafo() === 'gustos'" [attr.aria-pressed]="vistaGrafo() === 'gustos'"
+                (click)="vistaGrafo.set('gustos')">Por gustos</button>
+      </div>
+    </app-tarjeta-grafica>
+  }
+
+  <!-- Mapa de la red -->
+  @if (mapa(); as mapa) {
+    <section class="mapa-card card">
+      <header class="mapa-card__header">
+        <div>
+          <h3>Mapa de la red</h3>
+          <p>
+            Dónde viven tus personas mayores (agrupadas por barrio, nunca su casa) y a qué lugares van a las
+            actividades de los últimos 3 meses y los próximos 2. Las líneas más gruesas son más inscripciones.
+          </p>
+        </div>
+
+        <div class="mapa-card__controles">
+          <label class="filtro">
+            <span>Gusto</span>
+            <select (change)="elegirGusto($any($event.target).value)" aria-label="Filtrar por gusto">
+              <option value="">Todos</option>
+              @for (g of red.gustos; track g.id) {
+                <option [value]="g.id" [selected]="gusto() === g.id">{{ g.nombre }}</option>
+              }
+            </select>
+          </label>
+
+          <button type="button" class="ver-tabla" (click)="verTablaMapa.set(!verTablaMapa())"
+                  [attr.aria-pressed]="verTablaMapa()">
+            {{ verTablaMapa() ? 'Ver mapa' : 'Ver tabla' }}
+          </button>
+        </div>
+      </header>
+
+      @if (gusto() !== null) {
+        <p class="mapa-card__filtro">
+          {{ personasFiltradas() }} {{ personasFiltradas() === 1 ? 'persona mayor tiene' : 'personas mayores tienen' }}
+          este gusto.
+        </p>
+      }
+
+      @if (verTablaMapa()) {
+        @if (tablaDelMapa(); as tabla) {
+          <div class="tabla">
+            <table>
+              <thead>
+                <tr>
+                  @for (c of tabla.columnas; track $index) { <th scope="col">{{ c }}</th> }
+                </tr>
+              </thead>
+              <tbody>
+                @for (fila of tabla.filas; track $index) {
+                  <tr>
+                    @for (celda of fila; track $index) { <td>{{ celda }}</td> }
+                  </tr>
+                } @empty {
+                  <tr><td [attr.colspan]="tabla.columnas.length">No hay personas en barrios reconocidos.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      } @else {
+        <app-mapa-red [datos]="mapa" />
+
+        <ul class="leyenda" aria-label="Leyenda del mapa">
+          <li><span class="marca marca--sede"></span> Sede</li>
+          <li><span class="marca marca--barrio"></span> Personas mayores por barrio (el número es cuántas)</li>
+          <li><span class="marca marca--lugar"></span> Lugar de actividades</li>
+          <li><span class="marca marca--linea"></span> Inscripciones de un barrio a un lugar</li>
+        </ul>
+      }
+
+      <div class="notas">
+        @if (!mapa.sede) {
+          <p><app-icono name="info" /> Tu sede aún no aparece: se ubica sola con la dirección de tu perfil.</p>
+        }
+        @if (mapa.sinBarrio > 0) {
+          <p>
+            <app-icono name="info" />
+            {{ mapa.sinBarrio }} {{ mapa.sinBarrio === 1 ? 'persona mayor no aparece' : 'personas mayores no aparecen' }}
+            porque su dirección no tiene un barrio reconocido.
+          </p>
+        }
+        @if (actividadesSinUbicar() > 0) {
+          <p>
+            <app-icono name="info" />
+            {{ actividadesSinUbicar() }} {{ actividadesSinUbicar() === 1 ? 'actividad aún no tiene' : 'actividades aún no tienen' }}
+            su lugar ubicado en el mapa.
+          </p>
+        }
+      </div>
+    </section>
+  }
+
+  <p class="nota-final">
+    <app-icono name="info" />
+    Esta vista solo informa: las decisiones sobre a quién acompañar o dónde hacer actividades las toma tu organización.
+  </p>
+}

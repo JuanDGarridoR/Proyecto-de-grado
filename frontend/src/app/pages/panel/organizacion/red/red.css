@@ -1,0 +1,237 @@
+/* «Red y mapa»: misma estructura visual que los reportes de analítica. */
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--vita-navy);
+}
+
+.page-header p {
+  margin-top: 6px;
+  color: var(--vita-text-gray);
+  font-size: 1rem;
+}
+
+.cargando {
+  display: block;
+  padding: 40px 0;
+}
+
+.aviso-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid #d64545;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, #d64545 10%, white);
+  color: #9e2929;
+  font-weight: 600;
+}
+
+.aviso-error button {
+  margin-left: auto;
+  padding: 6px 12px;
+  border: 1px solid #9e2929;
+  border-radius: var(--radius-pill);
+  background: var(--vita-white);
+  color: #9e2929;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+/* Selector de vista del grafo (Red de apoyo / Por gustos) */
+.selector {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-pill);
+  background: var(--vita-white);
+}
+
+.selector button {
+  padding: 5px 12px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--vita-text-gray);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.selector button.activo {
+  background: var(--vita-navy);
+  color: var(--vita-white);
+}
+
+/* Tarjeta del mapa */
+.mapa-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 22px;
+}
+
+.mapa-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mapa-card__header > div:first-child {
+  flex: 1;
+  min-width: 260px;
+}
+
+.mapa-card__header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--vita-navy);
+}
+
+.mapa-card__header p,
+.mapa-card__filtro {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--vita-text-gray);
+}
+
+.mapa-card__controles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--vita-text-gray);
+}
+
+.filtro select,
+.ver-tabla {
+  padding: 6px 12px;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-pill);
+  background: var(--vita-white);
+  color: var(--vita-navy);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* Leyenda del mapa: cada marca con su forma (no solo color) */
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--vita-text-gray);
+}
+
+.leyenda li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.marca {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+}
+
+.marca--sede {
+  border: 4px solid #2a78d6;
+  border-radius: 50%;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.marca--barrio {
+  border-radius: 50%;
+  background: #eb6834;
+}
+
+.marca--lugar {
+  border-radius: 3px;
+  background: #4a3aa7;
+}
+
+.marca--linea {
+  width: 22px;
+  height: 4px;
+  border-radius: 2px;
+  background: #586576;
+  opacity: 0.6;
+}
+
+/* Vista de tabla del mapa */
+.tabla {
+  max-height: 460px;
+  overflow: auto;
+  border: 1px solid var(--vita-border);
+  border-radius: var(--radius-sm);
+}
+
+.tabla table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.tabla th,
+.tabla td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--vita-border);
+  text-align: left;
+  color: var(--vita-navy);
+}
+
+.tabla th {
+  position: sticky;
+  top: 0;
+  background: var(--vita-cream);
+  font-weight: 700;
+}
+
+.notas p,
+.nota-final {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--vita-text-gray);
+}
+
+.notas {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

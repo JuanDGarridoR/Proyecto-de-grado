@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 
 import * as echarts from 'echarts/core';
-import { BarChart, LineChart, PieChart } from 'echarts/charts';
+import { BarChart, GraphChart, LineChart, PieChart } from 'echarts/charts';
 import {
   AriaComponent,
   GraphicComponent,
@@ -27,6 +27,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 // página no crezca.
 echarts.use([
   BarChart,
+  GraphChart,
   LineChart,
   PieChart,
   AriaComponent,

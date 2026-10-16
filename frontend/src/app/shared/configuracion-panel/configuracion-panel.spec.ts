@@ -27,9 +27,16 @@ describe('CONFIGURACION_PANEL', () => {
   it('las secciones en construcción no aparecen en el menú de la organización', () => {
     const rutas = CONFIGURACION_PANEL['ORGANIZACION'].navItems.map((opcion) => opcion.path);
 
-    for (const seccion of ['alertas', 'mapa', 'medicamentos', 'acompanantes']) {
+    for (const seccion of ['alertas', 'medicamentos', 'acompanantes']) {
       expect(rutas).not.toContain(`/panel/organizacion/${seccion}`);
     }
+  });
+
+  it('la organización tiene Red y mapa en el menú, después de Analítica', () => {
+    const rutas = CONFIGURACION_PANEL['ORGANIZACION'].navItems.map((opcion) => opcion.path);
+
+    expect(rutas.indexOf('/panel/organizacion/mapa'))
+      .toBe(rutas.indexOf('/panel/organizacion/analitica') + 1);
   });
 
   // RF-62 a RF-68

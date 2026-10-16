@@ -126,8 +126,8 @@ export const routes: Routes = [
       {
         path: 'mapa',
         loadComponent: () =>
-          import('./shared/en-construccion/en-construccion').then((m) => m.EnConstruccion),
-        data: { titulo: 'Mapa' },
+          import('./pages/panel/organizacion/red/red').then((m) => m.Red),
+        data: { titulo: 'Red y mapa' },
       },
 
       {

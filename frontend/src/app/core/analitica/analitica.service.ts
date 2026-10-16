@@ -109,6 +109,39 @@ export interface RecomendacionesOrganizaciones {
   recomendaciones: OrganizacionRecomendada[];
 }
 
+/**
+ * Red de apoyo de la organización (/red), para el grafo y el mapa de
+ * «Red y mapa». De cada persona mayor solo llega el barrio, nunca su
+ * dirección.
+ */
+export interface RedOrganizacion {
+  organizacion: { id: number; nombre: string; latitud: number | null; longitud: number | null };
+  personasMayores: {
+    id: number;
+    nombre: string;
+    barrio: string | null;
+    gustos: number[];
+    /** Actividades (de las de esta respuesta) en las que se inscribió. */
+    actividades: number[];
+  }[];
+  acompanantes: { id: number; nombre: string }[];
+  /** Vínculos aceptados persona mayor - acompañante, con la relación ("Hija"). */
+  vinculos: { idPersonaMayor: number; idAcompanante: number; relacion: string | null }[];
+  voluntarios: { id: number; nombre: string; gustos: number[] }[];
+  gustos: { id: number; nombre: string; categoria: string }[];
+  /** Centro de cada barrio donde vive al menos una persona mayor. */
+  barrios: { nombre: string; latitud: number; longitud: number }[];
+  /** Actividades de los últimos 90 días y los próximos 60. */
+  actividades: {
+    id: number;
+    nombre: string;
+    fecha: string;
+    lugar: string | null;
+    latitud: number | null;
+    longitud: number | null;
+  }[];
+}
+
 /** Contenido de un reporte para el PDF (ver ReportePdfRequest en el backend). */
 export interface ReportePdf {
   titulo: string;
@@ -156,6 +189,11 @@ export class AnaliticaService {
   /** Por qué las personas mayores eliminaron su cuenta (se filtra por período en el navegador). */
   retiros(): Observable<RetirosAnalitica> {
     return this.http.get<RetirosAnalitica>(`${this.apiUrl}/retiros`);
+  }
+
+  /** Red de apoyo de la organización: vínculos, gustos, barrios y actividades. */
+  red(): Observable<RedOrganizacion> {
+    return this.http.get<RedOrganizacion>(`${this.apiUrl}/red`);
   }
 
   /** Persona mayor: organizaciones recomendadas según sus gustos y la cercanía. */
