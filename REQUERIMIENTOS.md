@@ -1,6 +1,6 @@
 # Requerimientos — VITA+
 
-Requerimientos de la plataforma **VITA+** al 9 de octubre de 2026. Se organizan según los módulos principales definidos en el Plan de Administración del Proyecto (SPMP, sección 1.2.2) y sirven como base para actualizar el documento de especificación de requerimientos (SRS).
+Requerimientos de la plataforma **VITA+** al 16 de octubre de 2026. Se organizan según los módulos principales definidos en el Plan de Administración del Proyecto (SPMP, sección 1.2.2) y sirven como base para actualizar el documento de especificación de requerimientos (SRS).
 
 Convenciones:
 
@@ -102,6 +102,7 @@ Relaciones de apoyo entre usuarios, contactos de emergencia, actividades de acom
 | RF-21 | El sistema debe mostrar las solicitudes pendientes recibidas y las enviadas por el usuario. | ✅ Implementado |
 | RF-22 | El sistema debe permitir a la organización consultar los acompañantes de cada persona mayor vinculada, y al acompañante consultar los demás acompañantes de sus personas mayores. | ✅ Implementado |
 | RF-23 | El sistema debe permitir buscar por nombre dentro de las listas de personas vinculadas. | ✅ Implementado |
+| RF-77 | El sistema debe guardar el parentesco del acompañante en cada vínculo, porque puede ser distinto con cada persona mayor, y permitir editarlo desde las tarjetas: la persona mayor, en sus acompañantes, y el acompañante, en sus personas mayores. Los vínculos creados antes conservan el parentesco que tenían. | ✅ Implementado |
 
 ### 3.2 Contactos y emergencias
 
@@ -127,6 +128,7 @@ Relaciones de apoyo entre usuarios, contactos de emergencia, actividades de acom
 | RF-41 | El sistema debe permitir a la organización consultar los participantes de cada actividad y registrar su asistencia. | ✅ Implementado |
 | RF-42 | El sistema debe permitir que voluntarios y personas mayores propongan actividades a las organizaciones a las que están vinculados, y que la organización acepte o rechace cada propuesta. | ✅ Implementado |
 | RF-44 | El sistema debe eliminar las inscripciones de una actividad cuando esta se elimine. | ✅ Implementado |
+| RF-78 | El sistema debe mostrar a la persona mayor, en un mapa, sus próximas actividades y las organizaciones a las que pertenece o puede unirse, con la opción "Cómo llegar" (Google Maps) y la distancia desde su ubicación actual si la comparte. La ubicación de cada sede y de cada lugar de actividad se obtiene automáticamente a partir de su dirección (Google Places), sin que nadie escriba coordenadas; si no se encuentra el lugar, la actividad se muestra en la sede de su organización. | ✅ Implementado |
 
 ### 3.5 Recordatorios y notificaciones
 
@@ -169,6 +171,7 @@ Indicadores, reportes y visualizaciones para identificar patrones, apoyar el per
 | RF-48 | El sistema debe permitir descargar cada reporte en PDF, incluyendo una explicación de cada gráfica. | ✅ Implementado |
 | RF-72 | El sistema debe mostrar a la organización, en el reporte de población, cuántas personas mayores viven solas y, en el reporte de salud, cuántas están en cada categoría de índice de masa corporal (IMC) según su medición más reciente. | ✅ Implementado |
 | RF-73 | El sistema debe mostrar a la organización un reporte de retiros con las personas mayores que eliminaron su cuenta en el período: cuántas fueron, la tasa de retiro, las razones (separando las relacionadas con la plataforma), los retiros por mes y los comentarios que dejaron. | ✅ Implementado |
+| RF-81 | El sistema debe agrupar a las personas mayores de la organización en perfiles con características parecidas (edad, condiciones de salud, signos vitales y necesidades de acompañamiento) mediante K-means, eligiendo el número de grupos con el coeficiente de silueta; evaluar antes si la calidad y la cantidad de los datos alcanzan para entrenar el modelo, explicando a quién se excluyó y por qué; y mostrar en la pestaña "Perfiles" de la analítica cada perfil con sus rasgos, recomendaciones de atención y de actividades, un mapa de los grupos en dos dimensiones (PCA) y las advertencias sobre los datos, con exportación a PDF. Detalle en `KMEANS_PERFILES.md`. | ✅ Implementado |
 
 ### 4.2 Alertas básicas de seguimiento
 
@@ -182,6 +185,13 @@ Indicadores, reportes y visualizaciones para identificar patrones, apoyar el per
 | --- | --- | --- |
 | RF-49 | El sistema debe recomendar a la persona mayor y al voluntario organizaciones a las que aún no pertenecen, según la coincidencia de sus gustos con las actividades de la organización (40 %), la similitud con los gustos de sus miembros (25 %) y la cercanía entre direcciones (35 %), explicando las razones de cada recomendación. | ✅ Implementado |
 
+### 4.4 Red y mapa de la organización
+
+| ID | Requerimiento | Estado |
+| --- | --- | --- |
+| RF-79 | El sistema debe mostrar a la organización, en la sección "Red y mapa", un grafo de su red de apoyo (la organización unida a sus personas mayores y voluntarios, y cada persona mayor a sus acompañantes), resaltando a las personas mayores sin acompañante como posible aislamiento, y un grafo por gustos que una cada gusto con quienes lo tienen. | ✅ Implementado |
+| RF-80 | El sistema debe mostrar a la organización un mapa de su red con la sede, las personas mayores agrupadas por barrio (nunca su dirección exacta), los lugares de sus actividades de los últimos 3 meses y los próximos 2, y líneas de cada barrio a los lugares a los que va su gente, con filtro por gusto. Cada gráfica incluye indicadores y una vista de tabla. | ✅ Implementado |
+
 ---
 
 ## 5. Interfaz web y paneles por rol
@@ -193,6 +203,7 @@ Indicadores, reportes y visualizaciones para identificar patrones, apoyar el per
 | RF-55 | El sistema debe mostrar a la organización, en su inicio, el resumen de sus personas mayores, voluntarios y actividades, con acciones rápidas para registrar signos vitales y actividades. | ✅ Implementado |
 | RF-56 | El sistema debe mostrar al voluntario, en su inicio, sus organizaciones y actividades. | ✅ Implementado |
 | RF-57 | El sistema debe ofrecer una página pública de inicio (landing) que presente la plataforma y sus módulos. | ✅ Implementado |
+| RF-82 | El sistema debe ofrecer en todas las páginas un botón flotante para activar o desactivar un lector de voz que diga en voz alta para qué sirve lo que el usuario toca: botones, campos de texto y texto común. | ✅ Implementado |
 
 ---
 
@@ -213,13 +224,7 @@ Indicadores, reportes y visualizaciones para identificar patrones, apoyar el per
 | RNF-11 | **Tecnologías.** El backend debe desarrollarse en Java LTS (Java 17) con Spring Boot, y el frontend en Angular 17 o superior. | ✅ Implementado |
 | RNF-12 | **Compatibilidad.** La plataforma debe funcionar en las versiones recientes de los navegadores web modernos (Chrome, Edge y Firefox) y adaptarse a pantallas de computador, tableta y celular. | ✅ Implementado |
 | RNF-13 | **Apoyo a la decisión.** La analítica, las recomendaciones y las alertas deben limitarse a informar a los usuarios; el sistema no debe tomar decisiones ni ejecutar acciones de forma autónoma a partir de ellas. | ✅ Implementado |
-| RNF-14 | **Portabilidad.** Los componentes de la aplicación que se ejecutan localmente (frontend y servicios del backend) deben poder ejecutarse en contenedores Docker, orquestados con Docker Compose. | ⏳ Pendiente |
+| RNF-14 | **Portabilidad.** Los componentes de la aplicación que se ejecutan localmente (frontend y servicios del backend) deben poder ejecutarse en contenedores Docker, orquestados con Docker Compose. | ✅ Implementado |
 | RNF-15 | **Disponibilidad.** La plataforma debe estar desplegada en un servicio de hosting accesible por internet durante la etapa de validación y demostración. | ⏳ Pendiente |
-
----
-
-## Secciones del menú sin requerimiento asociado
-
-Estas secciones del panel de la organización aparecen en el menú, pero todavía muestran la página "En construcción" y no se incluyen como requerimientos:
-
-* **Mapa**: aún no está definido qué debe mostrar.
+| RNF-16 | **Tolerancia a fallos.** La plataforma debe seguir respondiendo cuando falle una instancia o un servicio: verificaciones de salud con reinicio automático de los contenedores que dejan de responder, dos réplicas de los servicios de autenticación, persona mayor y salud balanceadas por el gateway, circuit breaker por ruta con una respuesta amable, reintentos seguros, tiempos máximos de espera entre servicios y bloqueo de tareas programadas para que no se dupliquen con varias réplicas. Detalle en `ARQUITECTURA_DISPONIBILIDAD.md`. | ✅ Implementado |
+| RNF-17 | **Privacidad.** Las vistas de mapa de la organización no deben mostrar la dirección exacta de las personas mayores, solo su barrio. | ✅ Implementado |

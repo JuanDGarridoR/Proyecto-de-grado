@@ -14,7 +14,10 @@
 --   - vínculos persona mayor <-> acompañante y persona mayor <->
 --     organización (con estados PENDIENTE / ACEPTADA / RECHAZADA). Las
 --     solicitudes pendientes van en los dos sentidos: unas las envió la
---     persona mayor y otras el acompañante o la organización
+--     persona mayor y otras el acompañante o la organización. El
+--     parentesco del acompañante va en cada vínculo (puede ser hijo de una
+--     persona mayor y sobrino de otra); unos pocos vínculos no lo tienen,
+--     como los antiguos, y muestran el de la tabla acompanante
 --   - vínculos voluntario <-> organización (aceptados, y algunas
 --     solicitudes pendientes)
 --   - medicamentos coherentes con el perfil de salud de cada persona
@@ -141,6 +144,11 @@ ALTER TABLE organizacion ADD COLUMN IF NOT EXISTS ubicacion_buscada varchar(255)
 -- Quién envió la solicitud de acompañamiento; la agregan
 -- persona-mayor-service y acompanante-service al arrancar.
 ALTER TABLE persona_mayor_acompanante ADD COLUMN IF NOT EXISTS solicitada_por varchar(255);
+
+-- Parentesco del acompañante en cada vínculo (puede ser distinto con cada
+-- persona mayor); la agregan persona-mayor-service y acompanante-service
+-- al arrancar.
+ALTER TABLE persona_mayor_acompanante ADD COLUMN IF NOT EXISTS relacion varchar(255);
 
 -- Quién envió la solicitud persona mayor <-> organización; la agregan
 -- persona-mayor-service y organizacion-service al arrancar.
@@ -692,6 +700,10 @@ ON CONFLICT DO NOTHING;
 --    solicitada_por: las aceptadas las envió la persona mayor; de las
 --    pendientes, ~40% las envió el acompañante (la persona mayor las ve
 --    para aceptar o rechazar) y el resto la persona mayor.
+--    relacion: el parentesco va en cada vínculo, porque un acompañante
+--    puede ser hijo de una persona mayor y sobrino de otra. ~15% queda en
+--    null, como los vínculos creados antes de que existiera el campo: esos
+--    muestran el parentesco de la tabla acompanante.
 WITH pm AS (
     SELECT id_usuario, row_number() OVER (ORDER BY id_usuario) AS rn
     FROM usuario WHERE correo LIKE 'pm%@vitaplus.test'
@@ -718,10 +730,14 @@ con_estado AS (
            CASE WHEN random() < p_aceptada THEN 'ACEPTADA' ELSE 'PENDIENTE' END AS estado
     FROM vinculos
 )
-INSERT INTO persona_mayor_acompanante (id_persona_mayor, id_acompanante, estado, solicitada_por)
+INSERT INTO persona_mayor_acompanante (id_persona_mayor, id_acompanante, estado, solicitada_por, relacion)
 SELECT id_persona_mayor, id_acompanante, estado,
        CASE WHEN estado = 'PENDIENTE' AND random() < 0.40 THEN 'ACOMPANANTE'
-            ELSE 'PERSONA_MAYOR' END
+            ELSE 'PERSONA_MAYOR' END,
+       CASE WHEN random() < 0.15 THEN NULL
+            ELSE (ARRAY['Hijo/a', 'Hijo/a', 'Hijo/a', 'Nieto/a', 'Nieto/a', 'Sobrino/a',
+                        'Cuidador/a contratado', 'Hermano/a', 'Vecino/a de confianza'])
+                     [1 + floor(random() * 9)::int] END
 FROM con_estado
 ON CONFLICT DO NOTHING;
 
@@ -743,8 +759,8 @@ WHERE u.correo IN ('pm001@vitaplus.test', 'pm002@vitaplus.test', 'pm003@vitaplus
                    'pm004@vitaplus.test', 'pm005@vitaplus.test')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO persona_mayor_acompanante (id_persona_mayor, id_acompanante, estado, solicitada_por)
-SELECT siguiente.id_usuario, u.id_usuario, 'ACEPTADA', 'PERSONA_MAYOR'
+INSERT INTO persona_mayor_acompanante (id_persona_mayor, id_acompanante, estado, solicitada_por, relacion)
+SELECT siguiente.id_usuario, u.id_usuario, 'ACEPTADA', 'PERSONA_MAYOR', 'Vecino(a)'
 FROM usuario u
 JOIN usuario siguiente
   ON siguiente.correo = 'pm' || lpad((substring(u.correo FROM 3 FOR 3)::int + 1)::text, 3, '0') || '@vitaplus.test'
@@ -2001,6 +2017,9 @@ UNION ALL SELECT 'vinculos_persona_mayor_acompanante', count(*) FROM persona_may
     WHERE id_persona_mayor IN (SELECT id_usuario FROM usuario WHERE correo LIKE 'pm%@vitaplus.test')
 UNION ALL SELECT 'solicitudes_enviadas_por_acompanantes', count(*) FROM persona_mayor_acompanante
     WHERE estado = 'PENDIENTE' AND solicitada_por = 'ACOMPANANTE'
+      AND id_persona_mayor IN (SELECT id_usuario FROM usuario WHERE correo LIKE 'pm%@vitaplus.test')
+UNION ALL SELECT 'vinculos_acompanante_con_parentesco', count(*) FROM persona_mayor_acompanante
+    WHERE relacion IS NOT NULL
       AND id_persona_mayor IN (SELECT id_usuario FROM usuario WHERE correo LIKE 'pm%@vitaplus.test')
 UNION ALL SELECT 'vinculos_persona_mayor_organizacion', count(*) FROM persona_mayor_organizacion
     WHERE id_persona_mayor IN (SELECT id_usuario FROM usuario WHERE correo LIKE 'pm%@vitaplus.test')
