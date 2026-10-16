@@ -41,7 +41,8 @@ public class BuscadorLugares {
     private static final Logger log = LoggerFactory.getLogger(BuscadorLugares.class);
 
     /** Lo que se le pide a Google de cada lugar (Google cobra según estos campos). */
-    private static final String CAMPOS = "places.displayName,places.formattedAddress,places.location";
+    private static final String CAMPOS =
+            "places.displayName,places.formattedAddress,places.location,places.addressComponents";
 
     private static final int MAX_RESULTADOS = 5;
     private static final int MAX_EN_MEMORIA = 500;
@@ -123,7 +124,8 @@ public class BuscadorLugares {
                                 lugar.displayName() != null ? lugar.displayName().text() : null,
                                 lugar.formattedAddress(),
                                 lugar.location().latitude(),
-                                lugar.location().longitude()))
+                                lugar.location().longitude(),
+                                barrioDe(lugar)))
                         .toList();
 
         synchronized (enMemoria) {
@@ -131,6 +133,21 @@ public class BuscadorLugares {
         }
 
         return lugares;
+    }
+
+    /**
+     * El barrio que Google le asigna al lugar (componente "neighborhood"), o
+     * null: en Bogotá a veces solo da la localidad ("Usme"), que no sirve.
+     */
+    private static String barrioDe(LugarGoogle lugar) {
+        if (lugar.addressComponents() == null) {
+            return null;
+        }
+        return lugar.addressComponents().stream()
+                .filter(c -> c.types() != null && c.types().contains("neighborhood"))
+                .map(ComponenteDireccion::longText)
+                .findFirst()
+                .orElse(null);
     }
 
     // ---------- Formato de la API de Google Places (Text Search) ----------
@@ -153,7 +170,12 @@ public class BuscadorLugares {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record LugarGoogle(Texto displayName, String formattedAddress, LatLng location) {
+    record ComponenteDireccion(String longText, List<String> types) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record LugarGoogle(Texto displayName, String formattedAddress, LatLng location,
+                       List<ComponenteDireccion> addressComponents) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

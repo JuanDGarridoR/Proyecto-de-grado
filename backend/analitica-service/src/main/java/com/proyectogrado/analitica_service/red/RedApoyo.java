@@ -69,9 +69,10 @@ public class RedApoyo {
         Map<String, BarrioRed> barrios = new LinkedHashMap<>();
 
         jdbc.query("""
-                SELECT u.id_usuario, u.nombre_usuario, u.direccion
+                SELECT u.id_usuario, u.nombre_usuario, u.direccion, pm.barrio AS barrio_guardado
                   FROM persona_mayor_organizacion pmo
                   JOIN usuario u ON u.id_usuario = pmo.id_persona_mayor
+                  LEFT JOIN persona_mayor pm ON pm.id_usuario = u.id_usuario
                  WHERE pmo.id_organizacion = :org AND pmo.estado = 'ACEPTADA'
                    AND (u.activo IS NULL OR u.activo = TRUE)
                  ORDER BY u.nombre_usuario
@@ -79,7 +80,12 @@ public class RedApoyo {
             int id = rs.getInt("id_usuario");
             nombres.put(id, rs.getString("nombre_usuario"));
 
-            Barrios.Barrio barrio = Barrios.detectar(rs.getString("direccion"));
+            // El que dejó UbicadorAutomatico (sacado de la dirección con Google);
+            // si aún no lo hay, el que venga escrito en la dirección.
+            Barrios.Barrio barrio = Barrios.porNombre(rs.getString("barrio_guardado"));
+            if (barrio == null) {
+                barrio = Barrios.detectar(rs.getString("direccion"));
+            }
             barrioDe.put(id, barrio != null ? barrio.nombre() : null);
             if (barrio != null) {
                 barrios.putIfAbsent(barrio.nombre(),

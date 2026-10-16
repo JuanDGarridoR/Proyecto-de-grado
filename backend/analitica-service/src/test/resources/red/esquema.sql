@@ -79,3 +79,10 @@ CREATE TABLE participacion (
     asistio          BOOLEAN,
     PRIMARY KEY (id_persona_mayor, id_actividad)
 );
+
+-- Barrio que dejó UbicadorAutomatico (sacado de la dirección con Google).
+CREATE TABLE persona_mayor (
+    id_usuario     INTEGER PRIMARY KEY,
+    barrio         VARCHAR(100),
+    barrio_buscado VARCHAR(255)
+);

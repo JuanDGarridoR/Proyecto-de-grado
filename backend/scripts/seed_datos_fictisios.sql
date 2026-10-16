@@ -140,6 +140,10 @@ ALTER TABLE actividad ADD COLUMN IF NOT EXISTS ubicacion_buscada varchar(255);
 ALTER TABLE organizacion ADD COLUMN IF NOT EXISTS latitud double precision;
 ALTER TABLE organizacion ADD COLUMN IF NOT EXISTS longitud double precision;
 ALTER TABLE organizacion ADD COLUMN IF NOT EXISTS ubicacion_buscada varchar(255);
+-- Barrio de cada persona mayor (nunca sus coordenadas): lo saca
+-- analitica-service de la dirección; aquí ya viene escrito en ella.
+ALTER TABLE persona_mayor ADD COLUMN IF NOT EXISTS barrio varchar(100);
+ALTER TABLE persona_mayor ADD COLUMN IF NOT EXISTS barrio_buscado varchar(255);
 
 -- Quién envió la solicitud de acompañamiento; la agregan
 -- persona-mayor-service y acompanante-service al arrancar.

@@ -58,7 +58,7 @@ class RedControllerTest {
                 .andExpect(jsonPath("$.organizacion.latitud").value(4.4805))
                 // Sin la cuenta inactiva, el vínculo pendiente ni la de otra organización
                 .andExpect(jsonPath("$.personasMayores[*].nombre",
-                        contains("Ana Sin Barrio", "Pedro Gómez", "Rosa Díaz")));
+                        contains("Ana Sin Barrio", "Pedro Gómez", "Rosa Díaz", "Sofía Barrio Guardado")));
     }
 
     @Test
@@ -68,7 +68,14 @@ class RedControllerTest {
                 .andExpect(jsonPath("$.personasMayores[1].barrio").value("La Flora"))
                 .andExpect(jsonPath("$.personasMayores[0].barrio").doesNotExist())
                 .andExpect(jsonPath("$.personasMayores[2].direccion").doesNotExist())
-                .andExpect(jsonPath("$.barrios[*].nombre", containsInAnyOrder("Yomasa", "La Flora")));
+                .andExpect(jsonPath("$.barrios[*].nombre", containsInAnyOrder("Yomasa", "La Flora", "Chuniza")));
+    }
+
+    @Test
+    void siLaDireccionNoTraeElBarrioSeUsaElQueGuardoElUbicador() throws Exception {
+        mockMvc.perform(get("/api/analitica/red").header("X-User-Id", CUENTA_ORGANIZACION))
+                .andExpect(jsonPath("$.personasMayores[3].nombre").value("Sofía Barrio Guardado"))
+                .andExpect(jsonPath("$.personasMayores[3].barrio").value("Chuniza"));
     }
 
     @Test

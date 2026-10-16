@@ -1,7 +1,11 @@
 package com.proyectogrado.analitica_service.lugares;
 
+import com.proyectogrado.analitica_service.recomendacion.Barrios;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,21 +26,36 @@ import java.util.Map;
  * resultado. Si el lugar de una actividad no aparece (p. ej. "Salón
  * principal"), la actividad queda en la sede de su organización.
  *
- * ubicacion_buscada guarda el texto que se ubicó: así un lugar que Google
- * no encuentra no se vuelve a buscar cada minuto, y si la organización
- * cambia la dirección o el lugar, se vuelve a ubicar. Las columnas
- * latitud y longitud las leen actividad-service, organizacion-service y
+ * De las personas mayores solo se guarda el BARRIO (persona_mayor.barrio),
+ * nunca las coordenadas de su casa; con él el mapa de la organización las
+ * agrupa. El barrio sale, en este orden:
+ *   1. del texto de la dirección, si lo trae ("..., Yomasa"), sin Google;
+ *   2. del barrio que Google le asigna a la dirección;
+ *   3. del barrio conocido más cercano al punto que encontró Google (a
+ *      menos de MAX_KM_BARRIO), porque en Bogotá Google a veces solo da la
+ *      localidad ("Usme").
+ *
+ * ubicacion_buscada y barrio_buscado guardan el texto que se ubicó: así lo
+ * que Google no encuentra no se vuelve a buscar cada minuto, y si alguien
+ * cambia la dirección o el lugar, se vuelve a ubicar. Las columnas latitud
+ * y longitud las leen actividad-service, organizacion-service y
  * persona-mayor-service para pintar los mapas.
  *
- * Sin clave de Google (google.places.api-key) no hace nada.
+ * Sin clave de Google (google.places.api-key) solo saca el barrio del texto.
  */
 @Component
 public class UbicadorAutomatico {
 
     private static final Logger log = LoggerFactory.getLogger(UbicadorAutomatico.class);
 
-    /** Máximo de búsquedas por vuelta, para no gastar el cupo de golpe. */
+    /** Máximo de búsquedas en Google por vuelta y por tipo, para no gastar el cupo de golpe. */
     static final int MAX_POR_VUELTA = 20;
+
+    /** Personas revisadas por vuelta (sacar el barrio del texto no gasta Google). */
+    static final int MAX_PERSONAS_POR_VUELTA = 500;
+
+    /** Lo más lejos que puede quedar el barrio conocido más cercano. */
+    static final double MAX_KM_BARRIO = 2.0;
 
     private final NamedParameterJdbcTemplate jdbc;
     private final BuscadorLugares buscador;
@@ -48,20 +67,33 @@ public class UbicadorAutomatico {
         this.buscador = buscador;
     }
 
-    @Scheduled(initialDelay = 20_000, fixedDelay = 60_000)
-    public void ubicarPendientes() {
-        if (!buscador.disponible()) {
-            return;
-        }
-
+    /** Al arrancar se crean las columnas: la red de la organización las lee aunque no haya clave de Google. */
+    @EventListener(ApplicationReadyEvent.class)
+    public void alArrancar() {
         try {
             prepararColumnas();
-            // Primero las organizaciones: sus sedes sirven de respaldo a las actividades.
-            int organizaciones = ubicarOrganizaciones();
-            int actividades = ubicarActividades();
+        } catch (DataAccessException e) {
+            log.warn("No se pudieron preparar las columnas de ubicación: {}", e.getMessage());
+        }
+    }
 
-            if (organizaciones + actividades > 0) {
-                log.info("Ubicados en el mapa: {} organizaciones y {} actividades", organizaciones, actividades);
+    @Scheduled(initialDelay = 20_000, fixedDelay = 60_000)
+    public void ubicarPendientes() {
+        try {
+            prepararColumnas();
+            int personas = ubicarBarriosPersonas();
+
+            int organizaciones = 0;
+            int actividades = 0;
+            if (buscador.disponible()) {
+                // Primero las organizaciones: sus sedes sirven de respaldo a las actividades.
+                organizaciones = ubicarOrganizaciones();
+                actividades = ubicarActividades();
+            }
+
+            if (personas + organizaciones + actividades > 0) {
+                log.info("Ubicados en el mapa: {} organizaciones, {} actividades y {} personas mayores (por barrio)",
+                        organizaciones, actividades, personas);
             }
         } catch (RestClientException e) {
             // Google no responde: se intenta en la siguiente vuelta.
@@ -70,7 +102,7 @@ public class UbicadorAutomatico {
     }
 
     /** Las columnas existen aunque los otros servicios aún no hayan arrancado con el código nuevo. */
-    private void prepararColumnas() {
+    void prepararColumnas() {
         if (columnasListas) {
             return;
         }
@@ -80,8 +112,66 @@ public class UbicadorAutomatico {
             jdbc.getJdbcTemplate().execute("ALTER TABLE " + tabla + " ADD COLUMN IF NOT EXISTS longitud double precision");
             jdbc.getJdbcTemplate().execute("ALTER TABLE " + tabla + " ADD COLUMN IF NOT EXISTS ubicacion_buscada varchar(255)");
         }
+        jdbc.getJdbcTemplate().execute("ALTER TABLE persona_mayor ADD COLUMN IF NOT EXISTS barrio varchar(100)");
+        jdbc.getJdbcTemplate().execute("ALTER TABLE persona_mayor ADD COLUMN IF NOT EXISTS barrio_buscado varchar(255)");
 
         columnasListas = true;
+    }
+
+    /**
+     * Barrio de las personas mayores con dirección nueva o cambiada. Las que
+     * necesitan Google y no se alcanzan a buscar (o no hay clave) quedan
+     * pendientes para otra vuelta.
+     */
+    int ubicarBarriosPersonas() {
+        List<Map<String, Object>> pendientes = jdbc.queryForList("""
+                SELECT pm.id_usuario, u.direccion
+                FROM persona_mayor pm
+                JOIN usuario u ON u.id_usuario = pm.id_usuario
+                WHERE u.direccion IS NOT NULL AND trim(u.direccion) <> ''
+                  AND (pm.barrio_buscado IS NULL OR pm.barrio_buscado <> u.direccion)
+                ORDER BY pm.id_usuario
+                LIMIT :limite
+                """, Map.of("limite", MAX_PERSONAS_POR_VUELTA));
+
+        int ubicadas = 0;
+        int busquedasGoogle = 0;
+
+        for (Map<String, Object> fila : pendientes) {
+            String direccion = (String) fila.get("direccion");
+            Barrios.Barrio barrio = Barrios.detectar(direccion);
+
+            if (barrio == null) {
+                if (!buscador.disponible() || busquedasGoogle >= MAX_POR_VUELTA) {
+                    continue;
+                }
+                busquedasGoogle++;
+                barrio = barrioSegunGoogle(direccion);
+            }
+
+            jdbc.update("""
+                    UPDATE persona_mayor SET barrio = :barrio, barrio_buscado = :texto
+                    WHERE id_usuario = :id
+                    """, new MapSqlParameterSource()
+                    .addValue("id", fila.get("id_usuario"))
+                    .addValue("texto", direccion)
+                    .addValue("barrio", barrio != null ? barrio.nombre() : null));
+            ubicadas++;
+        }
+
+        return ubicadas;
+    }
+
+    /** Barrio (de los conocidos) de una dirección según Google, o null si no se pudo saber. */
+    private Barrios.Barrio barrioSegunGoogle(String direccion) {
+        LugarEncontrado lugar = primero(direccion);
+        if (lugar == null) {
+            return null;
+        }
+        Barrios.Barrio porNombre = Barrios.porNombre(lugar.barrio());
+        return porNombre != null
+                ? porNombre
+                : Barrios.masCercano(lugar.latitud(), lugar.longitud(), MAX_KM_BARRIO);
     }
 
     int ubicarOrganizaciones() {

@@ -42,3 +42,10 @@ INSERT INTO actividad VALUES
  (104, 5, 'Tejido',            CURRENT_DATE - 10,  'Salón principal', 'ACEPTADA', 4.4805, -74.1255);
 
 INSERT INTO participacion VALUES (10, 100, NULL), (11, 100, NULL), (10, 104, TRUE), (10, 101, TRUE);
+
+-- Sofía escribió la dirección sin barrio; UbicadorAutomatico le guardó Chuniza.
+INSERT INTO usuario VALUES (16, 'Sofía Barrio Guardado', 'Calle 89 Sur # 4-10', NULL, TRUE);
+INSERT INTO persona_mayor_organizacion VALUES (16, 5, 'ACEPTADA');
+INSERT INTO persona_mayor VALUES
+ (10, NULL, NULL), (11, NULL, NULL), (15, NULL, NULL),
+ (16, 'Chuniza', 'Calle 89 Sur # 4-10');

@@ -76,6 +76,30 @@ public final class Barrios {
         return encontrado;
     }
 
+    /** El barrio con ese nombre exacto (sin importar tildes ni mayúsculas), o null. */
+    public static Barrio porNombre(String nombre) {
+        return nombre == null || nombre.isBlank() ? null : BARRIOS.get(normalizar(nombre));
+    }
+
+    /**
+     * El barrio conocido cuyo centro queda más cerca del punto, si está a
+     * menos de maxKm; si no, null (el punto queda fuera de los barrios que
+     * conocemos).
+     */
+    public static Barrio masCercano(double latitud, double longitud, double maxKm) {
+        Barrio punto = new Barrio("", latitud, longitud);
+        Barrio mejor = null;
+        double menor = maxKm;
+        for (Barrio barrio : BARRIOS.values()) {
+            double km = distanciaKm(punto, barrio);
+            if (km < menor) {
+                menor = km;
+                mejor = barrio;
+            }
+        }
+        return mejor;
+    }
+
     /** Distancia en km entre los centros de dos barrios (fórmula de Haversine). */
     public static double distanciaKm(Barrio a, Barrio b) {
         double radioTierra = 6371;

@@ -56,11 +56,28 @@ class UbicadorAutomaticoTest {
                         + " (2, 5, 'Bingo', CURRENT_DATE + 5, 'Salón principal'),"
                         + " (3, 5, 'Yoga', CURRENT_DATE - 10, 'Parque La Flora')");
 
+        // Personas mayores (la tabla aún sin las columnas de barrio)
+        jdbc.getJdbcTemplate().execute(
+                "CREATE TABLE usuario (id_usuario INTEGER PRIMARY KEY, nombre_usuario VARCHAR(255), direccion VARCHAR(255))");
+        jdbc.getJdbcTemplate().execute("CREATE TABLE persona_mayor (id_usuario INTEGER PRIMARY KEY)");
+        jdbc.getJdbcTemplate().execute(
+                "INSERT INTO usuario VALUES"
+                        + " (20, 'Con barrio escrito', 'Calle 80 Sur # 5-20, Yomasa'),"
+                        + " (21, 'Google da el barrio', 'Calle 91 Sur # 3-15'),"
+                        + " (22, 'Google solo da la localidad', 'Carrera 4 Este # 76-20 Sur'),"
+                        + " (23, 'Google no la encuentra', 'Avenida que no existe 123')");
+        jdbc.getJdbcTemplate().execute("INSERT INTO persona_mayor VALUES (20), (21), (22), (23)");
+
         buscador = mock(BuscadorLugares.class);
         when(buscador.disponible()).thenReturn(true);
         when(buscador.buscar(anyString())).thenReturn(List.of());
         when(buscador.buscar("Calle 91 Sur # 3-15, Usme Centro")).thenReturn(List.of(SEDE_USME_CENTRO));
         when(buscador.buscar("Parque La Flora")).thenReturn(List.of(PARQUE_LA_FLORA));
+        when(buscador.buscar("Calle 91 Sur # 3-15")).thenReturn(List.of(
+                new LugarEncontrado(null, "Cl. 91 Sur #3b Este, Bogotá", 4.5105, -74.1158, "Chuniza")));
+        // Sin barrio, pero a pocos metros del centro de Yomasa
+        when(buscador.buscar("Carrera 4 Este # 76-20 Sur")).thenReturn(List.of(
+                new LugarEncontrado(null, "Cra. 10 Este #76-20, Bogotá", 4.5182, -74.1080, null)));
 
         ubicador = new UbicadorAutomatico(jdbc, buscador);
     }
@@ -124,12 +141,62 @@ class UbicadorAutomaticoTest {
         assertEquals(4.49, fila("actividad", "id_actividad", 1).get("latitud"));
     }
 
+    private Object barrio(int idPersona) {
+        return jdbc.queryForObject("SELECT barrio FROM persona_mayor WHERE id_usuario = :id",
+                Map.of("id", idPersona), Object.class);
+    }
+
     @Test
-    void sinClaveDeGoogleNoHaceNada() {
+    void siLaDireccionTraeElBarrioSeUsaSinPreguntarleAGoogle() {
+        ubicador.ubicarPendientes();
+
+        assertEquals("Yomasa", barrio(20));
+        verify(buscador, never()).buscar("Calle 80 Sur # 5-20, Yomasa");
+    }
+
+    @Test
+    void siNoTraeBarrioSeUsaElQueLeAsignaGoogle() {
+        ubicador.ubicarPendientes();
+
+        assertEquals("Chuniza", barrio(21));
+    }
+
+    @Test
+    void siGoogleSoloDaLaLocalidadSeUsaElBarrioConocidoMasCercano() {
+        ubicador.ubicarPendientes();
+
+        assertEquals("Yomasa", barrio(22));
+    }
+
+    @Test
+    void siGoogleNoLaEncuentraQuedaSinBarrioYNoSeVuelveABuscar() {
+        ubicador.ubicarPendientes();
+        ubicador.ubicarPendientes();
+
+        assertNull(barrio(23));
+        verify(buscador, times(1)).buscar("Avenida que no existe 123");
+    }
+
+    @Test
+    void deLasPersonasMayoresSoloSeGuardaElBarrioNuncaCoordenadas() {
+        ubicador.ubicarPendientes();
+
+        List<String> columnas = jdbc.queryForList(
+                "SELECT column_name FROM information_schema.columns WHERE table_name = 'persona_mayor'",
+                Map.of(), String.class);
+        assertEquals(List.of("barrio", "barrio_buscado", "id_usuario"), columnas.stream().sorted().toList());
+    }
+
+    @Test
+    void sinClaveDeGoogleSoloSeSacaElBarrioDelTexto() {
         when(buscador.disponible()).thenReturn(false);
 
         ubicador.ubicarPendientes();
 
         verify(buscador, never()).buscar(anyString());
+        assertEquals("Yomasa", barrio(20));
+        // Las que necesitan Google quedan pendientes para cuando haya clave
+        assertNull(jdbc.queryForObject("SELECT barrio_buscado FROM persona_mayor WHERE id_usuario = 21",
+                Map.of(), Object.class));
     }
 }
