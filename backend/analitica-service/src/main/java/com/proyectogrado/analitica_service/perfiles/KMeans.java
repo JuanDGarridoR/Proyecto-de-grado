@@ -10,7 +10,7 @@ import java.util.Random;
  * columna por variable. Usa una semilla fija, así que con los mismos datos
  * siempre da los mismos grupos.
  *
- * Ver KMEANS_PERFILES.md para la explicación del método.
+ * Ver docs/KMEANS_PERFILES.md para la explicación del método.
  */
 public final class KMeans {
 

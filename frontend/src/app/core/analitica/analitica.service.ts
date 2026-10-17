@@ -175,7 +175,7 @@ export interface GrupoPerfil {
 
 /**
  * Respuesta de /perfiles: segmentación de las personas mayores con K-means
- * (ver KMEANS_PERFILES.md). Con estado INSUFICIENTE no hay modelo ni grupos.
+ * (ver docs/KMEANS_PERFILES.md). Con estado INSUFICIENTE no hay modelo ni grupos.
  */
 export interface PerfilesAnalitica {
   estado: 'LISTO' | 'INSUFICIENTE';

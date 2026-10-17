@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Perfiles de las personas mayores de la organización (segmentación con
  * K-means), para la pestaña «Perfiles» de su analítica. Ver
- * SegmentacionPerfiles y KMEANS_PERFILES.md.
+ * SegmentacionPerfiles y docs/KMEANS_PERFILES.md.
  *
  * k es opcional: sin él se usa el número de grupos con mejor silueta.
  */

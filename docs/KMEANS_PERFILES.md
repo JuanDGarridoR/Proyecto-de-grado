@@ -8,15 +8,15 @@ Este documento explica cómo VITA+ agrupa a las personas mayores de una organiza
 
 | Parte | Archivo |
 |---|---|
-| Endpoint `GET /api/analitica/perfiles?k=` | [backend/analitica-service/.../controller/PerfilesController.java](backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/controller/PerfilesController.java) |
-| Lectura de los datos (SQL de solo lectura) | [perfiles/DatosPerfiles.java](backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/DatosPerfiles.java) |
-| Variables del modelo | [perfiles/VariablePerfil.java](backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/VariablePerfil.java) |
-| Calidad, preparación, entrenamiento e interpretación | [perfiles/SegmentacionPerfiles.java](backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/SegmentacionPerfiles.java) |
-| Algoritmo K-means++, Lloyd y silueta | [perfiles/KMeans.java](backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/KMeans.java) |
-| Proyección a 2D para el mapa (PCA) | [perfiles/Pca.java](backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/Pca.java) |
-| Respuesta (DTO) | [perfiles/PerfilesDtos.java](backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/PerfilesDtos.java) |
-| Pestaña «Perfiles» de la analítica de la organización | [frontend/.../analitica/reportes/reporte-perfiles.ts](frontend/src/app/pages/panel/organizacion/analitica/reportes/reporte-perfiles.ts) |
-| Pruebas | [KMeansTest.java](backend/analitica-service/src/test/java/com/proyectogrado/analitica_service/perfiles/KMeansTest.java), [PerfilesControllerTest.java](backend/analitica-service/src/test/java/com/proyectogrado/analitica_service/controller/PerfilesControllerTest.java), [reporte-perfiles.spec.ts](frontend/src/app/pages/panel/organizacion/analitica/reportes/reporte-perfiles.spec.ts) |
+| Endpoint `GET /api/analitica/perfiles?k=` | [backend/analitica-service/.../controller/PerfilesController.java](../backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/controller/PerfilesController.java) |
+| Lectura de los datos (SQL de solo lectura) | [perfiles/DatosPerfiles.java](../backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/DatosPerfiles.java) |
+| Variables del modelo | [perfiles/VariablePerfil.java](../backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/VariablePerfil.java) |
+| Calidad, preparación, entrenamiento e interpretación | [perfiles/SegmentacionPerfiles.java](../backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/SegmentacionPerfiles.java) |
+| Algoritmo K-means++, Lloyd y silueta | [perfiles/KMeans.java](../backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/KMeans.java) |
+| Proyección a 2D para el mapa (PCA) | [perfiles/Pca.java](../backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/Pca.java) |
+| Respuesta (DTO) | [perfiles/PerfilesDtos.java](../backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/PerfilesDtos.java) |
+| Pestaña «Perfiles» de la analítica de la organización | [frontend/.../analitica/reportes/reporte-perfiles.ts](../frontend/src/app/pages/panel/organizacion/analitica/reportes/reporte-perfiles.ts) |
+| Pruebas | [KMeansTest.java](../backend/analitica-service/src/test/java/com/proyectogrado/analitica_service/perfiles/KMeansTest.java), [PerfilesControllerTest.java](../backend/analitica-service/src/test/java/com/proyectogrado/analitica_service/controller/PerfilesControllerTest.java), [reporte-perfiles.spec.ts](../frontend/src/app/pages/panel/organizacion/analitica/reportes/reporte-perfiles.spec.ts) |
 
 ### Por qué en analitica-service
 

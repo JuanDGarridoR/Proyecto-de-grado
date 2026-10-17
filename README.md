@@ -67,9 +67,9 @@ La solución consiste en una plataforma web, **VITA+**, orientada a apoyar la ge
 
 El backend está dividido en **Servicios**. El frontend nunca habla directamente con ellos: todas las peticiones pasan por el **API Gateway**, que valida el token JWT y las redirige al servicio correspondiente.
 
-Cómo se mantiene disponible la plataforma (health checks, réplicas y balanceo, circuit breaker, reintentos, caché, etc.) está en [ARQUITECTURA_DISPONIBILIDAD.md](ARQUITECTURA_DISPONIBILIDAD.md).
+Cómo se mantiene disponible la plataforma (health checks, réplicas y balanceo, circuit breaker, reintentos, caché, etc.) está en [ARQUITECTURA_DISPONIBILIDAD.md](docs/ARQUITECTURA_DISPONIBILIDAD.md).
 
-Cómo funcionan los perfiles de las personas mayores (segmentación con K-means en analitica-service) está en [KMEANS_PERFILES.md](KMEANS_PERFILES.md).
+Cómo funcionan los perfiles de las personas mayores (segmentación con K-means en analitica-service) está en [KMEANS_PERFILES.md](docs/KMEANS_PERFILES.md).
 
 ```text
 ┌──────────────────────┐
@@ -148,14 +148,20 @@ Proyecto-de-grado/
 │   ├── angular.json
 │   └── package.json
 │
-├── GUIA_COMENTARIOS.md        ← cómo se comenta el código
-├── KMEANS_PERFILES.md         ← perfiles de las personas mayores con K-means
+├── docs/                          ← documentación de apoyo
+│   ├── ARQUITECTURA_DISPONIBILIDAD.md ← health checks, réplicas, circuit breaker, etc.
+│   ├── GUIA_COMENTARIOS.md            ← cómo se comenta el código
+│   ├── KMEANS_PERFILES.md             ← perfiles de las personas mayores con K-means
+│   └── REQUERIMIENTOS.md              ← requerimientos funcionales y no funcionales
+│
+├── docker-compose.yml
+├── .env.example               ← plantilla de claves (servidor y desarrollo local)
 └── README.md
 ```
 
 Cada servicio del backend es un proyecto Spring Boot independiente con su propio `pom.xml`, `mvnw.cmd` y `src/main/resources/application.properties` (o `application.yml` en el gateway).
 
-Las reglas para comentar el código están en [GUIA_COMENTARIOS.md](GUIA_COMENTARIOS.md).
+Las reglas para comentar el código están en [GUIA_COMENTARIOS.md](docs/GUIA_COMENTARIOS.md).
 
 ---
 
@@ -194,6 +200,10 @@ cd Proyecto-de-grado
 Se deben iniciar el **Backend** y el **Frontend**, cada uno en su propia terminal.
 
 ## 1. Backend
+
+### Claves
+
+Antes de la primera ejecución se crea el archivo `backend/secretos.properties` (no se sube a git) con las mismas claves que lista `.env.example`, sin `DOMINIO`. Los valores se piden al equipo por un medio privado.
 
 ### Todos los servicios a la vez
 

@@ -43,7 +43,7 @@ function unir(elementos: string[]): string {
 
 /**
  * Reporte 5: perfiles de las personas mayores encontrados con K-means
- * (analitica-service, ver KMEANS_PERFILES.md). Primero muestra la calidad
+ * (analitica-service, ver docs/KMEANS_PERFILES.md). Primero muestra la calidad
  * de los datos y sus limitaciones, luego los grupos, qué los distingue y
  * qué atención y actividades se les pueden ofrecer. Solo orienta a la
  * organización: no es un diagnóstico.
@@ -369,7 +369,7 @@ export class ReportePerfiles implements ReporteExportable {
   }
 }
 
-/** Limitaciones generales (también en pantalla y en KMEANS_PERFILES.md). */
+/** Limitaciones generales (también en pantalla y en docs/KMEANS_PERFILES.md). */
 export const NOTA = 'Los perfiles se calculan con K-means a partir de la edad, las condiciones de salud, los '
   + 'signos vitales de los últimos 180 días y las necesidades de acompañamiento registradas en VITA+. Son una '
   + 'orientación para planear la atención y las actividades: no son un diagnóstico ni reemplazan el criterio de '

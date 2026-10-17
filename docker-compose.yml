@@ -5,7 +5,7 @@
 # Solo el frontend (Caddy) se expone a internet, en los puertos 80 y 443;
 # los servicios se hablan entre sí por la red interna de Docker.
 #
-# Disponibilidad (ver ARQUITECTURA_DISPONIBILIDAD.md):
+# Disponibilidad (ver docs/ARQUITECTURA_DISPONIBILIDAD.md):
 # - Cada servicio tiene health check; si deja de responder, autoheal lo reinicia.
 # - auth, persona mayor y salud corren en dos réplicas (servicio y servicio-2);
 #   el gateway reparte las peticiones entre ellas.

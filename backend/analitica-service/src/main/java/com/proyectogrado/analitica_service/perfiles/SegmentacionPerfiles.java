@@ -31,7 +31,7 @@ import java.util.Set;
 
 /**
  * Segmentación de las personas mayores de una organización en perfiles con
- * K-means. Pasos (ver KMEANS_PERFILES.md):
+ * K-means. Pasos (ver docs/KMEANS_PERFILES.md):
  *
  * 1. Lee las variables de cada persona (DatosPerfiles).
  * 2. Evalúa la calidad: incluye solo a quien tiene al menos el 60 % de los
