@@ -10,9 +10,6 @@
     <div class="modules-grid">
       @for (m of modules; track m.title) {
         <div class="module-card card">
-          @if (m.badge) {
-            <span class="module-badge">{{ m.badge }}</span>
-          }
           <div class="module-icon">{{ m.icon }}</div>
           <h3>{{ m.title }}</h3>
           <p>{{ m.subtitle }}</p>

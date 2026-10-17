@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Catálogo de gustos, talentos y pasatiempos que las personas mayores
@@ -29,6 +30,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/gustos")
 public class GustoController {
+
+    /** Categorías válidas (ver CatalogoProfesiones para PROFESION). */
+    private static final Set<String> CATEGORIAS = Set.of("GUSTO", "TALENTO", "HOBBY", "PROFESION");
+
+    private static final int LARGO_MAXIMO_NOMBRE = 60;
 
     private final GustoRepository gustoRepository;
     private final PersonaMayorGustoRepository personaMayorGustoRepository;
@@ -57,18 +63,33 @@ public class GustoController {
                 .toList();
     }
 
-    /** Agrega un gusto al catálogo; el nombre no se puede repetir. */
+    /**
+     * Agrega un gusto al catálogo. Lo usan la persona mayor y el voluntario
+     * cuando el suyo no está en la lista. El nombre se guarda sin espacios
+     * de más y no se puede repetir, aunque cambien las mayúsculas.
+     */
     @PostMapping
     @CacheEvict(cacheNames = "gustos", allEntries = true)
     public ResponseEntity<?> crear(@RequestBody GustoRequest request) {
-        if (request.getNombre() == null || request.getNombre().isBlank()) {
+        String nombre = request.getNombre() == null
+                ? ""
+                : request.getNombre().trim().replaceAll("\\s+", " ");
+
+        if (nombre.isEmpty()) {
             return ResponseEntity.badRequest().body("El nombre es obligatorio");
         }
-        if (gustoRepository.existsByNombre(request.getNombre())) {
+        if (nombre.length() > LARGO_MAXIMO_NOMBRE) {
+            return ResponseEntity.badRequest()
+                    .body("El nombre no puede tener más de " + LARGO_MAXIMO_NOMBRE + " caracteres");
+        }
+        if (!CATEGORIAS.contains(request.getCategoria())) {
+            return ResponseEntity.badRequest().body("La categoría no es válida");
+        }
+        if (gustoRepository.existsByNombreIgnoreCase(nombre)) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Ya existe un gusto con ese nombre");
         }
 
-        Gusto gusto = gustoRepository.save(new Gusto(request.getNombre(), request.getCategoria()));
+        Gusto gusto = gustoRepository.save(new Gusto(nombre, request.getCategoria()));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new GustoResponse(gusto.getIdGusto(), gusto.getNombre(), gusto.getCategoria()));
     }

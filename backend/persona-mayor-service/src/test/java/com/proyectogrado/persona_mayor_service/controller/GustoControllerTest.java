@@ -84,11 +84,43 @@ class GustoControllerTest {
                         .content("{\"nombre\": \"\", \"categoria\": \"GUSTO\"}"))
                 .andExpect(status().isBadRequest());
 
-        when(gustoRepository.existsByNombre("Boleros")).thenReturn(true);
+        when(gustoRepository.existsByNombreIgnoreCase("boleros")).thenReturn(true);
         mockMvc.perform(post("/api/gustos")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nombre\": \"Boleros\", \"categoria\": \"GUSTO\"}"))
+                        .content("{\"nombre\": \"boleros\", \"categoria\": \"GUSTO\"}"))
                 .andExpect(status().isConflict());
+
+        verify(gustoRepository, never()).save(any());
+    }
+
+    @Test
+    void elNombreDeUnGustoNuevoSeGuardaSinEspaciosDeMas() throws Exception {
+        when(gustoRepository.save(any(Gusto.class))).thenAnswer(inv -> {
+            Gusto gusto = inv.getArgument(0);
+            gusto.setIdGusto(9);
+            return gusto;
+        });
+
+        mockMvc.perform(post("/api/gustos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\": \"  Jugar   tejo \", \"categoria\": \"HOBBY\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nombre").value("Jugar tejo"));
+
+        verify(gustoRepository).existsByNombreIgnoreCase("Jugar tejo");
+    }
+
+    @Test
+    void unGustoConCategoriaInvalidaONombreMuyLargoSeRechaza() throws Exception {
+        mockMvc.perform(post("/api/gustos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\": \"Tejo\", \"categoria\": \"OTRA\"}"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(post("/api/gustos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\": \"" + "a".repeat(61) + "\", \"categoria\": \"GUSTO\"}"))
+                .andExpect(status().isBadRequest());
 
         verify(gustoRepository, never()).save(any());
     }

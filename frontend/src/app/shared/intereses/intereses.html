@@ -109,10 +109,55 @@
           <div class="empty-card">
             <span><app-icono name="sprout" /></span>
             <h3>Todavía no hay opciones</h3>
-            <p>Aún no se han registrado opciones para esta categoría.</p>
+            <p>Aún no se han registrado opciones para esta categoría. Puedes agregar la tuya aquí abajo.</p>
           </div>
         }
       </div>
+
+      <!-- Agregar uno que no está en la lista -->
+      <form class="nuevo-interes" (ngSubmit)="agregarInteres()">
+        <label class="nuevo-interes__label" for="nuevo-interes">
+          @if (categoriaActiva() === 'PROFESION') {
+            ¿No encuentras tu profesión u oficio? Escríbelo aquí.
+          } @else {
+            ¿No encuentras el tuyo? Escríbelo aquí.
+          }
+        </label>
+
+        <div class="nuevo-interes__fila">
+          <input
+            id="nuevo-interes"
+            name="nuevoInteres"
+            type="text"
+            class="nuevo-interes__input"
+            autocomplete="off"
+            [maxlength]="largoMaximoInteres"
+            [placeholder]="categoriaActiva() === 'PROFESION' ? 'Ej.: Zapatería' : 'Ej.: Jugar tejo'"
+            [ngModel]="nuevoInteres()"
+            (ngModelChange)="nuevoInteres.set($event)"
+            [disabled]="agregandoInteres()"
+          >
+
+          <button
+            type="submit"
+            class="nuevo-interes__boton"
+            [disabled]="agregandoInteres() || !nuevoInteres().trim()"
+          >
+            <app-icono name="plus" />
+            @if (agregandoInteres()) { <span>Agregando...</span> } @else { <span>Agregar</span> }
+          </button>
+        </div>
+
+        @if (mensajeNuevoInteres(); as mensaje) {
+          <p
+            class="nuevo-interes__mensaje"
+            [class.nuevo-interes__mensaje--error]="mensaje.error"
+            role="status"
+          >
+            {{ mensaje.texto }}
+          </p>
+        }
+      </form>
 
       <!-- Error -->
       @if (errorGustos()) {

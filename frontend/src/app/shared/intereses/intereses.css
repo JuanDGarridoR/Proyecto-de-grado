@@ -498,6 +498,110 @@
 }
 
 
+/* Agregar un interés que no está en la lista */
+
+.nuevo-interes {
+  margin-top: 24px;
+
+  padding: 20px;
+
+  border: 1px dashed var(--vita-border);
+
+  border-radius: var(--radius-lg);
+
+  background: var(--vita-cream-soft);
+}
+
+.nuevo-interes__label {
+  display: block;
+
+  margin-bottom: 12px;
+
+  font-size: 1rem;
+  font-weight: 700;
+
+  color: var(--vita-navy);
+}
+
+.nuevo-interes__fila {
+  display: flex;
+
+  gap: 12px;
+}
+
+.nuevo-interes__input {
+  flex: 1;
+
+  min-width: 0;
+
+  padding: 13px 16px;
+
+  border: 1px solid var(--vita-border);
+
+  border-radius: var(--radius-sm);
+
+  background: var(--vita-white);
+
+  color: var(--vita-navy);
+
+  font-size: 1rem;
+}
+
+.nuevo-interes__input:focus {
+  outline: 2px solid var(--vita-green);
+  outline-offset: 1px;
+}
+
+.nuevo-interes__boton {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  border: 1px solid var(--vita-green);
+
+  padding: 13px 20px;
+
+  border-radius: var(--radius-sm);
+
+  background: var(--vita-white);
+
+  color: var(--vita-green);
+
+  font-size: 0.95rem;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.nuevo-interes__boton:hover:not(:disabled) {
+  background: var(--vita-green);
+
+  color: var(--vita-white);
+}
+
+.nuevo-interes__boton:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+}
+
+.nuevo-interes__mensaje {
+  margin: 12px 0 0;
+
+  font-size: 0.95rem;
+
+  color: var(--vita-green);
+}
+
+.nuevo-interes__mensaje--error {
+  color: #a83232;
+}
+
+
 /* Guardar */
 
 .guardar-section {
@@ -702,6 +806,14 @@
 
 
 @media (max-width: 500px) {
+
+  .nuevo-interes__fila {
+    flex-direction: column;
+  }
+
+  .nuevo-interes__boton {
+    justify-content: center;
+  }
 
   .categorias-card,
   .opciones-section {

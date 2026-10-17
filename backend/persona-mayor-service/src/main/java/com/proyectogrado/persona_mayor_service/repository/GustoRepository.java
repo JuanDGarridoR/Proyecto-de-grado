@@ -13,4 +13,6 @@ public interface GustoRepository extends JpaRepository<Gusto, Integer> {
     List<Gusto> findByCategoria(String categoria);
 
     boolean existsByNombre(String nombre);
+
+    boolean existsByNombreIgnoreCase(String nombre);
 }
