@@ -38,12 +38,21 @@ public class PersonaMayorGustoController {
         this.personaMayorGustoRepository = personaMayorGustoRepository;
     }
 
+    /** Gustos de la persona mayor. Solo los ve ella misma. */
     @GetMapping
-    public List<GustoResponse> listar(@PathVariable Integer idPersonaMayor) {
-        return personaMayorGustoRepository.findById_IdPersonaMayor(idPersonaMayor)
+    public ResponseEntity<?> listar(
+            @RequestHeader("X-User-Id") Integer idUsuarioAutenticado,
+            @PathVariable Integer idPersonaMayor
+    ) {
+        if (!idUsuarioAutenticado.equals(idPersonaMayor)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Solo puedes ver tus propios gustos");
+        }
+
+        return ResponseEntity.ok(personaMayorGustoRepository.findById_IdPersonaMayor(idPersonaMayor)
                 .stream()
                 .map(pmg -> new GustoResponse(pmg.getGusto().getIdGusto(), pmg.getGusto().getNombre()))
-                .toList();
+                .toList());
     }
 
     /** Reemplaza todos los gustos de la persona mayor por los de la lista. */

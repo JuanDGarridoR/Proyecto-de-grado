@@ -3,7 +3,6 @@ package com.proyectogrado.persona_mayor_service.controller;
 import com.proyectogrado.persona_mayor_service.dto.GustoRequest;
 import com.proyectogrado.persona_mayor_service.model.Gusto;
 import com.proyectogrado.persona_mayor_service.repository.GustoRepository;
-import com.proyectogrado.persona_mayor_service.repository.PersonaMayorGustoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +45,7 @@ class GustoCacheTest {
 
         @Bean
         GustoController gustoController(GustoRepository gustoRepository) {
-            return new GustoController(gustoRepository, mock(PersonaMayorGustoRepository.class));
+            return new GustoController(gustoRepository);
         }
     }
 

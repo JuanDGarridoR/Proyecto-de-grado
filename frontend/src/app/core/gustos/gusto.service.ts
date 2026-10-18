@@ -14,7 +14,7 @@ export interface Gusto {
   categoria: CategoriaGusto;
 }
 
-/** Datos para crear o editar un gusto. */
+/** Datos para agregar un gusto al catálogo. */
 export interface GustoRequest {
   nombre: string;
   categoria: CategoriaGusto;
@@ -32,16 +32,9 @@ export class GustoService {
     return this.http.get<Gusto[]>(this.apiUrl);
   }
 
+  /** Agrega al catálogo un gusto que no estaba (el catálogo no se edita ni se borra). */
   crear(request: GustoRequest): Observable<Gusto> {
     return this.http.post<Gusto>(this.apiUrl, request);
-  }
-
-  actualizar(id: number, request: GustoRequest): Observable<Gusto> {
-    return this.http.put<Gusto>(`${this.apiUrl}/${id}`, request);
-  }
-
-  eliminar(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
   /** Gustos que tiene marcados una persona mayor. */

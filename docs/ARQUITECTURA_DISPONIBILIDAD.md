@@ -244,10 +244,10 @@ Los catálogos casi no cambian y los piden todos los formularios. Se guardan en 
 
 | Catálogo | Servicio | Duración | Se borra cuando |
 |---|---|---|---|
-| Gustos, talentos y pasatiempos (`GET /api/gustos`) | persona mayor | 10 min | Se crea, edita o borra un gusto (`@CacheEvict`) |
+| Gustos, talentos y pasatiempos (`GET /api/gustos`) | persona mayor | 10 min | Se agrega un gusto (`@CacheEvict`) |
 | Enfermedades, alergias y discapacidades (`GET .../condiciones-salud/catalogo`) | salud | 1 h | Solo cambia al arrancar el servicio |
 
-> **Decisión:** caché local por instancia en vez de una caché distribuida (Redis). Para catálogos casi estáticos no compensa agregar y mantener otro servidor. La consecuencia es que, si se edita un gusto, la otra réplica lo muestra a más tardar en 10 minutos. No se cacheó información personal ni los reportes de analítica: deben verse al instante cuando cambian (el tiempo real avisa al frontend y este vuelve a consultar).
+> **Decisión:** caché local por instancia en vez de una caché distribuida (Redis). Para catálogos casi estáticos no compensa agregar y mantener otro servidor. La consecuencia es que, si se agrega un gusto, la otra réplica lo muestra a más tardar en 10 minutos. No se cacheó información personal ni los reportes de analítica: deben verse al instante cuando cambian (el tiempo real avisa al frontend y este vuelve a consultar).
 
 - **Dónde:** `pom.xml` (`spring-boot-starter-cache`, `caffeine`), `config/CacheConfig.java` y `application.properties` (`spring.cache.*`) de persona mayor y salud, `@Cacheable` en `GustoController` y `CondicionSaludController`.
 
@@ -333,10 +333,11 @@ El frontend también oculta lo que no le corresponde a cada rol (`authGuard`), p
 - El gateway solo enruta las rutas de su lista. Lo que no está en la lista no existe para internet:
   - `/api/otp/verify` no se expone. Si estuviera abierto, se podrían probar códigos de otros celulares sin pasar por el login.
   - Tampoco se exponen el PUT ni el DELETE de los signos vitales de la persona mayor, porque esos registros no se editan ni se borran.
+  - El catálogo de intereses (`/api/gustos`) se puede consultar y ampliar, pero no editar ni borrar: un interés lo pueden tener marcado otras personas, y nadie debe poder cambiárselo. Los intereses de cada persona mayor solo los ve ella misma.
 - De Actuator solo se expone `health`, en el puerto 9000, que no se publica (punto 11).
 - **CORS** solo acepta peticiones del navegador que vengan de la dirección pública de la plataforma (`CORS_ORIGINS`).
 
-- **Dónde:** `docker-compose.yml`, `api-gateway/src/main/resources/application.yml` (rutas y `globalcors`).
+- **Dónde:** `docker-compose.yml`, `api-gateway/src/main/resources/application.yml` (rutas y `globalcors`), `persona-mayor-service/.../controller/GustoController.java` y `PersonaMayorGustoController.java`.
 
 ### 27. Códigos OTP (RNF-03)
 
@@ -505,6 +506,7 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 | `auth-service/.../FotoPerfilControllerTest` | Se rechaza un archivo que dice ser imagen pero no lo es |
 | `auth-service/.../AuthControllerTest`, `UsuarioRepositoryTest` | La quinta contraseña incorrecta seguida bloquea la cuenta 15 minutos; bloqueada, ni la contraseña correcta sirve; al vencer el bloqueo o restablecer la contraseña se puede volver a entrar |
 | `api-gateway/.../seguridad/LimiteIntentosGlobalFilterTest`, `LimiteIntentosGatewayTest` | Pasados 10 intentos por minuto, la IP recibe 429 sin llegar a `auth-service`, con las cabeceras CORS para que el frontend muestre el mensaje; otras IP y otras rutas no se afectan |
+| `persona-mayor-service/.../GustoControllerTest` | El catálogo de intereses no se puede editar ni borrar, y los intereses de una persona mayor solo los ve ella |
 
 Las pruebas existentes de todos los servicios siguen pasando.
 

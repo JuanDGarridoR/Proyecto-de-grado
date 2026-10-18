@@ -28,7 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Gustos e intereses (caracterización, RF-16): el catálogo y los que marca
- * cada persona mayor. Solo la propia persona mayor cambia los suyos.
+ * cada persona mayor. Solo la propia persona mayor ve y cambia los suyos, y
+ * el catálogo no se puede editar ni borrar.
  */
 class GustoControllerTest {
 
@@ -42,7 +43,7 @@ class GustoControllerTest {
         personaMayorGustoRepository = mock(PersonaMayorGustoRepository.class);
 
         mockMvc = MockMvcBuilders.standaloneSetup(
-                new GustoController(gustoRepository, personaMayorGustoRepository),
+                new GustoController(gustoRepository),
                 new PersonaMayorGustoController(gustoRepository, personaMayorGustoRepository)).build();
     }
 
@@ -126,14 +127,35 @@ class GustoControllerTest {
     }
 
     @Test
-    void noSeBorraUnGustoQueTieneMarcadoAlgunaPersona() throws Exception {
-        when(gustoRepository.existsById(3)).thenReturn(true);
-        when(personaMayorGustoRepository.existsByGusto_IdGusto(3)).thenReturn(true);
-
+    void elCatalogoNoSePuedeEditarNiBorrar() throws Exception {
+        mockMvc.perform(put("/api/gustos/3")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\": \"Otro\", \"categoria\": \"GUSTO\"}"))
+                .andExpect(status().is4xxClientError());
         mockMvc.perform(delete("/api/gustos/3"))
-                .andExpect(status().isConflict());
+                .andExpect(status().is4xxClientError());
 
+        verify(gustoRepository, never()).save(any());
         verify(gustoRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void laPersonaMayorVeSusPropiosGustos() throws Exception {
+        when(personaMayorGustoRepository.findById_IdPersonaMayor(10))
+                .thenReturn(List.of(new PersonaMayorGusto(10, gusto(3, "Tejer", "TALENTO"))));
+
+        mockMvc.perform(get("/api/persona-mayor/10/gustos").header("X-User-Id", 10))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nombre").value("Tejer"));
+    }
+
+    @Test
+    void nadieMasPuedeVerLosGustosDeUnaPersonaMayor() throws Exception {
+        mockMvc.perform(get("/api/persona-mayor/10/gustos").header("X-User-Id", 11))
+                .andExpect(status().isForbidden())
+                .andExpect(content().string("Solo puedes ver tus propios gustos"));
+
+        verify(personaMayorGustoRepository, never()).findById_IdPersonaMayor(any());
     }
 
     @Test

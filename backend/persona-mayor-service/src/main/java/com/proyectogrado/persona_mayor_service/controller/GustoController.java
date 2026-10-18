@@ -4,17 +4,13 @@ import com.proyectogrado.persona_mayor_service.dto.GustoRequest;
 import com.proyectogrado.persona_mayor_service.dto.GustoResponse;
 import com.proyectogrado.persona_mayor_service.model.Gusto;
 import com.proyectogrado.persona_mayor_service.repository.GustoRepository;
-import com.proyectogrado.persona_mayor_service.repository.PersonaMayorGustoRepository;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,8 +20,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Catálogo de gustos, talentos y pasatiempos que las personas mayores
- * pueden marcar, agrupados por categoría.
+ * Catálogo de gustos, talentos y pasatiempos que las personas mayores y los
+ * voluntarios pueden marcar, agrupados por categoría. Se puede consultar y
+ * agregar, pero no editar ni borrar: un gusto lo pueden tener marcado otras
+ * personas, y nadie debe poder cambiárselo.
  */
 @RestController
 @RequestMapping("/api/gustos")
@@ -37,14 +35,9 @@ public class GustoController {
     private static final int LARGO_MAXIMO_NOMBRE = 60;
 
     private final GustoRepository gustoRepository;
-    private final PersonaMayorGustoRepository personaMayorGustoRepository;
 
-    public GustoController(
-            GustoRepository gustoRepository,
-            PersonaMayorGustoRepository personaMayorGustoRepository
-    ) {
+    public GustoController(GustoRepository gustoRepository) {
         this.gustoRepository = gustoRepository;
-        this.personaMayorGustoRepository = personaMayorGustoRepository;
     }
 
     /**
@@ -92,39 +85,5 @@ public class GustoController {
         Gusto gusto = gustoRepository.save(new Gusto(nombre, request.getCategoria()));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new GustoResponse(gusto.getIdGusto(), gusto.getNombre(), gusto.getCategoria()));
-    }
-
-    /** Cambia el nombre o la categoría de un gusto. */
-    @PutMapping("/{id}")
-    @CacheEvict(cacheNames = "gustos", allEntries = true)
-    public ResponseEntity<?> actualizar(@PathVariable Integer id, @RequestBody GustoRequest request) {
-        Gusto gusto = gustoRepository.findById(id).orElse(null);
-        if (gusto == null) {
-            return ResponseEntity.notFound().build();
-        }
-        if (request.getNombre() == null || request.getNombre().isBlank()) {
-            return ResponseEntity.badRequest().body("El nombre es obligatorio");
-        }
-
-        gusto.setNombre(request.getNombre());
-        gusto.setCategoria(request.getCategoria());
-        gusto = gustoRepository.save(gusto);
-        return ResponseEntity.ok(new GustoResponse(gusto.getIdGusto(), gusto.getNombre(), gusto.getCategoria()));
-    }
-
-    /** Borra un gusto si nadie lo tiene asignado; si alguien lo tiene, responde 409. */
-    @DeleteMapping("/{id}")
-    @CacheEvict(cacheNames = "gustos", allEntries = true)
-    public ResponseEntity<?> eliminar(@PathVariable Integer id) {
-        if (!gustoRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        if (personaMayorGustoRepository.existsByGusto_IdGusto(id)) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("No se puede eliminar: hay personas mayores con este gusto asignado");
-        }
-
-        gustoRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
     }
 }
