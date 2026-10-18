@@ -5,39 +5,64 @@
 # Solo el frontend (Caddy) se expone a internet, en los puertos 80 y 443;
 # los servicios se hablan entre sí por la red interna de Docker.
 #
+# Mínimo privilegio:
+# - Cada servicio recibe solo las claves que usa (ver environment de cada
+#   uno), no el .env completo: si uno se ve comprometido, no expone las
+#   claves de los demás. Compose las toma del .env al levantar todo.
+# - Los contenedores corren con un usuario sin privilegios, no como root
+#   (ver backend/Dockerfile y frontend/Dockerfile). La excepción es autoheal,
+#   que necesita el socket de Docker para reiniciar contenedores.
+#
 # Disponibilidad (ver docs/ARQUITECTURA_DISPONIBILIDAD.md):
 # - Cada servicio tiene health check; si deja de responder, autoheal lo reinicia.
 # - auth, persona mayor y salud corren en dos réplicas (servicio y servicio-2);
 #   el gateway reparte las peticiones entre ellas.
 
+# Variables comunes a todos los servicios (ninguna es una clave). Cada
+# servicio las mezcla con las suyas: con "<<" Compose solo mezcla el primer
+# nivel, así que un environment propio reemplazaría este por completo.
+x-entorno: &entorno
+  # Direcciones internas de cada servicio (reemplazan los localhost)
+  AUTH_SERVICE_URL: http://auth-service:8081
+  MENSAJERIA_SERVICE_URL: http://mensajeria-service:8082
+  SALUD_SERVICE_URL: http://salud-service:8084
+  PERSONA_MAYOR_SERVICE_URL: http://persona-mayor-service:8085
+  ACOMPANANTE_SERVICE_URL: http://acompanante-service:8086
+  VOLUNTARIO_SERVICE_URL: http://voluntario-service:8087
+  ORGANIZACION_SERVICE_URL: http://organizacion-service:8088
+  ACTIVIDAD_SERVICE_URL: http://actividad-service:8089
+  ANALITICA_SERVICE_URL: http://analitica-service:8090
+  DONACION_SERVICE_URL: http://donacion-service:8091
+  # El gateway solo acepta peticiones del navegador desde la página publicada
+  CORS_ORIGINS: https://${DOMINIO}
+  # Perfil "docker": el gateway suma las réplicas (application-docker.yml)
+  SPRING_PROFILES_ACTIVE: docker
+  # El health check va en un puerto aparte, igual en todos los contenedores
+  MANAGEMENT_SERVER_PORT: "9000"
+  # En el servidor no se imprime cada SQL que se ejecuta (en desarrollo sí,
+  # con spring.jpa.show-sql=true de cada application.properties): llena los
+  # registros y deja ver la estructura de la base.
+  SPRING_JPA_SHOW_SQL: "false"
+
+# Claves de cada servicio. ":?" hace que Compose no arranque si falta una
+# obligatoria en el .env, en vez de levantar un servicio que falla después.
+x-claves-base-de-datos: &claves-base-de-datos
+  <<: *entorno
+  DB_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el .env}
+
+x-claves-auth: &claves-auth
+  <<: *claves-base-de-datos
+  JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en el .env}
+  HUNTER_API_KEY: ${HUNTER_API_KEY:?Falta HUNTER_API_KEY en el .env}
+  # Opcional: sin ella solo falla la subida de fotos de perfil
+  SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-}
+
 x-servicio: &servicio
   restart: unless-stopped
-  env_file: .env
   mem_limit: 600m
   labels:
     autoheal: "true"
-  environment:
-    # Direcciones internas de cada servicio (reemplazan los localhost)
-    AUTH_SERVICE_URL: http://auth-service:8081
-    MENSAJERIA_SERVICE_URL: http://mensajeria-service:8082
-    SALUD_SERVICE_URL: http://salud-service:8084
-    PERSONA_MAYOR_SERVICE_URL: http://persona-mayor-service:8085
-    ACOMPANANTE_SERVICE_URL: http://acompanante-service:8086
-    VOLUNTARIO_SERVICE_URL: http://voluntario-service:8087
-    ORGANIZACION_SERVICE_URL: http://organizacion-service:8088
-    ACTIVIDAD_SERVICE_URL: http://actividad-service:8089
-    ANALITICA_SERVICE_URL: http://analitica-service:8090
-    DONACION_SERVICE_URL: http://donacion-service:8091
-    # El gateway solo acepta peticiones del navegador desde la página publicada
-    CORS_ORIGINS: https://${DOMINIO}
-    # Perfil "docker": el gateway suma las réplicas (application-docker.yml)
-    SPRING_PROFILES_ACTIVE: docker
-    # El health check va en un puerto aparte, igual en todos los contenedores
-    MANAGEMENT_SERVER_PORT: "9000"
-    # En el servidor no se imprime cada SQL que se ejecuta (en desarrollo sí,
-    # con spring.jpa.show-sql=true de cada application.properties): llena los
-    # registros y deja ver la estructura de la base.
-    SPRING_JPA_SHOW_SQL: "false"
+  environment: *claves-base-de-datos
   # Responde si la aplicación está viva (no revisa la base de datos: si
   # Supabase falla, reiniciar los servicios no lo arregla). start_period da
   # tiempo a que arranque Spring antes de contar los fallos.
@@ -51,6 +76,7 @@ x-servicio: &servicio
 services:
   auth-service:
     <<: *servicio
+    environment: *claves-auth
     image: vitaplus/auth-service
     build: { context: ./backend, args: { SERVICIO: auth-service } }
 
@@ -59,6 +85,7 @@ services:
   # bucket de fotos, los catálogos...).
   auth-service-2:
     <<: *servicio
+    environment: *claves-auth
     image: vitaplus/auth-service
     pull_policy: never
     depends_on:
@@ -66,6 +93,9 @@ services:
 
   mensajeria-service:
     <<: *servicio
+    environment:
+      <<: *claves-base-de-datos
+      TEXTBEE_API_KEY: ${TEXTBEE_API_KEY:?Falta TEXTBEE_API_KEY en el .env}
     build: { context: ./backend, args: { SERVICIO: mensajeria-service } }
 
   salud-service:
@@ -110,6 +140,10 @@ services:
 
   analitica-service:
     <<: *servicio
+    environment:
+      <<: *claves-base-de-datos
+      # Opcional: sin ella el punto del mapa se marca tocándolo
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
     build: { context: ./backend, args: { SERVICIO: analitica-service } }
 
   donacion-service:
@@ -120,6 +154,10 @@ services:
   # breaker responde por ese servicio mientras tanto.
   gateway:
     <<: *servicio
+    # El gateway no usa la base de datos: solo valida los tokens.
+    environment:
+      <<: *entorno
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en el .env}
     build: { context: ./backend, args: { SERVICIO: api-gateway } }
 
   # Frontend + HTTPS. Es lo único abierto a internet.

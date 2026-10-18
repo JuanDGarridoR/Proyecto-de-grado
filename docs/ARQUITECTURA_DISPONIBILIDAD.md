@@ -42,6 +42,7 @@ flowchart TD
 | RNF-20 | Tokens de acceso de 15 minutos y sesiones revocables | Punto 23 |
 | RNF-21 | Cabeceras de seguridad (CSP, HSTS y otras) | Punto 32 |
 | RNF-22 | Registros sin datos personales | Punto 30 |
+| RNF-23 | Contenedores sin root y con solo sus claves | Puntos 26 y 29 |
 | Seguridad y privacidad en general | Datos protegidos, acceso solo con vínculo, cifrado | Parte 2, puntos 22 a 32 |
 | Rendimiento | Páginas que cargan rápido con mala señal | Parte 3, puntos 33 a 37 |
 | Escalabilidad | Crecer agregando instancias | Parte 4, punto 38 |
@@ -364,6 +365,7 @@ El frontend también oculta lo que no le corresponde a cada rol (`authGuard`), p
   - El catálogo de intereses (`/api/gustos`) se puede consultar y ampliar, pero no editar ni borrar: un interés lo pueden tener marcado otras personas, y nadie debe poder cambiárselo. Los intereses de cada persona mayor solo los ve ella misma.
   - No hay una ruta pública para consultar a Hunter: el correo se valida por dentro al registrarse.
 - De Actuator solo se expone `health`, en el puerto 9000, que no se publica (punto 11).
+- **Los contenedores corren sin root.** Los servicios corren con el usuario `vita`, sin privilegios, y Caddy también: puede abrir los puertos 80 y 443 porque la imagen oficial le da a su ejecutable solo ese permiso (`cap_net_bind_service`). Si alguien lograra ejecutar código en un contenedor, no sería administrador dentro de él. La excepción es autoheal, que necesita el socket de Docker (punto 12).
 - **CORS** solo acepta peticiones del navegador que vengan de la dirección pública de la plataforma (`CORS_ORIGINS`).
 - **Las rutas públicas que se pueden abusar tienen un límite por IP** en el gateway. Pasado el límite, se responde 429 con `Retry-After` y un mensaje que dice cuánto esperar, sin llegar al servicio. Una petición rechazada no gasta cupo.
 
@@ -407,10 +409,21 @@ Además, el gateway limita los envíos por IP (punto 26). Así, el gasto máximo
 Ninguna clave va en el código. La contraseña de la base, el secreto del JWT y las claves de TextBee, Hunter, Supabase y Google se leen de variables:
 
 - **En desarrollo:** del archivo `backend/secretos.properties`, que está en `.gitignore` y en `backend/.dockerignore`, así que tampoco entra a las imágenes de Docker.
-- **En el servidor:** del archivo `.env`, que tampoco se sube a git. La plantilla `.env.example` lista las claves sin valores y explica cómo generar un secreto de JWT nuevo (`openssl rand -base64 48`).
+- **En el servidor:** del archivo `.env`, que tampoco se sube a git. La plantilla `.env.example` lista las claves sin valores y explica cómo generar un secreto de JWT nuevo (`openssl rand -base64 48`). **Cada contenedor recibe solo las claves que usa**, no el `.env` completo: si uno se viera comprometido, no expondría las de los demás.
+
+| Contenedor | Claves |
+|---|---|
+| `auth-service` (y su réplica) | Base de datos, secreto del JWT, Hunter y Supabase Storage |
+| `mensajeria-service` | Base de datos y TextBee |
+| `analitica-service` | Base de datos y Google Places |
+| `gateway` | Solo el secreto del JWT (no usa la base de datos) |
+| Los demás servicios | Solo la base de datos |
+| `web` (Caddy) | Ninguna, solo el dominio |
+
+  Si falta una clave obligatoria en el `.env`, `docker compose` no arranca y dice cuál falta, en vez de levantar un servicio que falla después.
 - **En el navegador:** no queda ninguna clave. Las llamadas a TextBee, Hunter, Google Places y Supabase Storage las hace el backend.
 
-- **Dónde:** `spring.config.import=optional:file:../secretos.properties` y las variables `${...}` de los `application.properties`, `.gitignore`, `backend/.dockerignore`, `.env.example`.
+- **Dónde:** `spring.config.import=optional:file:../secretos.properties` y las variables `${...}` de los `application.properties`, `.gitignore`, `backend/.dockerignore`, `.env.example`, `environment` de cada servicio en `docker-compose.yml`.
 
 ### 30. Datos personales y privacidad
 
@@ -558,6 +571,7 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 | `auth-service/.../security/SinTokenValidoTest` | Con la configuración de seguridad real, un token vencido o ausente recibe 401 (no 403), y renovar o cerrar la sesión no piden token |
 | `auth-service/.../AuthControllerTest`, `ContrasenaControllerTest` | El login abre una sesión; renovar entrega un token con el rol de la pestaña, y solo uno que la cuenta tenga; con una sesión revocada responde 401; cambiar o restablecer la contraseña cierra las demás sesiones; una contraseña nueva de menos de 8 caracteres se rechaza |
 | `frontend/.../auth/auth.interceptor.spec.ts`, `auth.service.spec.ts` | Con un 401 se renueva el token una sola vez y se repite la petición; si la sesión ya no se puede renovar, se lleva a iniciar sesión; al cerrar sesión se revoca en el backend |
+| `docker compose config` | Cada contenedor recibe solo sus claves (tabla del punto 29), y sin `.env` Compose no arranca |
 | `api-gateway/.../filter/JwtAuthGatewayFilterFactoryTest` | Sin token, con un token vencido o firmado con otra clave, la petición no llega al servicio; un `X-User-Id` enviado por el cliente se reemplaza por el del token |
 | `api-gateway/.../RutasGatewayTest` | Las rutas protegidas exigen token y las que no se deben exponer (como `/api/otp/verify`) no tienen ruta |
 | `mensajeria-service/.../security/TextBeeOtpServiceTest` | El OTP se guarda como HMAC, vence a los 10 minutos, sirve una sola vez, se anula tras 5 fallos y no sirve para otro celular |
@@ -570,7 +584,7 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 
 Las pruebas existentes de todos los servicios siguen pasando.
 
-**Pendiente de verificar en el servidor:** levantar todo con `docker compose up -d --build` y comprobar con `docker compose ps` que todos los contenedores quedan `healthy`. Luego detener una réplica (`docker compose stop salud-service-2`) y confirmar que la plataforma sigue respondiendo. Estas pruebas no se hicieron todavía en un entorno real con Docker. Con la plataforma publicada, abrir las páginas principales (landing, paneles, mapas, analítica y foto de perfil) con la consola del navegador abierta y confirmar que la Content-Security-Policy no bloquea nada: no se pudo probar en local porque las cabeceras las pone Caddy.
+**Pendiente de verificar en el servidor:** levantar todo con `docker compose up -d --build` y comprobar con `docker compose ps` que todos los contenedores quedan `healthy`. Luego detener una réplica (`docker compose stop salud-service-2`) y confirmar que la plataforma sigue respondiendo. Estas pruebas no se hicieron todavía en un entorno real con Docker. Con la plataforma publicada, abrir las páginas principales (landing, paneles, mapas, analítica y foto de perfil) con la consola del navegador abierta y confirmar que la Content-Security-Policy no bloquea nada: no se pudo probar en local porque las cabeceras las pone Caddy. Comprobar también que, sin root, Caddy obtiene y renueva el certificado HTTPS, y que los servicios arrancan con solo sus claves.
 
 ---
 

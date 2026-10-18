@@ -14,3 +14,9 @@ RUN npx ng build
 FROM caddy:2-alpine
 COPY --from=compilacion /app/dist/frontend/browser /srv
 COPY Caddyfile /etc/caddy/Caddyfile
+# Usuario sin privilegios. Puede abrir los puertos 80 y 443 porque la imagen
+# oficial le da a /usr/bin/caddy el permiso cap_net_bind_service. Es dueño
+# de /data y /config, donde guarda los certificados HTTPS.
+RUN addgroup -S vita && adduser -S -G vita -H -s /sbin/nologin vita \
+    && chown -R vita:vita /data /config
+USER vita

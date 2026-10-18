@@ -17,8 +17,13 @@ FROM eclipse-temurin:17-jre
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
+# Usuario sin privilegios: si alguien lograra ejecutar código en el
+# servicio, no tendría permisos de root dentro del contenedor.
+RUN groupadd --system vita \
+    && useradd --system --gid vita --no-create-home --shell /usr/sbin/nologin vita
 WORKDIR /app
 COPY --from=compilacion /app/target/*.jar app.jar
+USER vita
 
 # Memoria acotada para que los 12 servicios quepan en un servidor de 8 GB
 ENV JAVA_OPTS="-Xms64m -Xmx256m -XX:MaxMetaspaceSize=192m -Xss512k -XX:+UseSerialGC"
