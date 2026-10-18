@@ -3,6 +3,7 @@ package com.proyectogrado.auth_backend.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -12,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
@@ -82,17 +84,27 @@ public class SecurityConfig {
                         )
                 )
 
+                // Sin token válido (por ejemplo, vencido) se responde 401, no
+                // el 403 por defecto: con 401 el frontend sabe que debe
+                // renovar el token y repetir la petición.
+                .exceptionHandling(excepciones -> excepciones
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                )
+
                 .authorizeHttpRequests(auth -> auth
 
                         // Rutas públicas: login, registro, recuperación de
-                        // contraseña y la consulta de si un celular tiene
-                        // cuenta. Son los pasos para conseguir el token.
+                        // contraseña, la consulta de si un celular tiene
+                        // cuenta y renovar o cerrar la sesión (se llaman
+                        // cuando el token de acceso ya venció).
                         .requestMatchers(
                                 "/api/auth/login",
                                 "/api/auth/login-otp",
                                 "/api/auth/registro",
                                 "/api/auth/celular-existe",
                                 "/api/auth/restablecer-contrasena",
+                                "/api/auth/sesion/renovar",
+                                "/api/auth/sesion/cerrar",
                                 "/error"
                         )
                         .permitAll()

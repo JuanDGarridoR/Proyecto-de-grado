@@ -97,8 +97,15 @@ export class TiempoRealService {
         signal: controlador.signal
       });
 
-      // Token vencido o inválido: reintentar no sirve.
+      // Token vencido (dura 15 minutos): se renueva y se vuelve a conectar.
+      // Si la sesión ya no se puede renovar, AuthService la cierra.
       if (respuesta.status === 401) {
+        if (this.authService.puedeRenovar()) {
+          this.authService.renovarToken().subscribe({
+            next: () => this.conectar(),
+            error: () => undefined
+          });
+        }
         return;
       }
 

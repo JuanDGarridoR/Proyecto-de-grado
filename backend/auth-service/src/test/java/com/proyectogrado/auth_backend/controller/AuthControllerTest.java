@@ -20,6 +20,7 @@ import com.proyectogrado.auth_backend.repository.UsuarioRolRepository;
 import com.proyectogrado.auth_backend.repository.VoluntarioRepository;
 import com.proyectogrado.auth_backend.security.JwtService;
 import com.proyectogrado.auth_backend.service.AuthService;
+import com.proyectogrado.auth_backend.service.SesionService;
 import com.proyectogrado.auth_backend.service.TerminosService;
 import com.proyectogrado.auth_backend.service.ValidacionCorreoService;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,6 +85,7 @@ class AuthControllerTest {
     private ValidacionCorreoService validacionCorreoService;
     private JwtService jwtService;
     private AceptacionTerminosRepository aceptacionTerminosRepository;
+    private SesionService sesionService;
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -98,6 +100,8 @@ class AuthControllerTest {
         mensajeriaClient = mock(MensajeriaClient.class);
         validacionCorreoService = mock(ValidacionCorreoService.class);
         aceptacionTerminosRepository = mock(AceptacionTerminosRepository.class);
+        sesionService = mock(SesionService.class);
+        when(sesionService.abrir(any())).thenReturn("token-de-renovacion");
 
         jwtService = new JwtService();
         ReflectionTestUtils.setField(jwtService, "jwtSecret", "clave_de_pruebas_de_vita_mas_con_al_menos_32_bytes");
@@ -115,11 +119,12 @@ class AuthControllerTest {
                 jwtService,
                 mensajeriaClient,
                 validacionCorreoService,
-                new TerminosService(aceptacionTerminosRepository, "2026-10")
+                new TerminosService(aceptacionTerminosRepository, "2026-10"),
+                sesionService
         );
 
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new AuthController(authService))
+                .standaloneSetup(new AuthController(authService), new SesionController(authService, sesionService))
                 .build();
 
         // La base asigna el id al guardar.
@@ -395,6 +400,82 @@ class AuthControllerTest {
     }
 
     @Test
+    void elLoginAbreUnaSesionYDevuelveSuTokenDeRenovacion() throws Exception {
+        Usuario usuario = usuarioConContrasena("secreta1");
+        when(usuarioRepository.findByCorreo(CORREO)).thenReturn(Optional.of(usuario));
+        when(usuarioRolRepository.findByUsuario_IdUsuario(25))
+                .thenReturn(List.of(new UsuarioRol(usuario, rol(1, "PERSONA_MAYOR"))));
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"correo\": \"" + CORREO + "\", \"contrasena\": \"secreta1\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.refreshToken").value("token-de-renovacion"));
+
+        verify(sesionService).abrir(25);
+    }
+
+    @Test
+    void conUnaSesionAbiertaSeRenuevaElTokenConElRolDeLaPestana() throws Exception {
+        Usuario usuario = usuarioConContrasena("secreta1");
+        usuario.setUltimoRol("PERSONA_MAYOR");
+        when(sesionService.usuarioDe("token-de-renovacion")).thenReturn(Optional.of(25));
+        when(usuarioRepository.findById(25)).thenReturn(Optional.of(usuario));
+        when(usuarioRolRepository.findByUsuario_IdUsuario(25)).thenReturn(List.of(
+                new UsuarioRol(usuario, rol(1, "PERSONA_MAYOR")),
+                new UsuarioRol(usuario, rol(2, "ACOMPANANTE"))));
+
+        MvcResult resultado = mockMvc.perform(post("/api/auth/sesion/renovar")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\": \"token-de-renovacion\", \"rol\": \"ACOMPANANTE\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rol").value("ACOMPANANTE"))
+                .andExpect(jsonPath("$.refreshToken").doesNotExist())
+                .andReturn();
+
+        String token = objectMapper.readTree(resultado.getResponse().getContentAsString()).get("token").asText();
+        assertEquals(25, jwtService.extraerIdUsuario(token));
+        assertEquals("ACOMPANANTE", jwtService.extraerRol(token));
+    }
+
+    @Test
+    void unRolQueLaCuentaNoTieneNoSePuedePedirAlRenovar() throws Exception {
+        Usuario usuario = usuarioConContrasena("secreta1");
+        when(sesionService.usuarioDe("token-de-renovacion")).thenReturn(Optional.of(25));
+        when(usuarioRepository.findById(25)).thenReturn(Optional.of(usuario));
+        when(usuarioRolRepository.findByUsuario_IdUsuario(25))
+                .thenReturn(List.of(new UsuarioRol(usuario, rol(1, "PERSONA_MAYOR"))));
+
+        mockMvc.perform(post("/api/auth/sesion/renovar")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\": \"token-de-renovacion\", \"rol\": \"ORGANIZACION\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rol").value("PERSONA_MAYOR"));
+    }
+
+    @Test
+    void conUnaSesionCerradaORevocadaNoSeRenuevaYHayQueVolverAEntrar() throws Exception {
+        when(sesionService.usuarioDe(anyString())).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/auth/sesion/renovar")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\": \"token-revocado\", \"rol\": \"PERSONA_MAYOR\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.token").doesNotExist())
+                .andExpect(jsonPath("$.mensaje").value("Tu sesión terminó. Vuelve a iniciar sesión."));
+    }
+
+    @Test
+    void cerrarSesionRevocaElTokenDeRenovacion() throws Exception {
+        mockMvc.perform(post("/api/auth/sesion/cerrar")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\": \"token-de-renovacion\"}"))
+                .andExpect(status().isNoContent());
+
+        verify(sesionService).cerrar("token-de-renovacion");
+    }
+
+    @Test
     void conLosDosRolesEntraConElUltimoQueUsoYSiNoComoPersonaMayor() throws Exception {
         Usuario usuario = usuarioConContrasena("secreta1");
         when(usuarioRepository.findByCorreo(CORREO)).thenReturn(Optional.of(usuario));
@@ -523,6 +604,23 @@ class AuthControllerTest {
                 .andExpect(status().isOk());
 
         verify(usuarioRepository, never()).reiniciarIntentosFallidos(any());
+    }
+
+    @Test
+    void restablecerLaContrasenaCierraTodasLasSesionesAbiertas() throws Exception {
+        Usuario usuario = usuarioConContrasena("olvidada1");
+        when(usuarioRepository.findByCelular(CELULAR)).thenReturn(Optional.of(usuario));
+        when(mensajeriaClient.verificarOtp(CELULAR, "551177")).thenReturn(true);
+
+        mockMvc.perform(post("/api/auth/restablecer-contrasena")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"celular": "%s", "codigo": "551177",
+                                 "contrasena": "nueva-clave", "confirmarContrasena": "nueva-clave"}
+                                """.formatted(CELULAR)))
+                .andExpect(status().isOk());
+
+        verify(sesionService).cerrarTodas(25);
     }
 
     @Test

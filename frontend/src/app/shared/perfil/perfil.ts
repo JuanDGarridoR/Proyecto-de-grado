@@ -644,6 +644,9 @@ export class Perfil implements OnInit {
           contrasenaActual: this.informacion.tieneContrasena ? this.contrasenaActual : undefined,
 
           nuevaContrasena: this.nuevaContrasena,
+
+          // Esta sesión sigue abierta; las demás de la cuenta se cierran.
+          refreshToken: this.authService.getRefreshToken(),
         },
         {
           responseType: 'text',

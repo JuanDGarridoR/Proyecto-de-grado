@@ -39,6 +39,7 @@ flowchart TD
 | RNF-17 | Mapas de la organización sin la dirección exacta | Punto 30 |
 | RNF-18 | Bloqueo tras 5 contraseñas incorrectas y límite de peticiones por IP | Puntos 22 y 26 |
 | RNF-19 | Códigos por SMS solo a celulares con cuenta, con tope diario | Punto 27 |
+| RNF-20 | Tokens de acceso de 15 minutos y sesiones revocables | Punto 23 |
 | RNF-21 | Cabeceras de seguridad (CSP, HSTS y otras) | Punto 32 |
 | Seguridad y privacidad en general | Datos protegidos, acceso solo con vínculo, cifrado | Parte 2, puntos 22 a 32 |
 | Rendimiento | Páginas que cargan rápido con mala señal | Parte 3, puntos 33 a 37 |
@@ -116,7 +117,7 @@ Todos los servicios comparten una sola base de datos. Cada uno abre como máximo
 
 #### 6. Autenticación sin estado (JWT)
 
-La sesión viaja en el token JWT; ningún servicio guarda sesiones en memoria. Gracias a esto, cualquier réplica puede atender cualquier petición, que es la condición para poder balancear la carga (punto 13).
+El token de acceso (JWT) lleva quién es el usuario; ningún servicio guarda sesiones en memoria. Gracias a esto, cualquier réplica puede atender cualquier petición, que es la condición para poder balancear la carga (punto 13). Las sesiones revocables (punto 23) se guardan en la base de datos, no en una réplica, así que tampoco lo impiden.
 
 #### 7. Degradación elegante en los SMS
 
@@ -295,15 +296,39 @@ Para que no se puedan probar contraseñas sin fin, hay dos barreras que se compl
 
 - **Dónde:** `auth-service/.../security/SecurityConfig.java`, `service/AuthService.java` (`login`, `restablecerContrasena`), `service/CuentaBloqueadaException.java`, `repository/UsuarioRepository.java` (`registrarIntentoFallido`, `reiniciarIntentosFallidos`), columnas `intentos_fallidos` y `bloqueado_hasta` de la tabla `usuario`, `controller/ContrasenaController.java`, `api-gateway/.../seguridad/LimiteIntentosGlobalFilter.java`.
 
-### 23. Tokens JWT firmados y validados en el gateway
+### 23. Tokens de acceso cortos y sesiones revocables (RNF-20)
 
-Al iniciar sesión, `auth-service` emite un **JWT firmado con HMAC-SHA** que vence a las **24 horas** y lleva el id del usuario y su rol. El gateway revisa la **firma y la expiración** en cada ruta protegida (filtro `JwtAuth`). Sin un token válido responde 401, y la petición no llega a ningún servicio.
+Al iniciar sesión, `auth-service` entrega dos tokens:
 
-Las rutas de `/api/auth/**` no llevan el filtro porque el login y el registro son públicos. Las demás rutas de auth las protege `auth-service` con su propio filtro de Spring Security. El stream de tiempo real (`/api/eventos`) también valida el token, y se cierra cuando el token vence.
+| Token | Dura | Dónde se valida | Se puede revocar |
+|---|---|---|---|
+| **De acceso** (JWT firmado con HMAC-SHA, con el id del usuario y su rol) | **15 minutos** | En el gateway, en cada petición, solo con la firma y la expiración: sin consultar la base | No: por eso dura poco |
+| **De renovación** (32 bytes aleatorios) | **30 días sin usarse** (cada uso corre el plazo) | En `auth-service`, contra la tabla `sesion`, cada vez que se usa | Sí: basta borrar su fila |
 
-La clave de firma es la misma en `auth-service` y en el gateway. Sale de una variable de entorno (`JWT_SECRET`, mínimo 32 caracteres) y nunca va al navegador.
+Cuando el token de acceso vence, el backend responde 401. El frontend pide uno nuevo con el de renovación (`POST /api/auth/sesion/renovar`) y repite la petición, sin que la persona lo note. Si varias peticiones reciben 401 a la vez, se renueva una sola vez. El tiempo real (`/api/eventos`) se cierra cuando vence el token, y se reconecta con uno nuevo.
 
-- **Dónde:** `auth-service/.../security/JwtService.java` y `JwtAuthenticationFilter.java`, `api-gateway/.../filter/JwtAuthGatewayFilterFactory.java`, `api-gateway/.../eventos/EventosController.java`, `jwt.expiration` en el `application.properties` de `auth-service`.
+**La sesión se revoca** en estos casos, y desde ese momento ya no se pueden pedir tokens de acceso nuevos:
+
+| Cuándo | Qué se cierra |
+|---|---|
+| Cerrar sesión | Esa sesión (`POST /api/auth/sesion/cerrar`) |
+| Cambiar la contraseña desde el perfil | Todas las demás sesiones de la cuenta; quien la cambió sigue adentro |
+| Restablecer la contraseña con el código por SMS | Todas las sesiones de la cuenta |
+| Eliminar la cuenta | Todas, junto con el resto de sus datos |
+
+Las rutas de `/api/auth/**` no llevan el filtro del gateway porque el login, el registro y la renovación son públicos. Las demás rutas de auth las protege `auth-service` con su propio filtro de Spring Security, que responde 401 (y no el 403 de Spring por defecto) para que el frontend sepa que debe renovar.
+
+La clave de firma del JWT es la misma en `auth-service` y en el gateway. Sale de una variable de entorno (`JWT_SECRET`, mínimo 32 caracteres) y nunca va al navegador.
+
+> **Decisiones:**
+> - De la tabla `sesion` solo se guarda el **hash SHA-256** del token de renovación, nunca el token: quien lea la tabla no puede usarlo. Vive en la base, y no en memoria, porque `auth-service` corre en dos réplicas.
+> - Al renovar, el token de renovación **no cambia** (no hay rotación). La rotación obligaría a que todas las pestañas que comparten la sesión se coordinaran, y la plataforma permite tener varias cuentas abiertas, una por pestaña.
+> - Por esa misma razón, el token de renovación va en el almacenamiento de la pestaña y no en una cookie `HttpOnly`: el navegador tiene una sola cookie por sitio. El riesgo de que un script inyectado lo lea lo reduce la Content-Security-Policy (punto 32).
+> - Al renovar, cada pestaña pide su propio rol, para no cambiar sola si la misma cuenta cambia de rol en otra pestaña. Es seguro porque los servicios no autorizan por el rol del token, sino por los vínculos (punto 25), y la cuenta solo puede pedir un rol que tenga.
+> - El frontend no renueva por adelantado según la hora del navegador: si el reloj del computador está adelantado, creería vencido todo token nuevo. Renueva cuando el servidor responde 401, que es la hora que cuenta.
+> - Tras revocar una sesión, el token de acceso que ya tenía sigue sirviendo **como máximo 15 minutos**. Se aceptó a cambio de que el gateway no consulte la base en cada petición.
+
+- **Dónde:** `auth-service/.../security/JwtService.java`, `JwtAuthenticationFilter.java` y `SecurityConfig.java`, `service/SesionService.java`, `model/Sesion.java`, `controller/SesionController.java`, `jwt.expiration` en el `application.properties` de `auth-service`, `api-gateway/.../filter/JwtAuthGatewayFilterFactory.java`, `api-gateway/.../eventos/EventosController.java`, `frontend/src/app/core/auth/auth.service.ts` (`renovarToken`) y `auth.interceptor.ts`.
 
 ### 24. La identidad la pone el gateway, no el navegador
 
@@ -390,7 +415,7 @@ Ninguna clave va en el código. La contraseña de la base, el secreto del JWT y 
 
 - **Mapas sin direcciones exactas (RNF-17):** los mapas y la red de la organización ubican a cada persona mayor en el **centro de su barrio**, nunca en su dirección. El barrio se calcula en el backend, y en esas vistas la dirección no viaja al navegador.
 - **Constancia de los términos y condiciones:** al registrarse queda guardado quién los aceptó, cuándo y qué versión del texto. El backend rechaza el registro si no se aceptaron.
-- **Eliminar la cuenta** borra, en **una sola transacción**, todo lo que referencia al usuario en las tablas de todos los servicios: o se borra todo, o no se borra nada. Solo se conservan la constancia de los términos y el registro del retiro: la razón, y, si era persona mayor, su nombre, para que sus organizaciones sepan quién se fue.
+- **Eliminar la cuenta** borra, en **una sola transacción**, todo lo que referencia al usuario en las tablas de todos los servicios, incluidas sus sesiones abiertas: o se borra todo, o no se borra nada. Solo se conservan la constancia de los términos y el registro del retiro: la razón, y, si era persona mayor, su nombre, para que sus organizaciones sepan quién se fue.
 - **Inactivar la cuenta** la oculta para todos sus vínculos sin borrar nada, y se puede reactivar.
 - **Los avisos de tiempo real no llevan datos**, solo el nombre del recurso que cambió (por ejemplo, `gustos`). Cada pantalla vuelve a consultar sus datos con su propio token, así que un aviso no le muestra a nadie información ajena.
 - **La caché no guarda información personal**, solo catálogos (punto 18).
@@ -527,6 +552,10 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 | `persona-mayor-service/.../config/BloqueoTareasConfigTest` | Si una réplica tomó la tarea de cumpleaños, la segunda no la puede tomar |
 | `persona-mayor-service/.../controller/GustoCacheTest` | El catálogo se consulta una sola vez a la base y la caché se borra al agregar un gusto |
 | `frontend/.../reintentos/reintentos.interceptor.spec.ts` | Los GET se reintentan ante errores pasajeros; los 404 y los POST nunca |
+| `auth-service/.../service/SesionServiceTest` | El token de renovación solo se guarda como hash; deja de servir al cerrar la sesión, al revocarla o al vencer, y cambiar la contraseña conserva solo la sesión de quien la cambió |
+| `auth-service/.../security/SinTokenValidoTest` | Con la configuración de seguridad real, un token vencido o ausente recibe 401 (no 403), y renovar o cerrar la sesión no piden token |
+| `auth-service/.../AuthControllerTest`, `ContrasenaControllerTest` | El login abre una sesión; renovar entrega un token con el rol de la pestaña, y solo uno que la cuenta tenga; con una sesión revocada responde 401; cambiar o restablecer la contraseña cierra las demás sesiones; una contraseña nueva de menos de 8 caracteres se rechaza |
+| `frontend/.../auth/auth.interceptor.spec.ts`, `auth.service.spec.ts` | Con un 401 se renueva el token una sola vez y se repite la petición; si la sesión ya no se puede renovar, se lleva a iniciar sesión; al cerrar sesión se revoca en el backend |
 | `api-gateway/.../filter/JwtAuthGatewayFilterFactoryTest` | Sin token, con un token vencido o firmado con otra clave, la petición no llega al servicio; un `X-User-Id` enviado por el cliente se reemplaza por el del token |
 | `api-gateway/.../RutasGatewayTest` | Las rutas protegidas exigen token y las que no se deben exponer (como `/api/otp/verify`) no tienen ruta |
 | `mensajeria-service/.../security/TextBeeOtpServiceTest` | El OTP se guarda como HMAC, vence a los 10 minutos, sirve una sola vez, se anula tras 5 fallos y no sirve para otro celular |
@@ -549,6 +578,8 @@ Las pruebas existentes de todos los servicios siguen pasando.
 |---|---|---|
 | Un solo servidor | Si se cae la máquina, se cae todo | Segundo servidor con un balanceador delante (por ejemplo, el de AWS) |
 | Una sola instancia del gateway | Si el gateway falla, la API no responde hasta que autoheal lo reinicia (alrededor de 1 minuto) | Avisos de tiempo real por Redis Pub/Sub y dos gateways detrás de Caddy |
+| El token de acceso no se revoca | Tras cerrar sesión, cambiar la contraseña o eliminar la cuenta, quien tuviera el token de acceso lo puede usar hasta 15 minutos más | Lista de tokens revocados en Redis, consultada por el gateway |
+| Tokens en el almacenamiento de la pestaña | Un script inyectado podría leerlos; lo impide la CSP mientras no se permitan scripts en línea | Cookie `HttpOnly` para el token de renovación, si se deja de permitir una cuenta por pestaña |
 | `mensajeria-service` sin réplica | Sin SMS ni códigos OTP mientras se reinicia | Guardar los OTP en la base de datos o en Redis y replicarlo |
 | Base de datos única (Supabase) | Si Supabase falla, fallan todos los servicios | Depende del plan de Supabase (réplicas de lectura, *point-in-time recovery*) |
 | Límites de peticiones en la memoria del gateway | Con dos gateways, cada uno contaría aparte y el límite real sería el doble. Al reiniciar el gateway, los contadores empiezan de cero | `RequestRateLimiter` de Spring Cloud Gateway con Redis |

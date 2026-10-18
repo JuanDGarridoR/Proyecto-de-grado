@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, map, tap } from 'rxjs';
+import { Observable, catchError, finalize, map, shareReplay, tap, throwError } from 'rxjs';
 import { API_URL } from '../api';
 
 /** Login con correo y contraseña. */
@@ -56,11 +56,17 @@ export interface OtpRegistroRequest {
 
 /** Respuesta del login y del registro: el token y los datos que se guardan en la sesión. */
 export interface LoginResponse {
+  /** Token de acceso: dura 15 minutos y se renueva solo (ver renovarToken). */
   token: string;
   rol: string;
   mensaje: string;
   idUsuario: number;
   nombreUsuario: string;
+  /**
+   * Token de renovación de la sesión. Solo llega al iniciar sesión o
+   * registrarse; al renovar o cambiar de rol se sigue usando el mismo.
+   */
+  refreshToken?: string;
 }
 
 /** Recuperación de contraseña con el código OTP enviado al celular. */
@@ -76,8 +82,13 @@ export interface RestablecerContrasenaRequest {
  * varias cuentas abiertas a la vez). Además se guarda una copia de la
  * última sesión iniciada en localStorage, que sobrevive al cerrar el
  * navegador: al abrir una ventana nueva sin sesión se restaura esa copia.
+ *
+ * La sesión tiene dos tokens: el de acceso (dura 15 minutos y va en cada
+ * petición) y el de renovación (con él se pide un token de acceso nuevo).
+ * El de renovación se puede revocar en el backend: al cerrar sesión, al
+ * cambiar la contraseña o al eliminar la cuenta deja de servir.
  */
-const CLAVES_SESION = ['token', 'rol', 'idUsuario', 'nombreUsuario'] as const;
+const CLAVES_SESION = ['token', 'rol', 'idUsuario', 'nombreUsuario', 'refreshToken'] as const;
 const CLAVE_SESION_RECORDADA = 'sesionRecordada';
 
 type Sesion = Record<(typeof CLAVES_SESION)[number], string>;
@@ -131,16 +142,31 @@ function restaurarSesion(): boolean {
     return false;
   }
 
-  if (!tokenVigente(recordada.token)) {
+  // Con token de renovación, que el de acceso esté vencido no importa: se
+  // renueva en la primera petición. Sin él (sesiones de antes), ya no sirve.
+  if (!recordada.refreshToken && !tokenVigente(recordada.token)) {
     escribirSesionRecordada(null);
     return false;
   }
 
   for (const clave of CLAVES_SESION) {
-    sessionStorage.setItem(clave, recordada[clave]);
+    if (recordada[clave]) {
+      sessionStorage.setItem(clave, recordada[clave]);
+    }
   }
 
   return true;
+}
+
+/** true si la copia recordada es la sesión de esta pestaña (y no otra cuenta de otra pestaña). */
+function esLaSesionDeEstaPestana(recordada: Sesion | null): recordada is Sesion {
+  if (!recordada) {
+    return false;
+  }
+  const refreshToken = sessionStorage.getItem('refreshToken');
+  return refreshToken
+    ? recordada.refreshToken === refreshToken
+    : recordada.token === sessionStorage.getItem('token');
 }
 
 /** Panel al que se envía a cada rol después de iniciar sesión. */
@@ -177,6 +203,9 @@ export class AuthService {
    */
   private readonly fotoPerfilSignal = signal<string | null>(null);
   private fotoPerfilCargada = false;
+
+  /** Renovación en curso: si varias peticiones reciben 401 a la vez, se renueva una sola vez. */
+  private renovacion$: Observable<string> | null = null;
 
   constructor(
     private http: HttpClient,
@@ -303,10 +332,14 @@ restablecerContrasena(
 
   /** Guarda la sesión en la pestaña y una copia "recordada" para las ventanas nuevas. */
   private guardarSesion(response: LoginResponse): void {
+    // Al cambiar de rol no llega token de renovación: se sigue usando el de la sesión.
+    const refreshToken = response.refreshToken ?? sessionStorage.getItem('refreshToken') ?? '';
+
     sessionStorage.setItem('token', response.token);
     sessionStorage.setItem('rol', response.rol);
     sessionStorage.setItem('idUsuario', String(response.idUsuario));
     sessionStorage.setItem('nombreUsuario', response.nombreUsuario);
+    sessionStorage.setItem('refreshToken', refreshToken);
     this.nombreUsuarioSignal.set(response.nombreUsuario);
     this.olvidarFotoPerfil();
 
@@ -314,7 +347,8 @@ restablecerContrasena(
       token: response.token,
       rol: response.rol,
       idUsuario: String(response.idUsuario),
-      nombreUsuario: response.nombreUsuario
+      nombreUsuario: response.nombreUsuario,
+      refreshToken
     });
 
     // Avisa a toda la aplicación que hay una sesión.
@@ -326,28 +360,93 @@ restablecerContrasena(
     this.router.navigateByUrl(ruta);
   }
 
+  /**
+   * Cierra la sesión: el backend revoca el token de renovación, así que ni
+   * esta pestaña ni otra que la compartiera puede seguir renovándola.
+   */
   logout(): void {
+    const refreshToken = this.getRefreshToken();
+    if (refreshToken) {
+      // Si falla (sin conexión), la sesión vence sola tras 30 días sin uso.
+      this.http.post(`${this.apiUrl}/sesion/cerrar`, { refreshToken }).subscribe({ error: () => undefined });
+    }
+
+    this.olvidarSesion('/');
+  }
+
+  /** Borra la sesión de la pestaña (y la recordada, si es la misma) y lleva a la ruta indicada. */
+  private olvidarSesion(ruta: string): void {
     // Solo se olvida la sesión recordada si es la de esta pestaña; así,
     // cerrar sesión aquí no afecta a otra cuenta abierta en otra pestaña.
-    if (leerSesionRecordada()?.token === sessionStorage.getItem('token')) {
+    if (esLaSesionDeEstaPestana(leerSesionRecordada())) {
       escribirSesionRecordada(null);
     }
 
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('rol');
-    sessionStorage.removeItem('idUsuario');
-    sessionStorage.removeItem('nombreUsuario');
+    for (const clave of CLAVES_SESION) {
+      sessionStorage.removeItem(clave);
+    }
     this.nombreUsuarioSignal.set('Usuario');
     this.olvidarFotoPerfil();
 
     // Avisa a toda la aplicación que la sesión terminó.
     this.autenticadoSignal.set(false);
 
-    this.router.navigateByUrl('/');
+    this.router.navigateByUrl(ruta);
   }
 
   getToken(): string | null {
     return sessionStorage.getItem('token');
+  }
+
+  getRefreshToken(): string | null {
+    return sessionStorage.getItem('refreshToken') || null;
+  }
+
+  /** true si la sesión se puede renovar (las de antes de los tokens de renovación no). */
+  puedeRenovar(): boolean {
+    return this.getRefreshToken() !== null;
+  }
+
+  /**
+   * Pide un token de acceso nuevo con el token de renovación. La llaman el
+   * interceptor y el tiempo real cuando el backend responde 401. Si la
+   * sesión ya no está abierta (se cerró, se cambió la contraseña o venció),
+   * la olvida y lleva a iniciar sesión.
+   */
+  renovarToken(): Observable<string> {
+    if (!this.renovacion$) {
+      this.renovacion$ = this.http
+        .post<LoginResponse>(`${this.apiUrl}/sesion/renovar`, {
+          refreshToken: this.getRefreshToken(),
+          // Con el rol de esta pestaña: si en otra la cuenta cambió de rol, esta no cambia sola.
+          rol: this.getRol()
+        })
+        .pipe(
+          map((response) => {
+            this.guardarTokenDeAcceso(response.token);
+            return response.token;
+          }),
+          catchError((error) => {
+            if (error?.status === 401) {
+              this.olvidarSesion('/iniciar-sesion');
+            }
+            return throwError(() => error);
+          }),
+          finalize(() => (this.renovacion$ = null)),
+          shareReplay(1)
+        );
+    }
+    return this.renovacion$;
+  }
+
+  private guardarTokenDeAcceso(token: string): void {
+    const recordada = leerSesionRecordada();
+    const eraLaRecordada = esLaSesionDeEstaPestana(recordada);
+
+    sessionStorage.setItem('token', token);
+    if (eraLaRecordada) {
+      escribirSesionRecordada({ ...recordada, token });
+    }
   }
 
   getIdUsuario(): number | null {
@@ -366,7 +465,7 @@ restablecerContrasena(
     this.nombreUsuarioSignal.set(nombre);
 
     const recordada = leerSesionRecordada();
-    if (recordada && recordada.token === sessionStorage.getItem('token')) {
+    if (esLaSesionDeEstaPestana(recordada)) {
       escribirSesionRecordada({ ...recordada, nombreUsuario: nombre });
     }
   }

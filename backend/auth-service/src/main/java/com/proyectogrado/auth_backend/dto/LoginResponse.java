@@ -15,6 +15,13 @@ public class LoginResponse {
     private Integer idUsuario;
     private String nombreUsuario;
 
+    /**
+     * Token de renovación de la sesión (ver SesionService). Solo viene al
+     * iniciar sesión o registrarse; al renovar o cambiar de rol se sigue
+     * usando el mismo.
+     */
+    private String refreshToken;
+
     public LoginResponse() {
     }
 
@@ -70,5 +77,13 @@ public class LoginResponse {
 
     public void setNombreUsuario(String nombreUsuario) {
         this.nombreUsuario = nombreUsuario;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 }

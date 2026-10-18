@@ -3,6 +3,7 @@ package com.proyectogrado.auth_backend.controller;
 import com.proyectogrado.auth_backend.model.Usuario;
 import com.proyectogrado.auth_backend.repository.UsuarioRepository;
 import com.proyectogrado.auth_backend.security.JwtService;
+import com.proyectogrado.auth_backend.service.SesionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -33,6 +34,7 @@ class ContrasenaControllerTest {
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private UsuarioRepository usuarioRepository;
+    private SesionService sesionService;
     private MockMvc mockMvc;
     private String token;
     private Usuario usuario;
@@ -40,6 +42,7 @@ class ContrasenaControllerTest {
     @BeforeEach
     void setUp() {
         usuarioRepository = mock(UsuarioRepository.class);
+        sesionService = mock(SesionService.class);
 
         JwtService jwtService = new JwtService();
         ReflectionTestUtils.setField(jwtService, "jwtSecret", "clave_de_pruebas_de_vita_mas_con_al_menos_32_bytes");
@@ -52,7 +55,7 @@ class ContrasenaControllerTest {
         when(usuarioRepository.findById(12)).thenReturn(Optional.of(usuario));
 
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new ContrasenaController(usuarioRepository, jwtService, passwordEncoder))
+                .standaloneSetup(new ContrasenaController(usuarioRepository, jwtService, passwordEncoder, sesionService))
                 .build();
     }
 
@@ -109,5 +112,28 @@ class ContrasenaControllerTest {
                 .andExpect(status().isOk());
 
         assertTrue(passwordEncoder.matches("primera-789", usuario.getContrasenaHash()));
+    }
+
+    @Test
+    void cambiarLaContrasenaCierraLasDemasSesionesYConservaLaDeQuienLaCambio() throws Exception {
+        mockMvc.perform(put("/api/auth/contrasena")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"contrasenaActual\": \"actual-123\", \"nuevaContrasena\": \"nueva-456\","
+                                + " \"refreshToken\": \"renovacion-de-esta-pestana\"}"))
+                .andExpect(status().isOk());
+
+        verify(sesionService).cerrarTodasMenos(12, "renovacion-de-esta-pestana");
+    }
+
+    @Test
+    void siLaContrasenaActualEsIncorrectaNoSeCierraNingunaSesion() throws Exception {
+        mockMvc.perform(put("/api/auth/contrasena")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpo("otra", "nueva-456")))
+                .andExpect(status().isUnauthorized());
+
+        verify(sesionService, never()).cerrarTodasMenos(any(), any());
     }
 }

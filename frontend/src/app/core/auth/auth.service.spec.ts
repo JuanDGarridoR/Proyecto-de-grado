@@ -34,7 +34,8 @@ const EN_UNA_HORA = new Date(Date.now() + 60 * 60 * 1000);
 const HACE_UNA_HORA = new Date(Date.now() - 60 * 60 * 1000);
 
 // Sesión en el navegador (RF-09 y RF-11): se crea al iniciar sesión, se borra al
-// cerrarla y una sesión recordada vencida no se restaura.
+// cerrarla, una sesión recordada vencida no se restaura, y el token de acceso
+// se renueva con el de renovación hasta que la sesión se cierra o se revoca.
 describe('AuthService', () => {
   beforeEach(() => {
     vi.stubGlobal('localStorage', almacenamientoEnMemoria());
@@ -100,6 +101,104 @@ describe('AuthService', () => {
 
     expect(servicio.estaAutenticado()).toBe(false);
     expect(localStorage.getItem('sesionRecordada')).toBeNull();
+  });
+
+  it('al iniciar sesión guarda también el token de renovación', () => {
+    const servicio = crearServicio();
+
+    servicio.login({ correo: 'ana.rojas@vitamas.co', contrasena: 'secreta1' }).subscribe();
+    TestBed.inject(HttpTestingController)
+      .expectOne('http://localhost:8080/api/auth/login')
+      .flush({ token: token(EN_UNA_HORA), rol: 'PERSONA_MAYOR', mensaje: 'ok', idUsuario: 25,
+        nombreUsuario: 'Ana Rojas', refreshToken: 'renovacion-1' });
+
+    expect(servicio.getRefreshToken()).toBe('renovacion-1');
+    expect(JSON.parse(localStorage.getItem('sesionRecordada')!).refreshToken).toBe('renovacion-1');
+  });
+
+  it('al cambiar de rol conserva el token de renovación de la sesión', () => {
+    sessionStorage.setItem('token', token(EN_UNA_HORA));
+    sessionStorage.setItem('refreshToken', 'renovacion-1');
+    const servicio = crearServicio();
+
+    servicio.cambiarRol('ACOMPANANTE').subscribe();
+    TestBed.inject(HttpTestingController)
+      .expectOne('http://localhost:8080/api/auth/roles/cambiar')
+      .flush({ token: token(EN_UNA_HORA), rol: 'ACOMPANANTE', mensaje: 'ok', idUsuario: 25, nombreUsuario: 'Ana Rojas' });
+
+    expect(servicio.getRefreshToken()).toBe('renovacion-1');
+    expect(servicio.getRol()).toBe('ACOMPANANTE');
+  });
+
+  it('una sesión recordada con token de renovación se restaura aunque el de acceso haya vencido', () => {
+    localStorage.setItem('sesionRecordada', JSON.stringify({ token: token(HACE_UNA_HORA), rol: 'ACOMPANANTE',
+      idUsuario: '20', nombreUsuario: 'Carlos Díaz', refreshToken: 'renovacion-1' }));
+
+    const servicio = crearServicio();
+
+    expect(servicio.estaAutenticado()).toBe(true);
+    expect(servicio.getRefreshToken()).toBe('renovacion-1');
+  });
+
+  it('renueva el token de acceso con el rol de la pestaña y actualiza la copia recordada', () => {
+    sessionStorage.setItem('token', 'acceso-viejo');
+    sessionStorage.setItem('rol', 'ACOMPANANTE');
+    sessionStorage.setItem('refreshToken', 'renovacion-1');
+    localStorage.setItem('sesionRecordada', JSON.stringify({ token: 'acceso-viejo', rol: 'ACOMPANANTE',
+      idUsuario: '20', nombreUsuario: 'Carlos Díaz', refreshToken: 'renovacion-1' }));
+    const servicio = crearServicio();
+    let renovado = '';
+
+    servicio.renovarToken().subscribe((nuevo) => (renovado = nuevo));
+    const peticion = TestBed.inject(HttpTestingController).expectOne('http://localhost:8080/api/auth/sesion/renovar');
+    expect(peticion.request.body).toEqual({ refreshToken: 'renovacion-1', rol: 'ACOMPANANTE' });
+    peticion.flush({ token: 'acceso-nuevo', rol: 'ACOMPANANTE', mensaje: 'Sesión renovada', idUsuario: 20,
+      nombreUsuario: 'Carlos Díaz' });
+
+    expect(renovado).toBe('acceso-nuevo');
+    expect(servicio.getToken()).toBe('acceso-nuevo');
+    expect(servicio.getRefreshToken()).toBe('renovacion-1');
+    expect(JSON.parse(localStorage.getItem('sesionRecordada')!).token).toBe('acceso-nuevo');
+  });
+
+  it('varias renovaciones a la vez hacen una sola petición', () => {
+    sessionStorage.setItem('token', 'acceso-viejo');
+    sessionStorage.setItem('refreshToken', 'renovacion-1');
+    const servicio = crearServicio();
+
+    servicio.renovarToken().subscribe();
+    servicio.renovarToken().subscribe();
+
+    TestBed.inject(HttpTestingController).expectOne('http://localhost:8080/api/auth/sesion/renovar')
+      .flush({ token: 'acceso-nuevo', rol: 'PERSONA_MAYOR', mensaje: 'ok', idUsuario: 25, nombreUsuario: 'Ana' });
+  });
+
+  it('si la sesión ya no se puede renovar, la olvida y lleva a iniciar sesión', () => {
+    sessionStorage.setItem('token', 'acceso-viejo');
+    sessionStorage.setItem('refreshToken', 'renovacion-revocada');
+    const servicio = crearServicio();
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+    servicio.renovarToken().subscribe({ error: () => undefined });
+    TestBed.inject(HttpTestingController).expectOne('http://localhost:8080/api/auth/sesion/renovar')
+      .flush({ mensaje: 'Tu sesión terminó. Vuelve a iniciar sesión.' }, { status: 401, statusText: 'Unauthorized' });
+
+    expect(servicio.estaAutenticado()).toBe(false);
+    expect(servicio.getRefreshToken()).toBeNull();
+    expect(navegar).toHaveBeenCalledWith('/iniciar-sesion');
+  });
+
+  it('al cerrar sesión le pide al backend que revoque el token de renovación', () => {
+    sessionStorage.setItem('token', token(EN_UNA_HORA));
+    sessionStorage.setItem('refreshToken', 'renovacion-1');
+    const servicio = crearServicio();
+    vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+    servicio.logout();
+
+    const peticion = TestBed.inject(HttpTestingController).expectOne('http://localhost:8080/api/auth/sesion/cerrar');
+    expect(peticion.request.body).toEqual({ refreshToken: 'renovacion-1' });
+    expect(servicio.getRefreshToken()).toBeNull();
   });
 
   it('envía a cada rol a su propio panel', () => {

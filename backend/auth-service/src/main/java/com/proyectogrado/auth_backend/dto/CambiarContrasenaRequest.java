@@ -9,6 +9,12 @@ public class CambiarContrasenaRequest {
     private String contrasenaActual;
     private String nuevaContrasena;
 
+    /**
+     * Token de renovación de quien cambia la contraseña: su sesión sigue
+     * abierta y las demás se cierran (ver SesionService.cerrarTodasMenos).
+     */
+    private String refreshToken;
+
     public String getContrasenaActual() {
         return contrasenaActual;
     }
@@ -23,5 +29,13 @@ public class CambiarContrasenaRequest {
 
     public void setNuevaContrasena(String nuevaContrasena) {
         this.nuevaContrasena = nuevaContrasena;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 }

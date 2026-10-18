@@ -97,6 +97,9 @@ public class CuentaService {
         ejecutar("DELETE FROM acompanante WHERE id_usuario = :id", idUsuario);
         ejecutar("DELETE FROM voluntario WHERE id_usuario = :id", idUsuario);
 
+        // Sesiones abiertas: ningún dispositivo puede volver a pedir tokens.
+        ejecutar("DELETE FROM sesion WHERE id_usuario = :id", idUsuario);
+
         ejecutar("DELETE FROM usuario_rol WHERE id_usuario = :id", idUsuario);
         ejecutar("DELETE FROM usuario WHERE id_usuario = :id", idUsuario);
 

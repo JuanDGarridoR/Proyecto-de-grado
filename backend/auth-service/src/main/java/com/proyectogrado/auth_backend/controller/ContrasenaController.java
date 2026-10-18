@@ -5,6 +5,7 @@ import com.proyectogrado.auth_backend.model.Usuario;
 import com.proyectogrado.auth_backend.repository.UsuarioRepository;
 import com.proyectogrado.auth_backend.security.JwtService;
 import com.proyectogrado.auth_backend.service.AuthService;
+import com.proyectogrado.auth_backend.service.SesionService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,20 +27,25 @@ public class ContrasenaController {
     private final UsuarioRepository usuarioRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final SesionService sesionService;
 
     public ContrasenaController(
             UsuarioRepository usuarioRepository,
             JwtService jwtService,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            SesionService sesionService
     ) {
         this.usuarioRepository = usuarioRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.sesionService = sesionService;
     }
 
     /**
      * Guarda la nueva contraseña. Si el usuario ya tenía una, primero se
      * comprueba la actual; si se registró solo con OTP, se crea sin pedirla.
+     * Cierra las demás sesiones de la cuenta: si alguien más tenía la
+     * contraseña vieja, queda por fuera.
      */
     @PutMapping
     public ResponseEntity<String> cambiarContrasena(
@@ -82,6 +88,7 @@ public class ContrasenaController {
 
         usuario.setContrasenaHash(passwordEncoder.encode(nuevaContrasena));
         usuarioRepository.save(usuario);
+        sesionService.cerrarTodasMenos(idUsuario, request.getRefreshToken());
 
         return ResponseEntity.ok("Contraseña guardada correctamente");
     }

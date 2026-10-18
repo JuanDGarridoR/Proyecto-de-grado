@@ -70,6 +70,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final MensajeriaClient mensajeriaClient;
     private final ValidacionCorreoService validacionCorreoService;
+    private final SesionService sesionService;
     private final TerminosService terminosService;
 
     public AuthService(
@@ -84,7 +85,8 @@ public class AuthService {
             JwtService jwtService,
             MensajeriaClient mensajeriaClient,
             ValidacionCorreoService validacionCorreoService,
-            TerminosService terminosService
+            TerminosService terminosService,
+            SesionService sesionService
     ) {
 
         this.usuarioRepository = usuarioRepository;
@@ -99,6 +101,7 @@ public class AuthService {
         this.mensajeriaClient = mensajeriaClient;
         this.validacionCorreoService = validacionCorreoService;
         this.terminosService = terminosService;
+        this.sesionService = sesionService;
     }
 
     /** Inicio de sesión con correo y contraseña. */
@@ -276,6 +279,10 @@ public void restablecerContrasena(
         usuario.setBloqueadoHasta(null);
 
         usuarioRepository.save(usuario);
+
+        // Quien tuviera la contraseña vieja, o una sesión abierta en otro
+        // dispositivo, queda por fuera.
+        sesionService.cerrarTodas(usuario.getIdUsuario());
     }
 
     /** Lo usa el login para no enviar un código por SMS a un celular sin cuenta. */
@@ -294,33 +301,66 @@ public void restablecerContrasena(
      */
     private LoginResponse generarRespuestaLogin(Usuario usuario, String mensaje) {
 
-        List<UsuarioRol> usuariosRoles =
-                usuarioRolRepository.findByUsuario_IdUsuario(
-                        usuario.getIdUsuario()
-                );
-
-        List<String> roles = usuariosRoles.stream()
-                .filter(usuarioRol -> usuarioRol.getRol() != null)
-                .map(usuarioRol -> usuarioRol.getRol().getNombre())
-                .sorted(Comparator.comparing((String nombre) -> !"PERSONA_MAYOR".equals(nombre)))
-                .toList();
-
-        String rol = roles.contains(usuario.getUltimoRol())
-                ? usuario.getUltimoRol()
-                : roles.stream().findFirst().orElse("SIN_ROL");
+        String rol = elegirRol(usuario, null);
 
         String token = jwtService.generarToken(
                 usuario.getIdUsuario(),
                 rol
         );
 
-        return new LoginResponse(
+        LoginResponse respuesta = new LoginResponse(
                 token,
                 rol,
                 mensaje,
                 usuario.getIdUsuario(),
                 usuario.getNombreUsuario()
         );
+        respuesta.setRefreshToken(sesionService.abrir(usuario.getIdUsuario()));
+        return respuesta;
+    }
+
+    /**
+     * Token de acceso nuevo para una sesión abierta, con el rol que la
+     * pestaña está usando (así, si en otra pestaña la misma cuenta cambió de
+     * rol, esta no cambia sola). El token de renovación sigue siendo el mismo.
+     */
+    public LoginResponse renovarSesion(String refreshToken, String rolPedido) {
+
+        Usuario usuario = sesionService.usuarioDe(refreshToken)
+                .flatMap(usuarioRepository::findById)
+                .orElseThrow(() -> new SesionInvalidaException());
+
+        String rol = elegirRol(usuario, rolPedido);
+
+        return new LoginResponse(
+                jwtService.generarToken(usuario.getIdUsuario(), rol),
+                rol,
+                "Sesión renovada",
+                usuario.getIdUsuario(),
+                usuario.getNombreUsuario()
+        );
+    }
+
+    /**
+     * Rol con el que entra: el pedido si la cuenta lo tiene; si no, el
+     * último que usó, y si no, persona mayor antes que los demás.
+     */
+    private String elegirRol(Usuario usuario, String rolPedido) {
+
+        List<String> roles = usuarioRolRepository.findByUsuario_IdUsuario(usuario.getIdUsuario())
+                .stream()
+                .filter(usuarioRol -> usuarioRol.getRol() != null)
+                .map(usuarioRol -> usuarioRol.getRol().getNombre())
+                .sorted(Comparator.comparing((String nombre) -> !"PERSONA_MAYOR".equals(nombre)))
+                .toList();
+
+        if (rolPedido != null && roles.contains(rolPedido)) {
+            return rolPedido;
+        }
+
+        return roles.contains(usuario.getUltimoRol())
+                ? usuario.getUltimoRol()
+                : roles.stream().findFirst().orElse("SIN_ROL");
     }
 
     /**
@@ -458,13 +498,15 @@ case "ORGANIZACION" -> {
                 rol.getNombre()
         );
 
-        return new LoginResponse(
+        LoginResponse respuesta = new LoginResponse(
                 token,
                 rol.getNombre(),
                 "Cuenta creada exitosamente",
                 usuarioGuardado.getIdUsuario(),
                 usuarioGuardado.getNombreUsuario()
         );
+        respuesta.setRefreshToken(sesionService.abrir(usuarioGuardado.getIdUsuario()));
+        return respuesta;
     }
 
     /**
