@@ -7,7 +7,7 @@
 # .github/dependabot.yml).
 
 # ---------- 1. Compilar el .jar con Maven ----------
-FROM maven:3.9.16-eclipse-temurin-17 AS compilacion
+FROM maven:3.9-eclipse-temurin-26 AS compilacion
 ARG SERVICIO
 WORKDIR /app
 COPY ${SERVICIO}/pom.xml .
