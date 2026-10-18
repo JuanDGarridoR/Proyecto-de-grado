@@ -46,6 +46,7 @@ flowchart TD
 | RNF-24 | Fotos de perfil privadas | Punto 31 |
 | RNF-25 | Registro de auditoría de los datos de salud | Punto 44 |
 | RNF-26 | Revisión de dependencias y versiones exactas de las imágenes | Punto 45 |
+| RNF-27 | Copias de seguridad propias y prueba de restauración | Punto 46 |
 | Seguridad y privacidad en general | Datos protegidos, acceso solo con vínculo, cifrado | Parte 2, puntos 22 a 32 |
 | Rendimiento | Páginas que cargan rápido con mala señal | Parte 3, puntos 33 a 37 |
 | Escalabilidad | Crecer agregando instancias | Parte 4, punto 38 |
@@ -276,6 +277,25 @@ Con `server.shutdown=graceful`, al detener o actualizar un servicio, Spring deja
 Un interceptor HTTP de Angular repite **solo las consultas (GET)** que fallan por un error pasajero: sin conexión (0), 502, 503 o 504. Hace hasta 2 reintentos, después de 1 s y de 2 s. Si un GET falla por algo que no es pasajero (por ejemplo, un 404), el error se muestra de inmediato. Los POST, PUT y DELETE nunca se repiten desde el navegador.
 
 - **Dónde:** `frontend/src/app/core/reintentos/reintentos.interceptor.ts`, registrado en `app.config.ts`.
+
+#### 46. Copias de seguridad propias (RNF-27)
+
+Además de las copias que dé el plan de Supabase, hay dos scripts para tener una copia propia, que no dependa del proveedor:
+
+| Script | Qué hace |
+|---|---|
+| `backend/scripts/respaldo.sh` | Saca una copia del esquema `public` con `pg_dump` y la guarda en `respaldos/`, solo con permisos para el dueño. Borra las de más de 30 días. Pensado para correr cada día con `cron` en el servidor |
+| `backend/scripts/probar-restauracion.sh` | Restaura una copia en una base PostgreSQL desechable, en un contenedor, y compara cuántas filas tiene cada tabla con la base real. Al terminar, borra el contenedor |
+
+Una copia que nunca se ha restaurado no está comprobada. Por eso el segundo script: conviene correrlo al menos una vez al mes y cada vez que cambie el modelo de datos.
+
+> **Decisiones:**
+> - Los dos usan la imagen oficial de PostgreSQL (`postgres:17.11-alpine`), así que en el servidor solo hace falta Docker.
+> - Se conectan por el pooler de Supabase en **modo sesión** (puerto 5432), porque `pg_dump` no funciona en el modo transacción (6543) que usan los servicios.
+> - La contraseña va por variable de entorno, no en la línea de comandos, donde la vería cualquiera que liste los procesos.
+> - Las copias tienen datos personales y de salud: `respaldos/` y los `.dump` están en `.gitignore`. Conviene copiarlas también fuera del servidor, a un lugar cifrado.
+
+- **Dónde:** `backend/scripts/respaldo.sh`, `backend/scripts/probar-restauracion.sh`, `.gitignore`.
 
 ---
 
@@ -637,7 +657,7 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 
 Las pruebas existentes de todos los servicios siguen pasando.
 
-**Pendiente de verificar en el servidor:** levantar todo con `docker compose up -d --build` y comprobar con `docker compose ps` que todos los contenedores quedan `healthy`. Luego detener una réplica (`docker compose stop salud-service-2`) y confirmar que la plataforma sigue respondiendo. Estas pruebas no se hicieron todavía en un entorno real con Docker. Con la plataforma publicada, abrir las páginas principales (landing, paneles, mapas, analítica y foto de perfil) con la consola del navegador abierta y confirmar que la Content-Security-Policy no bloquea nada: no se pudo probar en local porque las cabeceras las pone Caddy. Comprobar también que, sin root, Caddy obtiene y renueva el certificado HTTPS, y que los servicios arrancan con solo sus claves.
+**Pendiente de verificar en el servidor:** levantar todo con `docker compose up -d --build` y comprobar con `docker compose ps` que todos los contenedores quedan `healthy`. Luego detener una réplica (`docker compose stop salud-service-2`) y confirmar que la plataforma sigue respondiendo. Estas pruebas no se hicieron todavía en un entorno real con Docker. Con la plataforma publicada, abrir las páginas principales (landing, paneles, mapas, analítica y foto de perfil) con la consola del navegador abierta y confirmar que la Content-Security-Policy no bloquea nada: no se pudo probar en local porque las cabeceras las pone Caddy. Comprobar también que, sin root, Caddy obtiene y renueva el certificado HTTPS, y que los servicios arrancan con solo sus claves. Por último: revisar en Supabase (*Database > Backups*) qué copias incluye el plan y por cuánto tiempo; programar `respaldo.sh` con `cron`, y correr `probar-restauracion.sh` con la primera copia. Los scripts no se probaron en local porque necesitan Docker.
 
 ---
 
@@ -653,7 +673,7 @@ Las pruebas existentes de todos los servicios siguen pasando.
 | El registro de auditoría no tiene pantalla ni vencimiento | Se consulta con SQL en Supabase y crece sin límite | Una pantalla donde la persona mayor vea quién consultó sus datos, y borrar los registros de más de cierto tiempo |
 | ECharts 5 tiene una vulnerabilidad de XSS moderada | Se corrige en ECharts 6, que trae cambios incompatibles. La CSP (punto 32) impide que un script inyectado se ejecute | Actualizar a ECharts 6 y revisar las gráficas de la analítica |
 | `mensajeria-service` sin réplica | Sin SMS ni códigos OTP mientras se reinicia | Guardar los OTP en la base de datos o en Redis y replicarlo |
-| Base de datos única (Supabase) | Si Supabase falla, fallan todos los servicios | Depende del plan de Supabase (réplicas de lectura, *point-in-time recovery*) |
+| Base de datos única (Supabase) | Si Supabase falla, fallan todos los servicios. Con `respaldo.sh` se pierde como máximo un día de datos, pero restaurar es manual | Según el plan de Supabase: réplicas de lectura y *point-in-time recovery* |
 | Límites de peticiones en la memoria del gateway | Con dos gateways, cada uno contaría aparte y el límite real sería el doble. Al reiniciar el gateway, los contadores empiezan de cero | `RequestRateLimiter` de Spring Cloud Gateway con Redis |
 | Sin monitoreo centralizado | Las caídas se ven en los logs, no en un tablero | Exponer `/actuator/prometheus` y usar Prometheus con Grafana |
 | `ddl-auto=update` en producción | Un cambio de modelo podría alterar tablas al arrancar | Migraciones versionadas (Flyway) |

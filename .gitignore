@@ -1,3 +1,8 @@
 # Claves y configuración privada: NUNCA se suben a git
 backend/secretos.properties
 .env
+
+# Copias de seguridad de la base (backend/scripts/respaldo.sh): tienen datos
+# personales y de salud, NUNCA se suben a git
+respaldos/
+*.dump
