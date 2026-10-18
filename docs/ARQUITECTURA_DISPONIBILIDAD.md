@@ -335,6 +335,7 @@ El frontend también oculta lo que no le corresponde a cada rol (`authGuard`), p
   - `/api/otp/verify` no se expone. Si estuviera abierto, se podrían probar códigos de otros celulares sin pasar por el login.
   - Tampoco se exponen el PUT ni el DELETE de los signos vitales de la persona mayor, porque esos registros no se editan ni se borran.
   - El catálogo de intereses (`/api/gustos`) se puede consultar y ampliar, pero no editar ni borrar: un interés lo pueden tener marcado otras personas, y nadie debe poder cambiárselo. Los intereses de cada persona mayor solo los ve ella misma.
+  - No hay una ruta pública para consultar a Hunter: el correo se valida por dentro al registrarse.
 - De Actuator solo se expone `health`, en el puerto 9000, que no se publica (punto 11).
 - **CORS** solo acepta peticiones del navegador que vengan de la dirección pública de la plataforma (`CORS_ORIGINS`).
 - **Las rutas públicas que se pueden abusar tienen un límite por IP** en el gateway. Pasado el límite, se responde 429 con `Retry-After` y un mensaje que dice cuánto esperar, sin llegar al servicio. Una petición rechazada no gasta cupo.
@@ -343,6 +344,8 @@ El frontend también oculta lo que no le corresponde a cada rol (`authGuard`), p
 |---|---|---|
 | `POST /api/auth/login`, `/login-otp`, `/restablecer-contrasena` | 10 por minuto | Probar contraseñas o códigos (punto 22) |
 | `POST /api/otp/send` | 5 cada 10 minutos y 20 al día | Gastar el saldo de SMS (punto 27) |
+| `GET /api/auth/celular-existe` | 10 por minuto y 100 al día | Probar números en masa para saber quién tiene cuenta |
+| `POST /api/auth/registro` | 30 por hora | Gastar la cuota de Hunter. Es holgado porque una organización puede registrar a varias personas desde su sede |
 
 - **Dónde:** `docker-compose.yml`, `api-gateway/src/main/resources/application.yml` (rutas y `globalcors`), `api-gateway/.../seguridad/LimiteIntentosGlobalFilter.java`, `persona-mayor-service/.../controller/GustoController.java` y `PersonaMayorGustoController.java`.
 
@@ -516,7 +519,7 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 | `organizacion-service/.../NotaPersonaMayorControllerTest`, `auth-service/.../PersonaMayorAcompananteInformacionControllerTest` | Una organización o un acompañante sin vínculo no ve ni edita los datos de la persona mayor |
 | `auth-service/.../FotoPerfilControllerTest` | Se rechaza un archivo que dice ser imagen pero no lo es |
 | `auth-service/.../AuthControllerTest`, `UsuarioRepositoryTest` | La quinta contraseña incorrecta seguida bloquea la cuenta 15 minutos; bloqueada, ni la contraseña correcta sirve; al vencer el bloqueo o restablecer la contraseña se puede volver a entrar |
-| `api-gateway/.../seguridad/LimiteIntentosGlobalFilterTest`, `LimiteIntentosGatewayTest` | Pasado el límite de cada ruta (login y envío de códigos), la IP recibe 429 sin llegar al servicio, con las cabeceras CORS para que el frontend muestre el mensaje; otras IP y otras rutas no se afectan |
+| `api-gateway/.../seguridad/LimiteIntentosGlobalFilterTest`, `LimiteIntentosGatewayTest` | Pasado el límite de cada ruta (login, envío de códigos, consulta de celulares, registro), la IP recibe 429 sin llegar al servicio, con las cabeceras CORS para que el frontend muestre el mensaje; otras IP y otras rutas no se afectan |
 | `mensajeria-service/.../OtpControllerTest`, `TextBeeOtpServiceTest` | A un celular sin cuenta no se le envía nada pero la respuesta es la misma; a un celular se le envían máximo 8 códigos al día |
 | `persona-mayor-service/.../GustoControllerTest` | El catálogo de intereses no se puede editar ni borrar, y los intereses de una persona mayor solo los ve ella |
 

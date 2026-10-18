@@ -119,7 +119,7 @@ class AuthControllerTest {
         );
 
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new AuthController(authService, validacionCorreoService))
+                .standaloneSetup(new AuthController(authService))
                 .build();
 
         // La base asigna el id al guardar.

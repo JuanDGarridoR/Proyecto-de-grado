@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import com.proyectogrado.auth_backend.dto.RestablecerContrasenaRequest;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.proyectogrado.auth_backend.service.ValidacionCorreoService;
 
 /**
  * Endpoints públicos de autenticación: login (con contraseña o con OTP),
@@ -31,11 +29,8 @@ public class AuthController {
 
     private final AuthService authService;
 
-    private final ValidacionCorreoService validacionCorreoService;
-
-    public AuthController(AuthService authService, ValidacionCorreoService validacionCorreoService) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
-        this.validacionCorreoService = validacionCorreoService;
     }
 
     /**
@@ -165,31 +160,4 @@ public ResponseEntity<LoginResponse> restablecerContrasena(
                 );
     }
 }
-
-/** Devuelve la respuesta completa de Hunter para un correo. Si Hunter no responde, 502. */
-@GetMapping("/validar-correo")
-public ResponseEntity<?> validarCorreo(
-        @RequestParam String correo
-) {
-    try {
-        JsonNode resultado =
-                validacionCorreoService.validarCorreo(correo);
-
-        return ResponseEntity
-                .ok()
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .body(resultado.toString());
-
-    } catch (RuntimeException e) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_GATEWAY)
-                .body(
-                        java.util.Map.of(
-                                "mensaje",
-                                e.getMessage()
-                        )
-                );
-    }
-}
-
 }

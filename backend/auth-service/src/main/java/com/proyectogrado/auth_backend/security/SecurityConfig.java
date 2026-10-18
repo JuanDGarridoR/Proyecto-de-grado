@@ -85,15 +85,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // Rutas públicas: login, registro, recuperación de
-                        // contraseña y las validaciones del formulario de
-                        // registro. Son los pasos para conseguir el token.
+                        // contraseña y la consulta de si un celular tiene
+                        // cuenta. Son los pasos para conseguir el token.
                         .requestMatchers(
                                 "/api/auth/login",
                                 "/api/auth/login-otp",
                                 "/api/auth/registro",
                                 "/api/auth/celular-existe",
                                 "/api/auth/restablecer-contrasena",
-                                "/api/auth/validar-correo",
                                 "/error"
                         )
                         .permitAll()

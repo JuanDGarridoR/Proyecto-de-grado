@@ -257,9 +257,13 @@ enviarCodigoRecuperacion(): void {
           error
         );
 
-        this.errorMensaje.set(
-          'No se pudo verificar el número. Intenta nuevamente.'
-        );
+        if (error?.status === 429) {
+          this.errorMensaje.set(mensajeDeDemasiadosIntentos(error));
+        } else {
+          this.errorMensaje.set(
+            'No se pudo verificar el número. Intenta nuevamente.'
+          );
+        }
       }
 
     });
@@ -489,9 +493,13 @@ this.authService
         error
       );
 
-      this.errorMensaje.set(
-        'No se pudo verificar el número. Intenta nuevamente.'
-      );
+      if (error?.status === 429) {
+        this.errorMensaje.set(mensajeDeDemasiadosIntentos(error));
+      } else {
+        this.errorMensaje.set(
+          'No se pudo verificar el número. Intenta nuevamente.'
+        );
+      }
     }
   });
   }

@@ -25,8 +25,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Límite de peticiones por IP en las rutas públicas que se pueden abusar:
- * donde se prueban contraseñas o códigos, y donde se envían SMS (cada uno
- * se paga).
+ * donde se prueban contraseñas o códigos, donde se envían SMS (cada uno se
+ * paga), donde se consulta si un celular tiene cuenta y el registro (que
+ * consulta a Hunter, con cuota limitada).
  *
  * Complementa los límites de los servicios: el bloqueo de la cuenta tras 5
  * contraseñas incorrectas (auth-service) y el tope de códigos por celular
@@ -60,8 +61,16 @@ public class LimiteIntentosGlobalFilter implements GlobalFilter, Ordered {
             // Cada código es un SMS pagado. Para entrar o recuperar la
             // contraseña alcanzan de sobra unos pocos al día.
             new Regla(HttpMethod.POST, "/api/otp/send", 5, Duration.ofMinutes(10)),
-            new Regla(HttpMethod.POST, "/api/otp/send", 20, DIA)
+            new Regla(HttpMethod.POST, "/api/otp/send", 20, DIA),
 
+            // Dice si un celular tiene cuenta: sin límite, se podrían probar
+            // números en masa para saber quién usa la plataforma.
+            new Regla(HttpMethod.GET, "/api/auth/celular-existe", 10, MINUTO),
+            new Regla(HttpMethod.GET, "/api/auth/celular-existe", 100, DIA),
+
+            // Cada registro con correo consulta a Hunter. Holgado, porque una
+            // organización puede registrar a varias personas desde su sede.
+            new Regla(HttpMethod.POST, "/api/auth/registro", 30, Duration.ofHours(1))
     );
 
     /** Con más contadores que estos, se borran los de ventanas ya terminadas. */

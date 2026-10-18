@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Límite de peticiones por IP en las rutas públicas que se pueden abusar
- * (login y envío de códigos por SMS):
+ * (login, envío de códigos por SMS, consulta de celulares, registro):
  * pasado el máximo, el gateway responde 429 sin llegar al servicio.
  */
 class LimiteIntentosGlobalFilterTest {
@@ -154,5 +154,26 @@ class LimiteIntentosGlobalFilterTest {
         assertEquals(HttpStatus.TOO_MANY_REQUESTS, estado(vigesimoPrimero));
         assertTrue(vigesimoPrimero.getResponse().getBodyAsString().block().contains("por hoy"));
         assertEquals(20, llegaronAlServicio);
+    }
+
+    @Test
+    void laConsultaDeSiUnCelularTieneCuentaSeLimitaAunqueSeaGet() {
+        for (int i = 0; i < 10; i++) {
+            enviar(HttpMethod.GET, "/api/auth/celular-existe", "200.1.1.1");
+        }
+
+        assertEquals(HttpStatus.TOO_MANY_REQUESTS, estado(enviar(HttpMethod.GET, "/api/auth/celular-existe", "200.1.1.1")));
+        assertEquals(10, llegaronAlServicio);
+    }
+
+    @Test
+    void elRegistroPermiteTreintaPorHora() {
+        for (int i = 0; i < 30; i++) {
+            enviar(HttpMethod.POST, "/api/auth/registro", "200.1.1.1");
+        }
+
+        MockServerWebExchange bloqueada = enviar(HttpMethod.POST, "/api/auth/registro", "200.1.1.1");
+        assertEquals(HttpStatus.TOO_MANY_REQUESTS, estado(bloqueada));
+        assertTrue(bloqueada.getResponse().getBodyAsString().block().contains("en 60 minutos"));
     }
 }
