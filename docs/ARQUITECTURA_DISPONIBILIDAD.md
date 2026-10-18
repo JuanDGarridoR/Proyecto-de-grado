@@ -44,6 +44,7 @@ flowchart TD
 | RNF-22 | Registros sin datos personales | Punto 30 |
 | RNF-23 | Contenedores sin root y con solo sus claves | Puntos 26 y 29 |
 | RNF-24 | Fotos de perfil privadas | Punto 31 |
+| RNF-25 | Registro de auditoría de los datos de salud | Punto 44 |
 | Seguridad y privacidad en general | Datos protegidos, acceso solo con vínculo, cifrado | Parte 2, puntos 22 a 32 |
 | Rendimiento | Páginas que cargan rápido con mala señal | Parte 3, puntos 33 a 37 |
 | Escalabilidad | Crecer agregando instancias | Parte 4, punto 38 |
@@ -472,6 +473,33 @@ Ninguna clave va en el código. La contraseña de la base, el secreto del JWT y 
 
 - **Dónde:** repositorios y consultas de cada servicio, `auth-service/.../service/AuthService.java` (`validarRegistro`), `salud-service/.../SignoVitalValidador.java`, `frontend/src/app/shared/icono/icono.ts`, `frontend/Caddyfile` (`header`), `optimization` en `frontend/angular.json`.
 
+### 44. Registro de auditoría de los datos de salud (RNF-25)
+
+Los datos de salud son **datos sensibles** según la Ley 1581 de 2012. Cada vez que alguien que no es la propia persona mayor consulta, crea, edita o borra sus datos de salud, queda una fila en la tabla `auditoria_salud`:
+
+| Columna | Qué guarda |
+|---|---|
+| `fecha` | Cuándo, en hora de Colombia |
+| `id_usuario`, `rol` | Quién lo hizo |
+| `id_persona_mayor` | De quién eran los datos (vacío en los reportes de la organización, que son de todas sus personas) |
+| `recurso` | `MEDICAMENTOS`, `CITAS_MEDICAS`, `CONDICIONES_SALUD`, `SIGNOS_VITALES`, `REPORTE_SALUD` o `PERFILES` |
+| `accion` | `CONSULTA`, `CREACION`, `EDICION` o `BORRADO` |
+| `metodo`, `ruta`, `estado` | La petición y su resultado: un 403 es un intento sin vínculo |
+
+Lo registran los servicios que entregan esos datos, después de responder:
+
+| Servicio | Qué registra |
+|---|---|
+| `salud-service` | Lo que el acompañante gestiona por la persona mayor (medicamentos, citas, incluido acompañarlas, y condiciones de salud) y los signos vitales que consulta o registra la organización |
+| `acompanante-service` | El seguimiento del acompañante: signos vitales, medicamentos y citas |
+| `analitica-service` | Los reportes de salud y de perfiles de la organización |
+
+La propia persona mayor viendo lo suyo no se registra. Si guardar el registro falla, la persona no lo nota y queda un aviso en los logs.
+
+> **Decisión:** no se registra en el gateway, aunque todo pasa por él. Para escribir en la base, el gateway necesitaría la contraseña, y hoy solo tiene el secreto del JWT (punto 29). Cada servicio ya tiene la conexión, y la regla de qué rutas son datos de salud queda junto al código que los entrega.
+
+- **Dónde:** `auditoria/AuditoriaSaludInterceptor.java` y `AuditoriaSaludConfig.java` en `salud-service`, `acompanante-service` y `analitica-service`.
+
 ---
 
 ## 3. Rendimiento
@@ -579,6 +607,7 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 | `frontend/.../auth/auth.interceptor.spec.ts`, `auth.service.spec.ts` | Con un 401 se renueva el token una sola vez y se repite la petición; si la sesión ya no se puede renovar, se lleva a iniciar sesión; al cerrar sesión se revoca en el backend |
 | `docker compose config` | Cada contenedor recibe solo sus claves (tabla del punto 29), y sin `.env` Compose no arranca |
 | `auth-service/.../FotoControllerTest`, `SinTokenValidoTest`, `UsuarioRepositoryTest`; `frontend/.../foto-perfil/foto-perfil.spec.ts` | Sin sesión, una foto no se entrega; solo se aceptan rutas de fotos; las URLs públicas de antes pasan a ruta y repetirlo no cambia nada; el frontend pide cada foto una sola vez |
+| `AuditoriaSaludInterceptorTest` (salud, acompañante y analítica), `AuditoriaSaludTablaTest` | Queda registrado quién consultó o cambió los datos de salud de quién, incluidos los intentos sin vínculo (403); la propia persona viendo lo suyo no se registra; la tabla se crea en una base real (H2) y el registro queda guardado |
 | `api-gateway/.../filter/JwtAuthGatewayFilterFactoryTest` | Sin token, con un token vencido o firmado con otra clave, la petición no llega al servicio; un `X-User-Id` enviado por el cliente se reemplaza por el del token |
 | `api-gateway/.../RutasGatewayTest` | Las rutas protegidas exigen token y las que no se deben exponer (como `/api/otp/verify`) no tienen ruta |
 | `mensajeria-service/.../security/TextBeeOtpServiceTest` | El OTP se guarda como HMAC, vence a los 10 minutos, sirve una sola vez, se anula tras 5 fallos y no sirve para otro celular |
@@ -604,6 +633,7 @@ Las pruebas existentes de todos los servicios siguen pasando.
 | El token de acceso no se revoca | Tras cerrar sesión, cambiar la contraseña o eliminar la cuenta, quien tuviera el token de acceso lo puede usar hasta 15 minutos más | Lista de tokens revocados en Redis, consultada por el gateway |
 | Tokens en el almacenamiento de la pestaña | Un script inyectado podría leerlos; lo impide la CSP mientras no se permitan scripts en línea | Cookie `HttpOnly` para el token de renovación, si se deja de permitir una cuenta por pestaña |
 | Las fotos las ve cualquier persona con sesión que tenga la ruta | No se revisa el vínculo: quien tenga sesión y la ruta de una foto (por ejemplo, porque se la compartieron) la puede ver | Revisar en `FotoController` que quien la pide tenga un vínculo aceptado con el dueño de la foto |
+| El registro de auditoría no tiene pantalla ni vencimiento | Se consulta con SQL en Supabase y crece sin límite | Una pantalla donde la persona mayor vea quién consultó sus datos, y borrar los registros de más de cierto tiempo |
 | `mensajeria-service` sin réplica | Sin SMS ni códigos OTP mientras se reinicia | Guardar los OTP en la base de datos o en Redis y replicarlo |
 | Base de datos única (Supabase) | Si Supabase falla, fallan todos los servicios | Depende del plan de Supabase (réplicas de lectura, *point-in-time recovery*) |
 | Límites de peticiones en la memoria del gateway | Con dos gateways, cada uno contaría aparte y el límite real sería el doble. Al reiniciar el gateway, los contadores empiezan de cero | `RequestRateLimiter` de Spring Cloud Gateway con Redis |
