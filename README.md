@@ -67,7 +67,7 @@ La solución consiste en una plataforma web, **VITA+**, orientada a apoyar la ge
 
 El backend está dividido en **Servicios**. El frontend nunca habla directamente con ellos: todas las peticiones pasan por el **API Gateway**, que valida el token JWT y las redirige al servicio correspondiente.
 
-Cómo se mantiene disponible la plataforma (health checks, réplicas y balanceo, circuit breaker, reintentos, caché, etc.) está en [ARQUITECTURA_DISPONIBILIDAD.md](docs/ARQUITECTURA_DISPONIBILIDAD.md).
+Las decisiones de arquitectura con las que la plataforma cumple los requisitos no funcionales (disponibilidad, seguridad y privacidad, rendimiento, escalabilidad y mantenibilidad) están en [ARQUITECTURA_DISPONIBILIDAD.md](docs/ARQUITECTURA_DISPONIBILIDAD.md).
 
 Cómo funcionan los perfiles de las personas mayores (segmentación con K-means en analitica-service) está en [KMEANS_PERFILES.md](docs/KMEANS_PERFILES.md).
 
@@ -149,7 +149,7 @@ Proyecto-de-grado/
 │   └── package.json
 │
 ├── docs/                          ← documentación de apoyo
-│   ├── ARQUITECTURA_DISPONIBILIDAD.md ← health checks, réplicas, circuit breaker, etc.
+│   ├── ARQUITECTURA_DISPONIBILIDAD.md ← arquitectura y requisitos no funcionales
 │   ├── GUIA_COMENTARIOS.md            ← cómo se comenta el código
 │   ├── KMEANS_PERFILES.md             ← perfiles de las personas mayores con K-means
 │   └── REQUERIMIENTOS.md              ← requerimientos funcionales y no funcionales
