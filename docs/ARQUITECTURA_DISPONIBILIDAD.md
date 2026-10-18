@@ -612,7 +612,7 @@ Una librería con una vulnerabilidad conocida es una de las formas más comunes 
 
 Las imágenes base de los Dockerfiles van con **su versión exacta** (por ejemplo, `caddy:2.11.7-alpine` y no `caddy:2-alpine`), para que cada compilación use exactamente lo mismo; Dependabot propone cuándo actualizarlas.
 
-Al configurarlo, `npm audit` encontró 5 vulnerabilidades en el frontend. Las 4 de Angular afectan la renderización en servidor y la caché de transferencia, que Vita+ no usa; se corrigen pasando a Angular 22.2.3, que queda pendiente para un cambio aparte. La de ECharts también sigue pendiente (ver *Limitaciones conocidas*).
+Al configurarlo, `npm audit` encontró 5 vulnerabilidades en el frontend. Las 4 de Angular (afectaban la renderización en servidor y la caché de transferencia, que Vita+ no usa) se corrigieron pasando a Angular 22.2.3. La de ECharts sigue pendiente (ver *Limitaciones conocidas*).
 
 - **Dónde:** `.github/dependabot.yml`, `.github/workflows/dependencias.yml`, `FROM` de `backend/Dockerfile` y `frontend/Dockerfile`. Las alertas se activan en GitHub: *Settings > Code security > Dependabot alerts* y *Dependabot security updates*.
 
