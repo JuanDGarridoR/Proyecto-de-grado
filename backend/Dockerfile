@@ -16,7 +16,7 @@ COPY ${SERVICIO}/src ./src
 RUN --mount=type=cache,target=/root/.m2 mvn -q -B -DskipTests package
 
 # ---------- 2. Imagen final: solo Java y el .jar ----------
-FROM eclipse-temurin:17.0.20.1_1-jre
+FROM eclipse-temurin:24.0.2_12-jre
 # curl para el health check de docker-compose.yml (/actuator/health/liveness)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
