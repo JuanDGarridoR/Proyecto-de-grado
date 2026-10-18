@@ -1,0 +1,48 @@
+# Revisión de vulnerabilidades en las dependencias.
+#
+# - En cada pull request, dependency-review rechaza que entre una dependencia
+#   nueva (o una versión nueva) con una vulnerabilidad alta o crítica conocida,
+#   tanto del backend (Maven) como del frontend (npm).
+# - En cada cambio a main y cada lunes, npm audit revisa las dependencias del
+#   frontend que llegan al navegador y falla si alguna tiene una
+#   vulnerabilidad alta o crítica.
+name: Dependencias
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 12 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  revision-del-pull-request:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+
+  npm-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # Solo lee package-lock.json: no hace falta instalar nada.
+      - run: npm audit --omit=dev --audit-level=high

@@ -1,0 +1,61 @@
+# Dependabot revisa cada semana las dependencias de Vita+ y abre un pull
+# request cuando hay una versión nueva o un arreglo de seguridad. Las alertas
+# de vulnerabilidades se activan en GitHub: Settings > Code security >
+# Dependabot alerts y Dependabot security updates.
+#
+# Para no llenar el repositorio de pull requests, las actualizaciones menores
+# y de parche de cada ecosistema llegan juntas en uno solo; las mayores
+# (que pueden romper algo) llegan aparte.
+version: 2
+
+updates:
+  # Los 11 servicios del backend (cada uno tiene su propio pom.xml)
+  - package-ecosystem: maven
+    directories:
+      - /backend/acompanante-service
+      - /backend/actividad-service
+      - /backend/analitica-service
+      - /backend/api-gateway
+      - /backend/auth-service
+      - /backend/donacion-service
+      - /backend/mensajeria-service
+      - /backend/organizacion-service
+      - /backend/persona-mayor-service
+      - /backend/salud-service
+      - /backend/voluntario-service
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      backend-menores:
+        update-types: [minor, patch]
+
+  # Frontend (Angular, ECharts, Leaflet...)
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      frontend-menores:
+        update-types: [minor, patch]
+
+  # Imágenes base de los Dockerfiles (Maven, Java, Node y Caddy)
+  - package-ecosystem: docker
+    directories:
+      - /backend
+      - /frontend
+    schedule:
+      interval: weekly
+
+  # Imagen de autoheal en docker-compose.yml
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+
+  # Acciones de GitHub de .github/workflows
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

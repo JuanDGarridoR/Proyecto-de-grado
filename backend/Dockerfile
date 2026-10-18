@@ -2,8 +2,12 @@
 # Imagen de cualquier servicio del backend. El servicio se elige con el
 # argumento SERVICIO (lo pasa docker-compose.yml), p. ej. SERVICIO=auth-service.
 
+# Las imágenes van con su versión exacta, para que cada compilación use
+# exactamente lo mismo. Dependabot propone las actualizaciones (ver
+# .github/dependabot.yml).
+
 # ---------- 1. Compilar el .jar con Maven ----------
-FROM maven:3.9-eclipse-temurin-17 AS compilacion
+FROM maven:3.9.16-eclipse-temurin-17 AS compilacion
 ARG SERVICIO
 WORKDIR /app
 COPY ${SERVICIO}/pom.xml .
@@ -12,7 +16,7 @@ COPY ${SERVICIO}/src ./src
 RUN --mount=type=cache,target=/root/.m2 mvn -q -B -DskipTests package
 
 # ---------- 2. Imagen final: solo Java y el .jar ----------
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17.0.20.1_1-jre
 # curl para el health check de docker-compose.yml (/actuator/health/liveness)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \

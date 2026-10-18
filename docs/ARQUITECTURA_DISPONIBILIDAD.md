@@ -45,6 +45,7 @@ flowchart TD
 | RNF-23 | Contenedores sin root y con solo sus claves | Puntos 26 y 29 |
 | RNF-24 | Fotos de perfil privadas | Punto 31 |
 | RNF-25 | Registro de auditoría de los datos de salud | Punto 44 |
+| RNF-26 | Revisión de dependencias y versiones exactas de las imágenes | Punto 45 |
 | Seguridad y privacidad en general | Datos protegidos, acceso solo con vínculo, cifrado | Parte 2, puntos 22 a 32 |
 | Rendimiento | Páginas que cargan rápido con mala señal | Parte 3, puntos 33 a 37 |
 | Escalabilidad | Crecer agregando instancias | Parte 4, punto 38 |
@@ -579,6 +580,22 @@ Un solo `backend/Dockerfile` construye cualquier servicio con el argumento `SERV
 - **Tecnologías (RNF-11):** Java 17 (LTS) con Spring Boot 4.1, y Angular 22.
 - **Dónde:** `backend/Dockerfile`, `frontend/Dockerfile`, `docker-compose.yml`.
 
+### 45. Revisión de dependencias (RNF-26)
+
+Una librería con una vulnerabilidad conocida es una de las formas más comunes de atacar una aplicación. Por eso:
+
+| Qué | Cuándo | Qué hace |
+|---|---|---|
+| **Dependabot** | Cada semana | Revisa las dependencias de los 11 servicios (Maven), del frontend (npm), de las imágenes de Docker y de las acciones de GitHub, y abre un pull request con cada actualización. Las menores llegan juntas en uno solo; las mayores, aparte. Con las alertas activadas, avisa de inmediato si una dependencia tiene una vulnerabilidad |
+| **dependency-review** | En cada pull request | Rechaza que entre una dependencia nueva, o una versión nueva, con una vulnerabilidad alta o crítica conocida, del backend o del frontend |
+| **npm audit** | En cada cambio a `main` y cada lunes | Falla si alguna dependencia del frontend que llega al navegador tiene una vulnerabilidad alta o crítica |
+
+Las imágenes base de los Dockerfiles van con **su versión exacta** (por ejemplo, `caddy:2.11.7-alpine` y no `caddy:2-alpine`), para que cada compilación use exactamente lo mismo; Dependabot propone cuándo actualizarlas.
+
+Al configurarlo, `npm audit` encontró 5 vulnerabilidades en el frontend. Las 4 de Angular afectan la renderización en servidor y la caché de transferencia, que Vita+ no usa; se corrigen pasando a Angular 22.2.3, que queda pendiente para un cambio aparte. La de ECharts también sigue pendiente (ver *Limitaciones conocidas*).
+
+- **Dónde:** `.github/dependabot.yml`, `.github/workflows/dependencias.yml`, `FROM` de `backend/Dockerfile` y `frontend/Dockerfile`. Las alertas se activan en GitHub: *Settings > Code security > Dependabot alerts* y *Dependabot security updates*.
+
 ---
 
 ## 6. Hora de Colombia (RNF-06)
@@ -634,6 +651,7 @@ Las pruebas existentes de todos los servicios siguen pasando.
 | Tokens en el almacenamiento de la pestaña | Un script inyectado podría leerlos; lo impide la CSP mientras no se permitan scripts en línea | Cookie `HttpOnly` para el token de renovación, si se deja de permitir una cuenta por pestaña |
 | Las fotos las ve cualquier persona con sesión que tenga la ruta | No se revisa el vínculo: quien tenga sesión y la ruta de una foto (por ejemplo, porque se la compartieron) la puede ver | Revisar en `FotoController` que quien la pide tenga un vínculo aceptado con el dueño de la foto |
 | El registro de auditoría no tiene pantalla ni vencimiento | Se consulta con SQL en Supabase y crece sin límite | Una pantalla donde la persona mayor vea quién consultó sus datos, y borrar los registros de más de cierto tiempo |
+| ECharts 5 tiene una vulnerabilidad de XSS moderada | Se corrige en ECharts 6, que trae cambios incompatibles. La CSP (punto 32) impide que un script inyectado se ejecute | Actualizar a ECharts 6 y revisar las gráficas de la analítica |
 | `mensajeria-service` sin réplica | Sin SMS ni códigos OTP mientras se reinicia | Guardar los OTP en la base de datos o en Redis y replicarlo |
 | Base de datos única (Supabase) | Si Supabase falla, fallan todos los servicios | Depende del plan de Supabase (réplicas de lectura, *point-in-time recovery*) |
 | Límites de peticiones en la memoria del gateway | Con dos gateways, cada uno contaría aparte y el límite real sería el doble. Al reiniciar el gateway, los contadores empiezan de cero | `RequestRateLimiter` de Spring Cloud Gateway con Redis |
