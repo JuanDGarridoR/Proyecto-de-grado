@@ -606,11 +606,11 @@ Una librería con una vulnerabilidad conocida es una de las formas más comunes 
 
 | Qué | Cuándo | Qué hace |
 |---|---|---|
-| **Dependabot** | Cada semana | Revisa las dependencias de los 11 servicios (Maven), del frontend (npm), de las imágenes de Docker y de las acciones de GitHub, y abre un pull request con cada actualización. Las menores llegan juntas en uno solo; las mayores, aparte. Con las alertas activadas, avisa de inmediato si una dependencia tiene una vulnerabilidad |
+| **Dependabot** | Cuando aparece una vulnerabilidad | Revisa las dependencias de los 11 servicios (Maven), del frontend (npm), de las imágenes de Docker y de las acciones de GitHub. Si una tiene una vulnerabilidad conocida, abre un pull request con la versión que la corrige. Las actualizaciones normales de versión están apagadas (`open-pull-requests-limit: 0`): cada una abría su propia rama, y algunas eran peligrosas, como subir Java a 24 cuando el proyecto usa Java 17 |
 | **dependency-review** | En cada pull request | Rechaza que entre una dependencia nueva, o una versión nueva, con una vulnerabilidad alta o crítica conocida, del backend o del frontend |
 | **npm audit** | En cada cambio a `main` y cada lunes | Falla si alguna dependencia del frontend que llega al navegador tiene una vulnerabilidad alta o crítica |
 
-Las imágenes base de los Dockerfiles van con **su versión exacta** (por ejemplo, `caddy:2.11.7-alpine` y no `caddy:2-alpine`), para que cada compilación use exactamente lo mismo; Dependabot propone cuándo actualizarlas.
+Las imágenes base de los Dockerfiles van con **su versión exacta** (por ejemplo, `caddy:2.11.7-alpine` y no `caddy:2-alpine`), para que cada compilación use exactamente lo mismo. Se actualizan a mano, o cuando Dependabot avise de una vulnerabilidad.
 
 Al configurarlo, `npm audit` encontró 5 vulnerabilidades en el frontend. Las 4 de Angular (afectaban la renderización en servidor y la caché de transferencia, que Vita+ no usa) se corrigieron pasando a Angular 22.2.3. La de ECharts sigue pendiente (ver *Limitaciones conocidas*).
 

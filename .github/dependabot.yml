@@ -1,11 +1,16 @@
-# Dependabot revisa cada semana las dependencias de Vita+ y abre un pull
-# request cuando hay una versión nueva o un arreglo de seguridad. Las alertas
-# de vulnerabilidades se activan en GitHub: Settings > Code security >
-# Dependabot alerts y Dependabot security updates.
+# Dependabot y las vulnerabilidades de las dependencias de Vita+.
 #
-# Para no llenar el repositorio de pull requests, las actualizaciones menores
-# y de parche de cada ecosistema llegan juntas en uno solo; las mayores
-# (que pueden romper algo) llegan aparte.
+# Solo abre pull requests de SEGURIDAD: cuando una dependencia tiene una
+# vulnerabilidad conocida, propone la versión que la corrige. Para eso hay
+# que activar en GitHub: Settings > Code security > Dependabot alerts y
+# Dependabot security updates.
+#
+# Las actualizaciones normales de versión están apagadas
+# (open-pull-requests-limit: 0): cada una abría su propia rama, llenaban el
+# repositorio y algunas eran peligrosas (por ejemplo, subir Java a 24
+# cuando el proyecto usa Java 17). Las de seguridad no dependen de ese
+# límite. Para revisar a mano qué hay de nuevo, basta subir el límite de un
+# ecosistema y esperar a la siguiente revisión semanal.
 version: 2
 
 updates:
@@ -25,7 +30,7 @@ updates:
       - /backend/voluntario-service
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     groups:
       backend-menores:
         update-types: [minor, patch]
@@ -35,7 +40,7 @@ updates:
     directory: /frontend
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     groups:
       frontend-menores:
         update-types: [minor, patch]
@@ -47,15 +52,18 @@ updates:
       - /frontend
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
 
   # Imagen de autoheal en docker-compose.yml
   - package-ecosystem: docker-compose
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
 
   # Acciones de GitHub de .github/workflows
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
