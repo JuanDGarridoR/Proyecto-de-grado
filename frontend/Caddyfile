@@ -4,6 +4,31 @@
 {$DOMINIO} {
 	encode zstd gzip
 
+	# Cabeceras de seguridad en todas las respuestas.
+	# - HSTS: el navegador solo vuelve a entrar por HTTPS durante un año.
+	# - CSP: solo se ejecuta el JavaScript de la propia página (ni scripts en
+	#   línea ni de otros dominios), así que un texto malicioso guardado en la
+	#   base no puede correr como código ni robar el token de la sesión. Los
+	#   estilos en línea se permiten porque los usan Angular y Leaflet; las
+	#   imágenes, de cualquier sitio HTTPS (mapas, fotos de perfil y de la
+	#   landing); las fuentes, de Google Fonts; y las peticiones (connect-src),
+	#   solo al propio dominio. frame-ancestors 'none' impide que otra página
+	#   muestre Vita+ dentro de un iframe para engañar con clics.
+	# - nosniff: el navegador no adivina el tipo de un archivo.
+	# - Referrer-Policy: a otros sitios solo se les dice el dominio, no la ruta.
+	# - Permissions-Policy: la ubicación solo para el propio sitio (el mapa
+	#   puede centrarse donde está la persona); cámara y micrófono, para nadie.
+	# - Sin -Server no se anuncia qué servidor web es.
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(self), camera=(), microphone=()"
+		-Server
+	}
+
 	# El API va al gateway. flush_interval -1: no guardar en búfer, para que
 	# las notificaciones en tiempo real (SSE) lleguen al instante.
 	handle /api/* {

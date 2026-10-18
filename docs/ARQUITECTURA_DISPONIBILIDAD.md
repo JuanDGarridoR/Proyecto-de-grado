@@ -39,6 +39,7 @@ flowchart TD
 | RNF-17 | Mapas de la organización sin la dirección exacta | Punto 30 |
 | RNF-18 | Bloqueo tras 5 contraseñas incorrectas y límite de peticiones por IP | Puntos 22 y 26 |
 | RNF-19 | Códigos por SMS solo a celulares con cuenta, con tope diario | Punto 27 |
+| RNF-21 | Cabeceras de seguridad (CSP, HSTS y otras) | Punto 32 |
 | Seguridad y privacidad en general | Datos protegidos, acceso solo con vínculo, cifrado | Parte 2, puntos 22 a 32 |
 | Rendimiento | Páginas que cargan rápido con mala señal | Parte 3, puntos 33 a 37 |
 | Escalabilidad | Crecer agregando instancias | Parte 4, punto 38 |
@@ -370,7 +371,7 @@ Además, el gateway limita los envíos por IP (punto 26). Así, el gasto máximo
 
 ### 28. Cifrado en tránsito y en reposo
 
-- **Navegador ↔ servidor:** HTTPS con un certificado de Let's Encrypt que Caddy obtiene y renueva solo. Caddy redirige a HTTPS las peticiones que llegan por HTTP.
+- **Navegador ↔ servidor:** HTTPS con un certificado de Let's Encrypt que Caddy obtiene y renueva solo. Caddy redirige a HTTPS las peticiones que llegan por HTTP, y la cabecera **HSTS** hace que el navegador, durante un año, ni siquiera intente entrar por HTTP (punto 32).
 - **Servicios ↔ base de datos:** la conexión a Supabase exige TLS (`sslmode=require` en la URL de conexión de cada servicio).
 - **Servicios ↔ proveedores externos** (TextBee, Hunter, Google Places y Supabase Storage): siempre por HTTPS.
 - **En reposo:** Supabase cifra en disco la base de datos y los archivos de Storage (AES-256). Esto lo da el proveedor, no el código de Vita+.
@@ -410,7 +411,20 @@ Ninguna clave va en el código. La contraseña de la base, el secreto del JWT y 
 - Las reglas importantes se validan **también en el backend**, aunque el formulario ya las revise: el formato del celular (`+57` y 10 dígitos), el correo, el largo mínimo de la contraseña, la aceptación de los términos y los rangos de los signos vitales.
 - **Inyección de HTML o de scripts (XSS):** Angular escapa todo lo que muestra con `{{ }}`. El único `innerHTML` de la aplicación es el de los iconos, y su contenido es texto fijo del código, no datos del usuario.
 
-- **Dónde:** repositorios y consultas de cada servicio, `auth-service/.../service/AuthService.java` (`validarRegistro`), `salud-service/.../SignoVitalValidador.java`, `frontend/src/app/shared/icono/icono.ts`.
+**Cabeceras de seguridad (RNF-21).** Caddy agrega estas cabeceras a todas las respuestas:
+
+| Cabecera | Qué hace |
+|---|---|
+| `Content-Security-Policy` | Solo se ejecuta el JavaScript de la propia página: ni scripts en línea ni de otros dominios. Aunque alguien lograra guardar un script en un campo de texto, no correría ni podría leer el token de la sesión. Las peticiones solo pueden ir al propio dominio (`connect-src 'self'`), las imágenes pueden venir de cualquier sitio HTTPS (mosaicos del mapa, fotos de perfil y de la landing) y las fuentes, de Google Fonts |
+| `frame-ancestors 'none'` (en la CSP) y `X-Frame-Options: DENY` | Ninguna otra página puede mostrar Vita+ dentro de un iframe para engañar con clics (*clickjacking*) |
+| `Strict-Transport-Security` | Durante un año, el navegador solo entra por HTTPS |
+| `X-Content-Type-Options: nosniff` | El navegador no adivina el tipo de un archivo: un archivo subido no se interpreta como script |
+| `Referrer-Policy: strict-origin-when-cross-origin` | A otros sitios solo se les dice el dominio, no la ruta (que puede incluir ids) |
+| `Permissions-Policy` | La ubicación solo para el propio sitio (el mapa puede centrarse donde está la persona); cámara y micrófono, para nadie |
+
+> **Decisión:** la CSP permite estilos en línea (`'unsafe-inline'` en `style-src`) porque Angular y Leaflet los usan. Para los scripts no se permitió: se desactivó la optimización `inlineCritical` de Angular, que agrega un `onload` en línea para cargar los estilos y que con esta CSP dejaría la página sin estilos.
+
+- **Dónde:** repositorios y consultas de cada servicio, `auth-service/.../service/AuthService.java` (`validarRegistro`), `salud-service/.../SignoVitalValidador.java`, `frontend/src/app/shared/icono/icono.ts`, `frontend/Caddyfile` (`header`), `optimization` en `frontend/angular.json`.
 
 ---
 
@@ -525,7 +539,7 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 
 Las pruebas existentes de todos los servicios siguen pasando.
 
-**Pendiente de verificar en el servidor:** levantar todo con `docker compose up -d --build` y comprobar con `docker compose ps` que todos los contenedores quedan `healthy`. Luego detener una réplica (`docker compose stop salud-service-2`) y confirmar que la plataforma sigue respondiendo. Estas pruebas no se hicieron todavía en un entorno real con Docker.
+**Pendiente de verificar en el servidor:** levantar todo con `docker compose up -d --build` y comprobar con `docker compose ps` que todos los contenedores quedan `healthy`. Luego detener una réplica (`docker compose stop salud-service-2`) y confirmar que la plataforma sigue respondiendo. Estas pruebas no se hicieron todavía en un entorno real con Docker. Con la plataforma publicada, abrir las páginas principales (landing, paneles, mapas, analítica y foto de perfil) con la consola del navegador abierta y confirmar que la Content-Security-Policy no bloquea nada: no se pudo probar en local porque las cabeceras las pone Caddy.
 
 ---
 
