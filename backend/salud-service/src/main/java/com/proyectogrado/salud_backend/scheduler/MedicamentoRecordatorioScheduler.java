@@ -220,7 +220,9 @@ public class MedicamentoRecordatorioScheduler {
 
     private void intentarEnviar(String celular, String mensaje) {
         boolean enviado = mensajeriaClient.enviarMensaje(celular, mensaje, "MEDICAMENTO");
-        log("  Envio a " + celular + ": " + (enviado ? "OK" : "FALLO") + " -> \"" + mensaje + "\"");
+        // Sin el celular ni el texto del SMS (que lleva el nombre de la persona
+        // y del medicamento): en los registros no van datos personales.
+        log("  Envio: " + (enviado ? "OK" : "FALLO"));
     }
 
     private void log(String texto) {

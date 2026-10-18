@@ -153,7 +153,7 @@ public class CumpleanosScheduler {
 
     private void enviar(Integer idUsuario, String celular, String mensaje, String tipo) {
         boolean enviado = mensajeriaClient.enviarMensaje(celular, mensaje, tipo);
-        System.out.println("[CUMPLEAÑOS] Usuario " + idUsuario + " -> " + celular
-                + ": " + (enviado ? "OK" : "FALLO"));
+        // Sin el celular: en los registros no van datos personales.
+        System.out.println("[CUMPLEAÑOS] Usuario " + idUsuario + ": " + (enviado ? "OK" : "FALLO"));
     }
 }

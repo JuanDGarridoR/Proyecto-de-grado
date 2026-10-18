@@ -136,9 +136,9 @@ public class ActividadRecordatorioScheduler {
                 + ".";
 
         boolean enviado = mensajeriaClient.enviarMensaje(celular, mensaje, "ACTIVIDAD");
+        // Sin el texto del SMS: en los registros no van datos personales.
         System.out.println("[RECORDATORIO ACTIVIDAD] Actividad " + actividad.getIdActividad()
-                + " -> persona mayor " + idPersonaMayor + ": " + (enviado ? "OK" : "FALLO")
-                + " -> \"" + mensaje + "\"");
+                + " -> persona mayor " + idPersonaMayor + ": " + (enviado ? "OK" : "FALLO"));
     }
 
     /** Fecha más hora ("HH:mm" del formulario), o null si falta alguna o no se entiende. */

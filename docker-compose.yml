@@ -34,6 +34,10 @@ x-servicio: &servicio
     SPRING_PROFILES_ACTIVE: docker
     # El health check va en un puerto aparte, igual en todos los contenedores
     MANAGEMENT_SERVER_PORT: "9000"
+    # En el servidor no se imprime cada SQL que se ejecuta (en desarrollo sí,
+    # con spring.jpa.show-sql=true de cada application.properties): llena los
+    # registros y deja ver la estructura de la base.
+    SPRING_JPA_SHOW_SQL: "false"
   # Responde si la aplicación está viva (no revisa la base de datos: si
   # Supabase falla, reiniciar los servicios no lo arregla). start_period da
   # tiempo a que arranque Spring antes de contar los fallos.

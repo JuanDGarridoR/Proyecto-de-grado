@@ -45,8 +45,8 @@ public class ValidacionCorreoService {
             );
         }
         this.apiKey = apiKey;
-        log.info("Hunter API key cargada, longitud={}, prefijo={}",
-                apiKey.length(), apiKey.substring(0, Math.min(4, apiKey.length())));
+        // Ni siquiera el comienzo de la clave va a los registros.
+        log.info("Hunter API key cargada");
     }
 
     /**

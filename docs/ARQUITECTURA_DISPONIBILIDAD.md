@@ -41,6 +41,7 @@ flowchart TD
 | RNF-19 | Códigos por SMS solo a celulares con cuenta, con tope diario | Punto 27 |
 | RNF-20 | Tokens de acceso de 15 minutos y sesiones revocables | Punto 23 |
 | RNF-21 | Cabeceras de seguridad (CSP, HSTS y otras) | Punto 32 |
+| RNF-22 | Registros sin datos personales | Punto 30 |
 | Seguridad y privacidad en general | Datos protegidos, acceso solo con vínculo, cifrado | Parte 2, puntos 22 a 32 |
 | Rendimiento | Páginas que cargan rápido con mala señal | Parte 3, puntos 33 a 37 |
 | Escalabilidad | Crecer agregando instancias | Parte 4, punto 38 |
@@ -419,8 +420,9 @@ Ninguna clave va en el código. La contraseña de la base, el secreto del JWT y 
 - **Inactivar la cuenta** la oculta para todos sus vínculos sin borrar nada, y se puede reactivar.
 - **Los avisos de tiempo real no llevan datos**, solo el nombre del recurso que cambió (por ejemplo, `gustos`). Cada pantalla vuelve a consultar sus datos con su propio token, así que un aviso no le muestra a nadie información ajena.
 - **La caché no guarda información personal**, solo catálogos (punto 18).
+- **Los registros (logs) no llevan datos personales.** Los recordatorios y los avisos de cumpleaños registran solo ids y si el SMS salió o no, nunca el celular ni el texto del mensaje (que puede llevar el nombre de la persona, su medicamento o su cita médica). En el servidor tampoco se imprime cada SQL (`SPRING_JPA_SHOW_SQL=false` en `docker-compose.yml`), y al arrancar no se muestra ni el comienzo de ninguna clave.
 
-- **Dónde:** `analitica-service/.../red/RedApoyo.java` y `recomendacion/Barrios.java`, `auth-service/.../service/TerminosService.java` y `model/AceptacionTerminos.java`, `service/CuentaService.java`, `api-gateway/.../eventos/`.
+- **Dónde:** `analitica-service/.../red/RedApoyo.java` y `recomendacion/Barrios.java`, `auth-service/.../service/TerminosService.java` y `model/AceptacionTerminos.java`, `service/CuentaService.java`, `api-gateway/.../eventos/`, los `scheduler/` de salud, persona mayor y actividad.
 
 ### 31. Fotos de perfil
 

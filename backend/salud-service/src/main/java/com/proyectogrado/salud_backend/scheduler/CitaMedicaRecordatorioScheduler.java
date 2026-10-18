@@ -181,8 +181,9 @@ public class CitaMedicaRecordatorioScheduler {
 
     private void intentarEnviar(CitaMedica cita, String celular, String mensaje) {
         boolean enviado = mensajeriaClient.enviarMensaje(celular, mensaje, "CITA_MEDICA");
-        log("Cita " + cita.getIdCita() + " -> " + celular + ": " + (enviado ? "OK" : "FALLO")
-                + " -> \"" + mensaje + "\"");
+        // Sin el celular ni el texto del SMS (que lleva datos de salud):
+        // en los registros no van datos personales.
+        log("Cita " + cita.getIdCita() + ": " + (enviado ? "OK" : "FALLO"));
     }
 
     private void log(String texto) {
