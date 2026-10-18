@@ -87,13 +87,13 @@ class ContrasenaControllerTest {
     }
 
     @Test
-    void unaContrasenaDeMenosDeSeisCaracteresSeRechaza() throws Exception {
+    void unaContrasenaDeMenosDeOchoCaracteresSeRechaza() throws Exception {
         mockMvc.perform(put("/api/auth/contrasena")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpo("actual-123", "123")))
+                        .content(cuerpo("actual-123", "1234567")))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("La contraseña debe tener mínimo 6 caracteres"));
+                .andExpect(content().string("La contraseña debe tener mínimo 8 caracteres"));
 
         verify(usuarioRepository, never()).save(any());
     }

@@ -10,6 +10,7 @@ import { GestorNotificaciones } from '../gestor-notificaciones/gestor-notificaci
 import { DatosSalud } from '../datos-salud/datos-salud';
 import { CalificarPlataforma } from '../calificar-plataforma/calificar-plataforma';
 
+import { LARGO_MINIMO_CONTRASENA, MENSAJE_CONTRASENA_CORTA } from '../../core/auth/contrasena';
 import { AuthService } from '../../core/auth/auth.service';
 
 import {
@@ -73,6 +74,9 @@ interface PerfilInformacion {
   styleUrl: './perfil.css',
 })
 export class Perfil implements OnInit {
+
+  /** Para el minlength y el texto de ayuda de los campos de contraseña. */
+  protected readonly largoMinimoContrasena = LARGO_MINIMO_CONTRASENA;
   @Input({ required: true })
   tipoPerfil!: TipoPerfil;
 
@@ -619,8 +623,8 @@ export class Perfil implements OnInit {
       return;
     }
 
-    if (this.nuevaContrasena.length < 6) {
-      this.errorContrasena = 'La contraseña debe tener mínimo 6 caracteres.';
+    if (this.nuevaContrasena.length < LARGO_MINIMO_CONTRASENA) {
+      this.errorContrasena = MENSAJE_CONTRASENA_CORTA;
 
       return;
     }

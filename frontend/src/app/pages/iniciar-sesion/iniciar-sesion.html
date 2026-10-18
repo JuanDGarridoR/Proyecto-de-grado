@@ -159,7 +159,7 @@
               class="login-input"
               [(ngModel)]="nuevaContrasena"
               required
-              minlength="6"
+              [minlength]="largoMinimoContrasena"
               placeholder="••••••••"
             />
           </app-campo-contrasena>
@@ -180,7 +180,7 @@
               class="login-input"
               [(ngModel)]="confirmarNuevaContrasena"
               required
-              minlength="6"
+              [minlength]="largoMinimoContrasena"
               placeholder="••••••••"
             />
           </app-campo-contrasena>

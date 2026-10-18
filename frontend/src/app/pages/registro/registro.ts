@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CampoContrasena } from '../../shared/campo-contrasena/campo-contrasena';
 import { RouterLink } from '@angular/router';
+import { LARGO_MINIMO_CONTRASENA, MENSAJE_CONTRASENA_CORTA } from '../../core/auth/contrasena';
 import { AuthService } from '../../core/auth/auth.service';
 
 /**
@@ -17,6 +18,9 @@ import { AuthService } from '../../core/auth/auth.service';
   styleUrl: './registro.css'
 })
 export class Registro {
+
+  /** Para el minlength y el texto de ayuda de los campos de contraseña. */
+  protected readonly largoMinimoContrasena = LARGO_MINIMO_CONTRASENA;
 
   // Campos comunes a todos los roles
   nombreUsuario = '';
@@ -135,10 +139,8 @@ private registrar(): void {
     return;
   }
 
-  if (contrasena && contrasena.length < 6) {
-    this.errorMensaje.set(
-      'La contraseña debe tener mínimo 6 caracteres.'
-    );
+  if (contrasena && contrasena.length < LARGO_MINIMO_CONTRASENA) {
+    this.errorMensaje.set(MENSAJE_CONTRASENA_CORTA);
     return;
   }
 

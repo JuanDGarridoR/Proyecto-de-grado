@@ -101,8 +101,8 @@
             type="password"
             class="login-input"
             [(ngModel)]="contrasena"
-            minlength="6"
-            placeholder="Mínimo 6 caracteres"
+            [minlength]="largoMinimoContrasena"
+            [placeholder]="'Mínimo ' + largoMinimoContrasena + ' caracteres'"
           />
         </app-campo-contrasena>
 
@@ -115,7 +115,7 @@
             type="password"
             class="login-input"
             [(ngModel)]="confirmarContrasena"
-            minlength="6"
+            [minlength]="largoMinimoContrasena"
             placeholder="Repite tu contraseña"
           />
         </app-campo-contrasena>

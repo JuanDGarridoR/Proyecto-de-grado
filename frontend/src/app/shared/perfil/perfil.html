@@ -420,7 +420,7 @@
               id="nuevaContrasena"
               type="password"
               [(ngModel)]="nuevaContrasena"
-              placeholder="Mínimo 6 caracteres"
+              [placeholder]="'Mínimo ' + largoMinimoContrasena + ' caracteres'"
             />
           </app-campo-contrasena>
         </div>

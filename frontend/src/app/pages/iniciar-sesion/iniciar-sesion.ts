@@ -7,6 +7,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { CampoContrasena } from '../../shared/campo-contrasena/campo-contrasena';
 import { RouterLink } from '@angular/router';
+import { LARGO_MINIMO_CONTRASENA, MENSAJE_CONTRASENA_CORTA } from '../../core/auth/contrasena';
 import { AuthService } from '../../core/auth/auth.service';
 
 /** Método de inicio de sesión que está en pantalla. */
@@ -37,6 +38,9 @@ function mensajeDeDemasiadosIntentos(err: { error?: { mensaje?: string; message?
   styleUrl: './iniciar-sesion.css'
 })
 export class IniciarSesion implements OnDestroy {
+
+  /** Para el minlength y el texto de ayuda de los campos de contraseña. */
+  protected readonly largoMinimoContrasena = LARGO_MINIMO_CONTRASENA;
 
   modo = signal<ModoLogin>('celular');
 
@@ -296,11 +300,9 @@ restablecerContrasena(): void {
   }
 
 
-  if (this.nuevaContrasena.length < 6) {
+  if (this.nuevaContrasena.length < LARGO_MINIMO_CONTRASENA) {
 
-    this.errorMensaje.set(
-      'La contraseña debe tener mínimo 6 caracteres'
-    );
+    this.errorMensaje.set(MENSAJE_CONTRASENA_CORTA);
 
     return;
   }

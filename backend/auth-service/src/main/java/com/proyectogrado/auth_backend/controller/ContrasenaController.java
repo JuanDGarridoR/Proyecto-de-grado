@@ -4,6 +4,7 @@ import com.proyectogrado.auth_backend.dto.CambiarContrasenaRequest;
 import com.proyectogrado.auth_backend.model.Usuario;
 import com.proyectogrado.auth_backend.repository.UsuarioRepository;
 import com.proyectogrado.auth_backend.security.JwtService;
+import com.proyectogrado.auth_backend.service.AuthService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,8 +59,8 @@ public class ContrasenaController {
             return ResponseEntity.badRequest().body("La nueva contraseña es obligatoria");
         }
 
-        if (nuevaContrasena.length() < 6) {
-            return ResponseEntity.badRequest().body("La contraseña debe tener mínimo 6 caracteres");
+        if (nuevaContrasena.length() < AuthService.LARGO_MINIMO_CONTRASENA) {
+            return ResponseEntity.badRequest().body(AuthService.MENSAJE_CONTRASENA_CORTA);
         }
 
         boolean tieneContrasena = usuario.getContrasenaHash() != null

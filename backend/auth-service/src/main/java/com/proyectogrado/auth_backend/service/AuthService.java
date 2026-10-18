@@ -45,6 +45,12 @@ import java.util.List;
 @Service
 public class AuthService {
 
+    /** Largo mínimo de una contraseña nueva. Las que ya existían con menos siguen sirviendo para entrar. */
+    public static final int LARGO_MINIMO_CONTRASENA = 8;
+
+    public static final String MENSAJE_CONTRASENA_CORTA =
+            "La contraseña debe tener mínimo " + LARGO_MINIMO_CONTRASENA + " caracteres";
+
     /** Contraseñas incorrectas seguidas que bloquean la cuenta. */
     public static final int MAXIMO_INTENTOS_FALLIDOS = 5;
 
@@ -232,11 +238,9 @@ public void restablecerContrasena(
         );
     }
 
-    if (request.getContrasena().length() < 6) {
+    if (request.getContrasena().length() < LARGO_MINIMO_CONTRASENA) {
 
-        throw new RuntimeException(
-                "La contraseña debe tener mínimo 6 caracteres"
-        );
+        throw new RuntimeException(MENSAJE_CONTRASENA_CORTA);
     }
 
     String celular = request.getCelular().trim();
@@ -512,10 +516,8 @@ case "ORGANIZACION" -> {
             }
         }
 
-        if (tieneContrasena && request.getContrasena().trim().length() < 6) {
-            throw new RuntimeException(
-                    "La contraseña debe tener mínimo 6 caracteres"
-            );
+        if (tieneContrasena && request.getContrasena().trim().length() < LARGO_MINIMO_CONTRASENA) {
+            throw new RuntimeException(MENSAJE_CONTRASENA_CORTA);
         }
         String rol = request.getRol().trim().toUpperCase();
 
