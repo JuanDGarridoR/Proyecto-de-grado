@@ -1,4 +1,6 @@
 import { Component, ElementRef, HostListener, Input, OnDestroy, OnInit, signal } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { FotoPerfilPipe } from '../../core/foto-perfil/foto-perfil';
 import { IsActiveMatchOptions, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { Icono } from '../icono/icono';
@@ -29,7 +31,7 @@ const RUTA_MI_INFORMACION: Record<string, string> = {
  */
 @Component({
   selector: 'app-marco-panel',
-  imports: [RouterLink, RouterLinkActive, Icono, CambioRol],
+  imports: [RouterLink, RouterLinkActive, Icono, CambioRol, AsyncPipe, FotoPerfilPipe],
   templateUrl: './marco-panel.html',
   styleUrl: './marco-panel.css',
   host: {

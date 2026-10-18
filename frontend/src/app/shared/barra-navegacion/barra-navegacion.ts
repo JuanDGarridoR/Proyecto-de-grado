@@ -1,4 +1,6 @@
 import { Component, HostListener, effect, signal } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { FotoPerfilPipe } from '../../core/foto-perfil/foto-perfil';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 
@@ -8,7 +10,7 @@ import { AuthService } from '../../core/auth/auth.service';
  */
 @Component({
   selector: 'app-barra-navegacion',
-  imports: [RouterLink],
+  imports: [RouterLink, AsyncPipe, FotoPerfilPipe],
   templateUrl: './barra-navegacion.html',
   styleUrl: './barra-navegacion.css'
 })

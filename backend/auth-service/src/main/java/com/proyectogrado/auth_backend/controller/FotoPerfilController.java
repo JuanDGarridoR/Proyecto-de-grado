@@ -24,7 +24,7 @@ import java.util.Map;
  * Foto de perfil de cualquier rol (persona mayor, acompañante, voluntario u
  * organización). La ven sus vínculos en sus listas y el propio usuario junto
  * a su nombre en el panel. El archivo queda en Supabase Storage (ver
- * FotoPerfilStorage) y la tabla usuario guarda su URL pública.
+ * FotoPerfilStorage) y la tabla usuario guarda su ruta en el bucket.
  *
  * La foto de una organización es la de su cuenta (el usuario con
  * id_organizacion), que es la que los demás servicios ya usan para mostrar
@@ -75,22 +75,22 @@ public class FotoPerfilController {
                     .body("La subida de fotos no está disponible en este momento");
         }
 
-        String url;
+        String ruta;
         try {
-            url = fotoPerfilStorage.subir(usuario.getIdUsuario(), bytes, tipo);
+            ruta = fotoPerfilStorage.subir(usuario.getIdUsuario(), bytes, tipo);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                     .body("No se pudo guardar la foto. Intenta de nuevo más tarde.");
         }
 
         String anterior = usuario.getFotoPerfil();
-        usuario.setFotoPerfil(url);
+        usuario.setFotoPerfil(ruta);
         usuarioRepository.save(usuario);
 
         // Se borra después de guardar la nueva, para no dejar al usuario sin foto si algo falla.
         fotoPerfilStorage.borrar(anterior);
 
-        return ResponseEntity.ok(respuesta(url));
+        return ResponseEntity.ok(respuesta(ruta));
     }
 
     /** Quita la foto; el perfil vuelve a mostrar el ícono. */
@@ -116,10 +116,10 @@ public class FotoPerfilController {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 
-    /** Map.of no admite null, y al quitar la foto la URL es null. */
-    private static Map<String, String> respuesta(String url) {
+    /** Map.of no admite null, y al quitar la foto la ruta es null. */
+    private static Map<String, String> respuesta(String ruta) {
         Map<String, String> respuesta = new HashMap<>();
-        respuesta.put("fotoPerfil", url);
+        respuesta.put("fotoPerfil", ruta);
         return respuesta;
     }
 }

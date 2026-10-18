@@ -71,8 +71,9 @@
     [title]="nombreUsuario"
     [attr.aria-expanded]="menuUsuarioAbierto"
   >
-    @if (authService.getFotoPerfil() && authService.getFotoPerfil() !== fotoRota()) {
-      <img [src]="authService.getFotoPerfil()" alt="" (error)="fotoRota.set(authService.getFotoPerfil())" />
+    @let foto = authService.getFotoPerfil() | fotoPerfil | async;
+    @if (foto && foto !== fotoRota()) {
+      <img [src]="foto" alt="" (error)="fotoRota.set(foto)" />
     } @else {
       {{ inicialUsuario }}
     }

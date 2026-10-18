@@ -115,8 +115,9 @@
             [attr.aria-expanded]="menuUsuarioAbierto"
           >
             <span class="shell__avatar">
-              @if (userPhoto && userPhoto !== fotoRota()) {
-                <img [src]="userPhoto" alt="" (error)="fotoRota.set(userPhoto)" />
+              @let foto = userPhoto | fotoPerfil | async;
+              @if (foto && foto !== fotoRota()) {
+                <img [src]="foto" alt="" (error)="fotoRota.set(foto)" />
               } @else {
                 {{ userInitials }}
               }

@@ -28,7 +28,7 @@ public class UsuarioLookup {
     @Column(name = "correo")
     private String correo;
 
-    /** URL pública de la foto de perfil, o null si no tiene. */
+    /** Ruta de la foto de perfil (se muestra con GET /api/auth/fotos/{ruta}), o null si no tiene. */
     @Column(name = "foto_perfil")
     private String fotoPerfil;
 

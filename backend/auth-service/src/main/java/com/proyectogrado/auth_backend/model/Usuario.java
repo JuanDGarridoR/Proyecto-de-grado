@@ -53,8 +53,9 @@ public class Usuario {
     private Boolean activo;
 
     /**
-     * URL pública de la foto de perfil en Supabase Storage (bucket
-     * fotos-perfil), o null si no tiene. La sube cualquier rol.
+     * Ruta de la foto de perfil en el bucket privado fotos-perfil de
+     * Supabase Storage ({idUsuario}/{archivo}), o null si no tiene. La sube
+     * cualquier rol y se muestra con GET /api/auth/fotos/{ruta}.
      */
     @Column(name = "foto_perfil")
     private String fotoPerfil;

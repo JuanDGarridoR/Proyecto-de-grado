@@ -10,19 +10,25 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.http.ResponseEntity;
+import com.proyectogrado.auth_backend.repository.UsuarioRepository;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.UUID;
 
 /**
- * Fotos de perfil en Supabase Storage, en el bucket público fotos-perfil.
- * Cada foto queda en {idUsuario}/{uuid}.{extensión}: la URL es pública (los
- * vínculos del usuario la cargan con un simple img), pero no se
- * puede adivinar, y el bucket no se puede listar sin la clave secreta.
+ * Fotos de perfil en Supabase Storage, en el bucket privado fotos-perfil.
+ * Cada foto queda en {idUsuario}/{uuid}.{extensión}, y esa ruta es lo que se
+ * guarda en usuario.foto_perfil. El bucket es privado: la foto no se puede
+ * abrir con un enlace de Supabase, solo a través de auth-service
+ * (GET /api/auth/fotos/..., con sesión iniciada; ver FotoController).
  *
  * Se usa la clave secreta del proyecto (supabase.secret-key), que salta las
  * reglas de acceso de Storage; por eso solo vive en el backend. Si falta, el
@@ -37,17 +43,27 @@ public class FotoPerfilStorage {
     /** Las fotos ya llegan reducidas desde el navegador; esto es solo un tope. */
     public static final int TAMANO_MAXIMO = 2 * 1024 * 1024;
 
+    /** Ruta válida de una foto: {idUsuario}/{uuid}.{jpeg|png|webp}. Evita pedir otra cosa del bucket. */
+    private static final Pattern RUTA = Pattern.compile("^(\\d+)/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.(jpeg|png|webp))$");
+
+    /** Foto descargada del bucket. */
+    public record Foto(byte[] bytes, MediaType tipo) {
+    }
+
     private final RestClient restClient;
     private final String urlPublica;
     private final String bucket;
     private final boolean configurado;
+    private final UsuarioRepository usuarioRepository;
 
     public FotoPerfilStorage(
             @Value("${supabase.url}") String supabaseUrl,
             @Value("${supabase.secret-key:}") String secretKey,
-            @Value("${supabase.bucket-fotos}") String bucket
+            @Value("${supabase.bucket-fotos}") String bucket,
+            UsuarioRepository usuarioRepository
     ) {
         this.bucket = bucket;
+        this.usuarioRepository = usuarioRepository;
         this.configurado = secretKey != null && !secretKey.isBlank();
         this.urlPublica = supabaseUrl + "/storage/v1/object/public/" + bucket + "/";
 
@@ -71,16 +87,41 @@ public class FotoPerfilStorage {
         this.restClient = builder.build();
     }
 
-    /** Crea el bucket al arrancar si no existe, para no tener que hacerlo a mano en Supabase. */
+    /**
+     * Al arrancar: deja el bucket privado (lo crea si no existe, para no
+     * tener que hacerlo a mano en Supabase) y pasa las fotos guardadas con la
+     * URL pública de antes a su ruta. Las dos cosas se pueden repetir sin
+     * problema, así que no importa que lo hagan las dos réplicas.
+     */
     @EventListener(ApplicationReadyEvent.class)
-    public void crearBucketSiFalta() {
+    public void prepararAlArrancar() {
+        int convertidas = usuarioRepository.quitarPrefijoFotoPerfil(urlPublica + "%", urlPublica.length() + 1);
+        if (convertidas > 0) {
+            log.info("{} fotos de perfil pasaron de URL pública a ruta en el bucket privado", convertidas);
+        }
+
         if (!configurado) {
-            log.warn("supabase.secret-key no está definida: no se podrán subir fotos de perfil");
+            log.warn("supabase.secret-key no está definida: no se podrán subir ni mostrar fotos de perfil");
             return;
         }
 
+        Map<String, Object> privado = Map.of(
+                "id", bucket,
+                "name", bucket,
+                "public", false,
+                "file_size_limit", TAMANO_MAXIMO,
+                "allowed_mime_types", new String[] {"image/jpeg", "image/png", "image/webp"}
+        );
+
         try {
             restClient.get().uri("/bucket/{id}", bucket).retrieve().toBodilessEntity();
+
+            // Existe: se deja privado (antes era público).
+            restClient.put().uri("/bucket/{id}", bucket)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(privado)
+                    .retrieve()
+                    .toBodilessEntity();
         } catch (RestClientResponseException e) {
             // Storage responde 400 o 404 cuando el bucket no existe.
             if (e.getStatusCode().value() != 400 && e.getStatusCode().value() != 404) {
@@ -92,13 +133,7 @@ public class FotoPerfilStorage {
                 restClient.post()
                         .uri("/bucket")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .body(Map.of(
-                                "id", bucket,
-                                "name", bucket,
-                                "public", true,
-                                "file_size_limit", TAMANO_MAXIMO,
-                                "allowed_mime_types", new String[] {"image/jpeg", "image/png", "image/webp"}
-                        ))
+                        .body(privado)
                         .retrieve()
                         .toBodilessEntity();
                 log.info("Bucket {} creado en Supabase Storage", bucket);
@@ -139,7 +174,7 @@ public class FotoPerfilStorage {
         return null;
     }
 
-    /** Sube la foto y devuelve su URL pública. Lanza RuntimeException si Storage falla. */
+    /** Sube la foto y devuelve su ruta en el bucket. Lanza RuntimeException si Storage falla. */
     public String subir(Integer idUsuario, byte[] bytes, MediaType tipo) {
         String archivo = UUID.randomUUID() + "." + tipo.getSubtype();
 
@@ -156,19 +191,51 @@ public class FotoPerfilStorage {
                 })
                 .toBodilessEntity();
 
-        return urlPublica + idUsuario + "/" + archivo;
+        return idUsuario + "/" + archivo;
+    }
+
+    /** true si es la ruta de una foto ({idUsuario}/{uuid}.{jpeg|png|webp}) y no otra cosa del bucket. */
+    public static boolean rutaValida(String ruta) {
+        return ruta != null && RUTA.matcher(ruta).matches();
+    }
+
+    /**
+     * Descarga la foto de esa ruta, o vacío si la ruta no es válida, no
+     * existe o Storage no responde (el frontend muestra la inicial o el ícono).
+     */
+    public Optional<Foto> descargar(String ruta) {
+        if (!configurado || !rutaValida(ruta)) {
+            return Optional.empty();
+        }
+        Matcher partes = RUTA.matcher(ruta);
+        partes.matches();
+
+        try {
+            ResponseEntity<byte[]> respuesta = restClient.get()
+                    .uri("/object/authenticated/{bucket}/{carpeta}/{archivo}", bucket, partes.group(1), partes.group(2))
+                    .retrieve()
+                    .toEntity(byte[].class);
+
+            byte[] bytes = respuesta.getBody();
+            MediaType tipo = bytes == null ? null : tipoDeImagen(bytes);
+            return tipo == null ? Optional.empty() : Optional.of(new Foto(bytes, tipo));
+        } catch (Exception e) {
+            log.warn("No se pudo descargar la foto {}: {}", ruta, e.getMessage());
+            return Optional.empty();
+        }
     }
 
     /**
      * Borra la foto anterior. Si falla solo queda un archivo huérfano en el
      * bucket, así que no se interrumpe al usuario.
      */
-    public void borrar(String url) {
-        if (url == null || !url.startsWith(urlPublica)) {
+    public void borrar(String guardada) {
+        if (guardada == null) {
             return;
         }
 
-        String ruta = url.substring(urlPublica.length());
+        // Puede ser una ruta o, si no se alcanzó a convertir, la URL pública de antes.
+        String ruta = guardada.startsWith(urlPublica) ? guardada.substring(urlPublica.length()) : guardada;
         String[] partes = ruta.split("/");
         if (partes.length != 2) {
             return;

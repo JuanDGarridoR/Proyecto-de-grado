@@ -9,7 +9,7 @@ public record AcompananteResponse(
         String nombre,
         String celular,
         String relacion,
-        /** URL pública de la foto de perfil, o null si no tiene. */
+        /** Ruta de la foto de perfil (se muestra con GET /api/auth/fotos/{ruta}), o null si no tiene. */
         String fotoPerfil
 ) {
 }

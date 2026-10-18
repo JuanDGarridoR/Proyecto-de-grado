@@ -50,6 +50,12 @@ class SinTokenValidoTest {
     }
 
     @Test
+    void sinSesionUnaFotoDePerfilNoSeEntrega() throws Exception {
+        mockMvc().perform(get("/api/auth/fotos/40/0f8fad5b-d9cb-469f-a165-70867728950e.jpeg"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void renovarLaSesionNoPideTokenDeAcceso() throws Exception {
         // La sesión no existe: responde 401 el controlador, no Spring Security.
         mockMvc().perform(post("/api/auth/sesion/renovar")

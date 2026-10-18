@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NEVER, of } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -27,6 +29,8 @@ describe('MarcoPanel', () => {
       imports: [MarcoPanel],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: AuthService,
           useValue: {
@@ -34,7 +38,9 @@ describe('MarcoPanel', () => {
             reactivarCuenta,
             logout: vi.fn(),
             getRol: () => 'PERSONA_MAYOR',
-            roles: () => of(['PERSONA_MAYOR'])
+            roles: () => of(['PERSONA_MAYOR']),
+            // Lo usa FotoPerfilService para olvidar las fotos al cerrar sesión.
+            estaAutenticadoSignal: () => () => true
           }
         },
         {

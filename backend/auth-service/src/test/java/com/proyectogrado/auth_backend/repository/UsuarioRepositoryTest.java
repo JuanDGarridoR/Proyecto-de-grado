@@ -118,6 +118,29 @@ class UsuarioRepositoryTest {
     }
 
     @Test
+    void lasFotosConLaUrlPublicaDeAntesPasanASuRutaYLasDemasNoCambian() {
+        String prefijo = "https://x.supabase.co/storage/v1/object/public/fotos-perfil/";
+        Usuario conUrl = usuario("Luis Peña", "+573001230001", "luis@vitamas.co");
+        conUrl.setFotoPerfil(prefijo + "1/0f8fad5b-d9cb-469f-a165-70867728950e.jpeg");
+        Usuario conRuta = usuario("Ana Ruiz", "+573001230002", "ana@vitamas.co");
+        conRuta.setFotoPerfil("2/9b2c1a3e-0000-4000-8000-000000000000.png");
+        Usuario sinFoto = usuario("Eva Gil", "+573001230003", "eva@vitamas.co");
+        Integer idConUrl = usuarioRepository.saveAndFlush(conUrl).getIdUsuario();
+        Integer idConRuta = usuarioRepository.saveAndFlush(conRuta).getIdUsuario();
+        Integer idSinFoto = usuarioRepository.saveAndFlush(sinFoto).getIdUsuario();
+
+        int cambiadas = usuarioRepository.quitarPrefijoFotoPerfil(prefijo + "%", prefijo.length() + 1);
+
+        assertEquals(1, cambiadas);
+        assertEquals("1/0f8fad5b-d9cb-469f-a165-70867728950e.jpeg", usuarioRepository.findById(idConUrl).orElseThrow().getFotoPerfil());
+        assertEquals("2/9b2c1a3e-0000-4000-8000-000000000000.png", usuarioRepository.findById(idConRuta).orElseThrow().getFotoPerfil());
+        assertNull(usuarioRepository.findById(idSinFoto).orElseThrow().getFotoPerfil());
+
+        // Repetirlo (la otra réplica al arrancar) no cambia nada.
+        assertEquals(0, usuarioRepository.quitarPrefijoFotoPerfil(prefijo + "%", prefijo.length() + 1));
+    }
+
+    @Test
     void noSePuedenRegistrarDosCuentasConElMismoCelular() {
         usuarioRepository.saveAndFlush(usuario("Luis Peña", "+573001230001", "luis@vitamas.co"));
 

@@ -49,6 +49,15 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
             @Param("bloqueadoHasta") LocalDateTime bloqueadoHasta
     );
 
+    /**
+     * Pasa las fotos guardadas con la URL pública de antes a su ruta en el
+     * bucket (quita el comienzo hasta la posición "desde"). Devuelve cuántas cambió.
+     */
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("UPDATE Usuario u SET u.fotoPerfil = SUBSTRING(u.fotoPerfil, :desde) WHERE u.fotoPerfil LIKE :patron")
+    int quitarPrefijoFotoPerfil(@Param("patron") String patron, @Param("desde") int desde);
+
     /** Borra los intentos fallidos y el bloqueo (al entrar o al restablecer la contraseña). */
     @Modifying(clearAutomatically = true)
     @Transactional

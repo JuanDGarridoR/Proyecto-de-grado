@@ -36,8 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class FotoPerfilControllerTest {
 
     private static final byte[] JPEG = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0, 0x10};
-    private static final String URL_NUEVA = "https://x.supabase.co/storage/v1/object/public/fotos-perfil/40/nueva.jpeg";
-    private static final String URL_ANTERIOR = "https://x.supabase.co/storage/v1/object/public/fotos-perfil/40/vieja.jpeg";
+    private static final String URL_NUEVA = "40/0f8fad5b-d9cb-469f-a165-70867728950e.jpeg";
+    private static final String URL_ANTERIOR = "40/9b2c1a3e-0000-4000-8000-000000000000.jpeg";
 
     private UsuarioRepository usuarioRepository;
     private FotoPerfilStorage storage;

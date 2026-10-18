@@ -1,5 +1,7 @@
 import { Component, input, signal } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
 import { Icono } from '../icono/icono';
+import { FotoPerfilPipe } from '../../core/foto-perfil/foto-perfil';
 
 /**
  * Foto de perfil de una persona u organización, o su ícono si no tiene
@@ -9,10 +11,11 @@ import { Icono } from '../icono/icono';
  */
 @Component({
   selector: 'app-avatar',
-  imports: [Icono],
+  imports: [Icono, AsyncPipe, FotoPerfilPipe],
   template: `
-    @if (foto() && foto() !== fotoRota()) {
-      <img [src]="foto()" alt="" loading="lazy" (error)="fotoRota.set(foto() ?? null)" />
+    @let src = foto() | fotoPerfil | async;
+    @if (src && src !== fotoRota()) {
+      <img [src]="src" alt="" (error)="fotoRota.set(src)" />
     } @else {
       <app-icono [name]="icono()" />
     }
@@ -34,7 +37,7 @@ import { Icono } from '../icono/icono';
   `,
 })
 export class Avatar {
-  /** URL de la foto de perfil; null o vacío muestra el ícono. */
+  /** Ruta de la foto de perfil (ver FotoPerfilService); null o vacío muestra el ícono. */
   readonly foto = input<string | null | undefined>(null);
   readonly icono = input('user');
 

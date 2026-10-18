@@ -234,3 +234,4 @@ Indicadores, reportes y visualizaciones para identificar patrones, apoyar el per
 | RNF-21 | **Seguridad.** El servidor web debe enviar cabeceras de seguridad: Content-Security-Policy (sin scripts en línea ni de otros dominios), HSTS, protección contra iframes, `nosniff`, `Referrer-Policy` y `Permissions-Policy`. | ✅ Implementado |
 | RNF-22 | **Privacidad.** Los registros (logs) no deben llevar datos personales: ni celulares, ni el texto de los SMS, ni las consultas SQL en el servidor, ni partes de las claves. | ✅ Implementado |
 | RNF-23 | **Seguridad.** Los contenedores deben correr con un usuario sin privilegios (salvo autoheal, que necesita el socket de Docker), y cada uno debe recibir solo las claves que usa. | ✅ Implementado |
+| RNF-24 | **Privacidad.** Las fotos de perfil deben estar en almacenamiento privado y mostrarse solo a personas con sesión iniciada, de modo que un enlace compartido no las abra fuera de la plataforma. | ✅ Implementado |

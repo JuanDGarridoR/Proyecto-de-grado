@@ -28,7 +28,7 @@ public class InformacionUsuarioResponse {
     /** false si el usuario inactivó su cuenta (nadie más la ve hasta que la reactive). */
     private boolean activo;
 
-    /** URL pública de la foto de perfil, o null si no tiene. */
+    /** Ruta de la foto de perfil en el bucket ({idUsuario}/{archivo}), o null si no tiene. */
     private String fotoPerfil;
 
     public InformacionUsuarioResponse(

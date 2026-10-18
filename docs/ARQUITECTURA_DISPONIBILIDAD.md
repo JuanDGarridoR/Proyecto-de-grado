@@ -43,6 +43,7 @@ flowchart TD
 | RNF-21 | Cabeceras de seguridad (CSP, HSTS y otras) | Punto 32 |
 | RNF-22 | Registros sin datos personales | Punto 30 |
 | RNF-23 | Contenedores sin root y con solo sus claves | Puntos 26 y 29 |
+| RNF-24 | Fotos de perfil privadas | Punto 31 |
 | Seguridad y privacidad en general | Datos protegidos, acceso solo con vínculo, cifrado | Parte 2, puntos 22 a 32 |
 | Rendimiento | Páginas que cargan rápido con mala señal | Parte 3, puntos 33 a 37 |
 | Escalabilidad | Crecer agregando instancias | Parte 4, punto 38 |
@@ -437,13 +438,18 @@ Ninguna clave va en el código. La contraseña de la base, el secreto del JWT y 
 
 - **Dónde:** `analitica-service/.../red/RedApoyo.java` y `recomendacion/Barrios.java`, `auth-service/.../service/TerminosService.java` y `model/AceptacionTerminos.java`, `service/CuentaService.java`, `api-gateway/.../eventos/`, los `scheduler/` de salud, persona mayor y actividad.
 
-### 31. Fotos de perfil
+### 31. Fotos de perfil privadas (RNF-24)
 
-- Cada foto se guarda en Supabase Storage como `{idUsuario}/{uuid}.{extensión}`. La URL no se puede adivinar, y el bucket no se puede listar sin la clave secreta, que solo tiene `auth-service`.
+- Las fotos están en un **bucket privado** de Supabase Storage: no se pueden abrir con un enlace de Supabase. Solo `auth-service` tiene la clave para leerlas.
+- Se muestran a través de `auth-service` (`GET /api/auth/fotos/{idUsuario}/{archivo}`), **solo con sesión iniciada**: si alguien comparte el enlace, fuera de Vita+ no abre. El nombre del archivo es un uuid que no se puede adivinar, así que tampoco sirve para recorrer las fotos de todos, y el backend solo acepta rutas con ese formato, no cualquier archivo del bucket.
+- Como una etiqueta `img` no puede mandar el token de la sesión, el frontend pide cada foto con el token, una sola vez por sesión, y la muestra desde memoria (`blob:`). Al cerrar sesión, las olvida.
+- La base guarda la **ruta** de la foto (`{idUsuario}/{uuid}.jpeg`), no una URL. Al arrancar, `auth-service` deja el bucket privado y pasa a ruta las fotos que se habían guardado con la URL pública de antes.
 - El backend revisa los **primeros bytes del archivo** para confirmar que es una imagen JPEG, PNG o WebP: no se fía del nombre ni del tipo que declara el navegador. Rechaza las fotos de más de 2 MB.
 - El navegador reduce la foto antes de subirla (punto 35), así que nunca viaja la imagen original de la cámara, con todo su peso.
 
-- **Dónde:** `auth-service/.../service/FotoPerfilStorage.java`, `controller/FotoPerfilController.java`, `frontend/src/app/core/foto-perfil/reducir-foto.ts`.
+> **Decisión:** no se usaron URLs firmadas de Supabase. La foto la devuelven seis servicios (en las listas de vínculos, acompañantes, organizaciones...), y para firmarlas cada uno necesitaría la clave secreta de Supabase, que es justo lo que evita el punto 29. Además, la CSP solo deja que el navegador haga peticiones al propio dominio (punto 32). Servirlas por `auth-service` logra lo mismo, que un enlace compartido no sirva, con la clave en un solo servicio.
+
+- **Dónde:** `auth-service/.../service/FotoPerfilStorage.java` (`descargar`, `prepararAlArrancar`), `controller/FotoController.java`, `controller/FotoPerfilController.java`, `repository/UsuarioRepository.java` (`quitarPrefijoFotoPerfil`), `frontend/src/app/core/foto-perfil/foto-perfil.ts` y `reducir-foto.ts`, `shared/avatar/avatar.ts`.
 
 ### 32. Consultas parametrizadas y validación en el backend
 
@@ -572,6 +578,7 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 | `auth-service/.../AuthControllerTest`, `ContrasenaControllerTest` | El login abre una sesión; renovar entrega un token con el rol de la pestaña, y solo uno que la cuenta tenga; con una sesión revocada responde 401; cambiar o restablecer la contraseña cierra las demás sesiones; una contraseña nueva de menos de 8 caracteres se rechaza |
 | `frontend/.../auth/auth.interceptor.spec.ts`, `auth.service.spec.ts` | Con un 401 se renueva el token una sola vez y se repite la petición; si la sesión ya no se puede renovar, se lleva a iniciar sesión; al cerrar sesión se revoca en el backend |
 | `docker compose config` | Cada contenedor recibe solo sus claves (tabla del punto 29), y sin `.env` Compose no arranca |
+| `auth-service/.../FotoControllerTest`, `SinTokenValidoTest`, `UsuarioRepositoryTest`; `frontend/.../foto-perfil/foto-perfil.spec.ts` | Sin sesión, una foto no se entrega; solo se aceptan rutas de fotos; las URLs públicas de antes pasan a ruta y repetirlo no cambia nada; el frontend pide cada foto una sola vez |
 | `api-gateway/.../filter/JwtAuthGatewayFilterFactoryTest` | Sin token, con un token vencido o firmado con otra clave, la petición no llega al servicio; un `X-User-Id` enviado por el cliente se reemplaza por el del token |
 | `api-gateway/.../RutasGatewayTest` | Las rutas protegidas exigen token y las que no se deben exponer (como `/api/otp/verify`) no tienen ruta |
 | `mensajeria-service/.../security/TextBeeOtpServiceTest` | El OTP se guarda como HMAC, vence a los 10 minutos, sirve una sola vez, se anula tras 5 fallos y no sirve para otro celular |
@@ -596,6 +603,7 @@ Las pruebas existentes de todos los servicios siguen pasando.
 | Una sola instancia del gateway | Si el gateway falla, la API no responde hasta que autoheal lo reinicia (alrededor de 1 minuto) | Avisos de tiempo real por Redis Pub/Sub y dos gateways detrás de Caddy |
 | El token de acceso no se revoca | Tras cerrar sesión, cambiar la contraseña o eliminar la cuenta, quien tuviera el token de acceso lo puede usar hasta 15 minutos más | Lista de tokens revocados en Redis, consultada por el gateway |
 | Tokens en el almacenamiento de la pestaña | Un script inyectado podría leerlos; lo impide la CSP mientras no se permitan scripts en línea | Cookie `HttpOnly` para el token de renovación, si se deja de permitir una cuenta por pestaña |
+| Las fotos las ve cualquier persona con sesión que tenga la ruta | No se revisa el vínculo: quien tenga sesión y la ruta de una foto (por ejemplo, porque se la compartieron) la puede ver | Revisar en `FotoController` que quien la pide tenga un vínculo aceptado con el dueño de la foto |
 | `mensajeria-service` sin réplica | Sin SMS ni códigos OTP mientras se reinicia | Guardar los OTP en la base de datos o en Redis y replicarlo |
 | Base de datos única (Supabase) | Si Supabase falla, fallan todos los servicios | Depende del plan de Supabase (réplicas de lectura, *point-in-time recovery*) |
 | Límites de peticiones en la memoria del gateway | Con dos gateways, cada uno contaría aparte y el límite real sería el doble. Al reiniciar el gateway, los contadores empiezan de cero | `RequestRateLimiter` de Spring Cloud Gateway con Redis |

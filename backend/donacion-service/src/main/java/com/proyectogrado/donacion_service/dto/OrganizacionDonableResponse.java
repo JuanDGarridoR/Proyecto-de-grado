@@ -6,7 +6,7 @@ public record OrganizacionDonableResponse(
         String nombre,
         String direccion,
         String celular,
-        /** URL pública de la foto de perfil, o null si no tiene. */
+        /** Ruta de la foto de perfil (se muestra con GET /api/auth/fotos/{ruta}), o null si no tiene. */
         String fotoPerfil
 ) {
 }

@@ -10,7 +10,7 @@ public record OrganizacionDisponibleResponse(
         String direccion,
         String celular,
         String correo,
-        /** URL pública de la foto de perfil, o null si no tiene. */
+        /** Ruta de la foto de perfil (se muestra con GET /api/auth/fotos/{ruta}), o null si no tiene. */
         String fotoPerfil,
         /** Ubicación de la sede en el mapa; null si no la ha marcado. */
         Double latitud,

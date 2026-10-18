@@ -11,7 +11,7 @@ public class ContactoResponse {
     private String celular;
     private String relacion;
 
-    /** URL pública de la foto de perfil, o null si no tiene. */
+    /** Ruta de la foto de perfil (se muestra con GET /api/auth/fotos/{ruta}), o null si no tiene. */
     private String fotoPerfil;
 
     public ContactoResponse(Integer idUsuario, String nombre, String celular, String relacion, String fotoPerfil) {
