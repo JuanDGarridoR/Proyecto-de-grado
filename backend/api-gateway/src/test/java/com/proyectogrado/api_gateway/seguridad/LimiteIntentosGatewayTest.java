@@ -49,6 +49,6 @@ class LimiteIntentosGatewayTest {
                 .exchange()
                 .expectStatus().isEqualTo(429)
                 .expectHeader().valueEquals("Access-Control-Allow-Origin", ORIGEN)
-                .expectBody().jsonPath("$.mensaje").isEqualTo(LimiteIntentosGlobalFilter.MENSAJE);
+                .expectBody().jsonPath("$.mensaje").isEqualTo(LimiteIntentosGlobalFilter.mensaje(60));
     }
 }

@@ -1,11 +1,15 @@
 package com.proyectogrado.mensajeria_backend.controller;
 
+import com.proyectogrado.mensajeria_backend.model.UsuarioLookup;
+import com.proyectogrado.mensajeria_backend.repository.UsuarioLookupRepository;
 import com.proyectogrado.mensajeria_backend.security.TextBeeOtpService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -25,12 +29,41 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class OtpControllerTest {
 
     private TextBeeOtpService textBeeOtpService;
+    private UsuarioLookupRepository usuarioLookupRepository;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         textBeeOtpService = mock(TextBeeOtpService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(new OtpController(textBeeOtpService)).build();
+        usuarioLookupRepository = mock(UsuarioLookupRepository.class);
+        // Por defecto el celular tiene cuenta.
+        when(usuarioLookupRepository.findFirstByCelular(anyString())).thenReturn(Optional.of(mock(UsuarioLookup.class)));
+        mockMvc = MockMvcBuilders.standaloneSetup(new OtpController(textBeeOtpService, usuarioLookupRepository)).build();
+    }
+
+    @Test
+    void aUnCelularSinCuentaNoSeLeEnviaNadaPeroLaRespuestaEsLaMisma() throws Exception {
+        when(usuarioLookupRepository.findFirstByCelular("+573009998877")).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/otp/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"phoneNumber\": \"+573009998877\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Código OTP enviado correctamente"));
+
+        verify(textBeeOtpService, never()).enviarCodigo(anyString());
+    }
+
+    @Test
+    void elCelularSeBuscaSinEspacios() throws Exception {
+        mockMvc.perform(post("/api/otp/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"phoneNumber\": \" +57 300 111 2233 \"}"))
+                .andExpect(status().isOk());
+
+        verify(usuarioLookupRepository).findFirstByCelular("+573001112233");
+        verify(textBeeOtpService).enviarCodigo("+573001112233");
     }
 
     @Test

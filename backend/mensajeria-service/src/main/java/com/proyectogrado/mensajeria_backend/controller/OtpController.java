@@ -1,5 +1,6 @@
 package com.proyectogrado.mensajeria_backend.controller;
 
+import com.proyectogrado.mensajeria_backend.repository.UsuarioLookupRepository;
 import com.proyectogrado.mensajeria_backend.security.TextBeeOtpService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,14 +17,23 @@ import java.util.Map;
 public class OtpController {
 
     private final TextBeeOtpService textBeeOtpService;
+    private final UsuarioLookupRepository usuarioLookupRepository;
 
-    public OtpController(TextBeeOtpService textBeeOtpService) {
+    public OtpController(
+            TextBeeOtpService textBeeOtpService,
+            UsuarioLookupRepository usuarioLookupRepository
+    ) {
         this.textBeeOtpService = textBeeOtpService;
+        this.usuarioLookupRepository = usuarioLookupRepository;
     }
 
     /**
-     * Envía un código OTP al celular. Si ya se pidió uno hace menos de 30
-     * segundos, responde 429.
+     * Envía un código OTP al celular, solo si tiene una cuenta: los códigos
+     * sirven para entrar y para recuperar la contraseña, y el registro no los
+     * usa. Si no tiene cuenta, responde lo mismo pero no envía nada, para no
+     * gastar SMS en números ajenos ni revelar qué celulares tienen cuenta.
+     * Si ya se pidió uno hace menos de 30 segundos, o se llegó al tope de
+     * códigos del día para ese celular, responde 429.
      *
      * Cuerpo: { "phoneNumber": "+573001234567" }
      */
@@ -43,7 +53,11 @@ public class OtpController {
                         ));
             }
 
-            textBeeOtpService.enviarCodigo(phoneNumber);
+            String celular = phoneNumber.trim().replaceAll("\\s+", "");
+
+            if (usuarioLookupRepository.findFirstByCelular(celular).isPresent()) {
+                textBeeOtpService.enviarCodigo(celular);
+            }
 
             return ResponseEntity.ok(
                     Map.of(

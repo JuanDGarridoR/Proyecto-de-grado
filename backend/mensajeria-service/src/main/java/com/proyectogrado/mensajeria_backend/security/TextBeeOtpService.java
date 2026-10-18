@@ -13,6 +13,8 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,6 +52,19 @@ public class TextBeeOtpService {
      */
     private static final long SEGUNDOS_ENTRE_ENVIOS = 30;
 
+    /**
+     * Códigos que se le pueden enviar a un mismo celular en un día (hora de
+     * Colombia). Cada código es un SMS pagado: sin este tope, alguien podría
+     * pedir códigos para un celular todo el día, cada 30 segundos. Alcanza
+     * de sobra para entrar y recuperar la contraseña varias veces.
+     */
+    static final int MAX_CODIGOS_POR_DIA = 8;
+
+    private static final ZoneId ZONA = ZoneId.of("America/Bogota");
+
+    /** Con más celulares que estos en el conteo diario, se borran los de días anteriores. */
+    private static final int LIMPIAR_CONTEO_DESDE = 10_000;
+
     private final SecureRandom random = new SecureRandom();
 
     /**
@@ -62,6 +77,10 @@ public class TextBeeOtpService {
 
     /** Último código enviado a cada celular (normalizado). */
     private final Map<String, CodigoOtp> codigosPendientes =
+            new ConcurrentHashMap<>();
+
+    /** Cuántos códigos se le enviaron hoy a cada celular (normalizado). */
+    private final Map<String, EnviosDelDia> enviosPorDia =
             new ConcurrentHashMap<>();
 
     private final HttpClient httpClient = HttpClient.newBuilder()
@@ -96,6 +115,20 @@ public class TextBeeOtpService {
                     "Espera unos segundos antes de pedir otro código"
             );
         }
+
+        LocalDate hoy = LocalDate.now(ZONA);
+        limpiarConteoSiHaceFalta(hoy);
+
+        EnviosDelDia delDia = enviosPorDia.get(celularNormalizado);
+        int enviadosHoy = delDia != null && delDia.fecha().equals(hoy) ? delDia.envios() : 0;
+
+        if (enviadosHoy >= MAX_CODIGOS_POR_DIA) {
+            throw new IllegalStateException(
+                    "Ya se enviaron muchos códigos a este celular hoy. Intenta de nuevo mañana."
+            );
+        }
+
+        enviosPorDia.put(celularNormalizado, new EnviosDelDia(hoy, enviadosHoy + 1));
 
         String codigo = generarCodigo();
 
@@ -342,6 +375,17 @@ public class TextBeeOtpService {
     private String normalizarCelular(String celular) {
 
         return celular.trim().replaceAll("\\s+", "");
+    }
+
+    /** Borra el conteo de días anteriores, para que la memoria no crezca sin límite. */
+    private void limpiarConteoSiHaceFalta(LocalDate hoy) {
+        if (enviosPorDia.size() >= LIMPIAR_CONTEO_DESDE) {
+            enviosPorDia.values().removeIf(envios -> !envios.fecha().equals(hoy));
+        }
+    }
+
+    /** Códigos enviados a un celular en una fecha. */
+    private record EnviosDelDia(LocalDate fecha, int envios) {
     }
 
     /** Código pendiente de un celular: su HMAC, cuándo se envió, cuándo vence y cuántos fallos lleva. */

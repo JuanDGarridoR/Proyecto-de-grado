@@ -37,7 +37,8 @@ flowchart TD
 | RNF-15 | Desplegada en un hosting accesible por internet | Pendiente (ver *Cómo se comprobó*) |
 | RNF-16 | Tolerancia a fallos | Parte 1, puntos 11 a 21 |
 | RNF-17 | Mapas de la organización sin la dirección exacta | Punto 30 |
-| RNF-18 | Bloqueo tras 5 contraseñas incorrectas y límite de intentos por IP | Punto 22 |
+| RNF-18 | Bloqueo tras 5 contraseñas incorrectas y límite de peticiones por IP | Puntos 22 y 26 |
+| RNF-19 | Códigos por SMS solo a celulares con cuenta, con tope diario | Punto 27 |
 | Seguridad y privacidad en general | Datos protegidos, acceso solo con vínculo, cifrado | Parte 2, puntos 22 a 32 |
 | Rendimiento | Páginas que cargan rápido con mala señal | Parte 3, puntos 33 a 37 |
 | Escalabilidad | Crecer agregando instancias | Parte 4, punto 38 |
@@ -284,7 +285,7 @@ Para que no se puedan probar contraseñas sin fin, hay dos barreras que se compl
 | Barrera | Qué frena | Cómo funciona |
 |---|---|---|
 | **Bloqueo de la cuenta** (`auth-service`) | A quien ataca una cuenta | Tras **5 contraseñas incorrectas seguidas**, la cuenta no acepta contraseñas durante **15 minutos**: ni siquiera se revisa la contraseña, y se responde 429 con un mensaje que dice cuánto falta. Un inicio de sesión exitoso borra los intentos. Restablecer la contraseña con el código por SMS desbloquea de una vez, y entrar con el celular y el código sigue funcionando, así que la persona dueña de la cuenta nunca queda por fuera |
-| **Límite por IP** (gateway) | A quien prueba muchas cuentas desde la misma IP | Máximo **10 intentos por minuto** por IP en `/api/auth/login`, `/api/auth/login-otp` y `/api/auth/restablecer-contrasena`. Pasado el límite, el gateway responde 429 (con `Retry-After`) sin llegar a `auth-service` |
+| **Límite por IP** (gateway) | A quien prueba muchas cuentas desde la misma IP | Máximo **10 intentos por minuto** por IP en `/api/auth/login`, `/api/auth/login-otp` y `/api/auth/restablecer-contrasena`. Pasado el límite, el gateway responde 429 (con `Retry-After`) sin llegar a `auth-service`. Las demás rutas públicas también tienen límite (punto 26) |
 
 > **Decisiones:**
 > - El contador del bloqueo vive **en la base de datos**, no en memoria, porque `auth-service` corre en dos réplicas y cada intento puede caer en una distinta. Se suma con una sola sentencia `UPDATE`, para que dos intentos simultáneos no se pisen.
@@ -336,8 +337,14 @@ El frontend también oculta lo que no le corresponde a cada rol (`authGuard`), p
   - El catálogo de intereses (`/api/gustos`) se puede consultar y ampliar, pero no editar ni borrar: un interés lo pueden tener marcado otras personas, y nadie debe poder cambiárselo. Los intereses de cada persona mayor solo los ve ella misma.
 - De Actuator solo se expone `health`, en el puerto 9000, que no se publica (punto 11).
 - **CORS** solo acepta peticiones del navegador que vengan de la dirección pública de la plataforma (`CORS_ORIGINS`).
+- **Las rutas públicas que se pueden abusar tienen un límite por IP** en el gateway. Pasado el límite, se responde 429 con `Retry-After` y un mensaje que dice cuánto esperar, sin llegar al servicio. Una petición rechazada no gasta cupo.
 
-- **Dónde:** `docker-compose.yml`, `api-gateway/src/main/resources/application.yml` (rutas y `globalcors`), `persona-mayor-service/.../controller/GustoController.java` y `PersonaMayorGustoController.java`.
+| Ruta | Límite por IP | Qué evita |
+|---|---|---|
+| `POST /api/auth/login`, `/login-otp`, `/restablecer-contrasena` | 10 por minuto | Probar contraseñas o códigos (punto 22) |
+| `POST /api/otp/send` | 5 cada 10 minutos y 20 al día | Gastar el saldo de SMS (punto 27) |
+
+- **Dónde:** `docker-compose.yml`, `api-gateway/src/main/resources/application.yml` (rutas y `globalcors`), `api-gateway/.../seguridad/LimiteIntentosGlobalFilter.java`, `persona-mayor-service/.../controller/GustoController.java` y `PersonaMayorGustoController.java`.
 
 ### 27. Códigos OTP (RNF-03)
 
@@ -350,7 +357,11 @@ Los códigos para entrar con el celular o recuperar la contraseña tienen seis d
 | Intentos fallidos | Al quinto, el código se anula y hay que pedir otro |
 | Después de usarlo | Se borra: sirve una sola vez |
 | Espera entre envíos | 30 s por celular (responde 429) |
+| A quién se envía | Solo a celulares con cuenta: los códigos sirven para entrar y recuperar la contraseña, y el registro no los usa. Si el celular no tiene cuenta, la respuesta es la misma pero no se envía nada |
+| Tope diario | 8 códigos por celular al día (hora de Colombia). Las alertas de emergencia y los recordatorios no cuentan |
 | Registros (logs) | No se imprime la respuesta de TextBee, que puede incluir el texto del SMS con el código |
+
+Además, el gateway limita los envíos por IP (punto 26). Así, el gasto máximo en SMS queda acotado aunque alguien lo intente desde muchos celulares o muchas IP.
 
 - **Dónde:** `mensajeria-service/.../security/TextBeeOtpService.java`, `controller/OtpController.java`.
 
@@ -505,7 +516,8 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 | `organizacion-service/.../NotaPersonaMayorControllerTest`, `auth-service/.../PersonaMayorAcompananteInformacionControllerTest` | Una organización o un acompañante sin vínculo no ve ni edita los datos de la persona mayor |
 | `auth-service/.../FotoPerfilControllerTest` | Se rechaza un archivo que dice ser imagen pero no lo es |
 | `auth-service/.../AuthControllerTest`, `UsuarioRepositoryTest` | La quinta contraseña incorrecta seguida bloquea la cuenta 15 minutos; bloqueada, ni la contraseña correcta sirve; al vencer el bloqueo o restablecer la contraseña se puede volver a entrar |
-| `api-gateway/.../seguridad/LimiteIntentosGlobalFilterTest`, `LimiteIntentosGatewayTest` | Pasados 10 intentos por minuto, la IP recibe 429 sin llegar a `auth-service`, con las cabeceras CORS para que el frontend muestre el mensaje; otras IP y otras rutas no se afectan |
+| `api-gateway/.../seguridad/LimiteIntentosGlobalFilterTest`, `LimiteIntentosGatewayTest` | Pasado el límite de cada ruta (login y envío de códigos), la IP recibe 429 sin llegar al servicio, con las cabeceras CORS para que el frontend muestre el mensaje; otras IP y otras rutas no se afectan |
+| `mensajeria-service/.../OtpControllerTest`, `TextBeeOtpServiceTest` | A un celular sin cuenta no se le envía nada pero la respuesta es la misma; a un celular se le envían máximo 8 códigos al día |
 | `persona-mayor-service/.../GustoControllerTest` | El catálogo de intereses no se puede editar ni borrar, y los intereses de una persona mayor solo los ve ella |
 
 Las pruebas existentes de todos los servicios siguen pasando.
@@ -522,6 +534,6 @@ Las pruebas existentes de todos los servicios siguen pasando.
 | Una sola instancia del gateway | Si el gateway falla, la API no responde hasta que autoheal lo reinicia (alrededor de 1 minuto) | Avisos de tiempo real por Redis Pub/Sub y dos gateways detrás de Caddy |
 | `mensajeria-service` sin réplica | Sin SMS ni códigos OTP mientras se reinicia | Guardar los OTP en la base de datos o en Redis y replicarlo |
 | Base de datos única (Supabase) | Si Supabase falla, fallan todos los servicios | Depende del plan de Supabase (réplicas de lectura, *point-in-time recovery*) |
-| Límite de peticiones solo en el inicio de sesión | Pedir muchos códigos OTP (cada uno es un SMS) o consultar en masa las rutas públicas del registro podría saturar un servicio o gastar SMS | Agregar esas rutas a `LimiteIntentosGlobalFilter` (punto 22), o usar `RequestRateLimiter` con Redis si hay más de un gateway |
+| Límites de peticiones en la memoria del gateway | Con dos gateways, cada uno contaría aparte y el límite real sería el doble. Al reiniciar el gateway, los contadores empiezan de cero | `RequestRateLimiter` de Spring Cloud Gateway con Redis |
 | Sin monitoreo centralizado | Las caídas se ven en los logs, no en un tablero | Exponer `/actuator/prometheus` y usar Prometheus con Grafana |
 | `ddl-auto=update` en producción | Un cambio de modelo podría alterar tablas al arrancar | Migraciones versionadas (Flyway) |

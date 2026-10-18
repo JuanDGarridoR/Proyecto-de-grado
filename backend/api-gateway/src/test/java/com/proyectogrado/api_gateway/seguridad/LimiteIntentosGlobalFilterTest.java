@@ -19,8 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Límite de intentos por IP en el login y la recuperación de contraseña:
- * pasado el máximo, el gateway responde 429 sin llegar a auth-service.
+ * Límite de peticiones por IP en las rutas públicas que se pueden abusar
+ * (login y envío de códigos por SMS):
+ * pasado el máximo, el gateway responde 429 sin llegar al servicio.
  */
 class LimiteIntentosGlobalFilterTest {
 
@@ -86,7 +87,7 @@ class LimiteIntentosGlobalFilterTest {
         assertEquals(HttpStatus.TOO_MANY_REQUESTS, estado(bloqueada));
         assertEquals(10, llegaronAlServicio);
         assertEquals("60", bloqueada.getResponse().getHeaders().getFirst("Retry-After"));
-        assertTrue(bloqueada.getResponse().getBodyAsString().block().contains(LimiteIntentosGlobalFilter.MENSAJE));
+        assertTrue(bloqueada.getResponse().getBodyAsString().block().contains("Espera un minuto"));
     }
 
     @Test
@@ -129,5 +130,29 @@ class LimiteIntentosGlobalFilterTest {
 
         assertEquals(HttpStatus.TOO_MANY_REQUESTS,
                 estado(enviar(HttpMethod.POST, "/api/auth/login", "1.2.3.4, 200.1.1.1")));
+    }
+
+    @Test
+    void losCodigosPorSmsTienenUnLimiteCadaDiezMinutosYOtroPorDia() {
+        for (int i = 0; i < 5; i++) {
+            enviar(HttpMethod.POST, "/api/otp/send", "200.1.1.1");
+        }
+        MockServerWebExchange sexto = enviar(HttpMethod.POST, "/api/otp/send", "200.1.1.1");
+        assertEquals(HttpStatus.TOO_MANY_REQUESTS, estado(sexto));
+        assertEquals("600", sexto.getResponse().getHeaders().getFirst("Retry-After"));
+
+        // Cada diez minutos se pueden 5 más, hasta 20 en el día.
+        for (int bloque = 0; bloque < 3; bloque++) {
+            reloj.adelantar(Duration.ofMinutes(10));
+            for (int i = 0; i < 5; i++) {
+                assertEquals(HttpStatus.UNAUTHORIZED, estado(enviar(HttpMethod.POST, "/api/otp/send", "200.1.1.1")));
+            }
+        }
+        reloj.adelantar(Duration.ofMinutes(10));
+
+        MockServerWebExchange vigesimoPrimero = enviar(HttpMethod.POST, "/api/otp/send", "200.1.1.1");
+        assertEquals(HttpStatus.TOO_MANY_REQUESTS, estado(vigesimoPrimero));
+        assertTrue(vigesimoPrimero.getResponse().getBodyAsString().block().contains("por hoy"));
+        assertEquals(20, llegaronAlServicio);
     }
 }

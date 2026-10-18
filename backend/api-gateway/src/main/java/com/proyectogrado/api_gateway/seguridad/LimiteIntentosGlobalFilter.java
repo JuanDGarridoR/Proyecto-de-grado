@@ -24,13 +24,18 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Límite de intentos por IP en las rutas públicas donde se prueban
- * contraseñas o códigos. Complementa el bloqueo de la cuenta tras 5
- * contraseñas incorrectas (auth-service): ese frena a quien ataca una
- * cuenta; este, a quien prueba muchas cuentas desde la misma IP.
+ * Límite de peticiones por IP en las rutas públicas que se pueden abusar:
+ * donde se prueban contraseñas o códigos, y donde se envían SMS (cada uno
+ * se paga).
  *
- * Si una IP pasa el máximo de una regla dentro de su ventana, el gateway
- * responde 429 sin llegar al servicio, hasta que la ventana termina.
+ * Complementa los límites de los servicios: el bloqueo de la cuenta tras 5
+ * contraseñas incorrectas (auth-service) y el tope de códigos por celular
+ * (mensajeria-service). Esos frenan a quien ataca una cuenta o un celular;
+ * este, a quien hace muchas peticiones desde la misma IP.
+ *
+ * Una ruta puede tener varias reglas (por ejemplo, por minutos y por día);
+ * cada una cuenta aparte, y si alguna pasa su máximo, el gateway responde
+ * 429 sin llegar al servicio hasta que termina la ventana de esa regla.
  *
  * Los contadores viven en memoria: basta porque hay un solo gateway (ver
  * ARQUITECTURA_DISPONIBILIDAD.md, punto 13). Con varios gateways habría
@@ -39,24 +44,34 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class LimiteIntentosGlobalFilter implements GlobalFilter, Ordered {
 
-    /** Ruta (solo POST), cuántas peticiones se permiten por IP y en cuánto tiempo. */
-    record Regla(String ruta, int maximo, Duration ventana) {
+    /** Método y ruta, cuántas peticiones se permiten por IP y en cuánto tiempo. */
+    record Regla(HttpMethod metodo, String ruta, int maximo, Duration ventana) {
     }
 
-    static final List<Regla> REGLAS = List.of(
-            new Regla("/api/auth/login", 10, Duration.ofMinutes(1)),
-            new Regla("/api/auth/login-otp", 10, Duration.ofMinutes(1)),
-            new Regla("/api/auth/restablecer-contrasena", 10, Duration.ofMinutes(1))
-    );
+    private static final Duration MINUTO = Duration.ofMinutes(1);
+    private static final Duration DIA = Duration.ofDays(1);
 
-    static final String MENSAJE =
-            "Hiciste demasiados intentos seguidos. Espera un minuto e intenta de nuevo.";
+    static final List<Regla> REGLAS = List.of(
+            // Probar contraseñas o códigos
+            new Regla(HttpMethod.POST, "/api/auth/login", 10, MINUTO),
+            new Regla(HttpMethod.POST, "/api/auth/login-otp", 10, MINUTO),
+            new Regla(HttpMethod.POST, "/api/auth/restablecer-contrasena", 10, MINUTO),
+
+            // Cada código es un SMS pagado. Para entrar o recuperar la
+            // contraseña alcanzan de sobra unos pocos al día.
+            new Regla(HttpMethod.POST, "/api/otp/send", 5, Duration.ofMinutes(10)),
+            new Regla(HttpMethod.POST, "/api/otp/send", 20, DIA)
+
+    );
 
     /** Con más contadores que estos, se borran los de ventanas ya terminadas. */
     private static final int LIMPIAR_DESDE = 10_000;
 
-    /** Peticiones de una IP a una regla desde que empezó su ventana. */
-    private record Ventana(Instant inicio, int peticiones) {
+    /** Peticiones de una IP a una regla desde que empezó su ventana, y cuánto dura esa ventana. */
+    private record Ventana(Instant inicio, Duration duracion, int peticiones) {
+        boolean terminada(Instant ahora) {
+            return !ahora.isBefore(inicio.plus(duracion));
+        }
     }
 
     private final Map<String, Ventana> ventanas = new ConcurrentHashMap<>();
@@ -73,38 +88,60 @@ public class LimiteIntentosGlobalFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
-        if (!HttpMethod.POST.equals(request.getMethod())) {
-            return chain.filter(exchange);
-        }
-
-        Regla regla = reglaDe(request.getPath().value());
-        if (regla == null) {
+        List<Regla> reglas = reglasDe(request.getMethod(), request.getPath().value());
+        if (reglas.isEmpty()) {
             return chain.filter(exchange);
         }
 
         Instant ahora = reloj.instant();
         limpiarSiHaceFalta(ahora);
+        String ip = ipDe(request);
 
-        Ventana ventana = ventanas.compute(ipDe(request) + " " + regla.ruta(), (clave, actual) ->
-                actual == null || !ahora.isBefore(actual.inicio().plus(regla.ventana()))
-                        ? new Ventana(ahora, 1)
-                        : new Ventana(actual.inicio(), actual.peticiones() + 1));
-
-        if (ventana.peticiones() <= regla.maximo()) {
-            return chain.filter(exchange);
-        }
-
-        long segundos = Math.max(1, Duration.between(ahora, ventana.inicio().plus(regla.ventana())).getSeconds());
-        return responderDemasiadasPeticiones(exchange.getResponse(), segundos);
-    }
-
-    private static Regla reglaDe(String ruta) {
-        for (Regla regla : REGLAS) {
-            if (regla.ruta().equals(ruta)) {
-                return regla;
+        // Primero se revisan todas las reglas de la ruta. Si alguna ya llegó a
+        // su máximo, se responde 429 sin contar la petición en ninguna: una
+        // petición rechazada no gasta cupo. Se espera a que termine la ventana
+        // más lejana de las que se pasaron.
+        long segundosDeEspera = 0;
+        for (Regla regla : reglas) {
+            Ventana ventana = ventanas.get(clave(ip, regla));
+            if (ventana != null && !ventana.terminada(ahora) && ventana.peticiones() >= regla.maximo()) {
+                long segundos = Duration.between(ahora, ventana.inicio().plus(regla.ventana())).getSeconds();
+                segundosDeEspera = Math.max(segundosDeEspera, Math.max(1, segundos));
             }
         }
-        return null;
+
+        if (segundosDeEspera > 0) {
+            return responderDemasiadasPeticiones(exchange.getResponse(), segundosDeEspera);
+        }
+
+        for (Regla regla : reglas) {
+            ventanas.compute(clave(ip, regla), (clave, actual) -> actual == null || actual.terminada(ahora)
+                    ? new Ventana(ahora, regla.ventana(), 1)
+                    : new Ventana(actual.inicio(), regla.ventana(), actual.peticiones() + 1));
+        }
+        return chain.filter(exchange);
+    }
+
+    private static String clave(String ip, Regla regla) {
+        return ip + " " + regla.metodo() + " " + regla.ruta() + " " + regla.ventana();
+    }
+
+    private static List<Regla> reglasDe(HttpMethod metodo, String ruta) {
+        return REGLAS.stream()
+                .filter(regla -> regla.metodo().equals(metodo) && regla.ruta().equals(ruta))
+                .toList();
+    }
+
+    /** Mensaje para la persona según cuánto le falta esperar. */
+    static String mensaje(long segundos) {
+        long minutos = (segundos + 59) / 60;
+        if (minutos <= 1) {
+            return "Hiciste demasiados intentos seguidos. Espera un minuto e intenta de nuevo.";
+        }
+        if (minutos <= 60) {
+            return "Hiciste demasiados intentos seguidos. Intenta de nuevo en " + minutos + " minutos.";
+        }
+        return "Hiciste demasiados intentos por hoy desde esta conexión. Intenta de nuevo más tarde.";
     }
 
     /**
@@ -128,8 +165,7 @@ public class LimiteIntentosGlobalFilter implements GlobalFilter, Ordered {
         if (ventanas.size() < LIMPIAR_DESDE) {
             return;
         }
-        Duration ventanaMasLarga = REGLAS.stream().map(Regla::ventana).max(Duration::compareTo).orElseThrow();
-        ventanas.values().removeIf(v -> !ahora.isBefore(v.inicio().plus(ventanaMasLarga)));
+        ventanas.values().removeIf(ventana -> ventana.terminada(ahora));
     }
 
     /** 429 con el mismo formato de mensaje que auth-service ({"mensaje": ...}) y el encabezado Retry-After. */
@@ -138,7 +174,7 @@ public class LimiteIntentosGlobalFilter implements GlobalFilter, Ordered {
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
         response.getHeaders().set(HttpHeaders.RETRY_AFTER, String.valueOf(segundos));
 
-        byte[] cuerpo = ("{\"mensaje\": \"" + MENSAJE + "\"}").getBytes(StandardCharsets.UTF_8);
+        byte[] cuerpo = ("{\"mensaje\": \"" + mensaje(segundos) + "\"}").getBytes(StandardCharsets.UTF_8);
         DataBuffer buffer = response.bufferFactory().wrap(cuerpo);
         return response.writeWith(Mono.just(buffer));
     }

@@ -14,11 +14,14 @@ type ModoLogin = 'correo' | 'celular';
 
 /**
  * Mensaje para un 429: la cuenta quedó bloqueada por contraseñas
- * incorrectas (auth-service) o la IP hizo demasiados intentos (gateway).
- * Los dos mandan el texto en "mensaje".
+ * incorrectas (auth-service), la IP hizo demasiados intentos (gateway) o
+ * se pidieron demasiados códigos (mensajeria-service). Los dos primeros
+ * mandan el texto en "mensaje"; mensajeria-service, en "message".
  */
-function mensajeDeDemasiadosIntentos(err: { error?: { mensaje?: string } }): string {
-  return err.error?.mensaje || 'Hiciste demasiados intentos seguidos. Espera unos minutos e intenta de nuevo.';
+function mensajeDeDemasiadosIntentos(err: { error?: { mensaje?: string; message?: string } }): string {
+  return err.error?.mensaje
+    || err.error?.message
+    || 'Hiciste demasiados intentos seguidos. Espera unos minutos e intenta de nuevo.';
 }
 
 /**
@@ -226,9 +229,13 @@ enviarCodigoRecuperacion(): void {
                 error
               );
 
-              this.errorMensaje.set(
-                'No se pudo enviar el código. Intenta nuevamente.'
-              );
+              if (error?.status === 429) {
+                this.errorMensaje.set(mensajeDeDemasiadosIntentos(error));
+              } else {
+                this.errorMensaje.set(
+                  'No se pudo enviar el código. Intenta nuevamente.'
+                );
+              }
 
               this.recuperacionOtpEnviado.set(false);
 
@@ -462,9 +469,13 @@ this.authService
               error
             );
 
-            this.errorMensaje.set(
-              'No se pudo enviar el código. Verifica el número.'
-            );
+            if (error?.status === 429) {
+              this.errorMensaje.set(mensajeDeDemasiadosIntentos(error));
+            } else {
+              this.errorMensaje.set(
+                'No se pudo enviar el código. Verifica el número.'
+              );
+            }
           }
         });
     },

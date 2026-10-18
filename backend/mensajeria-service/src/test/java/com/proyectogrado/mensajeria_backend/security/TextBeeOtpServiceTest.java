@@ -31,6 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -227,6 +228,23 @@ class TextBeeOtpServiceTest {
         servicio.enviarCodigo(CELULAR);
 
         assertThrows(IllegalStateException.class, () -> servicio.enviarCodigo(CELULAR));
+    }
+
+    @Test
+    void aUnMismoCelularSeLeEnvianComoMaximoOchoCodigosAlDia() throws Exception {
+        for (int i = 0; i < TextBeeOtpService.MAX_CODIGOS_POR_DIA; i++) {
+            servicio.enviarCodigo(CELULAR);
+            // Como si hubieran pasado los 30 segundos de espera entre envíos.
+            codigosPendientes().remove(CELULAR);
+        }
+
+        IllegalStateException error = assertThrows(IllegalStateException.class, () -> servicio.enviarCodigo(CELULAR));
+        assertEquals("Ya se enviaron muchos códigos a este celular hoy. Intenta de nuevo mañana.", error.getMessage());
+        verify(httpClient, times(TextBeeOtpService.MAX_CODIGOS_POR_DIA)).send(any(HttpRequest.class), any());
+
+        // Otro celular tiene su propio tope, y las alertas no cuentan.
+        servicio.enviarCodigo("+573004445566");
+        servicio.enviarMensaje(CELULAR, "Alerta de emergencia");
     }
 
     @Test
