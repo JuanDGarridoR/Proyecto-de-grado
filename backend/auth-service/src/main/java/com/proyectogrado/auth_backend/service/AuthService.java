@@ -28,7 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
 
@@ -41,6 +44,14 @@ import java.util.List;
  */
 @Service
 public class AuthService {
+
+    /** Contraseñas incorrectas seguidas que bloquean la cuenta. */
+    public static final int MAXIMO_INTENTOS_FALLIDOS = 5;
+
+    /** Cuánto dura el bloqueo. */
+    public static final Duration DURACION_BLOQUEO = Duration.ofMinutes(15);
+
+    private static final ZoneId ZONA = ZoneId.of("America/Bogota");
 
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
@@ -111,16 +122,49 @@ public class AuthService {
         // Una cuenta inactiva sí puede entrar: desde su perfil la reactiva
         // (ver CuentaService). Mientras tanto nadie más la ve.
 
+        // Bloqueada: ni se revisa la contraseña, para que seguir probando no sirva.
+        LocalDateTime ahora = LocalDateTime.now(ZONA);
+        verificarQueNoEsteBloqueada(usuario, ahora);
+
         boolean contrasenaCorrecta = passwordEncoder.matches(
                 request.getContrasena(),
                 usuario.getContrasenaHash()
         );
 
         if (!contrasenaCorrecta) {
+            // El contador vive en la base (y no en memoria) porque auth-service
+            // corre en dos réplicas: cada intento puede caer en una distinta.
+            usuarioRepository.registrarIntentoFallido(
+                    usuario.getIdUsuario(),
+                    MAXIMO_INTENTOS_FALLIDOS,
+                    ahora.plus(DURACION_BLOQUEO)
+            );
+            // Si este fue el intento que la bloqueó, se avisa de una vez.
+            usuarioRepository.findById(usuario.getIdUsuario())
+                    .ifPresent(actualizado -> verificarQueNoEsteBloqueada(actualizado, ahora));
+
             throw new RuntimeException("Correo o contraseña incorrectos");
         }
 
+        if (tieneIntentosFallidos(usuario)) {
+            usuarioRepository.reiniciarIntentosFallidos(usuario.getIdUsuario());
+        }
+
         return generarRespuestaLogin(usuario, "Inicio de sesión exitoso");
+    }
+
+    /** Lanza CuentaBloqueadaException si la cuenta sigue bloqueada a esta hora. */
+    private void verificarQueNoEsteBloqueada(Usuario usuario, LocalDateTime ahora) {
+        LocalDateTime hasta = usuario.getBloqueadoHasta();
+        if (hasta != null && ahora.isBefore(hasta)) {
+            long segundos = Duration.between(ahora, hasta).getSeconds();
+            throw new CuentaBloqueadaException(Math.max(1, (segundos + 59) / 60));
+        }
+    }
+
+    private boolean tieneIntentosFallidos(Usuario usuario) {
+        return (usuario.getIntentosFallidos() != null && usuario.getIntentosFallidos() > 0)
+                || usuario.getBloqueadoHasta() != null;
     }
 
     /** Inicio de sesión con el celular y el código OTP que llegó por SMS. */
@@ -221,6 +265,11 @@ public void restablecerContrasena(
                     request.getContrasena()
             )
     );
+
+        // Quien demostró con el código que el celular es suyo puede volver a
+        // entrar de una vez, aunque la cuenta estuviera bloqueada.
+        usuario.setIntentosFallidos(0);
+        usuario.setBloqueadoHasta(null);
 
         usuarioRepository.save(usuario);
     }

@@ -37,6 +37,7 @@ flowchart TD
 | RNF-15 | Desplegada en un hosting accesible por internet | Pendiente (ver *Cómo se comprobó*) |
 | RNF-16 | Tolerancia a fallos | Parte 1, puntos 11 a 21 |
 | RNF-17 | Mapas de la organización sin la dirección exacta | Punto 30 |
+| RNF-18 | Bloqueo tras 5 contraseñas incorrectas y límite de intentos por IP | Punto 22 |
 | Seguridad y privacidad en general | Datos protegidos, acceso solo con vínculo, cifrado | Parte 2, puntos 22 a 32 |
 | Rendimiento | Páginas que cargan rápido con mala señal | Parte 3, puntos 33 a 37 |
 | Escalabilidad | Crecer agregando instancias | Parte 4, punto 38 |
@@ -274,11 +275,23 @@ Un interceptor HTTP de Angular repite **solo las consultas (GET)** que fallan po
 
 Vita+ guarda datos sensibles de personas mayores: salud, medicamentos, citas médicas, signos vitales, dirección y contactos. Las decisiones de esta parte buscan que **solo quien tiene un vínculo aceptado con una persona vea sus datos**, que esos datos viajen cifrados y que la plataforma exponga lo mínimo a internet.
 
-### 22. Contraseñas con BCrypt y un login que no revela cuentas
+### 22. Contraseñas con BCrypt e inicio de sesión protegido contra ataques de fuerza bruta (RNF-18)
 
 Las contraseñas se guardan solo como hash **BCrypt** (`BCryptPasswordEncoder`), nunca en claro. Cambiar la contraseña exige la actual, y recuperarla exige el código OTP enviado al celular de la cuenta. El login responde lo mismo si el correo no existe o si la contraseña no coincide (*"Correo o contraseña incorrectos"*), para no revelar qué correos tienen cuenta. También se puede entrar sin contraseña, con el celular y un código OTP (punto 27).
 
-- **Dónde:** `auth-service/.../security/SecurityConfig.java`, `service/AuthService.java` (`login`, `restablecerContrasena`), `controller/ContrasenaController.java`.
+Para que no se puedan probar contraseñas sin fin, hay dos barreras que se complementan:
+
+| Barrera | Qué frena | Cómo funciona |
+|---|---|---|
+| **Bloqueo de la cuenta** (`auth-service`) | A quien ataca una cuenta | Tras **5 contraseñas incorrectas seguidas**, la cuenta no acepta contraseñas durante **15 minutos**: ni siquiera se revisa la contraseña, y se responde 429 con un mensaje que dice cuánto falta. Un inicio de sesión exitoso borra los intentos. Restablecer la contraseña con el código por SMS desbloquea de una vez, y entrar con el celular y el código sigue funcionando, así que la persona dueña de la cuenta nunca queda por fuera |
+| **Límite por IP** (gateway) | A quien prueba muchas cuentas desde la misma IP | Máximo **10 intentos por minuto** por IP en `/api/auth/login`, `/api/auth/login-otp` y `/api/auth/restablecer-contrasena`. Pasado el límite, el gateway responde 429 (con `Retry-After`) sin llegar a `auth-service` |
+
+> **Decisiones:**
+> - El contador del bloqueo vive **en la base de datos**, no en memoria, porque `auth-service` corre en dos réplicas y cada intento puede caer en una distinta. Se suma con una sola sentencia `UPDATE`, para que dos intentos simultáneos no se pisen.
+> - El límite por IP vive en la memoria del gateway, lo que basta porque hay un solo gateway. El filtro `RequestRateLimiter` de Spring Cloud Gateway necesita Redis, y Caddy necesita un plugin aparte para limitar peticiones. La IP se toma de `X-Forwarded-For`, que en el servidor pone Caddy con la IP real del navegador.
+> - Un correo que no existe nunca se bloquea, así que alguien podría notar la diferencia tras cinco intentos. Se aceptó porque, con el límite por IP, averiguar cuentas así es muy lento.
+
+- **Dónde:** `auth-service/.../security/SecurityConfig.java`, `service/AuthService.java` (`login`, `restablecerContrasena`), `service/CuentaBloqueadaException.java`, `repository/UsuarioRepository.java` (`registrarIntentoFallido`, `reiniciarIntentosFallidos`), columnas `intentos_fallidos` y `bloqueado_hasta` de la tabla `usuario`, `controller/ContrasenaController.java`, `api-gateway/.../seguridad/LimiteIntentosGlobalFilter.java`.
 
 ### 23. Tokens JWT firmados y validados en el gateway
 
@@ -490,6 +503,8 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 | `mensajeria-service/.../security/TextBeeOtpServiceTest` | El OTP se guarda como HMAC, vence a los 10 minutos, sirve una sola vez, se anula tras 5 fallos y no sirve para otro celular |
 | `organizacion-service/.../NotaPersonaMayorControllerTest`, `auth-service/.../PersonaMayorAcompananteInformacionControllerTest` | Una organización o un acompañante sin vínculo no ve ni edita los datos de la persona mayor |
 | `auth-service/.../FotoPerfilControllerTest` | Se rechaza un archivo que dice ser imagen pero no lo es |
+| `auth-service/.../AuthControllerTest`, `UsuarioRepositoryTest` | La quinta contraseña incorrecta seguida bloquea la cuenta 15 minutos; bloqueada, ni la contraseña correcta sirve; al vencer el bloqueo o restablecer la contraseña se puede volver a entrar |
+| `api-gateway/.../seguridad/LimiteIntentosGlobalFilterTest`, `LimiteIntentosGatewayTest` | Pasados 10 intentos por minuto, la IP recibe 429 sin llegar a `auth-service`, con las cabeceras CORS para que el frontend muestre el mensaje; otras IP y otras rutas no se afectan |
 
 Las pruebas existentes de todos los servicios siguen pasando.
 
@@ -505,6 +520,6 @@ Las pruebas existentes de todos los servicios siguen pasando.
 | Una sola instancia del gateway | Si el gateway falla, la API no responde hasta que autoheal lo reinicia (alrededor de 1 minuto) | Avisos de tiempo real por Redis Pub/Sub y dos gateways detrás de Caddy |
 | `mensajeria-service` sin réplica | Sin SMS ni códigos OTP mientras se reinicia | Guardar los OTP en la base de datos o en Redis y replicarlo |
 | Base de datos única (Supabase) | Si Supabase falla, fallan todos los servicios | Depende del plan de Supabase (réplicas de lectura, *point-in-time recovery*) |
-| Sin límite de peticiones (*rate limiting*) | Un abuso, como pedir muchos códigos OTP, podría saturar un servicio o gastar SMS | Filtro `RequestRateLimiter` del gateway (requiere Redis) o límite en Caddy |
+| Límite de peticiones solo en el inicio de sesión | Pedir muchos códigos OTP (cada uno es un SMS) o consultar en masa las rutas públicas del registro podría saturar un servicio o gastar SMS | Agregar esas rutas a `LimiteIntentosGlobalFilter` (punto 22), o usar `RequestRateLimiter` con Redis si hay más de un gateway |
 | Sin monitoreo centralizado | Las caídas se ven en los logs, no en un tablero | Exponer `/actuator/prometheus` y usar Prometheus con Grafana |
 | `ddl-auto=update` en producción | Un cambio de modelo podría alterar tablas al arrancar | Migraciones versionadas (Flyway) |

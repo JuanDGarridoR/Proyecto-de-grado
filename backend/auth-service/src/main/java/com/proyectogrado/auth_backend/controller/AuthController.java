@@ -5,6 +5,7 @@ import com.proyectogrado.auth_backend.dto.LoginRequest;
 import com.proyectogrado.auth_backend.dto.LoginResponse;
 import com.proyectogrado.auth_backend.dto.RegistroRequest;
 import com.proyectogrado.auth_backend.service.AuthService;
+import com.proyectogrado.auth_backend.service.CuentaBloqueadaException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +38,10 @@ public class AuthController {
         this.validacionCorreoService = validacionCorreoService;
     }
 
-    /** Login con correo y contraseña. Si falla, responde 401. */
+    /**
+     * Login con correo y contraseña. Si falla, responde 401; si la cuenta
+     * está bloqueada por intentos fallidos, 429.
+     */
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
             @RequestBody LoginRequest request
@@ -45,6 +49,11 @@ public class AuthController {
         try {
             LoginResponse response = authService.login(request);
             return ResponseEntity.ok(response);
+
+        } catch (CuentaBloqueadaException e) {
+            return ResponseEntity
+                    .status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(new LoginResponse(null, null, e.getMessage(), null, null));
 
         } catch (RuntimeException e) {
             LoginResponse response = new LoginResponse(

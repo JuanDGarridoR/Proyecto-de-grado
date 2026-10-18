@@ -13,6 +13,15 @@ import { AuthService } from '../../core/auth/auth.service';
 type ModoLogin = 'correo' | 'celular';
 
 /**
+ * Mensaje para un 429: la cuenta quedó bloqueada por contraseñas
+ * incorrectas (auth-service) o la IP hizo demasiados intentos (gateway).
+ * Los dos mandan el texto en "mensaje".
+ */
+function mensajeDeDemasiadosIntentos(err: { error?: { mensaje?: string } }): string {
+  return err.error?.mensaje || 'Hiciste demasiados intentos seguidos. Espera unos minutos e intenta de nuevo.';
+}
+
+/**
  * Inicio de sesión con dos métodos: celular con código OTP o correo y
  * contraseña. También tiene el flujo para recuperar la contraseña con un
  * código enviado al celular.
@@ -365,6 +374,10 @@ restablecerContrasena(): void {
             'Código incorrecto o expirado.'
           );
 
+        } else if (err.status === 429) {
+
+          this.errorMensaje.set(mensajeDeDemasiadosIntentos(err));
+
         } else {
 
           this.errorMensaje.set(
@@ -584,6 +597,10 @@ if (err.status === 401) {
     );
   }
 
+} else if (err.status === 429) {
+
+  this.errorMensaje.set(mensajeDeDemasiadosIntentos(err));
+
 } else {
 
             this.errorMensaje.set(
@@ -644,6 +661,10 @@ if (err.status === 401) {
             this.errorMensaje.set(
               'No existe una cuenta con ese celular'
             );
+
+          } else if (err.status === 429) {
+
+            this.errorMensaje.set(mensajeDeDemasiadosIntentos(err));
 
           } else {
 

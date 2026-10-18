@@ -12,9 +12,11 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -90,6 +92,29 @@ class UsuarioRepositoryTest {
         Usuario leido = usuarioRepository.findById(guardado.getIdUsuario()).orElseThrow();
         assertEquals("Luis Alberto Peña", leido.getNombreUsuario());
         assertEquals("Carrera 1 # 90-12 Sur", leido.getDireccion());
+    }
+
+    @Test
+    void cadaIntentoFallidoSeSumaYAlQuintoLaCuentaSeBloqueaYElContadorVuelveACero() {
+        Integer id = usuarioRepository.saveAndFlush(usuario("Luis Peña", "+573001230001", "luis@vitamas.co")).getIdUsuario();
+        LocalDateTime hasta = LocalDateTime.of(2026, 10, 17, 15, 30);
+
+        for (int i = 0; i < 4; i++) {
+            usuarioRepository.registrarIntentoFallido(id, 5, hasta);
+        }
+        Usuario conCuatro = usuarioRepository.findById(id).orElseThrow();
+        assertEquals(4, conCuatro.getIntentosFallidos());
+        assertNull(conCuatro.getBloqueadoHasta());
+
+        usuarioRepository.registrarIntentoFallido(id, 5, hasta);
+        Usuario bloqueado = usuarioRepository.findById(id).orElseThrow();
+        assertEquals(0, bloqueado.getIntentosFallidos());
+        assertEquals(hasta, bloqueado.getBloqueadoHasta());
+
+        usuarioRepository.reiniciarIntentosFallidos(id);
+        Usuario reiniciado = usuarioRepository.findById(id).orElseThrow();
+        assertEquals(0, reiniciado.getIntentosFallidos());
+        assertNull(reiniciado.getBloqueadoHasta());
     }
 
     @Test

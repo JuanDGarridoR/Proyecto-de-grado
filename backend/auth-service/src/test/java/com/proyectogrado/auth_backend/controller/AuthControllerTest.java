@@ -45,8 +45,11 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -418,6 +421,128 @@ class AuthControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.mensaje").value("Correo o contraseña incorrectos"))
                 .andExpect(jsonPath("$.token").doesNotExist());
+    }
+
+    /**
+     * El repositorio simulado hace lo mismo que la consulta real
+     * (UsuarioRepository.registrarIntentoFallido): suma el intento y, al
+     * llegar al máximo, bloquea y deja el contador en 0.
+     */
+    private void contarIntentosFallidos(Usuario usuario) {
+        when(usuarioRepository.findById(25)).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.registrarIntentoFallido(eq(25), anyInt(), any(LocalDateTime.class))).thenAnswer(inv -> {
+            int maximo = inv.getArgument(1);
+            int intentos = (usuario.getIntentosFallidos() == null ? 0 : usuario.getIntentosFallidos()) + 1;
+            if (intentos >= maximo) {
+                usuario.setIntentosFallidos(0);
+                usuario.setBloqueadoHasta(inv.getArgument(2));
+            } else {
+                usuario.setIntentosFallidos(intentos);
+            }
+            return 1;
+        });
+    }
+
+    private String loginJson(String contrasena) {
+        return "{\"correo\": \"" + CORREO + "\", \"contrasena\": \"" + contrasena + "\"}";
+    }
+
+    @Test
+    void laQuintaContrasenaIncorrectaSeguidaBloqueaLaCuentaQuinceMinutos() throws Exception {
+        Usuario usuario = usuarioConContrasena("secreta1");
+        when(usuarioRepository.findByCorreo(CORREO)).thenReturn(Optional.of(usuario));
+        contarIntentosFallidos(usuario);
+
+        for (int i = 0; i < 4; i++) {
+            mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson("otra-clave")))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson("otra-clave")))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.mensaje").value(
+                        "Por seguridad, tu cuenta está bloqueada por varios intentos fallidos. "
+                                + "Intenta de nuevo en 15 minutos, o entra con tu celular y el código por SMS."))
+                .andExpect(jsonPath("$.token").doesNotExist());
+
+        verify(usuarioRepository, times(5)).registrarIntentoFallido(eq(25), eq(5), any(LocalDateTime.class));
+        long minutos = Duration.between(LocalDateTime.now(ZoneId.of("America/Bogota")), usuario.getBloqueadoHasta()).toMinutes();
+        assertTrue(minutos >= 14 && minutos <= 15);
+    }
+
+    @Test
+    void conLaCuentaBloqueadaNiLaContrasenaCorrectaSirveNiSeCuentanMasIntentos() throws Exception {
+        Usuario usuario = usuarioConContrasena("secreta1");
+        usuario.setBloqueadoHasta(LocalDateTime.now(ZoneId.of("America/Bogota")).plusMinutes(3));
+        when(usuarioRepository.findByCorreo(CORREO)).thenReturn(Optional.of(usuario));
+
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson("secreta1")))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.mensaje").value(org.hamcrest.Matchers.containsString("en 3 minutos")))
+                .andExpect(jsonPath("$.token").doesNotExist());
+
+        verify(usuarioRepository, never()).registrarIntentoFallido(any(), anyInt(), any());
+    }
+
+    @Test
+    void cuandoElBloqueoVencePuedeEntrarYSeBorranLosIntentos() throws Exception {
+        Usuario usuario = usuarioConContrasena("secreta1");
+        usuario.setBloqueadoHasta(LocalDateTime.now(ZoneId.of("America/Bogota")).minusMinutes(1));
+        when(usuarioRepository.findByCorreo(CORREO)).thenReturn(Optional.of(usuario));
+        when(usuarioRolRepository.findByUsuario_IdUsuario(25))
+                .thenReturn(List.of(new UsuarioRol(usuario, rol(1, "PERSONA_MAYOR"))));
+
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson("secreta1")))
+                .andExpect(status().isOk());
+
+        verify(usuarioRepository).reiniciarIntentosFallidos(25);
+    }
+
+    @Test
+    void unInicioDeSesionExitosoReiniciaLosIntentosFallidos() throws Exception {
+        Usuario usuario = usuarioConContrasena("secreta1");
+        usuario.setIntentosFallidos(3);
+        when(usuarioRepository.findByCorreo(CORREO)).thenReturn(Optional.of(usuario));
+        when(usuarioRolRepository.findByUsuario_IdUsuario(25))
+                .thenReturn(List.of(new UsuarioRol(usuario, rol(1, "PERSONA_MAYOR"))));
+
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson("secreta1")))
+                .andExpect(status().isOk());
+
+        verify(usuarioRepository).reiniciarIntentosFallidos(25);
+    }
+
+    @Test
+    void sinIntentosFallidosElLoginNoEscribeEnLaBase() throws Exception {
+        Usuario usuario = usuarioConContrasena("secreta1");
+        when(usuarioRepository.findByCorreo(CORREO)).thenReturn(Optional.of(usuario));
+        when(usuarioRolRepository.findByUsuario_IdUsuario(25))
+                .thenReturn(List.of(new UsuarioRol(usuario, rol(1, "PERSONA_MAYOR"))));
+
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson("secreta1")))
+                .andExpect(status().isOk());
+
+        verify(usuarioRepository, never()).reiniciarIntentosFallidos(any());
+    }
+
+    @Test
+    void restablecerLaContrasenaConElCodigoDesbloqueaLaCuenta() throws Exception {
+        Usuario usuario = usuarioConContrasena("olvidada1");
+        usuario.setIntentosFallidos(2);
+        usuario.setBloqueadoHasta(LocalDateTime.now(ZoneId.of("America/Bogota")).plusMinutes(10));
+        when(usuarioRepository.findByCelular(CELULAR)).thenReturn(Optional.of(usuario));
+        when(mensajeriaClient.verificarOtp(CELULAR, "551177")).thenReturn(true);
+
+        mockMvc.perform(post("/api/auth/restablecer-contrasena")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"celular": "%s", "codigo": "551177",
+                                 "contrasena": "nueva-clave", "confirmarContrasena": "nueva-clave"}
+                                """.formatted(CELULAR)))
+                .andExpect(status().isOk());
+
+        assertEquals(0, usuario.getIntentosFallidos());
+        assertNull(usuario.getBloqueadoHasta());
     }
 
     @Test

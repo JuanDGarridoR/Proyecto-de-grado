@@ -67,6 +67,18 @@ public class Usuario {
     @Column(name = "ultimo_rol", length = 30)
     private String ultimoRol;
 
+    /**
+     * Contraseñas incorrectas seguidas desde el último inicio de sesión
+     * exitoso. Al llegar al máximo, la cuenta se bloquea un rato y el
+     * contador vuelve a 0 (ver AuthService.login).
+     */
+    @Column(name = "intentos_fallidos")
+    private Integer intentosFallidos;
+
+    /** Hasta cuándo (hora de Colombia) no se puede entrar con contraseña. Null si no está bloqueada. */
+    @Column(name = "bloqueado_hasta")
+    private LocalDateTime bloqueadoHasta;
+
     public Usuario() {
     }
 
@@ -181,5 +193,21 @@ public void setDireccion(String direccion) {
         if (this.activo == null) {
             this.activo = true;
         }
+    }
+
+    public Integer getIntentosFallidos() {
+        return intentosFallidos;
+    }
+
+    public void setIntentosFallidos(Integer intentosFallidos) {
+        this.intentosFallidos = intentosFallidos;
+    }
+
+    public LocalDateTime getBloqueadoHasta() {
+        return bloqueadoHasta;
+    }
+
+    public void setBloqueadoHasta(LocalDateTime bloqueadoHasta) {
+        this.bloqueadoHasta = bloqueadoHasta;
     }
 }
