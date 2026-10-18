@@ -7,7 +7,7 @@
 # .github/dependabot.yml).
 
 # ---------- 1. Compilar Angular ----------
-FROM node:24.22.0-alpine AS compilacion
+FROM node:26.12.0-alpine AS compilacion
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
