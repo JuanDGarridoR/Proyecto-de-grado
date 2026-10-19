@@ -464,7 +464,7 @@ case "PERSONA_MAYOR" -> {
 }
 
             case "ACOMPANANTE" -> {
-                Acompanante acompanante = new Acompanante(usuarioGuardado, null);
+                Acompanante acompanante = new Acompanante(usuarioGuardado);
                 acompananteRepository.save(acompanante);
             }
 

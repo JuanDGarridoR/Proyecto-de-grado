@@ -268,22 +268,9 @@ public class PersonaMayorAcompananteController {
                 idAcompanante,
                 usuario != null ? usuario.getNombreUsuario() : null,
                 usuario != null ? usuario.getCelular() : null,
-                relacionDe(vinculo),
+                vinculo.getRelacion(),
                 usuario != null ? usuario.getFotoPerfil() : null
         );
-    }
-
-    /**
-     * El parentesco del vínculo; en vínculos anteriores a que se guardara
-     * ahí, el que quedó en la tabla acompanante.
-     */
-    private String relacionDe(PersonaMayorAcompanante vinculo) {
-        if (vinculo.getRelacion() != null) {
-            return vinculo.getRelacion();
-        }
-        return acompananteLookupRepository.findById(vinculo.getId().getIdAcompanante())
-                .map(AcompananteLookup::getRelacion)
-                .orElse(null);
     }
 
     /** El texto sin espacios de más, o null si quedó vacío. */

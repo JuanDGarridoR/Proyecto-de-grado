@@ -133,11 +133,10 @@ public class RedApoyo {
 
         jdbc.query("""
                 SELECT pma.id_persona_mayor, pma.id_acompanante, u.nombre_usuario,
-                       COALESCE(pma.relacion, a.relacion) AS relacion
+                       pma.relacion
                   FROM persona_mayor_acompanante pma
                   JOIN persona_mayor_organizacion pmo ON pmo.id_persona_mayor = pma.id_persona_mayor
                   JOIN usuario u ON u.id_usuario = pma.id_acompanante
-                  LEFT JOIN acompanante a ON a.id_usuario = pma.id_acompanante
                  WHERE pmo.id_organizacion = :org AND pmo.estado = 'ACEPTADA'
                    AND pma.estado = 'ACEPTADA'
                    AND (u.activo IS NULL OR u.activo = TRUE)

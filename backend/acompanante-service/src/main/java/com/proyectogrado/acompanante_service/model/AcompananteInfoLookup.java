@@ -7,9 +7,8 @@ import jakarta.persistence.Table;
 
 /**
  * Vista de solo lectura de la tabla acompanante, que pertenece a
- * auth-service. Sirve para saber si un usuario es acompañante y para leer el
- * parentesco de los vínculos creados antes de que se guardara en
- * persona_mayor_acompanante (ver PersonaMayorAcompanante.relacion).
+ * auth-service. Sirve para saber si un usuario es acompañante; el parentesco
+ * va en cada vínculo (ver PersonaMayorAcompanante.relacion).
  */
 @Entity
 @Table(name = "acompanante")
@@ -19,9 +18,6 @@ public class AcompananteInfoLookup {
     @Column(name = "id_usuario")
     private Integer idUsuario;
 
-    @Column(name = "relacion")
-    private String relacion;
-
     /** Lo exige JPA. */
 
     protected AcompananteInfoLookup() {
@@ -29,9 +25,5 @@ public class AcompananteInfoLookup {
 
     public Integer getIdUsuario() {
         return idUsuario;
-    }
-
-    public String getRelacion() {
-        return relacion;
     }
 }

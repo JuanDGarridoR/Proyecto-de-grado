@@ -23,7 +23,6 @@ INSERT INTO persona_mayor_organizacion VALUES
  (10, 5, 'ACEPTADA'), (11, 5, 'ACEPTADA'), (12, 5, 'ACEPTADA'),
  (13, 5, 'PENDIENTE'), (14, 6, 'ACEPTADA'), (15, 5, 'ACEPTADA');
 
-INSERT INTO acompanante VALUES (50, 'Familiar'), (51, 'Vecino');
 INSERT INTO persona_mayor_acompanante VALUES
  (10, 50, 'ACEPTADA', 'Hija'),
  (11, 51, 'PENDIENTE', NULL);

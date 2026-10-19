@@ -284,23 +284,10 @@ public class AcompananteRelacionController {
                             usuario != null ? usuario.getCelular() : null,
                             usuario != null ? usuario.getCorreo() : null,
                             usuario != null ? usuario.getFotoPerfil() : null,
-                            relacionDe(relacion)
+                            relacion.getRelacion()
                     );
                 })
                 .toList();
-    }
-
-    /**
-     * El parentesco del vínculo; en vínculos anteriores a que se guardara
-     * ahí, el que quedó en la tabla acompanante.
-     */
-    private String relacionDe(PersonaMayorAcompanante vinculo) {
-        if (vinculo.getRelacion() != null) {
-            return vinculo.getRelacion();
-        }
-        return acompananteInfoLookupRepository.findById(vinculo.getId().getIdAcompanante())
-                .map(AcompananteInfoLookup::getRelacion)
-                .orElse(null);
     }
 
     /** El texto sin espacios de más, o null si quedó vacío. */

@@ -29,7 +29,7 @@ public class Usuario {
     private String correo;
 
     /** Con indicativo del país, por ejemplo +573001234567. */
-    @Column(name = "Celular", unique = true)
+    @Column(name = "celular", unique = true)
     private String celular;
 
     @Column(name = "fecha_nacimiento")

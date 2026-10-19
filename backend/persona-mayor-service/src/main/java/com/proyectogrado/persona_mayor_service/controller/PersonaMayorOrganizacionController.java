@@ -8,10 +8,8 @@ import com.proyectogrado.persona_mayor_service.model.UsuarioLookup;
 import com.proyectogrado.persona_mayor_service.repository.OrganizacionLookupRepository;
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorOrganizacionRepository;
 import com.proyectogrado.persona_mayor_service.repository.UsuarioLookupRepository;
-import com.proyectogrado.persona_mayor_service.repository.AcompananteLookupRepository;
 import com.proyectogrado.persona_mayor_service.dto.AcompananteResponse;
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorAcompananteRepository;
-import com.proyectogrado.persona_mayor_service.model.AcompananteLookup;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorAcompanante;
 
 import org.springframework.http.HttpStatus;
@@ -43,7 +41,6 @@ public class PersonaMayorOrganizacionController {
 
     private final PersonaMayorOrganizacionRepository relacionRepository;
     private final UsuarioLookupRepository usuarioLookupRepository;
-    private final AcompananteLookupRepository acompananteLookupRepository;
     private final PersonaMayorAcompananteRepository personaMayorAcompananteRepository;
     private final OrganizacionLookupRepository organizacionLookupRepository;
 
@@ -51,13 +48,11 @@ public class PersonaMayorOrganizacionController {
 public PersonaMayorOrganizacionController(
         PersonaMayorOrganizacionRepository relacionRepository,
         UsuarioLookupRepository usuarioLookupRepository,
-        AcompananteLookupRepository acompananteLookupRepository,
         PersonaMayorAcompananteRepository personaMayorAcompananteRepository,
         OrganizacionLookupRepository organizacionLookupRepository
 ) {
     this.relacionRepository = relacionRepository;
     this.usuarioLookupRepository = usuarioLookupRepository;
-    this.acompananteLookupRepository = acompananteLookupRepository;
     this.personaMayorAcompananteRepository = personaMayorAcompananteRepository;
     this.organizacionLookupRepository = organizacionLookupRepository;
 }
@@ -112,11 +107,6 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
                                 .findById(idAcompanante)
                                 .orElse(null);
 
-                AcompananteLookup acompanante =
-                        acompananteLookupRepository
-                                .findById(idAcompanante)
-                                .orElse(null);
-
                 if (usuario == null) {
                     return null;
                 }
@@ -125,12 +115,7 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
                         idAcompanante,
                         usuario.getNombreUsuario(),
                         usuario.getCelular(),
-                        // El del vínculo; si es anterior a que se guardara ahí, el del acompañante.
-                        relacionAcompanante.getRelacion() != null
-                                ? relacionAcompanante.getRelacion()
-                                : acompanante != null
-                                        ? acompanante.getRelacion()
-                                        : null,
+                        relacionAcompanante.getRelacion(),
                         usuario.getFotoPerfil()
                 );
             })

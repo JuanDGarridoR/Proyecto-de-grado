@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 
 /**
  * Datos propios del acompañante (familiar o cuidador de una persona mayor).
- * Comparte la llave con usuario (id_usuario).
+ * Comparte la llave con usuario (id_usuario). El parentesco no va aquí
+ * sino en cada vínculo (persona_mayor_acompanante.relacion), porque puede
+ * ser hijo de una persona mayor y sobrino de otra.
  */
 @Entity
 @Table(name = "acompanante")
@@ -19,20 +21,11 @@ public class Acompanante {
     @JoinColumn(name = "id_usuario")
     private Usuario usuario;
 
-    /**
-     * Parentesco de los vínculos antiguos. Ahora el parentesco va en cada
-     * vínculo (persona_mayor_acompanante.relacion); esta columna solo se lee
-     * para los vínculos creados antes de ese cambio.
-     */
-    @Column(name = "relacion")
-    private String relacion;
-
     public Acompanante() {
     }
 
-    public Acompanante(Usuario usuario, String relacion) {
+    public Acompanante(Usuario usuario) {
         this.usuario = usuario;
-        this.relacion = relacion;
     }
 
     public Integer getIdUsuario() {
@@ -49,13 +42,5 @@ public class Acompanante {
 
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
-    }
-
-    public String getRelacion() {
-        return relacion;
-    }
-
-    public void setRelacion(String relacion) {
-        this.relacion = relacion;
     }
 }

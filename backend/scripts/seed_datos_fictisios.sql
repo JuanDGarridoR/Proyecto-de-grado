@@ -16,8 +16,7 @@
 --     solicitudes pendientes van en los dos sentidos: unas las envió la
 --     persona mayor y otras el acompañante o la organización. El
 --     parentesco del acompañante va en cada vínculo (puede ser hijo de una
---     persona mayor y sobrino de otra); unos pocos vínculos no lo tienen,
---     como los antiguos, y muestran el de la tabla acompanante
+--     persona mayor y sobrino de otra); unos pocos vínculos no lo tienen
 --   - vínculos voluntario <-> organización (aceptados, y algunas
 --     solicitudes pendientes)
 --   - medicamentos coherentes con el perfil de salud de cada persona
@@ -157,7 +156,8 @@ ALTER TABLE persona_mayor_acompanante ADD COLUMN IF NOT EXISTS solicitada_por va
 
 -- Parentesco del acompañante en cada vínculo (puede ser distinto con cada
 -- persona mayor); la agregan persona-mayor-service y acompanante-service
--- al arrancar.
+-- al arrancar. Antes iba en acompanante.relacion; auth-service pasa ese
+-- valor a los vínculos y borra la columna al arrancar.
 ALTER TABLE persona_mayor_acompanante ADD COLUMN IF NOT EXISTS relacion varchar(255);
 
 -- Quién envió la solicitud persona mayor <-> organización; la agregan
@@ -612,13 +612,11 @@ WITH datos AS (
             [1 + floor(random() * 24)::int] AS apellido2,
         (ARRAY['Usme Centro','La Flora','Yomasa','Danubio Azul','Santa Librada','El Uval','Comuneros',
                'Alfonso López','Tunjuelito','Kennedy'])[1 + floor(random() * 10)::int] AS barrio,
-        (ARRAY['Hijo/a', 'Hijo/a', 'Hijo/a', 'Nieto/a', 'Nieto/a', 'Sobrino/a', 'Cuidador/a contratado',
-               'Hermano/a', 'Vecino/a de confianza'])[1 + floor(random() * 9)::int] AS relacion,
         (25 + floor(random() * 41))::int AS edad
     FROM generate_series(1, 60) AS s(i)
 ),
 filas AS (
-    SELECT d.i, d.relacion,
+    SELECT d.i,
            -- Los primeros 10 nombres son femeninos y los últimos 10 masculinos
            CASE WHEN d.idx_nombre < 10 THEN 'Femenino' ELSE 'Masculino' END AS genero,
            (ARRAY['María','Rosa','Sandra','Luz','Ana','Diana','Patricia','Andrea','Camila','Daniela',
@@ -640,9 +638,8 @@ ins_usuario AS (
     FROM filas f CROSS JOIN seed_tmp.seed_reloj r
     RETURNING id_usuario, correo
 )
-INSERT INTO acompanante (id_usuario, relacion)
-SELECT u.id_usuario, f.relacion
-FROM ins_usuario u JOIN filas f ON f.correo = u.correo;
+INSERT INTO acompanante (id_usuario)
+SELECT id_usuario FROM ins_usuario;
 
 -- 6. 50 voluntarios (usuario + voluntario), cada uno vinculado a una de
 --    las organizaciones ficticias (voluntario_organizacion, ACEPTADA).
@@ -753,8 +750,7 @@ ON CONFLICT DO NOTHING;
 --    para aceptar o rechazar) y el resto la persona mayor.
 --    relacion: el parentesco va en cada vínculo, porque un acompañante
 --    puede ser hijo de una persona mayor y sobrino de otra. ~15% queda en
---    null, como los vínculos creados antes de que existiera el campo: esos
---    muestran el parentesco de la tabla acompanante.
+--    null (la persona mayor no lo indicó).
 WITH pm AS (
     SELECT id_usuario, row_number() OVER (ORDER BY id_usuario) AS rn
     FROM usuario WHERE correo LIKE 'pm%@vitaplus.test'
@@ -803,8 +799,8 @@ WHERE u.correo IN ('pm001@vitaplus.test', 'pm002@vitaplus.test', 'pm003@vitaplus
                    'pm004@vitaplus.test', 'pm005@vitaplus.test')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO acompanante (id_usuario, relacion)
-SELECT u.id_usuario, 'Vecino(a)'
+INSERT INTO acompanante (id_usuario)
+SELECT u.id_usuario
 FROM usuario u
 WHERE u.correo IN ('pm001@vitaplus.test', 'pm002@vitaplus.test', 'pm003@vitaplus.test',
                    'pm004@vitaplus.test', 'pm005@vitaplus.test')

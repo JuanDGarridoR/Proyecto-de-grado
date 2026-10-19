@@ -24,11 +24,6 @@ CREATE TABLE persona_mayor_organizacion (
     PRIMARY KEY (id_persona_mayor, id_organizacion)
 );
 
-CREATE TABLE acompanante (
-    id_usuario INTEGER PRIMARY KEY,
-    relacion   VARCHAR(100)
-);
-
 CREATE TABLE persona_mayor_acompanante (
     id_persona_mayor INTEGER,
     id_acompanante   INTEGER,

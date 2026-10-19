@@ -139,7 +139,7 @@ public class RolController {
         }
 
         if ("ACOMPANANTE".equals(nombreRol) && !acompananteRepository.existsById(usuario.getIdUsuario())) {
-            acompananteRepository.save(new Acompanante(usuario, null));
+            acompananteRepository.save(new Acompanante(usuario));
         }
     }
 

@@ -241,7 +241,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void registroDeAcompananteCreaSuCuentaSinParentesco() throws Exception {
+    void registroDeAcompananteCreaSuCuenta() throws Exception {
         when(rolRepository.findByNombre("ACOMPANANTE")).thenReturn(Optional.of(rol(2, "ACOMPANANTE")));
 
         mockMvc.perform(post("/api/auth/registro")
@@ -250,10 +250,10 @@ class AuthControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.rol").value("ACOMPANANTE"));
 
-        // El parentesco lo indica la persona mayor cuando lo agrega como contacto.
+        // El parentesco no va en la cuenta: lo indica la persona mayor en cada vínculo.
         ArgumentCaptor<Acompanante> acompanante = ArgumentCaptor.forClass(Acompanante.class);
         verify(acompananteRepository).save(acompanante.capture());
-        assertNull(acompanante.getValue().getRelacion());
+        assertEquals("+573005556677", acompanante.getValue().getUsuario().getCelular());
         // Sin correo no hay nada que validar con Hunter.
         verify(validacionCorreoService, never()).validarCorreo(anyString());
     }

@@ -64,7 +64,6 @@ class PersonaMayorAcompananteControllerTest {
 
         acompanante = mock(AcompananteLookup.class);
         when(acompanante.getIdUsuario()).thenReturn(ACOMPANANTE);
-        when(acompanante.getRelacion()).thenReturn("Hijo");
         when(acompananteLookupRepository.findById(ACOMPANANTE)).thenReturn(Optional.of(acompanante));
 
         mockMvc = MockMvcBuilders.standaloneSetup(new PersonaMayorAcompananteController(
@@ -203,8 +202,10 @@ class PersonaMayorAcompananteControllerTest {
 
     @Test
     void laListaDeContactosMuestraLosAcompanantesAceptadosConSuParentesco() throws Exception {
+        PersonaMayorAcompanante aceptada = relacion("ACEPTADA", "PERSONA_MAYOR");
+        aceptada.setRelacion("Hijo");
         when(relacionRepository.findById_IdPersonaMayorAndEstado(PERSONA_MAYOR, "ACEPTADA"))
-                .thenReturn(List.of(relacion("ACEPTADA", "PERSONA_MAYOR")));
+                .thenReturn(List.of(aceptada));
 
         mockMvc.perform(get("/api/persona-mayor/acompanantes").header("X-User-Id", PERSONA_MAYOR))
                 .andExpect(status().isOk())
@@ -287,8 +288,7 @@ class PersonaMayorAcompananteControllerTest {
     }
 
     @Test
-    void elParentescoGuardadoEnElVinculoTienePrioridadSobreElAntiguo() throws Exception {
-        // El acompañante tiene "Hijo" en la tabla acompanante, pero con esta persona mayor es "Sobrino".
+    void elParentescoSaleDelVinculoConEsaPersonaMayor() throws Exception {
         PersonaMayorAcompanante aceptada = relacion("ACEPTADA", "PERSONA_MAYOR");
         aceptada.setRelacion("Sobrino");
         when(relacionRepository.findById_IdPersonaMayorAndEstado(PERSONA_MAYOR, "ACEPTADA"))

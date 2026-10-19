@@ -4,10 +4,8 @@ import com.proyectogrado.acompanante_service.dto.CitaMedicaSeguimientoResponse;
 import com.proyectogrado.acompanante_service.dto.ContactoResponse;
 import com.proyectogrado.acompanante_service.dto.MedicamentoSeguimientoResponse;
 import com.proyectogrado.acompanante_service.dto.SignoVitalSeguimientoResponse;
-import com.proyectogrado.acompanante_service.model.AcompananteInfoLookup;
 import com.proyectogrado.acompanante_service.model.PersonaMayorAcompanante;
 import com.proyectogrado.acompanante_service.model.UsuarioLookup;
-import com.proyectogrado.acompanante_service.repository.AcompananteInfoLookupRepository;
 import com.proyectogrado.acompanante_service.repository.CitaMedicaLookupRepository;
 import com.proyectogrado.acompanante_service.repository.MedicamentoLookupRepository;
 import com.proyectogrado.acompanante_service.repository.PersonaMayorAcompananteRepository;
@@ -40,7 +38,6 @@ public class AcompananteSeguimientoController {
 
     private final PersonaMayorAcompananteRepository relacionRepository;
     private final UsuarioLookupRepository usuarioLookupRepository;
-    private final AcompananteInfoLookupRepository acompananteInfoLookupRepository;
     private final MedicamentoLookupRepository medicamentoLookupRepository;
     private final SignoVitalLookupRepository signoVitalLookupRepository;
     private final CitaMedicaLookupRepository citaMedicaLookupRepository;
@@ -48,14 +45,12 @@ public class AcompananteSeguimientoController {
     public AcompananteSeguimientoController(
             PersonaMayorAcompananteRepository relacionRepository,
             UsuarioLookupRepository usuarioLookupRepository,
-            AcompananteInfoLookupRepository acompananteInfoLookupRepository,
             MedicamentoLookupRepository medicamentoLookupRepository,
             SignoVitalLookupRepository signoVitalLookupRepository,
             CitaMedicaLookupRepository citaMedicaLookupRepository
     ) {
         this.relacionRepository = relacionRepository;
         this.usuarioLookupRepository = usuarioLookupRepository;
-        this.acompananteInfoLookupRepository = acompananteInfoLookupRepository;
         this.medicamentoLookupRepository = medicamentoLookupRepository;
         this.signoVitalLookupRepository = signoVitalLookupRepository;
         this.citaMedicaLookupRepository = citaMedicaLookupRepository;
@@ -193,13 +188,7 @@ public class AcompananteSeguimientoController {
                                     .findById(idOtroAcompanante)
                                     .orElse(null);
 
-                    // El del vínculo; si es anterior a que se guardara ahí, el del acompañante.
-                    String tipoRelacion = relacionAcompanante.getRelacion() != null
-                            ? relacionAcompanante.getRelacion()
-                            : acompananteInfoLookupRepository
-                                    .findById(idOtroAcompanante)
-                                    .map(AcompananteInfoLookup::getRelacion)
-                                    .orElse(null);
+                    String tipoRelacion = relacionAcompanante.getRelacion();
 
                     return new ContactoResponse(
                             idOtroAcompanante,

@@ -21,7 +21,7 @@ public class UsuarioLookup {
     @Column(name = "nombre_usuario")
     private String nombreUsuario;
 
-    @Column(name = "Celular")
+    @Column(name = "celular")
     private String celular;
 
     @Column(name = "id_organizacion")

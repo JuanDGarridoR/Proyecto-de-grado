@@ -1,12 +1,10 @@
 package com.proyectogrado.persona_mayor_service.controller;
 
-import com.proyectogrado.persona_mayor_service.model.AcompananteLookup;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorAcompanante;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorOrganizacion;
 import com.proyectogrado.persona_mayor_service.model.PersonaMayorOrganizacionId;
 import com.proyectogrado.persona_mayor_service.model.OrganizacionLookup;
 import com.proyectogrado.persona_mayor_service.model.UsuarioLookup;
-import com.proyectogrado.persona_mayor_service.repository.AcompananteLookupRepository;
 import com.proyectogrado.persona_mayor_service.repository.OrganizacionLookupRepository;
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorAcompananteRepository;
 import com.proyectogrado.persona_mayor_service.repository.PersonaMayorOrganizacionRepository;
@@ -48,7 +46,6 @@ class PersonaMayorOrganizacionControllerTest {
 
     private PersonaMayorOrganizacionRepository relacionRepository;
     private UsuarioLookupRepository usuarioLookupRepository;
-    private AcompananteLookupRepository acompananteLookupRepository;
     private PersonaMayorAcompananteRepository personaMayorAcompananteRepository;
     private OrganizacionLookupRepository organizacionLookupRepository;
     private MockMvc mockMvc;
@@ -57,7 +54,6 @@ class PersonaMayorOrganizacionControllerTest {
     void setUp() {
         relacionRepository = mock(PersonaMayorOrganizacionRepository.class);
         usuarioLookupRepository = mock(UsuarioLookupRepository.class);
-        acompananteLookupRepository = mock(AcompananteLookupRepository.class);
         personaMayorAcompananteRepository = mock(PersonaMayorAcompananteRepository.class);
         organizacionLookupRepository = mock(OrganizacionLookupRepository.class);
 
@@ -71,7 +67,7 @@ class PersonaMayorOrganizacionControllerTest {
 
         mockMvc = MockMvcBuilders.standaloneSetup(new PersonaMayorOrganizacionController(
                 relacionRepository, usuarioLookupRepository,
-                acompananteLookupRepository, personaMayorAcompananteRepository,
+                personaMayorAcompananteRepository,
                 organizacionLookupRepository)).build();
     }
 
@@ -273,16 +269,15 @@ class PersonaMayorOrganizacionControllerTest {
     @Test
     void laOrganizacionVeLosAcompanantesDeUnaPersonaVinculada() throws Exception {
         existeVinculo("ACEPTADA");
+        PersonaMayorAcompanante vinculoHijo = new PersonaMayorAcompanante(PERSONA_MAYOR, 20);
+        vinculoHijo.setRelacion("Hijo");
         when(personaMayorAcompananteRepository.findById_IdPersonaMayorAndEstado(PERSONA_MAYOR, "ACEPTADA"))
-                .thenReturn(List.of(new PersonaMayorAcompanante(PERSONA_MAYOR, 20)));
+                .thenReturn(List.of(vinculoHijo));
 
         UsuarioLookup hijo = mock(UsuarioLookup.class);
         when(hijo.getNombreUsuario()).thenReturn("Carlos Díaz");
         when(hijo.getCelular()).thenReturn("+573002220000");
         when(usuarioLookupRepository.findById(20)).thenReturn(Optional.of(hijo));
-        AcompananteLookup acompanante = mock(AcompananteLookup.class);
-        when(acompanante.getRelacion()).thenReturn("Hijo");
-        when(acompananteLookupRepository.findById(20)).thenReturn(Optional.of(acompanante));
 
         mockMvc.perform(get("/api/organizacion/personas-mayores/" + PERSONA_MAYOR + "/acompanantes")
                         .header("X-User-Id", CUENTA_ORGANIZACION))

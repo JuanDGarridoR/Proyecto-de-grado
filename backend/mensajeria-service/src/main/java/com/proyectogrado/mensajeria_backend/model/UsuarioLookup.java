@@ -18,7 +18,7 @@ public class UsuarioLookup {
     @Column(name = "id_usuario")
     private Integer idUsuario;
 
-    @Column(name = "Celular")
+    @Column(name = "celular")
     private String celular;
 
     /** Lo exige JPA. */

@@ -1,12 +1,10 @@
 package com.proyectogrado.acompanante_service.controller;
 
-import com.proyectogrado.acompanante_service.model.AcompananteInfoLookup;
 import com.proyectogrado.acompanante_service.model.CitaMedicaLookup;
 import com.proyectogrado.acompanante_service.model.MedicamentoLookup;
 import com.proyectogrado.acompanante_service.model.PersonaMayorAcompanante;
 import com.proyectogrado.acompanante_service.model.SignoVitalLookup;
 import com.proyectogrado.acompanante_service.model.UsuarioLookup;
-import com.proyectogrado.acompanante_service.repository.AcompananteInfoLookupRepository;
 import com.proyectogrado.acompanante_service.repository.CitaMedicaLookupRepository;
 import com.proyectogrado.acompanante_service.repository.MedicamentoLookupRepository;
 import com.proyectogrado.acompanante_service.repository.PersonaMayorAcompananteRepository;
@@ -47,7 +45,6 @@ class AcompananteSeguimientoControllerTest {
 
     private PersonaMayorAcompananteRepository relacionRepository;
     private UsuarioLookupRepository usuarioLookupRepository;
-    private AcompananteInfoLookupRepository acompananteInfoLookupRepository;
     private MedicamentoLookupRepository medicamentoLookupRepository;
     private SignoVitalLookupRepository signoVitalLookupRepository;
     private CitaMedicaLookupRepository citaMedicaLookupRepository;
@@ -57,7 +54,6 @@ class AcompananteSeguimientoControllerTest {
     void setUp() {
         relacionRepository = mock(PersonaMayorAcompananteRepository.class);
         usuarioLookupRepository = mock(UsuarioLookupRepository.class);
-        acompananteInfoLookupRepository = mock(AcompananteInfoLookupRepository.class);
         medicamentoLookupRepository = mock(MedicamentoLookupRepository.class);
         signoVitalLookupRepository = mock(SignoVitalLookupRepository.class);
         citaMedicaLookupRepository = mock(CitaMedicaLookupRepository.class);
@@ -67,7 +63,7 @@ class AcompananteSeguimientoControllerTest {
         when(relacionRepository.findById_IdAcompananteAndEstado(ACOMPANANTE, "ACEPTADA")).thenReturn(List.of(vinculo));
 
         mockMvc = MockMvcBuilders.standaloneSetup(new AcompananteSeguimientoController(
-                relacionRepository, usuarioLookupRepository, acompananteInfoLookupRepository,
+                relacionRepository, usuarioLookupRepository,
                 medicamentoLookupRepository, signoVitalLookupRepository, citaMedicaLookupRepository)).build();
     }
 
@@ -156,15 +152,13 @@ class AcompananteSeguimientoControllerTest {
     void conVinculoAceptadoVeLosDemasContactosDeLaPersonaMayor() throws Exception {
         PersonaMayorAcompanante otroVinculo = new PersonaMayorAcompanante(PERSONA_MAYOR, 21);
         otroVinculo.setEstado("ACEPTADA");
+        otroVinculo.setRelacion("Vecina");
         when(relacionRepository.findById_IdPersonaMayorAndEstado(PERSONA_MAYOR, "ACEPTADA")).thenReturn(List.of(otroVinculo));
 
         UsuarioLookup vecina = mock(UsuarioLookup.class);
         when(vecina.getNombreUsuario()).thenReturn("Marta Gil");
         when(vecina.getCelular()).thenReturn("+573002221111");
         when(usuarioLookupRepository.findById(21)).thenReturn(Optional.of(vecina));
-        AcompananteInfoLookup info = mock(AcompananteInfoLookup.class);
-        when(info.getRelacion()).thenReturn("Vecina");
-        when(acompananteInfoLookupRepository.findById(21)).thenReturn(Optional.of(info));
 
         mockMvc.perform(get("/api/acompanante/seguimiento/" + PERSONA_MAYOR + "/contactos")
                         .header("X-User-Id", ACOMPANANTE))

@@ -37,8 +37,7 @@ public class PersonaMayorAcompanante {
     /**
      * Parentesco del acompañante con esta persona mayor (por ejemplo, "Hija").
      * Va en el vínculo porque un acompañante puede ser hija de una persona
-     * mayor y sobrina de otra. null en vínculos creados antes de que existiera
-     * el campo: para esos vale la columna relacion de la tabla acompanante.
+     * mayor y sobrina de otra. null si no se indicó.
      */
     @Column(name = "relacion")
     private String relacion;
