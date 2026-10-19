@@ -47,6 +47,7 @@ flowchart TD
 | RNF-25 | Registro de auditoría de los datos de salud | Punto 44 |
 | RNF-26 | Revisión de dependencias y versiones exactas de las imágenes | Punto 45 |
 | RNF-27 | Copias de seguridad propias y prueba de restauración | Punto 46 |
+| RNF-28 | RLS en todas las tablas de Supabase | Punto 47 |
 | Seguridad y privacidad en general | Datos protegidos, acceso solo con vínculo, cifrado | Parte 2, puntos 22 a 32 |
 | Rendimiento | Páginas que cargan rápido con mala señal | Parte 3, puntos 33 a 37 |
 | Escalabilidad | Crecer agregando instancias | Parte 4, punto 38 |
@@ -456,6 +457,7 @@ Ninguna clave va en el código. La contraseña de la base, el secreto del JWT y 
 - **Inactivar la cuenta** la oculta para todos sus vínculos sin borrar nada, y se puede reactivar.
 - **Los avisos de tiempo real no llevan datos**, solo el nombre del recurso que cambió (por ejemplo, `gustos`). Cada pantalla vuelve a consultar sus datos con su propio token, así que un aviso no le muestra a nadie información ajena.
 - **La caché no guarda información personal**, solo catálogos (punto 18).
+- **Sin cookies ni aviso de cookies.** La plataforma no usa cookies (la sesión va en el token), ni analítica ni publicidad. En el navegador guarda solo la sesión (`sessionStorage` y `sesionRecordada` en `localStorage`) y la preferencia del lector de voz. Ese almacenamiento es necesario para que la plataforma funcione, así que no requiere consentimiento. Los términos lo explican, y también que el mapa (OpenStreetMap), la fuente (Google Fonts) y algunas imágenes de la landing se descargan de servicios externos, que reciben la IP de quien entra. Si algún día se agrega analítica, publicidad o contenido incrustado de terceros (YouTube, Google Maps), sí habría que pedir consentimiento con la opción de rechazarlo.
 - **Los registros (logs) no llevan datos personales.** Los recordatorios y los avisos de cumpleaños registran solo ids y si el SMS salió o no, nunca el celular ni el texto del mensaje (que puede llevar el nombre de la persona, su medicamento o su cita médica). En el servidor tampoco se imprime cada SQL (`SPRING_JPA_SHOW_SQL=false` en `docker-compose.yml`), y al arrancar no se muestra ni el comienzo de ninguna clave.
 
 - **Dónde:** `analitica-service/.../red/RedApoyo.java` y `recomendacion/Barrios.java`, `auth-service/.../service/TerminosService.java` y `model/AceptacionTerminos.java`, `service/CuentaService.java`, `api-gateway/.../eventos/`, los `scheduler/` de salud, persona mayor y actividad.
@@ -520,6 +522,19 @@ La propia persona mayor viendo lo suyo no se registra. Si guardar el registro fa
 > **Decisión:** no se registra en el gateway, aunque todo pasa por él. Para escribir en la base, el gateway necesitaría la contraseña, y hoy solo tiene el secreto del JWT (punto 29). Cada servicio ya tiene la conexión, y la regla de qué rutas son datos de salud queda junto al código que los entrega.
 
 - **Dónde:** `auditoria/AuditoriaSaludInterceptor.java` y `AuditoriaSaludConfig.java` en `salud-service`, `acompanante-service` y `analitica-service`.
+
+### 47. RLS en todas las tablas de Supabase (RNF-28)
+
+Supabase publica automáticamente una **API REST** (PostgREST) sobre las tablas del esquema `public`, a la que se entra con la clave publicable del proyecto. Vita+ no la usa: el frontend solo habla con el gateway. Pero si esa clave se filtrara (o alguien la sacara del panel de Supabase), sin RLS esa API dejaría leer y cambiar las tablas sin pasar por el backend ni por las reglas de vínculos (punto 25).
+
+- **Row Level Security (RLS) activado en todas las tablas** de `public`, **sin ninguna política**: los roles de la API (`anon` y `authenticated`) no pueden leer ni cambiar ninguna fila.
+- **Al backend no le afecta:** los servicios entran como `postgres`, que es el dueño de las tablas y salta RLS. Por eso no se usa `FORCE ROW LEVEL SECURITY`.
+- **Las tablas nuevas también quedan con RLS.** Como Hibernate crea las tablas al arrancar (`ddl-auto=update`), un *event trigger* activa RLS en cada tabla que se cree en `public`. Su función está en el esquema `interno`, que la API no publica.
+- Se configuró una sola vez, con SQL en Supabase. Para revisarlo: `select relname, relrowsecurity from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind in ('r', 'p');` (todas deben decir `true`).
+
+> **Decisión:** no se escribieron políticas de RLS. Las reglas de quién ve qué ya están en el backend (punto 25), y repetirlas en SQL sería mantenerlas en dos lugares. Como nadie debe entrar por la API de Supabase, basta con que no deje pasar nada.
+
+- **Dónde:** en la base de Supabase: el *event trigger* `activar_rls_en_tablas_nuevas` y su función `interno.activar_rls_en_tablas_nuevas`.
 
 ---
 
@@ -654,10 +669,11 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 | `api-gateway/.../seguridad/LimiteIntentosGlobalFilterTest`, `LimiteIntentosGatewayTest` | Pasado el límite de cada ruta (login, envío de códigos, consulta de celulares, registro), la IP recibe 429 sin llegar al servicio, con las cabeceras CORS para que el frontend muestre el mensaje; otras IP y otras rutas no se afectan |
 | `mensajeria-service/.../OtpControllerTest`, `TextBeeOtpServiceTest` | A un celular sin cuenta no se le envía nada pero la respuesta es la misma; a un celular se le envían máximo 8 códigos al día |
 | `persona-mayor-service/.../GustoControllerTest` | El catálogo de intereses no se puede editar ni borrar, y los intereses de una persona mayor solo los ve ella |
+| Consulta de `pg_class` en Supabase | Todas las tablas de `public` tienen RLS activado (punto 47) |
 
 Las pruebas existentes de todos los servicios siguen pasando.
 
-**Pendiente de verificar en el servidor:** levantar todo con `docker compose up -d --build` y comprobar con `docker compose ps` que todos los contenedores quedan `healthy`. Luego detener una réplica (`docker compose stop salud-service-2`) y confirmar que la plataforma sigue respondiendo. Estas pruebas no se hicieron todavía en un entorno real con Docker. Con la plataforma publicada, abrir las páginas principales (landing, paneles, mapas, analítica y foto de perfil) con la consola del navegador abierta y confirmar que la Content-Security-Policy no bloquea nada: no se pudo probar en local porque las cabeceras las pone Caddy. Comprobar también que, sin root, Caddy obtiene y renueva el certificado HTTPS, y que los servicios arrancan con solo sus claves. Por último: revisar en Supabase (*Database > Backups*) qué copias incluye el plan y por cuánto tiempo; programar `respaldo.sh` con `cron`, y correr `probar-restauracion.sh` con la primera copia. Los scripts no se probaron en local porque necesitan Docker.
+**Pendiente de verificar en el servidor:** levantar todo con `docker compose up -d --build` y comprobar con `docker compose ps` que todos los contenedores quedan `healthy`. Luego detener una réplica (`docker compose stop salud-service-2`) y confirmar que la plataforma sigue respondiendo. Estas pruebas no se hicieron todavía en un entorno real con Docker. Con la plataforma publicada, abrir las páginas principales (landing, paneles, mapas, analítica y foto de perfil) con la consola del navegador abierta y confirmar que la Content-Security-Policy no bloquea nada: no se pudo probar en local porque las cabeceras las pone Caddy. Comprobar también que, sin root, Caddy obtiene y renueva el certificado HTTPS, y que los servicios arrancan con solo sus claves. Por último: revisar en Supabase (*Database > Backups*) qué copias incluye el plan y por cuánto tiempo; programar `respaldo.sh` con `cron`, y correr `probar-restauracion.sh` con la primera copia. Los scripts no se probaron en local porque necesitan Docker. Con RLS ya activado en Supabase, confirmar que los servicios siguen leyendo y guardando datos con normalidad.
 
 ---
 
