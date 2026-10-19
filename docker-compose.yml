@@ -115,8 +115,13 @@ services:
     image: vitaplus/persona-mayor-service
     build: { context: ./backend, args: { SERVICIO: persona-mayor-service } }
 
+  # Las tareas programadas (mensajes de cumpleaños) solo las corre la
+  # primera réplica; si las corrieran las dos, saldrían repetidos.
   persona-mayor-service-2:
     <<: *servicio
+    environment:
+      <<: *claves-base-de-datos
+      TAREAS_PROGRAMADAS_ACTIVAS: "false"
     image: vitaplus/persona-mayor-service
     pull_policy: never
     depends_on:

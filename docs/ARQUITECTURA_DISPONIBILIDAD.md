@@ -80,7 +80,7 @@ Estas decisiones evitan que la plataforma se caiga o, si una parte falla, permit
 | 14 | **Circuit breaker por ruta** (Resilience4j) | **Nuevo** | Fallas en cascada y peticiones colgadas acumulándose |
 | 15 | **Reintentos seguros en el gateway** | **Nuevo** | Fallas pasajeras y réplicas caídas |
 | 16 | **Tiempos máximos de espera** (gateway y llamadas entre servicios) | **Nuevo** | Un servicio lento que bloquea a quien lo llama |
-| 17 | **Bloqueo distribuido de tareas programadas** (ShedLock) | **Nuevo** | Tareas duplicadas al tener réplicas |
+| 17 | **Tareas programadas en una sola réplica** | **Nuevo** | Tareas duplicadas al tener réplicas |
 | 18 | **Caché de catálogos** (Caffeine) | **Nuevo** | Consultas repetidas a la base de datos |
 | 19 | **Caché del navegador para el frontend** (Caddy) | **Nuevo** | Descargar la aplicación completa en cada visita |
 | 20 | **Apagado ordenado** (graceful shutdown) | **Nuevo** | Cortar peticiones a medias al reiniciar o actualizar |
@@ -239,14 +239,16 @@ Sin tiempos máximos, un servicio que se cuelga deja colgado a quien lo llama, y
 
 - **Dónde:** `application.yml` del gateway (`httpclient`), `MensajeriaClientConfig.java` de cada servicio, `auth-service/.../service/FotoPerfilStorage.java`.
 
-#### 17. Bloqueo distribuido de tareas programadas: ShedLock
+#### 17. Tareas programadas en una sola réplica
 
-Con dos réplicas de `persona-mayor-service`, las dos correrían la tarea de cumpleaños de las 8 a. m. y cada persona recibiría **dos** felicitaciones. Con **ShedLock**, la réplica que empieza la tarea deja una marca en la tabla `shedlock` de la base de datos y la otra se salta esa ejecución. Se usa la hora de la base de datos, para que no importe si los relojes de las réplicas están desfasados. La marca dura al menos 5 minutos y como máximo 30.
+Con dos réplicas de `persona-mayor-service`, las dos correrían la tarea de cumpleaños de las 8 a. m. y cada persona recibiría **dos** felicitaciones. Por eso solo la primera réplica corre las tareas programadas: `persona-mayor-service-2` arranca con `TAREAS_PROGRAMADAS_ACTIVAS=false` y no las agenda. No hace falta ninguna tabla de bloqueo en la base de datos.
+
+Si la primera réplica está caída justo a las 8 a. m., ese día no salen las felicitaciones. Se acepta porque se reinicia sola (`restart` y autoheal) y es una sola tarea no crítica. Si algún día hay tareas más importantes, la alternativa es un bloqueo distribuido como ShedLock, que sí sigue funcionando con una réplica caída pero necesita una tabla en la base.
 
 `salud-service` no lo necesita: sus recordatorios ya eran idempotentes (punto 8).
 
-- **Dónde:** `persona-mayor-service/pom.xml` (`shedlock-spring` y `shedlock-provider-jdbc-template` 7.10.1), `config/BloqueoTareasConfig.java` (crea la tabla si no existe), `@SchedulerLock` en `scheduler/CumpleanosScheduler.java`.
-- **Si se replica otro servicio con tareas programadas** (actividad o analítica), hay que agregarle ShedLock de la misma forma.
+- **Dónde:** `persona-mayor-service/.../config/TareasProgramadasConfig.java` (`@EnableScheduling` solo si `tareas.programadas.activas` es `true`, el valor por defecto) y el `environment` de `persona-mayor-service-2` en `docker-compose.yml`.
+- **Si se replica otro servicio con tareas programadas** (actividad o analítica), hay que apagarlas de la misma forma en la segunda réplica.
 
 #### 18. Caché de catálogos: Caffeine
 
@@ -584,7 +586,7 @@ El backend está dividido en **11 servicios**, uno por dominio (autenticación, 
 - **Sin sesión en el servidor:** el JWT lleva la sesión, así que cualquier réplica atiende cualquier petición (punto 6).
 - **Balanceo en el gateway:** agregar una réplica es agregar su dirección en `application-docker.yml` y un servicio en `docker-compose.yml` (punto 13).
 - **Pocas conexiones a la base por instancia** (3), más el *pooler* de Supabase, para que agregar instancias no agote las conexiones (punto 5).
-- **Tareas programadas seguras con varias réplicas:** reservas idempotentes y ShedLock (puntos 8 y 17).
+- **Tareas programadas seguras con varias réplicas:** reservas idempotentes y tareas en una sola réplica (puntos 8 y 17).
 
 Lo que todavía limita el crecimiento está en *Limitaciones conocidas*: los OTP y los avisos de tiempo real viven en memoria, y todo corre en un solo servidor.
 
