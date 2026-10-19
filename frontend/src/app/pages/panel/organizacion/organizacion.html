@@ -104,7 +104,7 @@
       </div>
 
       <!-- Formulario rápido para crear una actividad -->
-      <!-- Nombre, fecha, hora y lugar son obligatorios -->
+      <!-- Nombre, fecha, horario y lugar son obligatorios -->
       <form class="activity-form" (ngSubmit)="crearActividad()">
         <input
           type="text"
@@ -116,26 +116,38 @@
           required
         />
 
+        <input
+          type="date"
+          name="nuevaActividadFecha"
+          class="activity-input"
+          aria-label="Fecha"
+          title="Fecha de la actividad"
+          [min]="hoy()"
+          [(ngModel)]="nuevaActividad.fecha"
+          required
+        />
+
         <div class="activity-form__row">
-          <input
-            type="date"
-            name="nuevaActividadFecha"
-            class="activity-input"
-            aria-label="Fecha"
-            title="Fecha de la actividad"
-            [min]="hoy()"
-            [(ngModel)]="nuevaActividad.fecha"
-            required
-          />
-          <input
-            type="time"
-            name="nuevaActividadHora"
-            class="activity-input"
-            aria-label="Hora"
-            title="Hora de la actividad"
-            [(ngModel)]="nuevaActividad.hora"
-            required
-          />
+          <label class="activity-form__hora">
+            <span class="texto-suave">Desde *</span>
+            <input
+              type="time"
+              name="nuevaActividadHora"
+              class="activity-input"
+              [(ngModel)]="nuevaActividad.hora"
+              required
+            />
+          </label>
+          <label class="activity-form__hora">
+            <span class="texto-suave">Hasta *</span>
+            <input
+              type="time"
+              name="nuevaActividadHoraFin"
+              class="activity-input"
+              [(ngModel)]="nuevaActividad.horaFin"
+              required
+            />
+          </label>
         </div>
 
         <input
@@ -147,6 +159,10 @@
           [(ngModel)]="nuevaActividad.lugar"
           required
         />
+
+        @if (avisoHorario(nuevaActividad)) {
+          <p class="activity-error">{{ avisoHorario(nuevaActividad) }}</p>
+        }
 
         <button type="submit" class="btn btn-primary" [disabled]="!esValida(nuevaActividad)">
           <app-icono name="plus" /> Registrar actividad
@@ -180,14 +196,31 @@
                     [(ngModel)]="actividadEditando.fecha"
                     required
                   />
-                  <input
-                    type="time"
-                    name="actividadEditandoHora"
-                    class="activity-input"
-                    aria-label="Hora"
-                    [(ngModel)]="actividadEditando.hora"
-                    required
-                  />
+                  <div class="activity-form__row">
+                    <label class="activity-form__hora">
+                      <span class="texto-suave">Desde *</span>
+                      <input
+                        type="time"
+                        name="actividadEditandoHora"
+                        class="activity-input"
+                        [(ngModel)]="actividadEditando.hora"
+                        required
+                      />
+                    </label>
+                    <label class="activity-form__hora">
+                      <span class="texto-suave">Hasta *</span>
+                      <input
+                        type="time"
+                        name="actividadEditandoHoraFin"
+                        class="activity-input"
+                        [(ngModel)]="actividadEditando.horaFin"
+                        required
+                      />
+                    </label>
+                  </div>
+                  @if (avisoHorario(actividadEditando)) {
+                    <p class="activity-error">{{ avisoHorario(actividadEditando) }}</p>
+                  }
                   <input
                     type="text"
                     name="actividadEditandoLugar"
@@ -214,7 +247,7 @@
                 <!-- Fila normal -->
                 <div class="activity-item__datos">
                   <span class="activity-item__dia">
-                    {{ formatearDia(act.fecha) }}@if (act.hora) {, {{ formatearHora(act.hora) }}}
+                    {{ formatearDia(act.fecha) }}@if (act.hora) {, {{ formatearHora(act.hora) }}@if (act.horaFin) { a {{ formatearHora(act.horaFin) }} }}
                   </span>
                   <strong>{{ act.nombre }}</strong>
                   <span class="texto-suave">

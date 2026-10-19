@@ -21,6 +21,7 @@ public record PropuestaActividadResponse(
         String descripcion,
         LocalDate fecha,
         String hora,
+        String horaFin,
         String lugar,
         String tipo,
         Integer cupos,

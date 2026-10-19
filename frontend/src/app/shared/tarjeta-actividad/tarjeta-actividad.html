@@ -26,7 +26,7 @@
         }
 
         @if (actividad.hora) {
-          <span><app-icono name="clock" /> {{ actividad.hora }}</span>
+          <span><app-icono name="clock" /> {{ actividad.hora }}@if (actividad.horaFin) { a {{ actividad.horaFin }} }</span>
         }
 
         @if (actividad.lugar) {

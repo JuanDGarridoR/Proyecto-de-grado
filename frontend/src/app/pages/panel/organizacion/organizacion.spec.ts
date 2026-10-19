@@ -18,16 +18,16 @@ interface VistaPanel {
   guardarActividad(): void;
 }
 
-/** Actividad con los cuatro datos obligatorios. */
+/** Actividad con los datos obligatorios. */
 function completa(): ActividadRequest {
   return {
-    nombre: 'Bingo comunitario', descripcion: null, fecha: '2026-10-20', hora: '15:00',
+    nombre: 'Bingo comunitario', descripcion: null, fecha: '2026-10-20', hora: '15:00', horaFin: '17:00',
     lugar: 'Salón comunal', tipo: null, cupos: null, responsable: null, frecuenciaDias: null
   };
 }
 
 // Registro rápido de actividades desde el inicio de la organización (RF-39):
-// sin nombre, fecha, hora o lugar no se envía nada, ni al crear ni al editar.
+// sin nombre, fecha, horario o lugar no se envía nada, ni al crear ni al editar.
 describe('PanelOrganizacion: registro rápido de actividades', () => {
   const crear = vi.fn(() => of({}));
   const actualizar = vi.fn(() => of({}));
@@ -67,12 +67,17 @@ describe('PanelOrganizacion: registro rápido de actividades', () => {
     panel = fixture.componentInstance as unknown as VistaPanel;
   });
 
-  it('no registra una actividad a la que le falta el nombre, la fecha, la hora o el lugar', () => {
+  it('no registra una actividad a la que le falta el nombre, la fecha, el horario o el lugar', () => {
     panel.nuevaActividad = { ...completa(), nombre: '   ' };
     panel.crearActividad();
     panel.nuevaActividad = { ...completa(), fecha: null };
     panel.crearActividad();
     panel.nuevaActividad = { ...completa(), hora: null };
+    panel.crearActividad();
+    panel.nuevaActividad = { ...completa(), horaFin: null };
+    panel.crearActividad();
+    // Termina antes de empezar
+    panel.nuevaActividad = { ...completa(), horaFin: '14:00' };
     panel.crearActividad();
     panel.nuevaActividad = { ...completa(), lugar: '' };
     panel.crearActividad();
@@ -80,12 +85,12 @@ describe('PanelOrganizacion: registro rápido de actividades', () => {
     expect(crear).not.toHaveBeenCalled();
   });
 
-  it('con los cuatro datos registra la actividad y limpia el formulario', () => {
+  it('con los datos completos registra la actividad y limpia el formulario', () => {
     panel.nuevaActividad = completa();
     panel.crearActividad();
 
     expect(crear).toHaveBeenCalledWith(expect.objectContaining({
-      nombre: 'Bingo comunitario', fecha: '2026-10-20', hora: '15:00', lugar: 'Salón comunal'
+      nombre: 'Bingo comunitario', fecha: '2026-10-20', hora: '15:00', horaFin: '17:00', lugar: 'Salón comunal'
     }));
     expect(panel.nuevaActividad.nombre).toBe('');
   });

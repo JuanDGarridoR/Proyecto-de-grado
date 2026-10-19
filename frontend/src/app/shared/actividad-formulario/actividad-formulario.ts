@@ -5,6 +5,7 @@ import {
   ActividadRequest,
   MAX_FRECUENCIA_DIAS,
   errorFrecuencia,
+  errorHorario,
   fechaHoy,
   textoFrecuencia
 } from '../../core/actividades/actividad.service';
@@ -59,6 +60,7 @@ export class ActividadFormulario {
     descripcion: null,
     fecha: null,
     hora: null,
+    horaFin: null,
     lugar: null,
     tipo: null,
     cupos: null,
@@ -115,7 +117,12 @@ export class ActividadFormulario {
     }
 
     if (!this.actividad.hora) {
-      return 'La hora de la actividad es obligatoria';
+      return 'La hora de inicio de la actividad es obligatoria';
+    }
+
+    const horario = errorHorario(this.actividad.hora, this.actividad.horaFin);
+    if (horario) {
+      return horario;
     }
 
     if (!this.actividad.lugar?.trim()) {

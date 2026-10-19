@@ -12,6 +12,8 @@ export interface Actividad {
   descripcion: string | null;
   fecha: string | null;
   hora: string | null;
+  /** "HH:mm"; null en las actividades creadas antes de que existiera. */
+  horaFin: string | null;
   lugar: string | null;
   /** Punto de encuentro en el mapa (lo calcula analitica-service con el lugar); null si aún no se ubica. */
   latitud: number | null;
@@ -30,6 +32,8 @@ export interface ActividadDisponible {
   descripcion: string | null;
   fecha: string | null;
   hora: string | null;
+  /** "HH:mm"; null en las actividades creadas antes de que existiera. */
+  horaFin: string | null;
   lugar: string | null;
   /** Punto de encuentro en el mapa (lo calcula analitica-service con el lugar); null si aún no se ubica. */
   latitud: number | null;
@@ -50,11 +54,39 @@ export interface ActividadRequest {
   descripcion: string | null;
   fecha: string | null;
   hora: string | null;
+  /** "HH:mm"; null en las actividades creadas antes de que existiera. */
+  horaFin: string | null;
   lugar: string | null;
   tipo: string | null;
   cupos: number | null;
   responsable: string | null;
   frecuenciaDias: number | null;
+}
+
+/**
+ * Mensaje de error si el horario no es válido, o null si está bien (las
+ * mismas reglas del backend): con hora de inicio también va la de fin, y la
+ * de fin va después.
+ */
+export function errorHorario(hora: string | null, horaFin: string | null): string | null {
+  if (!hora && !horaFin) {
+    return null;
+  }
+
+  if (!hora) {
+    return 'Indica a qué hora empieza la actividad';
+  }
+
+  if (!horaFin) {
+    return 'Indica a qué hora termina la actividad';
+  }
+
+  // "HH:mm": como texto se comparan igual que como horas
+  if (horaFin.padStart(5, '0') <= hora.padStart(5, '0')) {
+    return 'La hora de fin debe ser posterior a la hora de inicio';
+  }
+
+  return null;
 }
 
 /** Lo más espaciada que puede repetirse una actividad (igual que en el backend). */
@@ -105,6 +137,8 @@ export interface PropuestaActividad {
   descripcion: string | null;
   fecha: string | null;
   hora: string | null;
+  /** "HH:mm"; null en las actividades creadas antes de que existiera. */
+  horaFin: string | null;
   lugar: string | null;
   /** Punto de encuentro en el mapa (lo calcula analitica-service con el lugar); null si aún no se ubica. */
   latitud: number | null;

@@ -12,6 +12,7 @@ export interface ActividadTarjeta {
   descripcion: string | null;
   fecha: string | null;
   hora: string | null;
+  horaFin?: string | null;
   lugar: string | null;
   tipo: string | null;
   cupos: number | null;

@@ -123,6 +123,7 @@ class ActividadControllerTest {
         actividad.setNombre("Yoga en el parque");
         actividad.setFecha(fecha);
         actividad.setHora("09:00");
+        actividad.setHoraFin("10:00");
         actividad.setLugar("Parque Entrenubes");
         actividad.setCupos(cupos);
         return actividad;
@@ -130,7 +131,7 @@ class ActividadControllerTest {
 
     private String formulario(String nombre, LocalDate fecha, Integer cupos) {
         return """
-                {"nombre": "%s", "descripcion": "Estiramientos suaves", "fecha": "%s", "hora": "09:00",
+                {"nombre": "%s", "descripcion": "Estiramientos suaves", "fecha": "%s", "hora": "09:00", "horaFin": "10:00",
                  "lugar": "Parque Entrenubes", "tipo": "Recreativa", "cupos": %s, "responsable": "Laura"}
                 """.formatted(nombre, fecha, cupos);
     }
@@ -187,7 +188,7 @@ class ActividadControllerTest {
                         .header("X-User-Id", CUENTA_ORGANIZACION)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"nombre": "Caminata", "fecha": "%s", "hora": "08:00", "lugar": "Parque La Flora",
+                                {"nombre": "Caminata", "fecha": "%s", "hora": "08:00", "horaFin": "09:00", "lugar": "Parque La Flora",
                                  "latitud": 4.5180, "longitud": -74.1075}
                                 """.formatted(manana)))
                 .andExpect(status().isCreated())
@@ -564,5 +565,122 @@ class ActividadControllerTest {
         mockMvc.perform(put("/api/actividades/propuestas/3/rechazar").header("X-User-Id", CUENTA_ORGANIZACION))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Esta propuesta ya fue respondida"));
+    }
+
+    // ---------- Cruce de horarios ----------
+
+    /** Actividad confirmada de la organización mañana, de 09:00 a 10:00. */
+    private Actividad confirmadaManana() {
+        Actividad confirmada = actividad(7, manana, 20);
+        confirmada.setNombre("Bailoterapia");
+        when(actividadRepository.findConfirmadasDelDia(ORGANIZACION, manana)).thenReturn(List.of(confirmada));
+        return confirmada;
+    }
+
+    private String formularioEntre(String hora, String horaFin) {
+        return formulario("Taller de memoria", manana, 15)
+                .replace("\"hora\": \"09:00\", \"horaFin\": \"10:00\"",
+                        "\"hora\": \"" + hora + "\", \"horaFin\": \"" + horaFin + "\"");
+    }
+
+    @Test
+    void unaPropuestaQueSeCruzaConUnaActividadConfirmadaPideOtroHorario() throws Exception {
+        confirmadaManana();
+
+        mockMvc.perform(post("/api/actividades/propuestas")
+                        .header("X-User-Id", PERSONA_MAYOR)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formularioEntre("09:30", "11:00")
+                                .replace("{", "{\"idOrganizacion\": " + ORGANIZACION + ", ")))
+                .andExpect(status().isConflict())
+                .andExpect(content().string("Ya hay una actividad confirmada de la organización en ese horario "
+                        + "(\"Bailoterapia\" de 09:00 a 10:00). Selecciona otro horario para la actividad."));
+
+        verify(actividadRepository, never()).save(any());
+    }
+
+    @Test
+    void laOrganizacionTampocoCreaUnaActividadQueSeCruza() throws Exception {
+        confirmadaManana();
+
+        mockMvc.perform(post("/api/actividades")
+                        .header("X-User-Id", CUENTA_ORGANIZACION)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formularioEntre("08:00", "09:30")))
+                .andExpect(status().isConflict());
+
+        verify(actividadRepository, never()).save(any());
+    }
+
+    @Test
+    void empezarJustoCuandoTerminaLaOtraNoEsCruce() throws Exception {
+        confirmadaManana();
+
+        mockMvc.perform(post("/api/actividades")
+                        .header("X-User-Id", CUENTA_ORGANIZACION)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formularioEntre("10:00", "11:00")))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void unaActividadViejaSinHoraDeFinCuentaComoDeUnaHora() throws Exception {
+        confirmadaManana().setHoraFin(null);
+
+        mockMvc.perform(post("/api/actividades")
+                        .header("X-User-Id", CUENTA_ORGANIZACION)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formularioEntre("09:45", "10:30")))
+                .andExpect(status().isConflict())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("de 09:00 a 10:00")));
+    }
+
+    @Test
+    void editarUnaActividadNoChocaConsigoMisma() throws Exception {
+        Actividad guardada = confirmadaManana();
+        when(actividadRepository.findById(7)).thenReturn(Optional.of(guardada));
+
+        mockMvc.perform(put("/api/actividades/7")
+                        .header("X-User-Id", CUENTA_ORGANIZACION)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formularioEntre("09:00", "10:30")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void laHoraDeFinEsObligatoriaYVaDespuesDelInicio() throws Exception {
+        mockMvc.perform(post("/api/actividades")
+                        .header("X-User-Id", CUENTA_ORGANIZACION)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formularioEntre("09:00", "")))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Indica a qué hora termina la actividad"));
+
+        mockMvc.perform(post("/api/actividades")
+                        .header("X-User-Id", CUENTA_ORGANIZACION)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formularioEntre("10:00", "09:00")))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("La hora de fin debe ser posterior a la hora de inicio"));
+
+        verify(actividadRepository, never()).save(any());
+    }
+
+    @Test
+    void noSeAceptaUnaPropuestaSiYaSeConfirmoOtraActividadEnEseHorario() throws Exception {
+        confirmadaManana();
+        Actividad propuesta = actividad(3, manana, 15);
+        propuesta.setHora("09:30");
+        propuesta.setHoraFin("10:30");
+        propuesta.setIdVoluntario(VOLUNTARIO);
+        propuesta.setEstado(Actividad.PENDIENTE);
+        when(actividadRepository.findById(3)).thenReturn(Optional.of(propuesta));
+
+        mockMvc.perform(put("/api/actividades/propuestas/3/aceptar").header("X-User-Id", CUENTA_ORGANIZACION))
+                .andExpect(status().isConflict())
+                .andExpect(content().string(org.hamcrest.Matchers.startsWith(
+                        "No puedes aceptarla: ya hay una actividad confirmada en ese horario")));
+
+        assertEquals(Actividad.PENDIENTE, propuesta.getEstado());
     }
 }

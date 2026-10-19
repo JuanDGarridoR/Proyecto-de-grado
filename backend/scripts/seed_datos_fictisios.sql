@@ -134,6 +134,8 @@ ALTER TABLE actividad ADD COLUMN IF NOT EXISTS id_voluntario integer;
 -- Estatura de los signos vitales; la agrega salud-service al arrancar.
 ALTER TABLE signo_vital ADD COLUMN IF NOT EXISTS estatura double precision;
 ALTER TABLE actividad ADD COLUMN IF NOT EXISTS estado varchar(255);
+-- Hora en que termina cada actividad; la agrega actividad-service al arrancar.
+ALTER TABLE actividad ADD COLUMN IF NOT EXISTS hora_fin varchar(255);
 
 -- Ubicación en el mapa de las actividades y las sedes. Las agrega
 -- analitica-service, que también las llena solo: le pregunta a Google
@@ -1464,6 +1466,12 @@ SELECT p.id_organizacion, p.id_usuario, p.estado, pl.nombre, pl.descripcion,
 FROM propuestas p
 JOIN plantillas pl ON pl.rn = p.idx_plantilla
 CROSS JOIN seed_tmp.seed_reloj r;
+
+-- 15c. Hora de fin: cada actividad dura una o dos horas.
+UPDATE actividad
+SET hora_fin = to_char(hora::time + make_interval(hours => 1 + floor(random() * 2)::int), 'HH24:MI')
+WHERE hora IS NOT NULL AND hora_fin IS NULL
+  AND id_organizacion IN (SELECT id_organizacion FROM usuario WHERE correo LIKE 'org%@vitaplus.test');
 
 -- 16. Participación en actividades (inscripciones + asistencia).
 --     - Solo se inscriben personas mayores cuya relación con la

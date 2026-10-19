@@ -253,7 +253,7 @@
             @for (act of actividades(); track act.idActividad) {
               <li class="lista__item">
                 <span class="lista__dia">
-                  {{ formatearDia(act.fecha) }}@if (act.hora) {, {{ formatearHora(act.hora) }}}
+                  {{ formatearDia(act.fecha) }}@if (act.hora) {, {{ formatearHora(act.hora) }}@if (act.horaFin) { a {{ formatearHora(act.horaFin) }} }}
                 </span>
                 <strong>{{ act.nombre }}</strong>
                 @if (act.lugar) {

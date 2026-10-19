@@ -66,6 +66,7 @@ class ActividadPeriodicaSchedulerTest {
         a.setIdOrganizacion(7);
         a.setNombre("Yoga");
         a.setHora("09:00");
+        a.setHoraFin("10:30");
         a.setLugar("Salón comunal");
         a.setCupos(15);
         a.setFecha(fecha);
@@ -91,6 +92,7 @@ class ActividadPeriodicaSchedulerTest {
         assertEquals(LocalDate.of(2026, 10, 12), siguiente.getFecha());
         assertEquals("Yoga", siguiente.getNombre());
         assertEquals("09:00", siguiente.getHora());
+        assertEquals("10:30", siguiente.getHoraFin());
         assertEquals("Salón comunal", siguiente.getLugar());
         assertEquals(15, siguiente.getCupos());
         assertEquals(7, siguiente.getIdOrganizacion());

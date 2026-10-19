@@ -11,6 +11,7 @@ import {
   PropuestaActividad,
   MAX_FRECUENCIA_DIAS,
   errorFrecuencia,
+  errorHorario,
   fechaHoy,
   separarPorFecha,
   textoFrecuencia
@@ -77,6 +78,7 @@ protected actividadEditando: ActividadRequest = {
   descripcion: null,
   fecha: null,
   hora: null,
+  horaFin: null,
   lugar: null,
   tipo: null,
   cupos: null,
@@ -241,7 +243,7 @@ protected crearActividad(datos: ActividadRequest): void {
     },
     error: (error) => {
       console.error('Error al crear actividad:', error);
-      this.error.set('No se pudo crear la actividad.');
+      this.error.set(mensajeDeError(error, 'No se pudo crear la actividad.'));
     }
   });
 }
@@ -269,7 +271,7 @@ protected confirmarEdicion(): void {
       },
       error: (error) => {
         console.error('Error al actualizar actividad:', error);
-        this.error.set('No se pudo actualizar la actividad');
+        this.error.set(mensajeDeError(error, 'No se pudo actualizar la actividad'));
       }
     });
 }
@@ -291,6 +293,7 @@ this.actividadEditando = {
   descripcion: actividad.descripcion,
   fecha: actividad.fecha,
   hora: actividad.hora,
+  horaFin: actividad.horaFin,
   lugar: actividad.lugar,
   tipo: actividad.tipo,
   cupos: actividad.cupos,
@@ -308,6 +311,7 @@ this.actividadEditando = {
   descripcion: null,
   fecha: null,
   hora: null,
+  horaFin: null,
   lugar: null,
   tipo: null,
   cupos: null,
@@ -323,6 +327,12 @@ protected guardarActividad(): void {
     this.actividadEditandoId === null ||
     !this.actividadEditando.nombre.trim()
   ) {
+    return;
+  }
+
+  const horario = errorHorario(this.actividadEditando.hora, this.actividadEditando.horaFin);
+  if (horario) {
+    this.error.set(horario);
     return;
   }
 

@@ -49,6 +49,13 @@ public class Actividad {
     @Column(name = "hora")
     private String hora;
 
+    /**
+     * "HH:mm", hora en que termina. null en las actividades creadas antes de
+     * que existiera; para ver si se cruzan con otra se cuentan como de una hora.
+     */
+    @Column(name = "hora_fin")
+    private String horaFin;
+
     @Column(name = "lugar")
     private String lugar;
 
@@ -142,6 +149,14 @@ public class Actividad {
 
     public void setHora(String hora) {
         this.hora = hora;
+    }
+
+    public String getHoraFin() {
+        return horaFin;
+    }
+
+    public void setHoraFin(String horaFin) {
+        this.horaFin = horaFin;
     }
 
     public String getLugar() {

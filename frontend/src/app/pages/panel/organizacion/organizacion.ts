@@ -16,6 +16,7 @@ import {
   Actividad,
   ActividadRequest,
   PropuestaActividad,
+  errorHorario,
   separarPorFecha
 } from '../../../core/actividades/actividad.service';
 import {
@@ -34,6 +35,7 @@ import {
 import { alCambiar } from '../../../core/tiempo-real/tiempo-real.service';
 import { NOMBRE_INDICADOR, indicadoresFueraDeRango } from '../../../core/signos-vitales/rangos';
 import { formatearHora } from '../../../core/medicamentos/medicamento.service';
+import { mensajeDeError } from '../../../core/formato/formato';
 import { formatearFechaCita } from '../../../core/citas-medicas/cita-medica.service';
 import { AltoPantalla } from '../../../shared/alto-pantalla/alto-pantalla';
 import { diasDesde, fechaLocal, haceDias, proximoCumpleanos } from '../../../core/fechas/fechas';
@@ -102,6 +104,7 @@ function actividadVacia(): ActividadRequest {
     descripcion: null,
     fecha: null,
     hora: null,
+    horaFin: null,
     lugar: null,
     tipo: null,
     cupos: null,
@@ -519,9 +522,15 @@ export class PanelOrganizacion implements OnInit, OnDestroy {
     return fechaLocal(this.ahora());
   }
 
-  /** Nombre, fecha, hora y lugar son obligatorios para registrar o guardar una actividad. */
+  /** Nombre, fecha, horario y lugar son obligatorios para registrar o guardar una actividad. */
   protected esValida(actividad: ActividadRequest): boolean {
-    return !!actividad.nombre?.trim() && !!actividad.fecha && !!actividad.hora && !!actividad.lugar?.trim();
+    return !!actividad.nombre?.trim() && !!actividad.fecha && !!actividad.hora && !!actividad.horaFin
+      && !errorHorario(actividad.hora, actividad.horaFin) && !!actividad.lugar?.trim();
+  }
+
+  /** Aviso si ya escribió las dos horas y la de fin no va después; null si no hay nada que avisar. */
+  protected avisoHorario(actividad: ActividadRequest): string | null {
+    return actividad.hora && actividad.horaFin ? errorHorario(actividad.hora, actividad.horaFin) : null;
   }
 
   crearActividad(): void {
@@ -536,8 +545,8 @@ export class PanelOrganizacion implements OnInit, OnDestroy {
         this.nuevaActividad = actividadVacia();
         this.cargarActividades();
       },
-      error: () => {
-        this.errorActividades.set('No se pudo crear la actividad');
+      error: (error) => {
+        this.errorActividades.set(mensajeDeError(error, 'No se pudo crear la actividad'));
       }
     });
   }
@@ -550,6 +559,7 @@ export class PanelOrganizacion implements OnInit, OnDestroy {
       descripcion: actividad.descripcion,
       fecha: actividad.fecha,
       hora: actividad.hora,
+      horaFin: actividad.horaFin,
       lugar: actividad.lugar,
       tipo: actividad.tipo,
       cupos: actividad.cupos,
@@ -576,8 +586,8 @@ export class PanelOrganizacion implements OnInit, OnDestroy {
         this.cancelarEdicionActividad();
         this.cargarActividades();
       },
-      error: () => {
-        this.errorActividades.set('No se pudo actualizar la actividad');
+      error: (error) => {
+        this.errorActividades.set(mensajeDeError(error, 'No se pudo actualizar la actividad'));
       }
     });
   }

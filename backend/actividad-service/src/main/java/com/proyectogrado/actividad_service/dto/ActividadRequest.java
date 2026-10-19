@@ -11,6 +11,7 @@ public class ActividadRequest {
     private String descripcion;
     private LocalDate fecha;
     private String hora;
+    private String horaFin;
     private String lugar;
     private String tipo;
     private Integer cupos;
@@ -60,6 +61,14 @@ public class ActividadRequest {
 
     public void setHora(String hora) {
         this.hora = hora;
+    }
+
+    public String getHoraFin() {
+        return horaFin;
+    }
+
+    public void setHoraFin(String horaFin) {
+        this.horaFin = horaFin;
     }
 
     public String getLugar() {

@@ -25,6 +25,19 @@ public interface ActividadRepository extends JpaRepository<Actividad, Integer> {
     /** Propuestas (de voluntarios o personas mayores) a una organización con un estado dado. */
     List<Actividad> findByIdOrganizacionAndEstado(Integer idOrganizacion, String estado);
 
+    /**
+     * Actividades confirmadas de la organización en un día: las que creó ella
+     * y las propuestas que aceptó. Sirve para no agendar dos a la misma hora.
+     */
+    @Query("""
+            SELECT a FROM Actividad a
+             WHERE a.idOrganizacion = :idOrganizacion
+               AND a.fecha = :fecha
+               AND (a.estado IS NULL OR a.estado = 'ACEPTADA')
+            """)
+    List<Actividad> findConfirmadasDelDia(@Param("idOrganizacion") Integer idOrganizacion,
+                                          @Param("fecha") LocalDate fecha);
+
     /** Actividades entre dos fechas, ambas incluidas. La usa el scheduler de recordatorios. */
     List<Actividad> findByFechaBetween(LocalDate desde, LocalDate hasta);
 

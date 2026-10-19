@@ -17,7 +17,7 @@ interface VistaInicio {
 
 function actividad(idActividad: number, nombre: string, fecha: string, hora: string | null): Actividad {
   return {
-    idActividad, idOrganizacion: 5, nombre, descripcion: null, fecha, hora,
+    idActividad, idOrganizacion: 5, nombre, descripcion: null, fecha, hora, horaFin: null,
     lugar: 'Salón comunal', latitud: null, longitud: null, tipo: null, cupos: null, responsable: null, frecuenciaDias: null
   };
 }

@@ -100,20 +100,37 @@
         </div>
 
 
-        <!-- Fecha y hora en la misma fila -->
+        <div class="form-group">
+
+          <label for="fechaActividad">
+            Fecha <span class="required">*</span>
+          </label>
+
+          <input
+            id="fechaActividad"
+            type="date"
+            name="fechaActividad"
+            [(ngModel)]="actividad.fecha"
+            required
+          />
+
+        </div>
+
+
+        <!-- Hora de inicio y de fin en la misma fila -->
         <div class="form-row">
 
           <div class="form-group">
 
-            <label for="fechaActividad">
-              Fecha <span class="required">*</span>
+            <label for="horaActividad">
+              Hora de inicio <span class="required">*</span>
             </label>
 
             <input
-              id="fechaActividad"
-              type="date"
-              name="fechaActividad"
-              [(ngModel)]="actividad.fecha"
+              id="horaActividad"
+              type="time"
+              name="horaActividad"
+              [(ngModel)]="actividad.hora"
               required
             />
 
@@ -122,15 +139,15 @@
 
           <div class="form-group">
 
-            <label for="horaActividad">
-              Hora <span class="required">*</span>
+            <label for="horaFinActividad">
+              Hora de fin <span class="required">*</span>
             </label>
 
             <input
-              id="horaActividad"
+              id="horaFinActividad"
               type="time"
-              name="horaActividad"
-              [(ngModel)]="actividad.hora"
+              name="horaFinActividad"
+              [(ngModel)]="actividad.horaFin"
               required
             />
 
@@ -349,8 +366,8 @@
             </div>
 
             <div class="confirmation-item">
-              <span class="confirmation-label">Hora</span>
-              <strong>{{ actividad.hora }}</strong>
+              <span class="confirmation-label">Horario</span>
+              <strong>{{ actividad.hora }} a {{ actividad.horaFin }}</strong>
             </div>
 
           </div>

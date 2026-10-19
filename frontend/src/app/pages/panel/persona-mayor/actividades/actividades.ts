@@ -73,7 +73,7 @@ export class Actividades implements OnInit {
 
       const cuando = [
         actividad.fecha ? formatDate(actividad.fecha, "EEEE d 'de' MMMM", 'es-CO') : null,
-        actividad.hora
+        actividad.hora && actividad.horaFin ? `${actividad.hora} a ${actividad.horaFin}` : actividad.hora
       ].filter(Boolean).join(' · ');
 
       return [{

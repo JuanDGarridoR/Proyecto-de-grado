@@ -30,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -54,6 +56,9 @@ public class ActividadController {
 
     /** Lo más espaciada que puede repetirse una actividad periódica (un año). */
     static final int MAX_FRECUENCIA_DIAS = 365;
+
+    /** Lo que se supone que dura una actividad vieja, sin hora de fin, para ver si otra se le cruza. */
+    static final int MINUTOS_SIN_HORA_FIN = 60;
 
     private final ActividadRepository actividadRepository;
     private final ParticipacionRepository participacionRepository;
@@ -203,6 +208,7 @@ public class ActividadController {
                             a.getCupos(),
                             idsInscritos.contains(a.getIdActividad())
                     );
+                    disponible.setHoraFin(a.getHoraFin());
                     disponible.setFrecuenciaDias(a.getFrecuenciaDias());
                     disponible.setLatitud(a.getLatitud());
                     disponible.setLongitud(a.getLongitud());
@@ -423,6 +429,11 @@ public class ActividadController {
             return ResponseEntity.badRequest().body(error);
         }
 
+        Actividad cruce = cruceCon(idOrganizacion, request.getFecha(), request.getHora(), request.getHoraFin(), null);
+        if (cruce != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(mensajeCruce(cruce));
+        }
+
         Actividad actividad = new Actividad();
         actividad.setIdOrganizacion(idOrganizacion);
         aplicarDatos(actividad, request);
@@ -473,6 +484,12 @@ public class ActividadController {
         String error = validarNueva(request);
         if (error != null) {
             return ResponseEntity.badRequest().body(error);
+        }
+
+        Actividad cruce = cruceCon(request.getIdOrganizacion(), request.getFecha(),
+                request.getHora(), request.getHoraFin(), null);
+        if (cruce != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(mensajeCruce(cruce));
         }
 
         Actividad actividad = new Actividad();
@@ -581,6 +598,18 @@ public class ActividadController {
                     .body("No puedes aceptar una actividad cuya fecha ya pasó");
         }
 
+        // Entre la propuesta y la respuesta la organización pudo haber
+        // confirmado otra actividad a esa hora.
+        if (Actividad.ACEPTADA.equals(nuevoEstado)) {
+            Actividad cruce = cruceCon(idOrganizacion, actividad.getFecha(), actividad.getHora(),
+                    actividad.getHoraFin(), actividad.getIdActividad());
+            if (cruce != null) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("No puedes aceptarla: ya hay una actividad confirmada en ese horario ("
+                                + describir(cruce) + "). Pídele a quien la propuso que elija otro horario.");
+            }
+        }
+
         actividad.setEstado(nuevoEstado);
         actividad = actividadRepository.save(actividad);
 
@@ -616,9 +645,20 @@ public class ActividadController {
             return ResponseEntity.badRequest().body("Los cupos deben ser mayores a 0");
         }
 
+        String errorHorario = validarHorario(request);
+        if (errorHorario != null) {
+            return ResponseEntity.badRequest().body(errorHorario);
+        }
+
         String errorFrecuencia = validarFrecuencia(request);
         if (errorFrecuencia != null) {
             return ResponseEntity.badRequest().body(errorFrecuencia);
+        }
+
+        Actividad cruce = cruceCon(idOrganizacion, request.getFecha(), request.getHora(),
+                request.getHoraFin(), actividad.getIdActividad());
+        if (cruce != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(mensajeCruce(cruce));
         }
 
         aplicarDatos(actividad, request);
@@ -683,7 +723,108 @@ public class ActividadController {
             return "Los cupos deben ser mayores a 0";
         }
 
+        String errorHorario = validarHorario(request);
+        if (errorHorario != null) {
+            return errorHorario;
+        }
+
         return validarFrecuencia(request);
+    }
+
+    /** Si tiene hora de inicio, también necesita la de fin, y la de fin va después. */
+    private String validarHorario(ActividadRequest request) {
+        boolean conInicio = request.getHora() != null && !request.getHora().isBlank();
+        boolean conFin = request.getHoraFin() != null && !request.getHoraFin().isBlank();
+
+        if (!conInicio && !conFin) {
+            return null;
+        }
+
+        if (!conInicio) {
+            return "Indica a qué hora empieza la actividad";
+        }
+
+        if (!conFin) {
+            return "Indica a qué hora termina la actividad";
+        }
+
+        LocalTime inicio = leerHora(request.getHora());
+        LocalTime fin = leerHora(request.getHoraFin());
+
+        if (inicio == null || fin == null) {
+            return "La hora no es válida";
+        }
+
+        if (!fin.isAfter(inicio)) {
+            return "La hora de fin debe ser posterior a la hora de inicio";
+        }
+
+        return null;
+    }
+
+    /**
+     * Actividad confirmada de la organización (creada por ella o propuesta
+     * aceptada) que se cruza con ese horario el mismo día, o null si no hay.
+     * Las propuestas pendientes no cuentan: todavía no ocupan el horario.
+     * Que una termine justo cuando empieza la otra no es cruce.
+     * idExcluida es la misma actividad cuando se edita o se acepta.
+     */
+    private Actividad cruceCon(Integer idOrganizacion, LocalDate fecha, String hora,
+                               String horaFin, Integer idExcluida) {
+        LocalTime inicio = leerHora(hora);
+
+        if (fecha == null || inicio == null) {
+            return null;
+        }
+
+        LocalTime fin = finDe(inicio, horaFin);
+
+        for (Actividad otra : actividadRepository.findConfirmadasDelDia(idOrganizacion, fecha)) {
+            LocalTime inicioOtra = leerHora(otra.getHora());
+
+            if (otra.getIdActividad().equals(idExcluida) || inicioOtra == null) {
+                continue;
+            }
+
+            if (inicio.isBefore(finDe(inicioOtra, otra.getHoraFin())) && inicioOtra.isBefore(fin)) {
+                return otra;
+            }
+        }
+
+        return null;
+    }
+
+    private String mensajeCruce(Actividad cruce) {
+        return "Ya hay una actividad confirmada de la organización en ese horario ("
+                + describir(cruce) + "). Selecciona otro horario para la actividad.";
+    }
+
+    /** Por ejemplo: "Bailoterapia" de 09:00 a 10:00. */
+    private String describir(Actividad actividad) {
+        LocalTime inicio = leerHora(actividad.getHora());
+        return "\"" + actividad.getNombre() + "\" de " + inicio + " a " + finDe(inicio, actividad.getHoraFin());
+    }
+
+    /** Hora de fin; si no tiene, MINUTOS_SIN_HORA_FIN después del inicio, sin pasar de medianoche. */
+    private static LocalTime finDe(LocalTime inicio, String horaFin) {
+        LocalTime fin = leerHora(horaFin);
+        if (fin != null) {
+            return fin;
+        }
+        LocalTime supuesto = inicio.plusMinutes(MINUTOS_SIN_HORA_FIN);
+        return supuesto.isAfter(inicio) ? supuesto : LocalTime.of(23, 59);
+    }
+
+    /** "HH:mm" del formulario, o null si no hay o no es una hora. */
+    private static LocalTime leerHora(String hora) {
+        if (hora == null || hora.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalTime.parse(hora.trim());
+        } catch (DateTimeParseException e) {
+            return null;
+        }
     }
 
     /** Una actividad periódica necesita fecha (de ahí se cuentan los días) y entre 1 y 365 días. */
@@ -710,6 +851,7 @@ public class ActividadController {
         actividad.setDescripcion(request.getDescripcion());
         actividad.setFecha(request.getFecha());
         actividad.setHora(request.getHora());
+        actividad.setHoraFin(request.getHoraFin());
         // La latitud y la longitud no vienen del formulario: analitica-service
         // ubica el lugar sola (UbicadorAutomatico) y las llena.
         actividad.setLugar(request.getLugar());
@@ -776,6 +918,7 @@ public class ActividadController {
                 a.getDescripcion(),
                 a.getFecha(),
                 a.getHora(),
+                a.getHoraFin(),
                 a.getLugar(),
                 a.getTipo(),
                 a.getCupos(),
@@ -807,6 +950,7 @@ public class ActividadController {
                 a.getCupos(),
                 a.getResponsable()
         );
+        response.setHoraFin(a.getHoraFin());
         response.setFrecuenciaDias(a.getFrecuenciaDias());
         response.setLatitud(a.getLatitud());
         response.setLongitud(a.getLongitud());

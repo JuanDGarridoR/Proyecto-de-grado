@@ -309,29 +309,29 @@
         </div>
 
 
-        <!-- Fecha y hora en la misma fila -->
+        <div class="form-group">
+
+          <label for="editarFechaActividad">
+            Fecha
+          </label>
+
+          <input
+            id="editarFechaActividad"
+            type="date"
+            name="editarFechaActividad"
+            [(ngModel)]="actividadEditando.fecha"
+          />
+
+        </div>
+
+
+        <!-- Hora de inicio y de fin en la misma fila -->
         <div class="form-row">
 
           <div class="form-group">
 
-            <label for="editarFechaActividad">
-              Fecha
-            </label>
-
-            <input
-              id="editarFechaActividad"
-              type="date"
-              name="editarFechaActividad"
-              [(ngModel)]="actividadEditando.fecha"
-            />
-
-          </div>
-
-
-          <div class="form-group">
-
             <label for="editarHoraActividad">
-              Hora
+              Hora de inicio
             </label>
 
             <input
@@ -339,6 +339,22 @@
               type="time"
               name="editarHoraActividad"
               [(ngModel)]="actividadEditando.hora"
+            />
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="editarHoraFinActividad">
+              Hora de fin
+            </label>
+
+            <input
+              id="editarHoraFinActividad"
+              type="time"
+              name="editarHoraFinActividad"
+              [(ngModel)]="actividadEditando.horaFin"
             />
 
           </div>
@@ -503,7 +519,7 @@
               {{ actividad.fecha | date:'EEEE, d \'de\' MMMM \'de\' yyyy':'':'es-CO' }}
 
               @if (actividad.hora) {
-                · {{ actividad.hora }}
+                · {{ actividad.hora }}@if (actividad.horaFin) { a {{ actividad.horaFin }} }
               }
             </p>
 
@@ -800,9 +816,9 @@
       </div>
 
       <div class="confirmation-item">
-        <span class="confirmation-label">Hora</span>
+        <span class="confirmation-label">Horario</span>
         <strong>
-  {{ actividadEditando.hora }}
+  {{ actividadEditando.hora }}@if (actividadEditando.horaFin) { a {{ actividadEditando.horaFin }} }
 </strong>
       </div>
 
@@ -956,7 +972,7 @@
               </span>
 
               <strong>
-                {{ actividadEliminando.hora || 'No especificada' }}
+                {{ actividadEliminando.hora || 'No especificada' }}@if (actividadEliminando.horaFin) { a {{ actividadEliminando.horaFin }} }
               </strong>
             </div>
 

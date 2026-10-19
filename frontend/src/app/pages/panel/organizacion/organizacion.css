@@ -312,6 +312,13 @@
   gap: 8px;
 }
 
+.activity-form__hora {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
 .activity-input {
   width: 100%;
   padding: 9px 12px;
