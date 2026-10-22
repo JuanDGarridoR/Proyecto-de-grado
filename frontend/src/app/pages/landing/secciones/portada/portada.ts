@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
 
+import { Icono } from '../../../../shared/icono/icono';
+
 /** Portada de la landing: título, tarjetas flotantes y los roles de la plataforma. */
 @Component({
   selector: 'app-portada',
-  imports: [],
+  imports: [Icono],
   templateUrl: './portada.html',
   styleUrl: './portada.css'
 })

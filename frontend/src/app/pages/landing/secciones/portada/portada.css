@@ -66,6 +66,49 @@
   margin-top: 32px;
 }
 
+/* Manuales en PDF */
+
+.hero__manuales {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.hero__manuales-titulo {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--vita-text-gray);
+}
+
+.hero__manuales-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hero__manuales-botones .btn {
+  padding: 10px 18px;
+  font-size: 1.15rem;
+}
+
+.hero__manual {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.hero__manual strong {
+  font-size: 0.92rem;
+}
+
+.hero__manual small {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
 
 /* Estadísticas */
 
