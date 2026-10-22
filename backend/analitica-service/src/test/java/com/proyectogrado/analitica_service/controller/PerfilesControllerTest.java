@@ -188,8 +188,8 @@ class PerfilesControllerTest {
                 .andExpect(jsonPath("$.modelo.silueta", greaterThan(0.5)))
                 .andExpect(jsonPath("$.grupos", hasSize(2)))
                 .andExpect(jsonPath("$.grupos[0].personas").value(8))
-                .andExpect(jsonPath("$.grupos[0].nombre", containsString("Salud compleja")))
-                .andExpect(jsonPath("$.grupos[1].nombre").value("Autónomos y estables"))
+                .andExpect(jsonPath("$.grupos[0].nombre", containsString("Cuidado de la salud")))
+                .andExpect(jsonPath("$.grupos[1].nombre").value("Activos e independientes"))
                 .andExpect(jsonPath("$.personas[?(@.grupo == 1)].id",
                         containsInAnyOrder(200, 201, 202, 203, 204, 205, 206, 207)))
                 // Intereses y asistencia describen al grupo (sin profesiones)

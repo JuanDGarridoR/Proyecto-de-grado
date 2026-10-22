@@ -344,15 +344,20 @@ public class SegmentacionPerfiles {
         String nombre;
         String descripcion;
         if (!destacadas.isEmpty()) {
-            nombre = NOMBRE.get(destacadas.get(0))
-                    + (destacadas.size() > 1 ? " y " + NOMBRE.get(destacadas.get(1)).toLowerCase(ES_CO) : "");
+            // La edad solo da nombre al grupo cuando es lo único que sobresale;
+            // junto a otra dimensión el nombre queda con esa otra (la edad
+            // sigue en la descripción y las recomendaciones)
+            List<Dimension> enElNombre = destacadas.size() > 1
+                    ? destacadas.stream().filter(d -> d != Dimension.EDAD).toList()
+                    : destacadas;
+            nombre = String.join(" · ", enElNombre.stream().map(NOMBRE::get).toList());
             descripcion = String.join(" ", destacadas.stream().map(DESCRIPCION::get).toList());
         } else if (autonomo) {
-            nombre = "Autónomos y estables";
+            nombre = "Activos e independientes";
             descripcion = "Igual o menos necesidad que el promedio de la organización en salud, signos vitales, "
                     + "edad y acompañamiento.";
         } else {
-            nombre = "Perfil intermedio";
+            nombre = "Bienestar en equilibrio";
             descripcion = "Cerca del promedio de la organización, sin una necesidad que sobresalga.";
         }
 
@@ -414,11 +419,13 @@ public class SegmentacionPerfiles {
                 intereses, registradas > 0 ? redondear(100.0 * asistencias / registradas, 1) : null);
     }
 
+    // Nombran lo que el grupo necesita de la organización, no un problema de
+    // las personas: los lee cualquiera y no deben alarmar
     private static final Map<Dimension, String> NOMBRE = Map.of(
-            Dimension.SALUD, "Salud compleja",
-            Dimension.SIGNOS, "Signos vitales por vigilar",
-            Dimension.EDAD, "Edad avanzada",
-            Dimension.ACOMPANAMIENTO, "Necesita acompañamiento");
+            Dimension.SALUD, "Cuidado de la salud",
+            Dimension.SIGNOS, "Control de signos vitales",
+            Dimension.EDAD, "Experiencia de vida",
+            Dimension.ACOMPANAMIENTO, "Acompañamiento cercano");
 
     private static final Map<Dimension, String> DESCRIPCION = Map.of(
             Dimension.SALUD, "Más enfermedades, discapacidades o medicamentos que el promedio de la organización.",

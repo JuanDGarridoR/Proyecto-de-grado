@@ -189,13 +189,13 @@ El peso indica cómo cuenta la variable al calcular la necesidad de su dimensió
 
 Describir aquí el estado del dataset preparado con los datos disponibles:
 
-- `[POR COMPLETAR: con los datos ficticios de una organización, cuántas personas vinculadas, cuántas incluidas y cuántas excluidas, y por qué. Se obtiene en Analítica → Perfiles: indicador «Personas analizadas» y tabla «Personas sin datos suficientes».]`
+- `[POR COMPLETAR: con los datos ficticios de una organización, cuántas personas vinculadas, cuántas incluidas y cuántas excluidas, y por qué. Se obtiene en Analítica → Grupos de atención: indicador «Personas analizadas» y tabla «Personas sin datos suficientes».]`
 - `[POR COMPLETAR: completitud por variable (gráfica «Calidad de los datos») y porcentaje de valores imputados.]`
 - `[POR COMPLETAR: variables descartadas, si hubo alguna.]`
 - `[POR COMPLETAR: nivel de calidad obtenido. Con datos ficticios será como máximo «Aceptable», porque el nivel «Buena» exige que no haya datos de prueba.]`
 - `[POR COMPLETAR: estado de los datos reales recolectados en Usme: cuántos registros hay y si ya alcanzan el mínimo de 12 personas por organización.]`
 
-Figura sugerida: captura de la gráfica «Calidad de los datos» de la pestaña Perfiles.
+Figura sugerida: captura de la gráfica «Calidad de los datos» de la pestaña «Grupos de atención».
 
 ---
 
@@ -208,7 +208,7 @@ Párrafo introductorio sugerido: el componente analítico combina **técnicas de
 | Objetivo analítico (Fase 1) | Técnica | Dónde se ve en la plataforma |
 |---|---|---|
 | Caracterización de la población (1.3) | Estadística descriptiva: conteos, proporciones, promedios y distribuciones | Reportes «Perfil de la población» y «Salud de la población» |
-| Perfilamiento (1.3.1) | **Clustering K-means** con inicialización K-means++, elección de *k* por coeficiente de silueta y PCA para visualizar | Pestaña «Perfiles» (RF-81) |
+| Perfilamiento (1.3.1) | **Clustering K-means** con inicialización K-means++, elección de *k* por coeficiente de silueta y PCA para visualizar | Pestaña «Grupos de atención» (RF-81) |
 | Casos prioritarios (1.3.2) | Reglas explícitas sobre los rangos de referencia y la antigüedad de la última medición; detección de personas sin acompañante; orden de los perfiles por necesidad | Tabla «Personas que requieren atención» (RF-46), grafo de la red (RF-79) y Grupo 1 de los perfiles |
 | Indicadores de seguimiento (1.3.3) | Indicadores con fórmula definida (ver 5.3) | Tarjetas de indicadores de cada reporte |
 | Tendencias (1.3.4) | Series de tiempo agregadas por mes o por semana | Inscritos y asistentes por mes, mediciones por semana o mes, evolución de cada persona, retiros por mes |
@@ -245,10 +245,10 @@ Párrafo introductorio sugerido: el componente analítico combina **técnicas de
    - Centroide de cada grupo en unidades reales (por ejemplo, «84 años») y en desviaciones (z) respecto al promedio de la organización.
    - **Puntaje por dimensión** = promedio de (peso × z) de las variables de esa dimensión. Si es positivo, el grupo tiene más necesidad que el promedio.
    - **Orden:** el Grupo 1 es el de mayor necesidad (suma de los puntajes positivos).
-   - **Nombre del perfil**, a partir de las 1 o 2 dimensiones con puntaje ≥ 0,4: «Salud compleja», «Signos vitales por vigilar», «Edad avanzada» o «Necesita acompañamiento». Si ninguna llega a 0,4 y todas están en 0,1 o menos, el perfil es «Autónomos y estables»; en otro caso, «Perfil intermedio».
+   - **Nombre del perfil**, a partir de las 1 o 2 dimensiones con puntaje ≥ 0,4: «Cuidado de la salud», «Control de signos vitales», «Experiencia de vida» o «Acompañamiento cercano» (dos se unen con « · »; la edad solo da nombre cuando es la única que sobresale). Si ninguna llega a 0,4 y todas están en 0,1 o menos, el perfil es «Activos e independientes»; en otro caso, «Bienestar en equilibrio».
    - **Rasgos:** las variables en que el grupo se aleja al menos 0,5 desviaciones del promedio (máximo 5), con el valor real. Por ejemplo: «Medicamentos activos más alto que el promedio: 5 frente a 2,1».
    - **Recomendaciones de atención y de actividades** por dimensión (Tabla 11), más los 3 intereses más comunes del grupo y su porcentaje de asistencia a actividades.
-6. **PCA a 2 dimensiones**, solo para dibujar el mapa de los grupos. K-means agrupa con todas las variables, así que dos grupos pueden verse superpuestos en el plano y estar bien separados en el espacio completo. Cada eje indica qué porcentaje de la variación conserva.
+6. **PCA a 2 dimensiones**, solo para dibujar el mapa de los grupos. K-means agrupa con todas las variables, así que dos grupos pueden verse superpuestos en el plano y estar bien separados en el espacio completo. Los ejes se llaman «Mayor diferencia entre personas» y «Segunda mayor diferencia», con el porcentaje de la información que resume cada uno.
 
 | Dimensión destacada | Recomendación de atención | Actividades sugeridas |
 |---|---|---|
@@ -412,7 +412,7 @@ Cierre sugerido: los procedimientos funcionan y están validados técnicamente c
 
 #### 6.1 Integración de los Resultados
 
-- Los resultados analíticos se integran en la plataforma web VITA+, en el panel del rol **organización**, sección **«Analítica»**, con cinco pestañas: Actividades y participación, Salud de la población, Perfil de la población, Retiros y Perfiles. A esto se suma la sección **«Red y mapa»**.
+- Los resultados analíticos se integran en la plataforma web VITA+, en el panel del rol **organización**, sección **«Analítica»**, con seis pestañas: Actividades y participación, Grupos de atención (perfiles con K-means), Salud de la población, Perfil de la población, Donaciones e inventario y Retiros. A esto se suma la sección **«Red y mapa»**.
 - Las recomendaciones de organizaciones aparecen en los paneles de la **persona mayor** y del **voluntario**.
 - Todo se calcula bajo demanda: no hay procesos por lotes ni modelos guardados que puedan quedar desactualizados.
 - Arquitectura: microservicio **`analitica-service`** (Spring Boot, Java 17), detrás del **API Gateway**, con acceso de solo lectura a la base compartida. Endpoints: `GET /api/analitica/actividades`, `/salud`, `/poblacion`, `/retiros`, `/perfiles?k=`, el de la red y `POST /api/analitica/reportes/pdf`.
@@ -434,7 +434,7 @@ Figuras sugeridas: una captura de cada reporte.
 
 #### 6.3 Visualización de Perfiles
 
-| Elemento de la pestaña «Perfiles» | Qué muestra |
+| Elemento de la pestaña «Grupos de atención» | Qué muestra |
 |---|---|
 | Indicadores | Personas analizadas, perfiles encontrados, separación de los grupos (silueta) y calidad de los datos |
 | «Ten en cuenta antes de usar estos perfiles» | Las advertencias de calidad y suficiencia |
@@ -494,7 +494,7 @@ Anexos sugeridos:
 - **Anexo B.** Consultas SQL de lectura del perfilamiento (`backend/analitica-service/.../perfiles/DatosPerfiles.java`) y de los reportes (`.../controller/AnaliticaController.java`).
 - **Anexo C.** Documento técnico del perfilamiento: `docs/KMEANS_PERFILES.md`.
 - **Anexo D.** Ejemplo de un reporte en PDF descargado de la plataforma, con datos ficticios.
-- **Anexo E.** Capturas de la pestaña Perfiles y de la sección Red y mapa.
+- **Anexo E.** Capturas de la pestaña «Grupos de atención» y de la sección Red y mapa.
 - **Anexo F.** Requerimientos relacionados con la analítica: RF-45 a RF-49, RF-60, RF-71 a RF-73, RF-79 a RF-81 y RNF-13 (de `docs/REQUERIMIENTOS.md`).
 
 ---
@@ -503,7 +503,7 @@ Anexos sugeridos:
 
 | Dato faltante | Cómo obtenerlo |
 |---|---|
-| Resultados de la preparación y del modelado (3.6 y 4.4) | Cargar los datos ficticios, entrar con una cuenta de organización (`org…@vitaplus.test`, contraseña `Vita2025*`), ir a **Analítica → Perfiles**, tomar capturas y anotar las personas analizadas, el *k* sugerido, la silueta y los perfiles. También sirve llamar a `GET /api/analitica/perfiles?k=3` a través del gateway con el token de la organización. |
+| Resultados de la preparación y del modelado (3.6 y 4.4) | Cargar los datos ficticios, entrar con una cuenta de organización (`org…@vitaplus.test`, contraseña `Vita2025*`), ir a **Analítica → Grupos de atención**, tomar capturas y anotar las personas analizadas, el *k* sugerido, la silueta y los perfiles. También sirve llamar a `GET /api/analitica/perfiles?k=3` a través del gateway con el token de la organización. |
 | Resultado de las pruebas (5.1) | `./mvnw test` en `backend/analitica-service` y `npx ng test --watch=false` en `frontend`. |
 | Estado de los datos reales (2.1 y 3.6) | Número de personas mayores recolectadas en Usme y si ya están cargadas en la plataforma. |
 | Validación con usuarios (5.4) | Sesiones con las organizaciones de la UPL Entrenubes o con PROSOFI. |

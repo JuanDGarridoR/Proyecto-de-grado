@@ -15,7 +15,7 @@ Este documento explica cómo VITA+ agrupa a las personas mayores de una organiza
 | Algoritmo K-means++, Lloyd y silueta | [perfiles/KMeans.java](../backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/KMeans.java) |
 | Proyección a 2D para el mapa (PCA) | [perfiles/Pca.java](../backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/Pca.java) |
 | Respuesta (DTO) | [perfiles/PerfilesDtos.java](../backend/analitica-service/src/main/java/com/proyectogrado/analitica_service/perfiles/PerfilesDtos.java) |
-| Pestaña «Perfiles» de la analítica de la organización | [frontend/.../analitica/reportes/reporte-perfiles.ts](../frontend/src/app/pages/panel/organizacion/analitica/reportes/reporte-perfiles.ts) |
+| Pestaña «Grupos de atención» de la analítica de la organización | [frontend/.../analitica/reportes/reporte-perfiles.ts](../frontend/src/app/pages/panel/organizacion/analitica/reportes/reporte-perfiles.ts) |
 | Pruebas | [KMeansTest.java](../backend/analitica-service/src/test/java/com/proyectogrado/analitica_service/perfiles/KMeansTest.java), [PerfilesControllerTest.java](../backend/analitica-service/src/test/java/com/proyectogrado/analitica_service/controller/PerfilesControllerTest.java), [reporte-perfiles.spec.ts](../frontend/src/app/pages/panel/organizacion/analitica/reportes/reporte-perfiles.spec.ts) |
 
 ### Por qué en analitica-service
@@ -34,7 +34,7 @@ Este documento explica cómo VITA+ agrupa a las personas mayores de una organiza
 
 ```mermaid
 flowchart TD
-    A[Organización abre la pestaña Perfiles] --> B[GET /api/analitica/perfiles]
+    A[Organización abre la pestaña «Grupos de atención»] --> B[GET /api/analitica/perfiles]
     B --> C[1. DatosPerfiles: lee 14 variables por persona<br/>vínculo ACEPTADO y cuenta activa]
     C --> D{2. Calidad: ¿cada persona tiene<br/>≥ 60 % de los datos que pueden faltar?}
     D -- no --> E[Se excluye y se dice qué le falta]
@@ -148,16 +148,16 @@ s = (b − a) / máx(a, b)        (de −1 a 1)
 
    | Dimensión | Nombre |
    |---|---|
-   | Condiciones de salud | Salud compleja |
-   | Signos vitales | Signos vitales por vigilar |
-   | Edad | Edad avanzada |
-   | Acompañamiento | Necesita acompañamiento |
+   | Condiciones de salud | Cuidado de la salud |
+   | Signos vitales | Control de signos vitales |
+   | Edad | Experiencia de vida |
+   | Acompañamiento | Acompañamiento cercano |
 
-   Por ejemplo, «Salud compleja y necesita acompañamiento». Si ninguna dimensión llega a 0,4 y todas están en 0,1 o menos, el perfil es «Autónomos y estables»; en otro caso, «Perfil intermedio».
+   Por ejemplo, «Cuidado de la salud · Acompañamiento cercano». La edad solo da nombre cuando es la única dimensión que sobresale: si sobresale junto a otra, el grupo se llama por la otra (por ejemplo, «Acompañamiento cercano») y la edad queda en su descripción y recomendaciones. Si ninguna dimensión llega a 0,4 y todas están en 0,1 o menos, el perfil es «Activos e independientes»; en otro caso, «Bienestar en equilibrio». Los nombres dicen lo que el grupo necesita de la organización, no un problema de las personas, para que no alarmen a quien los lea.
 5. **Rasgos:** son las variables en que el grupo se aleja al menos 0,5 desviaciones del promedio, con el valor real; por ejemplo, «Medicamentos activos más alto que el promedio: 5 frente a 2,1».
 6. **Recomendaciones de atención y de actividades:** son textos fijos por dimensión (ver `ATENCION` y `ACTIVIDADES` en `SegmentacionPerfiles`). Se suman los **intereses más comunes del grupo** para elegir actividades, y se muestra el **% de asistencia** a actividades como contexto.
 
-### Visualización (pestaña «Perfiles» de la Analítica)
+### Visualización (pestaña «Grupos de atención» de la Analítica)
 
 | Elemento | Qué muestra |
 |---|---|
@@ -172,7 +172,7 @@ s = (b − a) / máx(a, b)        (de −1 a 1)
 
 Todas las gráficas tienen vista de tabla (accesibilidad) y el reporte se puede **descargar en PDF** con las explicaciones y las limitaciones.
 
-**Sobre el mapa:** el PCA solo sirve para dibujar. K-means agrupa con **todas** las variables, así que dos grupos pueden verse superpuestos en el plano y estar bien separados en el espacio completo. La etiqueta de cada eje indica qué porcentaje de la variación conserva.
+**Sobre el mapa:** el PCA solo sirve para dibujar. K-means agrupa con **todas** las variables, así que dos grupos pueden verse superpuestos en el plano y estar bien separados en el espacio completo. Los ejes se llaman «Mayor diferencia entre personas» (primer componente) y «Segunda mayor diferencia» (segundo), con el porcentaje de la información que resume cada uno.
 
 ## Limitaciones de los resultados
 
@@ -212,7 +212,7 @@ npx ng test --watch=false
 1. Si quieres datos de prueba, corre `backend/scripts/seed_datos_fictisios.sql` (ver sus instrucciones).
 2. Levanta el backend (`backend/start-backend.bat` o Docker Compose) y el frontend (`npm start` en `frontend`).
 3. Inicia sesión con una cuenta de organización (por ejemplo, una `org…@vitaplus.test`, contraseña `Vita2025*`).
-4. Ve a **Analítica → Perfiles**. Revisa los avisos, el mapa, las tarjetas de cada perfil y la calidad de los datos. Cambia el número de grupos con el selector y descarga el PDF.
+4. Ve a **Analítica → Grupos de atención**. Revisa los avisos, el mapa, las tarjetas de cada perfil y la calidad de los datos. Cambia el número de grupos con el selector y descarga el PDF.
 5. Si quieres ver el caso de datos insuficientes, usa una organización con menos de 12 personas con signos vitales recientes.
 
 También se puede llamar al endpoint a través del gateway:

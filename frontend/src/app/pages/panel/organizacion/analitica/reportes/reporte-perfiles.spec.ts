@@ -27,12 +27,12 @@ function datos(): PerfilesAnalitica {
       evaluaciones: [{ k: 2, inercia: 12.5, silueta: 0.42 }, { k: 3, inercia: 8.1, silueta: 0.3 }]
     },
     grupos: [
-      { numero: 1, nombre: 'Edad avanzada', descripcion: 'Mayor edad que el promedio.', personas: 1, porcentaje: 33.3,
+      { numero: 1, nombre: 'Experiencia de vida', descripcion: 'Mayor edad que el promedio.', personas: 1, porcentaje: 33.3,
         rasgos: ['Edad más alto que el promedio: 88 años frente a 76 años'],
         centroide: [{ clave: 'edad', valor: 88, z: 1.5 }], dimensiones: [{ dimension: 'Edad', puntaje: 1.5 }],
         recomendacionesAtencion: ['Verificar la movilidad.'], recomendacionesActividades: ['Actividades suaves.'],
         interesesFrecuentes: ['Tejido'], asistencia: null },
-      { numero: 2, nombre: 'Autónomos y estables', descripcion: 'Igual o menos necesidad.', personas: 2, porcentaje: 66.7,
+      { numero: 2, nombre: 'Activos e independientes', descripcion: 'Igual o menos necesidad.', personas: 2, porcentaje: 66.7,
         rasgos: [], centroide: [{ clave: 'edad', valor: 70, z: -0.75 }], dimensiones: [{ dimension: 'Edad', puntaje: -0.75 }],
         recomendacionesAtencion: ['Seguimiento preventivo.'], recomendacionesActividades: ['Caminatas.'],
         interesesFrecuentes: [], asistencia: 80 }

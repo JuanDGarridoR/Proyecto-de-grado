@@ -107,8 +107,10 @@ export class ReportePerfiles implements ReporteExportable {
   protected readonly graficaMapa = computed<OpcionesGrafica>(() => {
     const { personas, grupos, modelo } = this.datos();
     const varianza = modelo?.varianzaExplicada ?? [0, 0];
+    // Cada eje es un componente principal; se nombra por lo que significa
     const eje = (i: number) => ejeValores({
-      name: `Componente ${i + 1} (${Math.round(varianza[i] * 100)} % de la variación)`,
+      name: `${i === 0 ? 'Mayor diferencia entre personas' : 'Segunda mayor diferencia'} `
+        + `(${Math.round(varianza[i] * 100)} %)`,
       // Sin números en el eje, el nombre va pegado a él; con más espacio se
       // salía del lienzo y se cortaba
       nameLocation: 'middle', nameGap: 10, minInterval: 0,
@@ -293,9 +295,10 @@ export class ReportePerfiles implements ReporteExportable {
     const modelo = this.datos().modelo!;
     const explicada = Math.round((modelo.varianzaExplicada[0] + modelo.varianzaExplicada[1]) * 100);
     return `Cada punto es una persona mayor y su color es el grupo que le asignó K-means. Las ${this.usadas().length} `
-      + `variables se resumen en dos ejes (análisis de componentes principales) que conservan el ${explicada} % de la `
-      + 'variación: puntos cercanos son personas con características parecidas. Los grupos se calcularon con todas '
-      + 'las variables, así que en el plano pueden verse algo superpuestos.';
+      + 'variables se resumen en dos ejes (análisis de componentes principales): el horizontal es lo que más '
+      + 'diferencia a las personas entre sí y el vertical, lo que sigue. Juntos conservan el '
+      + `${explicada} % de la información, y puntos cercanos son personas con características parecidas. Los grupos `
+      + 'se calcularon con todas las variables, así que en el plano pueden verse algo superpuestos.';
   }
 
   private explicacionPerfil(): string {
