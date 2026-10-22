@@ -109,13 +109,17 @@ export class ReportePerfiles implements ReporteExportable {
     const varianza = modelo?.varianzaExplicada ?? [0, 0];
     const eje = (i: number) => ejeValores({
       name: `Componente ${i + 1} (${Math.round(varianza[i] * 100)} % de la variación)`,
-      nameLocation: 'middle', nameGap: 28, minInterval: 0,
+      // Sin números en el eje, el nombre va pegado a él; con más espacio se
+      // salía del lienzo y se cortaba
+      nameLocation: 'middle', nameGap: 10, minInterval: 0,
       nameTextStyle: { color: '#586576', fontSize: 12 },
       axisLabel: { show: false }
     });
     return base({
-      legend: leyenda(),
-      grid: { left: 24, right: 16, top: 40, bottom: 32, containLabel: true },
+      // En una sola línea: con nombres largos la leyenda ocupaba varias y
+      // tapaba los puntos
+      legend: { ...leyenda(), type: 'scroll', right: 0 },
+      grid: { left: 30, right: 16, top: 40, bottom: 30, containLabel: true },
       tooltip: tooltip({
         trigger: 'item',
         formatter: (p: { data: [number, number, string]; seriesName: string }) =>
@@ -159,8 +163,7 @@ export class ReportePerfiles implements ReporteExportable {
           const variable = variables[puntos[0].dataIndex];
           const filas = puntos.map((p) => {
             const valor = grupos[p.seriesIndex].centroide.find((c) => c.clave === variable.clave)!;
-            return `${p.marker} Grupo ${grupos[p.seriesIndex].numero}: ${conUnidad(valor.valor, variable.unidad)} `
-              + `(${valor.z > 0 ? '+' : ''}${formatoNumero(valor.z)} desv.)`;
+            return `${p.marker} Grupo ${grupos[p.seriesIndex].numero}: ${conUnidad(valor.valor, variable.unidad)}`;
           });
           return `<strong>${variable.nombre}</strong><br>Promedio de la organización: `
             + `${conUnidad(variable.media ?? 0, variable.unidad)}<br>${filas.join('<br>')}`;

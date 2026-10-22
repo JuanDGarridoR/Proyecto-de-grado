@@ -4,6 +4,9 @@
 --   - 8 organizaciones (con su cuenta de usuario)
 --   - 300 personas mayores con fecha de nacimiento, género, dirección,
 --     EPS e IPS, y un perfil de salud (hipertensión, diabetes, EPOC)
+--   - 160 personas mayores más para la Fundación Entrenubes Usme, con
+--     cuatro perfiles bien diferenciados para el perfilamiento con K-means
+--     (sección 24), y 20 actividades de la fundación en las que participan
 --   - datos de salud de cada persona mayor (enfermedades, alergias y
 --     discapacidades), coherentes con su perfil de salud
 --   - 60 acompañantes y 50 voluntarios (los voluntarios con dirección)
@@ -2198,6 +2201,426 @@ SELECT (SELECT ahora FROM seed_tmp.seed_reloj)
        END,
        a.estado
 FROM seed_tmp.seed_auditoria a;
+
+-- 24. Más personas mayores para la Fundación Entrenubes Usme (org01), con
+--     perfiles bien diferenciados, para que el perfilamiento con K-means
+--     (Analítica -> Perfiles) muestre grupos claros. Son 160 personas
+--     (pmen001 a pmen160), 40 de cada arquetipo:
+--       1. Autónomas y estables: 61 a 69 años, casi sin enfermedades ni
+--          medicamentos, signos vitales normales, viven acompañadas y
+--          tienen dos acompañantes.
+--       2. Salud compleja: 70 a 79 años, 4 a 6 enfermedades (algunas
+--          severas) y 6 a 8 medicamentos, con la presión casi controlada.
+--       3. Signos vitales por vigilar: 66 a 75 años, presión alta, pulso
+--          rápido, saturación baja (EPOC) y obesidad; casi todas sus
+--          mediciones quedan fuera de rango.
+--       4. Edad avanzada que necesita acompañamiento: 86 a 95 años, viven
+--          solas, sin acompañantes, con discapacidades, citas que requieren
+--          acompañamiento y 3 a 5 emergencias en los últimos 90 días.
+--     Cada persona tiene todo lo que usa el modelo (signos vitales de los
+--     últimos 180 días, con peso y estatura en la más reciente, y citas),
+--     así que ninguna queda excluida ni con valores imputados. Las personas
+--     que las secciones anteriores le asignaron a la organización siguen
+--     ahí, con perfiles al azar, repartidas entre los grupos.
+--     Van al final para que las secciones anteriores no les den también un
+--     perfil al azar; por eso no tienen notificaciones ni notas.
+CREATE TABLE seed_tmp.seed_entrenubes AS
+WITH base AS MATERIALIZED (
+    SELECT s.i,
+           1 + (s.i - 1) % 4 AS arquetipo,
+           random() AS r_genero, random() AS r_edad, random() AS r_eps, random() AS r_est,
+           random() AS r_a, random() AS r_b, random() AS r_c, random() AS r_d,
+           random() AS r_e, random() AS r_f, random() AS r_g, random() AS r_h,
+           (ARRAY['María','Rosa','Carmen','Luz','Ana','Blanca','Gloria','Esperanza','Cecilia','Teresa',
+                  'Marleny','Consuelo','Amparo','Stella','Nubia','Yolanda','Beatriz','Marina','Isabel','Elvia'])
+               [1 + floor(random() * 20)::int] AS nombre_f,
+           (ARRAY['José','Luis','Carlos','Jorge','Pedro','Manuel','Roberto','Alberto','Guillermo','Rafael',
+                  'Hernando','Gustavo','Eduardo','Fernando','Ricardo','Julio','Antonio','Miguel','Alfonso','Arturo'])
+               [1 + floor(random() * 20)::int] AS nombre_m,
+           (ARRAY['González','Rodríguez','Martínez','López','García','Pérez','Sánchez','Ramírez','Torres',
+                  'Rivera','Gómez','Díaz','Reyes','Cruz','Morales','Ortiz','Gutiérrez','Chaparro','Vargas',
+                  'Suárez','Castañeda','Bautista','Cárdenas','Rincón'])
+               [1 + floor(random() * 24)::int] AS apellido1,
+           (ARRAY['González','Rodríguez','Martínez','López','García','Pérez','Sánchez','Ramírez','Torres',
+                  'Rivera','Gómez','Díaz','Reyes','Cruz','Morales','Ortiz','Gutiérrez','Chaparro','Vargas',
+                  'Suárez','Castañeda','Bautista','Cárdenas','Rincón'])
+               [1 + floor(random() * 24)::int] AS apellido2,
+           -- Barrios cercanos a la sede (Usme Centro)
+           (ARRAY['Usme Centro','Comuneros','Alfonso López','El Uval','La Aurora','Santa Librada',
+                  'Yomasa','Tocaimita'])[1 + floor(random() * 8)::int] AS barrio,
+           (ARRAY['Calle','Carrera','Diagonal','Transversal'])[1 + floor(random() * 4)::int]
+               || ' ' || (80 + floor(random() * 30)::int) || ' Sur # '
+               || (1 + floor(random() * 15)::int) || '-' || (2 + floor(random() * 80)::int) AS via
+    FROM generate_series(1, 160) AS s(i)
+)
+SELECT b.i, b.arquetipo,
+       NULL::integer AS id_usuario,
+       CASE WHEN b.r_genero < 0.6 THEN 'Femenino' ELSE 'Masculino' END AS genero,
+       (CASE WHEN b.r_genero < 0.6 THEN b.nombre_f ELSE b.nombre_m END)
+           || ' ' || b.apellido1 || ' ' || b.apellido2 AS nombre_usuario,
+       'pmen' || lpad(b.i::text, 3, '0') || '@vitaplus.test' AS correo,
+       '+5700008' || lpad(b.i::text, 5, '0') AS celular,
+       b.via || ', ' || b.barrio AS direccion,
+       (CASE b.arquetipo WHEN 1 THEN 61 + floor(b.r_edad * 9)
+                         WHEN 2 THEN 70 + floor(b.r_edad * 10)
+                         WHEN 3 THEN 66 + floor(b.r_edad * 10)
+                         ELSE        86 + floor(b.r_edad * 10) END)::int AS edad,
+       CASE WHEN b.r_eps < 0.45 THEN 'Capital Salud'
+            WHEN b.r_eps < 0.70 THEN 'Nueva EPS'
+            WHEN b.r_eps < 0.88 THEN 'Compensar'
+            ELSE 'Famisanar' END AS eps,
+       CASE b.arquetipo WHEN 4 THEN true WHEN 3 THEN b.r_a < 0.15 ELSE false END AS vive_solo,
+       -- Valores habituales de cada persona, alrededor de los cuales varían
+       -- sus mediciones (como en la sección 11)
+       CASE b.arquetipo WHEN 1 THEN 112 + b.r_b * 10 WHEN 2 THEN 126 + b.r_b * 8
+                        WHEN 3 THEN 152 + b.r_b * 14 ELSE 118 + b.r_b * 12 END AS base_sis,
+       CASE b.arquetipo WHEN 1 THEN 70 + b.r_c * 8 WHEN 2 THEN 76 + b.r_c * 6
+                        WHEN 3 THEN 92 + b.r_c * 8 ELSE 70 + b.r_c * 8 END AS base_dia,
+       CASE b.arquetipo WHEN 1 THEN 66 + b.r_d * 10 WHEN 2 THEN 72 + b.r_d * 10
+                        WHEN 3 THEN 98 + b.r_d * 10 ELSE 70 + b.r_d * 10 END AS base_fc,
+       CASE b.arquetipo WHEN 1 THEN 97 + b.r_e * 1.5 WHEN 2 THEN 96 + b.r_e * 1.5
+                        WHEN 3 THEN 89 + b.r_e * 2.5 ELSE 95.5 + b.r_e * 1.5 END AS base_spo2,
+       CASE b.arquetipo WHEN 1 THEN 21 + b.r_f * 3 WHEN 2 THEN 27 + b.r_f * 3
+                        WHEN 3 THEN 32 + b.r_f * 5 ELSE 20 + b.r_f * 3 END AS imc,
+       CASE WHEN b.r_genero < 0.6 THEN 148 + b.r_est * 14 ELSE 160 + b.r_est * 16 END AS estatura,
+       (CASE b.arquetipo WHEN 1 THEN 10 + floor(b.r_g * 6) WHEN 2 THEN 20 + floor(b.r_g * 10)
+                         WHEN 3 THEN 25 + floor(b.r_g * 10) ELSE 8 + floor(b.r_g * 6) END)::int AS n_signos,
+       (CASE b.arquetipo WHEN 1 THEN floor(b.r_h * 2) WHEN 2 THEN 6 + floor(b.r_h * 3)
+                         ELSE 2 + floor(b.r_h * 2) END)::int AS n_medicamentos,
+       CASE b.arquetipo WHEN 1 THEN 2 WHEN 2 THEN 1
+                        WHEN 3 THEN 1 + (b.r_c < 0.5)::int ELSE 0 END AS n_acompanantes,
+       CASE b.arquetipo WHEN 1 THEN 0 WHEN 2 THEN 0.3 WHEN 3 THEN 0.15 ELSE 1 END AS p_cita_acompanada,
+       (CASE b.arquetipo WHEN 1 THEN 0 WHEN 2 THEN (b.r_d < 0.25)::int
+                         WHEN 3 THEN (b.r_e < 0.30)::int ELSE 3 + floor(b.r_f * 3) END)::int AS n_emergencias,
+       CASE b.arquetipo WHEN 1 THEN 0.92 WHEN 2 THEN 0.75 WHEN 3 THEN 0.65 ELSE 0.35 END AS p_asiste
+FROM base b;
+
+-- Cuentas (una sola contraseña cifrada para todas: el hash es lento)
+INSERT INTO usuario (nombre_usuario, contrasena_hash, correo, celular, fecha_nacimiento, genero,
+                     direccion, activo, fecha_creacion)
+SELECT e.nombre_usuario, h.hash, e.correo, e.celular,
+       (r.hoy - make_interval(years => e.edad, days => floor(random() * 365)::int))::date,
+       e.genero, e.direccion, true,
+       r.ahora - make_interval(days => 30 + floor(random() * 300)::int)
+FROM seed_tmp.seed_entrenubes e
+CROSS JOIN seed_tmp.seed_reloj r
+CROSS JOIN (SELECT crypt('Vita2025*', gen_salt('bf', 10)) AS hash) h;
+
+UPDATE seed_tmp.seed_entrenubes e
+   SET id_usuario = u.id_usuario
+  FROM usuario u
+ WHERE u.correo = e.correo;
+
+INSERT INTO usuario_rol (id_usuario, id_rol)
+SELECT e.id_usuario, r.id_rol
+FROM seed_tmp.seed_entrenubes e JOIN rol r ON r.nombre = 'PERSONA_MAYOR'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO persona_mayor (id_usuario, eps, ips, direccion_ips, vive_solo)
+SELECT e.id_usuario, e.eps,
+       CASE e.eps WHEN 'Capital Salud' THEN 'USS Usme - Subred Sur'
+                  WHEN 'Nueva EPS'     THEN 'Virrey Solís IPS Santa Librada'
+                  WHEN 'Compensar'     THEN 'Compensar Sede Usme'
+                  ELSE 'Cafam Santa Librada' END,
+       CASE e.eps WHEN 'Capital Salud' THEN 'Carrera 3 # 90A-30 Sur, Usme Centro'
+                  WHEN 'Nueva EPS'     THEN 'Calle 75 Sur # 14-15, Santa Librada'
+                  WHEN 'Compensar'     THEN 'Calle 90 Sur # 4-20, Usme Centro'
+                  ELSE 'Calle 74 Sur # 14-60, Santa Librada' END,
+       e.vive_solo
+FROM seed_tmp.seed_entrenubes e;
+
+INSERT INTO aceptacion_terminos (id_usuario, acepto, fecha_aceptacion, version_terminos, origen)
+SELECT u.id_usuario, true, u.fecha_creacion, '2026-10', 'REGISTRO'
+FROM usuario u JOIN seed_tmp.seed_entrenubes e ON e.id_usuario = u.id_usuario;
+
+INSERT INTO persona_mayor_organizacion (id_persona_mayor, id_organizacion, estado, solicitada_por)
+SELECT e.id_usuario, o.id_organizacion, 'ACEPTADA', 'ORGANIZACION'
+FROM seed_tmp.seed_entrenubes e
+CROSS JOIN (SELECT id_organizacion FROM usuario WHERE correo = 'org01@vitaplus.test') o
+ON CONFLICT DO NOTHING;
+
+-- Acompañantes (aceptados), entre las 60 cuentas de la sección 5
+WITH ac AS (
+    SELECT id_usuario, row_number() OVER (ORDER BY id_usuario) AS rn
+    FROM usuario WHERE correo LIKE 'acomp%@vitaplus.test'
+),
+n_ac AS (SELECT count(*) AS n FROM ac),
+vinculos AS (
+    SELECT e.id_usuario AS id_persona_mayor, ac.id_usuario AS id_acompanante
+    FROM seed_tmp.seed_entrenubes e CROSS JOIN n_ac
+    JOIN ac ON ac.rn = 1 + ((e.i - 1) % n_ac.n)
+    WHERE e.n_acompanantes >= 1
+    UNION ALL
+    SELECT e.id_usuario, ac.id_usuario
+    FROM seed_tmp.seed_entrenubes e CROSS JOIN n_ac
+    JOIN ac ON ac.rn = 1 + ((e.i + 16) % n_ac.n)
+    WHERE e.n_acompanantes >= 2
+)
+INSERT INTO persona_mayor_acompanante (id_persona_mayor, id_acompanante, estado, solicitada_por, relacion)
+SELECT id_persona_mayor, id_acompanante, 'ACEPTADA', 'PERSONA_MAYOR',
+       (ARRAY['Hijo/a', 'Hijo/a', 'Hijo/a', 'Nieto/a', 'Sobrino/a', 'Hermano/a', 'Vecino/a de confianza'])
+           [1 + floor(random() * 7)::int]
+FROM vinculos
+ON CONFLICT DO NOTHING;
+
+-- Intereses según el arquetipo (describen los grupos; no entran al modelo)
+-- y una profesión u oficio
+WITH temas AS (
+    SELECT * FROM (VALUES
+        (1, ARRAY['Caminatas', 'Baile', 'Tejo', 'Fútbol por televisión', 'Juegos de mesa', 'Jardinería']),
+        (2, ARRAY['Tejido', 'Cocina tradicional', 'Novelas de televisión', 'Bingo', 'Misa dominical', 'Bordado']),
+        (3, ARRAY['Parqués', 'Tomar café con amigos', 'Música ranchera', 'Crucigramas', 'Repostería',
+                  'Música carranguera']),
+        (4, ARRAY['Boleros', 'Contar historias', 'Misa dominical', 'Lectura', 'Películas clásicas', 'Canto'])
+    ) AS v(arquetipo, gustos)
+),
+elegidos AS (
+    SELECT e.id_usuario, t.gustos[k] AS nombre
+    FROM seed_tmp.seed_entrenubes e
+    JOIN temas t ON t.arquetipo = e.arquetipo
+    CROSS JOIN generate_series(1, 6) AS k
+    WHERE random() < 0.55
+    UNION ALL
+    SELECT e.id_usuario,
+           (ARRAY['Labores del hogar', 'Labores del hogar', 'Modistería o sastrería', 'Cocina',
+                  'Comercio o ventas', 'Construcción', 'Agricultura o trabajo del campo',
+                  'Conducción o transporte', 'Docencia', 'Vigilancia o seguridad'])[1 + floor(random() * 10)::int]
+    FROM seed_tmp.seed_entrenubes e
+    WHERE random() < 0.85
+)
+INSERT INTO persona_mayor_gusto (id_persona_mayor, id_gusto)
+SELECT DISTINCT el.id_usuario, g.id_gusto
+FROM elegidos el JOIN gusto g ON g.nombre = el.nombre
+ON CONFLICT DO NOTHING;
+
+-- Enfermedades y discapacidades según el arquetipo (p = probabilidad de
+-- tenerla; p_severa = de que sea severa) y ~20% con una alergia
+WITH catalogo AS (
+    SELECT * FROM (VALUES
+        (1, 'ENFERMEDAD',   'Colesterol o triglicéridos altos', 0.25, 0.0),
+        (2, 'ENFERMEDAD',   'Hipertensión arterial',            1.0,  0.2),
+        (2, 'ENFERMEDAD',   'Diabetes',                         1.0,  0.5),
+        (2, 'ENFERMEDAD',   'Colesterol o triglicéridos altos', 0.9,  0.1),
+        (2, 'ENFERMEDAD',   'Artrosis',                         0.8,  0.4),
+        (2, 'ENFERMEDAD',   'Hipotiroidismo',                   0.6,  0.0),
+        (2, 'ENFERMEDAD',   'Gastritis o reflujo',              0.5,  0.0),
+        (2, 'DISCAPACIDAD', 'Dificultad para caminar',          0.3,  0.0),
+        (3, 'ENFERMEDAD',   'Hipertensión arterial',            1.0,  0.0),
+        (3, 'ENFERMEDAD',   'EPOC',                             0.8,  0.0),
+        (3, 'ENFERMEDAD',   'Colesterol o triglicéridos altos', 0.3,  0.0),
+        (4, 'ENFERMEDAD',   'Cataratas',                        0.7,  0.0),
+        (4, 'ENFERMEDAD',   'Artrosis',                         0.6,  0.3),
+        (4, 'DISCAPACIDAD', 'Dificultad para caminar',          0.6,  0.0),
+        (4, 'DISCAPACIDAD', 'Usa silla de ruedas',              0.4,  0.0),
+        (4, 'DISCAPACIDAD', 'Pérdida auditiva parcial',         0.7,  0.0),
+        (4, 'DISCAPACIDAD', 'Baja visión',                      0.5,  0.0)
+    ) AS v(arquetipo, tipo, nombre, p, p_severa)
+),
+elegidas AS (
+    SELECT e.id_usuario, e.arquetipo, c.tipo, c.nombre, c.p_severa, random() AS r_sev
+    FROM seed_tmp.seed_entrenubes e
+    JOIN catalogo c ON c.arquetipo = e.arquetipo
+    WHERE random() < c.p
+    UNION ALL
+    SELECT e.id_usuario, e.arquetipo, 'ALERGIA',
+           (ARRAY['Penicilina', 'Aspirina', 'Sulfas', 'Mariscos', 'Polen', 'Ácaros del polvo'])
+               [1 + floor(random() * 6)::int],
+           0, 1
+    FROM seed_tmp.seed_entrenubes e
+    WHERE random() < 0.20
+)
+INSERT INTO persona_mayor_condicion_salud (id_persona_mayor, id_condicion_salud, severidad, detalle, fecha_registro)
+SELECT DISTINCT ON (el.id_usuario, c.id_condicion_salud)
+       el.id_usuario, c.id_condicion_salud,
+       CASE WHEN el.tipo <> 'ENFERMEDAD' THEN NULL
+            WHEN el.r_sev < el.p_severa THEN 'SEVERA'
+            WHEN el.arquetipo IN (1, 4) OR random() < 0.4 THEN 'LEVE'
+            ELSE 'MODERADA' END,
+       CASE WHEN el.nombre = 'Usa silla de ruedas' THEN 'Necesita ayuda para trasladarse'
+            WHEN el.nombre = 'Dificultad para caminar' AND random() < 0.5 THEN 'Camina con bastón'
+            ELSE NULL END,
+       r.hoy - floor(random() * 200)::int
+FROM elegidas el
+JOIN condicion_salud c ON c.tipo = el.tipo AND c.nombre = el.nombre
+CROSS JOIN seed_tmp.seed_reloj r;
+
+-- Medicamentos: los primeros n_medicamentos de la lista de su arquetipo,
+-- todos activos y sin fecha de fin
+WITH catalogo AS (
+    SELECT * FROM (VALUES
+        (1, 1, 'Calcio + Vitamina D',     '1 tableta',       24, '13:00'::time),
+        (2, 1, 'Losartán',                '50 mg',           24, '08:00'::time),
+        (2, 2, 'Metformina',              '850 mg',          12, '07:00'::time),
+        (2, 3, 'Atorvastatina',           '20 mg',           24, '21:00'::time),
+        (2, 4, 'Amlodipino',              '5 mg',            24, '08:00'::time),
+        (2, 5, 'Levotiroxina',            '50 mcg',          24, '06:00'::time),
+        (2, 6, 'Acetaminofén',            '500 mg',           8, '06:00'::time),
+        (2, 7, 'Insulina glargina',       '20 UI',           24, '21:00'::time),
+        (2, 8, 'Omeprazol',               '20 mg',           24, '06:30'::time),
+        (3, 1, 'Losartán',                '50 mg',           24, '08:00'::time),
+        (3, 2, 'Salbutamol inhalador',    '2 inhalaciones',   8, '06:00'::time),
+        (3, 3, 'Hidroclorotiazida',       '25 mg',           24, '07:00'::time),
+        (4, 1, 'Acetaminofén',            '500 mg',           8, '06:00'::time),
+        (4, 2, 'Calcio + Vitamina D',     '1 tableta',       24, '13:00'::time),
+        (4, 3, 'Omeprazol',               '20 mg',           24, '06:30'::time)
+    ) AS v(arquetipo, orden, nombre, dosis, intervalo_horas, hora)
+)
+INSERT INTO medicamento (id_persona_mayor, nombre, dosis, frecuencia, intervalo_horas, hora,
+                         fecha_inicio, fecha_fin, proxima_toma, ultima_toma, activo)
+SELECT e.id_usuario, c.nombre, c.dosis,
+       'Cada ' || c.intervalo_horas || ' horas',
+       c.intervalo_horas, c.hora,
+       r.hoy - (30 + floor(random() * 330)::int),
+       NULL,
+       (r.hoy + 3 + floor(random() * 4)::int) + c.hora,
+       (r.hoy - 1) + c.hora,
+       true
+FROM seed_tmp.seed_entrenubes e
+JOIN catalogo c ON c.arquetipo = e.arquetipo AND c.orden <= e.n_medicamentos
+CROSS JOIN seed_tmp.seed_reloj r;
+
+-- Signos vitales de los últimos 6 meses. La primera medición (k = 1) es de
+-- los últimos 3 días y siempre trae peso y estatura, para el IMC.
+WITH mediciones AS (
+    SELECT e.*, k,
+           CASE WHEN k = 1
+                THEN r.ahora - make_interval(hours => 2 + floor(random() * 70)::int,
+                                             mins  => floor(random() * 60)::int)
+                ELSE (r.hoy - (1 + floor(random() * 175)::int)) + time '06:30'
+                     + make_interval(mins => floor(random() * 780)::int)
+           END AS fecha_hora,
+           random() AS r_temp, random() AS r_peso, random() AS r_obs
+    FROM seed_tmp.seed_entrenubes e
+    CROSS JOIN seed_tmp.seed_reloj r
+    CROSS JOIN LATERAL generate_series(1, e.n_signos) AS k
+)
+INSERT INTO signo_vital (id_persona_mayor, fecha_hora, presion_sistolica, presion_diastolica,
+                         frecuencia_cardiaca, temperatura, saturacion_oxigeno,
+                         frecuencia_respiratoria, peso, estatura, observaciones)
+SELECT m.id_usuario, m.fecha_hora,
+       round(m.base_sis + (random() - 0.5) * 12)::int,
+       round(m.base_dia + (random() - 0.5) * 8)::int,
+       round(m.base_fc + (random() - 0.5) * 10)::int,
+       CASE WHEN m.r_temp < 0.5 THEN round((36.3 + random() * 0.8)::numeric, 1) END,
+       least(100, round(m.base_spo2 + (random() - 0.5) * 2))::int,
+       CASE WHEN m.r_temp < 0.3
+            THEN (14 + floor(random() * 5) + CASE WHEN m.arquetipo = 3 THEN 5 ELSE 0 END)::int
+       END,
+       CASE WHEN m.k = 1 OR m.r_peso < 0.25
+            THEN round((m.imc * power(m.estatura / 100, 2) + (random() - 0.5) * 2)::numeric, 1)
+       END,
+       CASE WHEN m.k = 1 OR m.r_peso < 0.25 THEN round(m.estatura::numeric, 1) END,
+       CASE WHEN m.arquetipo = 3 AND m.r_obs < 0.15 THEN 'Refiere dolor de cabeza leve'
+            WHEN m.arquetipo = 3 AND m.r_obs < 0.25 THEN 'Se fatiga al caminar'
+            WHEN m.r_obs < 0.05 THEN 'Tomada en reposo, sentado'
+            ELSE NULL END
+FROM mediciones m;
+
+-- Citas médicas: dos próximas y tres pasadas. Las del arquetipo 4
+-- requieren acompañamiento; las de los arquetipos 2 y 3, a veces lo
+-- prefieren. Sin acompañante confirmado (el arquetipo 4 no tiene).
+WITH citas AS (
+    SELECT e.id_usuario, e.arquetipo, e.p_cita_acompanada, pm.ips,
+           CASE WHEN k = 1 THEN r.hoy + 1 + floor(random() * 14)::int
+                WHEN k = 2 THEN r.hoy + 15 + floor(random() * 61)::int
+                ELSE r.hoy - 1 - floor(random() * 300)::int END AS fecha,
+           time '07:00' + make_interval(mins => 30 * floor(random() * 19)::int) AS hora,
+           random() AS r_acomp, random() AS r_titulo, random() AS r_obs
+    FROM seed_tmp.seed_entrenubes e
+    JOIN persona_mayor pm ON pm.id_usuario = e.id_usuario
+    CROSS JOIN seed_tmp.seed_reloj r
+    CROSS JOIN LATERAL generate_series(1, 5) AS k
+)
+INSERT INTO cita_medica (id_persona_mayor, titulo, lugar, consultorio, fecha, hora, observaciones,
+                         acompanamiento, recordatorio_dia_enviado_para, recordatorio_hora_enviado_para)
+SELECT c.id_usuario,
+       (CASE c.arquetipo
+            WHEN 1 THEN ARRAY['Medicina general', 'Odontología', 'Optometría', 'Vacunación contra la influenza']
+            WHEN 2 THEN ARRAY['Control de diabetes', 'Control de hipertensión',
+                              'Laboratorio: hemoglobina glicosilada', 'Cardiología']
+            WHEN 3 THEN ARRAY['Control de hipertensión', 'Neumología', 'Espirometría', 'Electrocardiograma']
+            ELSE        ARRAY['Valoración por geriatría', 'Fisioterapia', 'Optometría', 'Medicina general']
+        END)[1 + floor(c.r_titulo * 4)::int],
+       c.ips,
+       'Consultorio ' || (100 + floor(random() * 400)::int),
+       c.fecha, c.hora,
+       CASE WHEN c.arquetipo = 4 THEN 'Asistir con acompañante'
+            WHEN c.r_obs < 0.1 THEN 'Llevar documento de identidad y carné de la EPS'
+            ELSE NULL END,
+       CASE WHEN c.r_acomp < c.p_cita_acompanada
+            THEN CASE WHEN c.arquetipo = 4 THEN 'REQUERIDO' ELSE 'PREFERIDO' END
+       END,
+       c.fecha + c.hora, c.fecha + c.hora
+FROM citas c;
+
+-- Emergencias de los últimos 90 días (las del arquetipo 4, sobre todo)
+INSERT INTO emergencia (id_persona_mayor, fecha_hora)
+SELECT e.id_usuario,
+       r.ahora - make_interval(days => 1 + floor(random() * 85)::int, hours => floor(random() * 12)::int)
+FROM seed_tmp.seed_entrenubes e
+CROSS JOIN seed_tmp.seed_reloj r
+CROSS JOIN LATERAL generate_series(1, e.n_emergencias) AS k;
+
+-- 20 actividades pasadas de la fundación (últimos 4 meses) con 45 cupos,
+-- y la participación de estas personas: cada una se inscribe en ~1 de
+-- cada 4, y asiste más o menos según su arquetipo (las autónomas casi
+-- siempre; las de edad avanzada, poco).
+WITH plantillas AS (
+    SELECT * FROM (VALUES
+      ('Caminata por el Parque Entrenubes',             'Deportiva',
+       'Recorrido de bajo impacto por los senderos del parque ecológico Entrenubes, con pausas de hidratación.'),
+      ('Clase de baile de salón',                       'Recreativa',
+       'Baile en pareja y en grupo con música colombiana, a ritmo suave.'),
+      ('Taller de tejido y bordado',                    'Manualidades',
+       'Tejido en crochet y bordado de piezas para la feria de la fundación.'),
+      ('Jornada de toma de signos vitales',             'Salud y bienestar',
+       'Toma de presión, pulso y saturación con orientación de una enfermera.'),
+      ('Ejercicios en silla',                           'Deportiva',
+       'Rutina de movilidad y fuerza adaptada para hacer sentado.'),
+      ('Tarde de boleros e historias de vida',          'Social',
+       'Música de antes y espacio para contar y escuchar historias de vida.'),
+      ('Charla: control de la presión y la diabetes',   'Salud y bienestar',
+       'Alimentación, medicamentos y señales de alarma, con espacio para preguntas.'),
+      ('Torneo de parqués y tejo',                      'Social',
+       'Juegos por equipos para compartir y conocer a otros participantes.'),
+      ('Taller de memoria',                             'Educativa',
+       'Ejercicios y juegos para estimular la memoria y la concentración.'),
+      ('Huerta comunitaria',                            'Recreativa',
+       'Siembra y cuidado de plantas aromáticas y hortalizas en la huerta de la fundación.')
+    ) AS v(nombre, tipo, descripcion)
+),
+nuevas AS (
+    INSERT INTO actividad (id_organizacion, nombre, descripcion, fecha, hora, lugar, tipo, cupos, responsable)
+    SELECT o.id_organizacion, p.nombre, p.descripcion,
+           r.hoy - (5 + floor(random() * 115)::int),
+           (ARRAY['08:00', '09:00', '10:00', '14:00', '15:00'])[1 + floor(random() * 5)::int],
+           (ARRAY['Salón comunal Usme Centro', 'Salón parroquial Comuneros'])[1 + floor(random() * 2)::int],
+           p.tipo, 45,
+           (ARRAY['Sandra Melo', 'Diana Rojas', 'Julián Bermúdez', 'Marcela Duarte'])[1 + floor(random() * 4)::int]
+    FROM plantillas p
+    CROSS JOIN generate_series(1, 2) AS ronda
+    CROSS JOIN (SELECT id_organizacion FROM usuario WHERE correo = 'org01@vitaplus.test') o
+    CROSS JOIN seed_tmp.seed_reloj r
+    RETURNING id_actividad, fecha, hora, cupos
+),
+candidatos AS (
+    SELECT n.id_actividad, n.fecha + n.hora::time AS inicio, n.cupos, e.id_usuario, e.p_asiste,
+           row_number() OVER (PARTITION BY n.id_actividad ORDER BY random()) AS rn
+    FROM nuevas n
+    CROSS JOIN seed_tmp.seed_entrenubes e
+    WHERE random() < 0.25
+)
+INSERT INTO participacion (id_persona_mayor, id_actividad, asistio, recordatorio_enviado_para)
+SELECT c.id_usuario, c.id_actividad, random() < c.p_asiste, c.inicio
+FROM candidatos c
+WHERE c.rn <= c.cupos
+ON CONFLICT DO NOTHING;
+
+-- Hora de fin de las actividades nuevas (como en la sección 15c)
+UPDATE actividad
+SET hora_fin = to_char(hora::time + make_interval(hours => 1 + floor(random() * 2)::int), 'HH24:MI')
+WHERE hora IS NOT NULL AND hora_fin IS NULL
+  AND id_organizacion IN (SELECT id_organizacion FROM usuario WHERE correo LIKE 'org%@vitaplus.test');
 
 DROP SCHEMA seed_tmp CASCADE;
 
