@@ -3,6 +3,8 @@ import { Observable } from 'rxjs';
 
 import {
   ActividadAnalitica,
+  DonacionesAnalitica,
+  InventarioAnalitica,
   AnaliticaService,
   PerfilesAnalitica,
   PoblacionAnalitica,
@@ -19,10 +21,12 @@ import { ReportePoblacion } from './reportes/reporte-poblacion';
 import { ReporteSalud } from './reportes/reporte-salud';
 import { ReporteRetiros } from './reportes/reporte-retiros';
 import { ReportePerfiles } from './reportes/reporte-perfiles';
+import { ReporteDonaciones } from './reportes/reporte-donaciones';
+import { ReporteInventario } from './reportes/reporte-inventario';
 import { Cargando } from '../../../../shared/cargando/cargando';
 
 /** Pestañas del informe. */
-type Reporte = 'actividades' | 'salud' | 'poblacion' | 'retiros' | 'perfiles';
+type Reporte = 'actividades' | 'salud' | 'poblacion' | 'donaciones' | 'inventario' | 'retiros' | 'perfiles';
 /** Período de los filtros, en días; "todo" no tiene límite. */
 type Periodo = '30' | '90' | '365' | 'todo';
 
@@ -44,7 +48,8 @@ const vacio = <T>(): Estado<T> => ({ datos: null, cargando: false, error: null, 
  */
 @Component({
   selector: 'app-analitica',
-  imports: [Icono, ReporteActividades, ReporteSalud, ReportePoblacion, ReporteRetiros, ReportePerfiles, Cargando],
+  imports: [Icono, ReporteActividades, ReporteSalud, ReportePoblacion, ReporteDonaciones, ReporteInventario,
+    ReporteRetiros, ReportePerfiles, Cargando],
   templateUrl: './analitica.html',
   styleUrl: './analitica.css'
 })
@@ -59,6 +64,10 @@ export class Analitica implements OnInit {
       descripcion: 'Estado de los signos vitales y personas que requieren atención.' },
     { id: 'poblacion', nombre: 'Perfil de la población', icono: 'users',
       descripcion: 'Quiénes son tus personas mayores: edad, género, si viven solas, EPS, intereses y profesión.' },
+    { id: 'donaciones', nombre: 'Donaciones', icono: 'gift',
+      descripcion: 'Cuántas donaciones te programan, cuántas llegan, qué se recibe y quién dona.' },
+    { id: 'inventario', nombre: 'Inventario', icono: 'clipboard',
+      descripcion: 'Qué se está agotando o venciendo, el dinero disponible y las entradas y salidas del período.' },
     { id: 'retiros', nombre: 'Retiros', icono: 'power',
       descripcion: 'Cuántas personas mayores eliminaron su cuenta y por qué.' },
     { id: 'perfiles', nombre: 'Perfiles', icono: 'target',
@@ -79,6 +88,8 @@ export class Analitica implements OnInit {
   protected readonly actividades = signal<Estado<ActividadAnalitica[]>>(vacio());
   protected readonly salud = signal<Estado<SaludAnalitica>>(vacio());
   protected readonly poblacion = signal<Estado<PoblacionAnalitica>>(vacio());
+  protected readonly donaciones = signal<Estado<DonacionesAnalitica>>(vacio());
+  protected readonly inventario = signal<Estado<InventarioAnalitica>>(vacio());
   protected readonly retiros = signal<Estado<RetirosAnalitica>>(vacio());
   protected readonly perfiles = signal<Estado<PerfilesAnalitica>>(vacio());
   /** Número de grupos elegido en el reporte de perfiles (null = el sugerido). */
@@ -91,6 +102,8 @@ export class Analitica implements OnInit {
   private readonly reporteActividades = viewChild(ReporteActividades);
   private readonly reporteSalud = viewChild(ReporteSalud);
   private readonly reportePoblacion = viewChild(ReportePoblacion);
+  private readonly reporteDonaciones = viewChild(ReporteDonaciones);
+  private readonly reporteInventario = viewChild(ReporteInventario);
   private readonly reporteRetiros = viewChild(ReporteRetiros);
   private readonly reportePerfiles = viewChild(ReportePerfiles);
 
@@ -114,6 +127,8 @@ export class Analitica implements OnInit {
       case 'actividades': return this.actividades();
       case 'salud': return this.salud();
       case 'poblacion': return this.poblacion();
+      case 'donaciones': return this.donaciones();
+      case 'inventario': return this.inventario();
       case 'retiros': return this.retiros();
       case 'perfiles': return this.perfiles();
     }
@@ -126,6 +141,9 @@ export class Analitica implements OnInit {
     alCambiar(['organizaciones', 'usuarios', 'gustos'], () => this.poblacion().datos && this.cargarPoblacion());
     // Al eliminar una cuenta llega un aviso de "todo cambió" (también lo escucha alCambiar).
     alCambiar(['organizaciones', 'usuarios'], () => this.retiros().datos && this.cargarRetiros());
+    // Recibir una donación también mueve el inventario.
+    alCambiar(['donaciones'], () => this.donaciones().datos && this.cargarDonaciones());
+    alCambiar(['inventario', 'donaciones'], () => this.inventario().datos && this.cargarInventario());
     alCambiar(['signos-vitales', 'condiciones-salud', 'medicamentos', 'citas-medicas', 'acompanamientos',
       'organizaciones', 'usuarios'], () => this.perfiles().datos && this.cargarPerfiles());
   }
@@ -138,6 +156,8 @@ export class Analitica implements OnInit {
     this.reporteActivo.set(reporte);
     if (reporte === 'salud' && !this.salud().datos) this.cargarSalud();
     if (reporte === 'poblacion' && !this.poblacion().datos) this.cargarPoblacion();
+    if (reporte === 'donaciones' && !this.donaciones().datos) this.cargarDonaciones();
+    if (reporte === 'inventario' && !this.inventario().datos) this.cargarInventario();
     if (reporte === 'retiros' && !this.retiros().datos) this.cargarRetiros();
     if (reporte === 'perfiles' && !this.perfiles().datos) this.cargarPerfiles();
   }
@@ -159,6 +179,8 @@ export class Analitica implements OnInit {
       case 'actividades': this.cargarActividades(); break;
       case 'salud': this.cargarSalud(); break;
       case 'poblacion': this.cargarPoblacion(); break;
+      case 'donaciones': this.cargarDonaciones(); break;
+      case 'inventario': this.cargarInventario(); break;
       case 'retiros': this.cargarRetiros(); break;
       case 'perfiles': this.cargarPerfiles(); break;
     }
@@ -177,6 +199,14 @@ export class Analitica implements OnInit {
 
   private cargarPoblacion(): void {
     this.cargar(this.poblacion, this.analiticaService.poblacion());
+  }
+
+  private cargarDonaciones(): void {
+    this.cargar(this.donaciones, this.analiticaService.donaciones());
+  }
+
+  private cargarInventario(): void {
+    this.cargar(this.inventario, this.analiticaService.inventario());
   }
 
   private cargarRetiros(): void {
@@ -211,6 +241,8 @@ export class Analitica implements OnInit {
       actividades: this.reporteActividades(),
       salud: this.reporteSalud(),
       poblacion: this.reportePoblacion(),
+      donaciones: this.reporteDonaciones(),
+      inventario: this.reporteInventario(),
       retiros: this.reporteRetiros(),
       perfiles: this.reportePerfiles()
     }[this.reporteActivo()];

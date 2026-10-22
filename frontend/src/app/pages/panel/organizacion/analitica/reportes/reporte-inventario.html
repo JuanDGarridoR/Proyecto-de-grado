@@ -1,0 +1,88 @@
+<!-- Indicadores (estado de hoy) -->
+<div class="kpis">
+  @for (k of tarjetas(); track k.etiqueta) {
+    <app-kpi [etiqueta]="k.etiqueta" [valor]="k.valor" [detalle]="k.detalle" [icono]="k.icono" [tono]="k.tono" />
+  }
+</div>
+
+<!-- Gráficas; cada una se puede ver también como tabla -->
+<div class="graficas">
+  <app-tarjeta-grafica
+    titulo="Entradas y salidas por mes"
+    descripcion="Cuántos movimientos hubo cada mes del período. Se cuentan los movimientos, no las cantidades, porque cada artículo tiene su unidad."
+    [opciones]="graficaMeses()"
+    [tabla]="tablaMeses()"
+    [vacio]="movimientos().length === 0"
+    textoVacio="No hubo entradas ni salidas en este período."
+  />
+
+  <app-tarjeta-grafica
+    titulo="De dónde llega y a dónde va"
+    descripcion="Movimientos del período según su motivo: donaciones recibidas, compras, entregas a las personas mayores, vencimientos..."
+    [opciones]="graficaMotivos()"
+    [tabla]="tablaMotivos()"
+    [vacio]="porMotivo().length === 0"
+    textoVacio="No hubo entradas ni salidas en este período."
+  />
+
+  <app-tarjeta-grafica
+    class="ancho-completo"
+    titulo="Existencias por categoría"
+    descripcion="Estado de hoy de los artículos de cada categoría (no depende del período)."
+    [opciones]="graficaCategorias()"
+    [tabla]="tablaCategorias()"
+    [vacio]="datos().articulos.length === 0"
+    textoVacio="El inventario no tiene artículos registrados."
+  />
+
+  <!-- Artículos que requieren atención -->
+  <section class="atencion card ancho-completo">
+    <header class="atencion__header">
+      <div>
+        <h3>Artículos que requieren atención</h3>
+        <p>Agotados, por agotarse, vencidos o que vencen en los próximos 30 días. Primero los más urgentes.</p>
+      </div>
+    </header>
+
+    @if (conAvisos().length === 0) {
+      <p class="atencion__vacio">
+        <app-icono name="check-circle" />
+        Nada se está agotando ni venciendo.
+      </p>
+    } @else {
+      <div class="atencion__tabla">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Artículo</th>
+              <th scope="col">Categoría</th>
+              <th scope="col">Cantidad</th>
+              <th scope="col">Vence</th>
+              <th scope="col">Aviso</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (x of conAvisos(); track x.articulo.id) {
+              <tr>
+                <td class="recursos__nombre">{{ x.articulo.nombre }}</td>
+                <td>{{ textoCategoria(x.articulo.categoria) }}</td>
+                <td class="recursos__fecha">{{ cantidad(x.articulo.cantidad, x.articulo.unidad) }}</td>
+                <td class="recursos__fecha">{{ x.articulo.fechaVencimiento ? fecha(x.articulo.fechaVencimiento) : '—' }}</td>
+                <td>
+                  @for (aviso of x.avisos; track aviso) {
+                    <span [class]="'recursos__estado recursos__estado--' + aviso">{{ textoAviso[aviso] }}</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>
+
+<p class="nota">
+  Los indicadores, las existencias y la lista de atención muestran el inventario de hoy; el período solo filtra las
+  entradas y salidas. "Por agotarse" es llegar a la cantidad mínima de aviso que tiene cada artículo.
+</p>

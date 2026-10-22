@@ -213,6 +213,47 @@ export interface PerfilesAnalitica {
   advertencias: string[];
 }
 
+/** Donación de la organización con sus artículos (cantidadRecibida es null hasta que se recibe). */
+export interface DonacionAnalitica {
+  id: number;
+  fechaEntrega: string;                 // YYYY-MM-DD
+  estado: 'PROGRAMADA' | 'RECIBIDA' | 'NO_ENTREGADA' | 'CANCELADA';
+  rolDonante: string;                   // ACOMPANANTE o VOLUNTARIO
+  donante: string | null;
+  articulos: {
+    categoria: string;
+    descripcion: string;
+    cantidad: number;
+    unidad: string;
+    cantidadRecibida: number | null;
+  }[];
+}
+
+/** Respuesta de /donaciones: todo el historial; el reporte filtra por período. */
+export interface DonacionesAnalitica {
+  donaciones: DonacionAnalitica[];
+}
+
+/** Respuesta de /inventario: los artículos como están hoy y todas sus entradas y salidas. */
+export interface InventarioAnalitica {
+  articulos: {
+    id: number;
+    nombre: string;
+    categoria: string;
+    unidad: string;
+    cantidad: number;
+    cantidadMinima: number | null;
+    fechaVencimiento: string | null;    // YYYY-MM-DD
+  }[];
+  movimientos: {
+    idArticulo: number;
+    tipo: 'ENTRADA' | 'SALIDA';
+    cantidad: number;
+    motivo: string;
+    fecha: string;                      // YYYY-MM-DDTHH:mm
+  }[];
+}
+
 /** Contenido de un reporte para el PDF (ver ReportePdfRequest en el backend). */
 export interface ReportePdf {
   titulo: string;
@@ -258,6 +299,16 @@ export class AnaliticaService {
   }
 
   /** Por qué las personas mayores eliminaron su cuenta (se filtra por período en el navegador). */
+  /** Donaciones de la organización (se filtran por período en el navegador). */
+  donaciones(): Observable<DonacionesAnalitica> {
+    return this.http.get<DonacionesAnalitica>(`${this.apiUrl}/donaciones`);
+  }
+
+  /** Inventario de la organización y sus movimientos (se filtran por período en el navegador). */
+  inventario(): Observable<InventarioAnalitica> {
+    return this.http.get<InventarioAnalitica>(`${this.apiUrl}/inventario`);
+  }
+
   retiros(): Observable<RetirosAnalitica> {
     return this.http.get<RetirosAnalitica>(`${this.apiUrl}/retiros`);
   }

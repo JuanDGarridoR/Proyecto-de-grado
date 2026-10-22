@@ -1,0 +1,92 @@
+<!-- Indicadores -->
+<div class="kpis">
+  @for (k of tarjetas(); track k.etiqueta) {
+    <app-kpi [etiqueta]="k.etiqueta" [valor]="k.valor" [detalle]="k.detalle" [icono]="k.icono" [tono]="k.tono" />
+  }
+</div>
+
+<!-- Gráficas; cada una se puede ver también como tabla -->
+<div class="graficas">
+  <app-tarjeta-grafica
+    class="ancho-completo"
+    titulo="Donaciones por mes"
+    descripcion="Donaciones con fecha de entrega en cada mes, según si llegaron, están por recibir, no llegaron o se cancelaron."
+    [opciones]="graficaMeses()"
+    [tabla]="tablaMeses()"
+    [vacio]="donaciones().length === 0"
+    textoVacio="No hay donaciones con fecha de entrega en este período."
+  />
+
+  <app-tarjeta-grafica
+    titulo="Qué se recibe"
+    descripcion="Artículos recibidos de cada categoría. Mira la tabla para ver qué llegó."
+    [opciones]="graficaCategorias()"
+    [tabla]="tablaCategorias()"
+    [vacio]="porCategoria().length === 0"
+    textoVacio="No se recibieron artículos en este período."
+  />
+
+  <app-tarjeta-grafica
+    titulo="Quién dona"
+    descripcion="Donaciones de cada acompañante o voluntario: cuántas llegaron y cuántas no (o siguen pendientes)."
+    [opciones]="graficaDonantes()"
+    [tabla]="tablaDonantes()"
+    [vacio]="porDonante().length === 0"
+    textoVacio="Nadie programó donaciones en este período."
+  />
+
+  <!-- Lista de donaciones -->
+  <section class="atencion card ancho-completo">
+    <header class="atencion__header">
+      <div>
+        <h3>Donaciones del período</h3>
+        <p>De la entrega más reciente a la más antigua. Las programadas con la fecha vencida aparecen en rojo.</p>
+      </div>
+    </header>
+
+    @if (donaciones().length === 0) {
+      <p class="atencion__vacio">
+        <app-icono name="info" />
+        No hay donaciones con fecha de entrega en este período.
+      </p>
+    } @else {
+      <div class="atencion__tabla">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Entrega</th>
+              <th scope="col">Donante</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Artículos</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of donaciones(); track d.id) {
+              <tr>
+                <td class="recursos__fecha" [class.recursos__fecha--vencida]="vencida(d)">
+                  {{ fecha(d.fechaEntrega) }}
+                </td>
+                <td class="recursos__nombre">
+                  {{ d.donante ?? 'Cuenta eliminada' }}
+                  <small>{{ textoRol(d.rolDonante) }}</small>
+                </td>
+                <td>
+                  <span [class]="'recursos__estado recursos__estado--' + d.estado.toLowerCase()">
+                    {{ nombreEstado(d.estado) }}
+                  </span>
+                </td>
+                <td>{{ resumenArticulos(d) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>
+
+<p class="nota">
+  Las donaciones se cuentan por su fecha de entrega, así que las programadas para después de hoy también aparecen
+  (por recibir). El cumplimiento compara las recibidas con las que ya tenían respuesta (recibidas o no entregadas);
+  las canceladas no cuentan.
+</p>

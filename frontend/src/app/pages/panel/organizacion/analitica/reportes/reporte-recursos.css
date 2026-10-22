@@ -1,0 +1,62 @@
+/* Tablas de los reportes de donaciones e inventario. La estructura de la
+   tabla viene de reporte-salud.css (.atencion). */
+
+.recursos__fecha {
+  white-space: nowrap;
+}
+
+.recursos__fecha--vencida {
+  color: #9e2929 !important;
+  font-weight: 700;
+}
+
+.recursos__nombre {
+  color: var(--vita-navy) !important;
+  font-weight: 600;
+}
+
+.recursos__nombre small {
+  display: block;
+  color: var(--vita-text-gray);
+  font-weight: 400;
+}
+
+/* Etiquetas de estado: siempre con texto, el color solo acompaña */
+.recursos__estado {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.recursos__estado--recibida,
+.recursos__estado--normal {
+  background: rgba(12, 163, 12, 0.12);
+  color: #006300;
+}
+
+.recursos__estado--programada,
+.recursos__estado--por-agotarse,
+.recursos__estado--vence-pronto {
+  background: rgba(250, 178, 25, 0.18);
+  color: #7a5200;
+}
+
+.recursos__estado--no_entregada,
+.recursos__estado--agotado,
+.recursos__estado--vencido {
+  background: rgba(208, 59, 59, 0.12);
+  color: #9e2929;
+}
+
+.recursos__estado--cancelada {
+  background: var(--vita-cream);
+  color: var(--vita-text-gray);
+}
+
+/* Un artículo puede tener dos avisos (p. ej. agotado y vencido) */
+.recursos__estado + .recursos__estado {
+  margin-left: 4px;
+}
