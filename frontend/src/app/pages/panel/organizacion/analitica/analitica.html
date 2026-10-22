@@ -100,17 +100,10 @@
         <app-cargando class="cargando" texto="Cargando reporte..." />
       }
     }
-    @case ('donaciones') {
-      @if (donaciones().datos; as datos) {
-        <app-reporte-donaciones [datos]="datos" [desde]="desde()" />
-      } @else if (donaciones().cargando) {
-        <app-cargando class="cargando" texto="Cargando reporte..." />
-      }
-    }
-    @case ('inventario') {
-      @if (inventario().datos; as datos) {
-        <app-reporte-inventario [datos]="datos" [desde]="desde()" />
-      } @else if (inventario().cargando) {
+    @case ('recursos') {
+      @if (recursos().datos; as datos) {
+        <app-reporte-recursos [donaciones]="datos.donaciones" [inventario]="datos.inventario" [desde]="desde()" />
+      } @else if (recursos().cargando) {
         <app-cargando class="cargando" texto="Cargando reporte..." />
       }
     }

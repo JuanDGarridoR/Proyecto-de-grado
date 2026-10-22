@@ -1,4 +1,4 @@
-<!-- Indicadores (estado de hoy) -->
+<!-- Indicadores: donaciones del período e inventario de hoy -->
 <div class="kpis">
   @for (k of tarjetas(); track k.etiqueta) {
     <app-kpi [etiqueta]="k.etiqueta" [valor]="k.valor" [detalle]="k.detalle" [icono]="k.icono" [tono]="k.tono" />
@@ -7,18 +7,39 @@
 
 <!-- Gráficas; cada una se puede ver también como tabla -->
 <div class="graficas">
+  <!-- Lo que llega -->
   <app-tarjeta-grafica
-    titulo="Entradas y salidas por mes"
-    descripcion="Cuántos movimientos hubo cada mes del período. Se cuentan los movimientos, no las cantidades, porque cada artículo tiene su unidad."
+    class="ancho-completo"
+    titulo="Donaciones por mes"
+    descripcion="Donaciones con fecha de entrega en cada mes, según si llegaron, están por recibir, no llegaron o se cancelaron."
     [opciones]="graficaMeses()"
     [tabla]="tablaMeses()"
-    [vacio]="movimientos().length === 0"
-    textoVacio="No hubo entradas ni salidas en este período."
+    [vacio]="donacionesPeriodo().length === 0"
+    textoVacio="No hay donaciones con fecha de entrega en este período."
   />
 
   <app-tarjeta-grafica
+    titulo="Qué se recibe"
+    descripcion="Artículos recibidos de cada categoría. Mira la tabla para ver qué llegó."
+    [opciones]="graficaRecibido()"
+    [tabla]="tablaRecibido()"
+    [vacio]="porCategoriaRecibida().length === 0"
+    textoVacio="No se recibieron artículos en este período."
+  />
+
+  <app-tarjeta-grafica
+    titulo="Quién dona"
+    descripcion="Donaciones de cada acompañante o voluntario: cuántas llegaron y cuántas no (o siguen pendientes)."
+    [opciones]="graficaDonantes()"
+    [tabla]="tablaDonantes()"
+    [vacio]="porDonante().length === 0"
+    textoVacio="Nadie programó donaciones en este período."
+  />
+
+  <!-- Lo que se tiene y en qué se usa -->
+  <app-tarjeta-grafica
     titulo="De dónde llega y a dónde va"
-    descripcion="Movimientos del período según su motivo: donaciones recibidas, compras, entregas a las personas mayores, vencimientos..."
+    descripcion="Entradas y salidas del inventario en el período según su motivo: donaciones, compras, entregas a las personas mayores, vencimientos..."
     [opciones]="graficaMotivos()"
     [tabla]="tablaMotivos()"
     [vacio]="porMotivo().length === 0"
@@ -26,12 +47,11 @@
   />
 
   <app-tarjeta-grafica
-    class="ancho-completo"
     titulo="Existencias por categoría"
     descripcion="Estado de hoy de los artículos de cada categoría (no depende del período)."
-    [opciones]="graficaCategorias()"
-    [tabla]="tablaCategorias()"
-    [vacio]="datos().articulos.length === 0"
+    [opciones]="graficaExistencias()"
+    [tabla]="tablaExistencias()"
+    [vacio]="inventario().articulos.length === 0"
     textoVacio="El inventario no tiene artículos registrados."
   />
 
@@ -83,6 +103,7 @@
 </div>
 
 <p class="nota">
-  Los indicadores, las existencias y la lista de atención muestran el inventario de hoy; el período solo filtra las
-  entradas y salidas. "Por agotarse" es llegar a la cantidad mínima de aviso que tiene cada artículo.
+  Las donaciones se cuentan por su fecha de entrega, así que las programadas para después de hoy también aparecen
+  (por recibir); las canceladas no cuentan. El inventario, sus existencias y la lista de atención muestran el estado
+  de hoy: el período solo filtra las donaciones y los movimientos.
 </p>
