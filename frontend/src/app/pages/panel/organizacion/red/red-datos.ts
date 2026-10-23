@@ -86,7 +86,7 @@ export function grafoRedApoyo(red: Red): OpcionesGrafica {
     id: 'o',
     name: red.organizacion.nombre,
     category: 0,
-    symbolSize: 34,
+    symbolSize: 50,
     detalle: 'Tu organización',
     label: { show: true }
   }];
@@ -98,7 +98,7 @@ export function grafoRedApoyo(red: Red): OpcionesGrafica {
       id: `p${p.id}`,
       name: p.nombre,
       category: aislada ? 2 : 1,
-      symbolSize: aislada ? 16 : 12,
+      symbolSize: aislada ? 28 : 24,
       ...(aislada ? { symbol: 'diamond' } : {}),
       detalle: [
         aislada ? 'Sin acompañante' : `${acompanantesDe.get(p.id)} acompañante(s)`,
@@ -110,7 +110,7 @@ export function grafoRedApoyo(red: Red): OpcionesGrafica {
   }
 
   for (const a of red.acompanantes) {
-    nodos.push({ id: `a${a.id}`, name: a.nombre, category: 3, symbolSize: 10, detalle: 'Acompañante' });
+    nodos.push({ id: `a${a.id}`, name: a.nombre, category: 3, symbolSize: 18, detalle: 'Acompañante' });
   }
   for (const v of red.vinculos) {
     enlaces.push({
@@ -121,11 +121,12 @@ export function grafoRedApoyo(red: Red): OpcionesGrafica {
   }
 
   for (const v of red.voluntarios) {
-    nodos.push({ id: `v${v.id}`, name: v.nombre, category: 4, symbolSize: 12, detalle: 'Voluntario' });
+    nodos.push({ id: `v${v.id}`, name: v.nombre, category: 4, symbolSize: 20, detalle: 'Voluntario' });
     enlaces.push({ source: 'o', target: `v${v.id}`, detalle: 'Voluntario de la organización' });
   }
 
-  return opcionesGrafo(nodos, enlaces, CATEGORIAS_RED, 70);
+  // Es la vista principal: nodos grandes y bien separados para que se lea de lejos.
+  return opcionesGrafo(nodos, enlaces, CATEGORIAS_RED, 110, 320);
 }
 
 // ---------------------------------------------------------------------------

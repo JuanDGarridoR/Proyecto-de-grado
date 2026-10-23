@@ -53,6 +53,9 @@ export class Red implements OnInit {
 
   protected readonly color = COLOR;
 
+  /** La red de apoyo es lo principal de la página: ocupa casi toda la pantalla de alto. */
+  protected readonly altoRed = Math.max(820, (typeof window === 'undefined' ? 0 : window.innerHeight) - 80);
+
   protected readonly tarjetas = computed<DatoKpi[]>(() => {
     const red = this.red();
     if (!red) {

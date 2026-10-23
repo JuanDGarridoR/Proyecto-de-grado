@@ -35,7 +35,7 @@
         : 'Cada persona mayor y voluntario (puntos grandes) unido a todos sus gustos (puntos pequeños con nombre). Quienes comparten un gusto quedan conectados a través de él. Pasa el mouse por un punto para resaltar solo sus conexiones; puedes arrastrar y acercar.'"
       [opciones]="grafo.opciones"
       [tabla]="grafo.tabla"
-      [alto]="540"
+      [alto]="vistaGrafo() === 'red' ? altoRed : 540"
       [vacio]="red.personasMayores.length === 0"
       textoVacio="Aún no tienes personas mayores asociadas."
     >
