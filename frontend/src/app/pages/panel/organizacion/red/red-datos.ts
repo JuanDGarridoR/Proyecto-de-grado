@@ -133,45 +133,50 @@ export function grafoRedApoyo(red: Red): OpcionesGrafica {
 // ---------------------------------------------------------------------------
 
 const CATEGORIAS_GUSTOS = [
-  { name: 'Gusto', itemStyle: { color: COLOR.gusto } },
   { name: 'Persona mayor', itemStyle: { color: COLOR.persona } },
-  { name: 'Voluntario', itemStyle: { color: COLOR.voluntario } }
+  { name: 'Voluntario', itemStyle: { color: COLOR.voluntario } },
+  { name: 'Gusto', itemStyle: { color: COLOR.gusto } }
 ];
 
 /**
- * Cada gusto es un nodo (más grande cuanta más gente lo tiene) unido a
- * las personas mayores y voluntarios que lo tienen: los grupos que se
- * forman muestran qué intereses comparten y para qué actividades hay
- * público (y voluntarios que las puedan acompañar).
+ * La red completa de gustos: cada persona mayor y cada voluntario unido a
+ * todos sus gustos, así que dos personas con un gusto en común quedan a un
+ * paso. Las personas son los nodos grandes; los gustos, puntos pequeños con
+ * nombre (crecen un poco cuanta más gente los tiene, sin pasar a una
+ * persona). Para que no se vea enredado: líneas finas y claras, más
+ * separación entre nodos y, al pasar el mouse, solo queda resaltado lo que
+ * está conectado con ese punto.
  */
 export function grafoGustos(red: Red): OpcionesGrafica {
   const conteo = conteoGustos(red);
+  const nombre = new Map(red.gustos.map((g) => [g.id, g.nombre]));
+  const listaGustos = (gustos: number[]) => gustos.map((g) => nombre.get(g)).filter(Boolean).join(', ');
   const nodos: Nodo[] = [];
   const enlaces: Enlace[] = [];
 
-  for (const g of red.gustos) {
-    const c = conteo.get(g.id) ?? { personas: 0, voluntarios: 0 };
+  for (const g of red.gustos.filter((g) => conteo.has(g.id))) {
+    const c = conteo.get(g.id)!;
     nodos.push({
       id: `g${g.id}`,
       name: g.nombre,
-      category: 0,
-      symbolSize: 12 + 4 * Math.sqrt(c.personas + c.voluntarios),
-      detalle: `${c.personas} persona(s) mayor(es) · ${c.voluntarios} voluntario(s)`,
+      category: 2,
+      symbolSize: Math.min(16, 7 + 2 * Math.sqrt(c.personas + c.voluntarios)),
+      detalle: `Lo tienen ${c.personas} persona(s) mayor(es) y ${c.voluntarios} voluntario(s)`,
       label: { show: true }
     });
   }
 
   for (const p of red.personasMayores.filter((p) => p.gustos.length > 0)) {
-    nodos.push({ id: `p${p.id}`, name: p.nombre, category: 1, symbolSize: 9, detalle: `${p.gustos.length} gusto(s)` });
-    p.gustos.forEach((g) => enlaces.push({ source: `p${p.id}`, target: `g${g}`, detalle: 'Le gusta' }));
+    nodos.push({ id: `p${p.id}`, name: p.nombre, category: 0, symbolSize: 22, detalle: `Gustos: ${listaGustos(p.gustos)}` });
+    p.gustos.forEach((g) => enlaces.push({ source: `p${p.id}`, target: `g${g}`, detalle: `${p.nombre}: ${nombre.get(g)}` }));
   }
 
   for (const v of red.voluntarios.filter((v) => v.gustos.length > 0)) {
-    nodos.push({ id: `v${v.id}`, name: v.nombre, category: 2, symbolSize: 11, detalle: 'Voluntario' });
-    v.gustos.forEach((g) => enlaces.push({ source: `v${v.id}`, target: `g${g}`, detalle: 'Le gusta' }));
+    nodos.push({ id: `v${v.id}`, name: v.nombre, category: 1, symbolSize: 18, detalle: `Voluntario · Gustos: ${listaGustos(v.gustos)}` });
+    v.gustos.forEach((g) => enlaces.push({ source: `v${v.id}`, target: `g${g}`, detalle: `${v.nombre}: ${nombre.get(g)}` }));
   }
 
-  return opcionesGrafo(nodos, enlaces, CATEGORIAS_GUSTOS, 55);
+  return opcionesGrafo(nodos, enlaces, CATEGORIAS_GUSTOS, 80, 220, 0.35);
 }
 
 function conteoGustos(red: Red): Map<number, { personas: number; voluntarios: number }> {
@@ -183,7 +188,9 @@ function conteoGustos(red: Red): Map<number, { personas: number; voluntarios: nu
 }
 
 /** Grafo de fuerzas con el estilo común: se puede arrastrar, acercar y resaltar vecinos. */
-function opcionesGrafo(nodos: Nodo[], enlaces: Enlace[], categorias: object[], largoEnlace: number): OpcionesGrafica {
+function opcionesGrafo(
+  nodos: Nodo[], enlaces: Enlace[], categorias: object[], largoEnlace: number, repulsion = 140, opacidadLinea = 0.8
+): OpcionesGrafica {
   return base({
     legend: { ...leyenda(), data: categorias.map((c) => (c as { name: string }).name) },
     tooltip: tooltip({
@@ -201,11 +208,11 @@ function opcionesGrafo(nodos: Nodo[], enlaces: Enlace[], categorias: object[], l
       categories: categorias,
       data: nodos,
       links: enlaces,
-      force: { repulsion: 140, gravity: 0.08, edgeLength: [largoEnlace * 0.6, largoEnlace] },
+      force: { repulsion, gravity: 0.08, edgeLength: [largoEnlace * 0.6, largoEnlace] },
       // Solo se rotulan la organización y los gustos (etiquetas selectivas); el resto, al pasar el mouse.
       label: { show: false, position: 'right', color: '#12355b', fontSize: 12, fontWeight: 600 },
       itemStyle: { borderColor: '#ffffff', borderWidth: 2 },
-      lineStyle: { color: GRIS, width: 1.5, opacity: 0.8, curveness: 0.05 },
+      lineStyle: { color: GRIS, width: opacidadLinea < 0.8 ? 1 : 1.5, opacity: opacidadLinea, curveness: 0.05 },
       emphasis: { focus: 'adjacency', label: { show: true }, lineStyle: { width: 2.5, color: '#586576' } }
     }]
   });

@@ -32,7 +32,7 @@
       [titulo]="vistaGrafo() === 'red' ? 'Red de apoyo' : 'Gustos en común'"
       [descripcion]="vistaGrafo() === 'red'
         ? 'Tu organización al centro, unida a sus personas mayores y voluntarios; cada persona, unida a sus acompañantes. Los rombos rojos son personas sin acompañante. Pasa el mouse por un punto para ver sus conexiones; puedes arrastrar y acercar.'
-        : 'Cada gusto unido a las personas mayores y voluntarios que lo tienen. Los gustos más grandes son los más comunes: buenas ideas para actividades.'"
+        : 'Cada persona mayor y voluntario (puntos grandes) unido a todos sus gustos (puntos pequeños con nombre). Quienes comparten un gusto quedan conectados a través de él. Pasa el mouse por un punto para resaltar solo sus conexiones; puedes arrastrar y acercar.'"
       [opciones]="grafo.opciones"
       [tabla]="grafo.tabla"
       [alto]="540"

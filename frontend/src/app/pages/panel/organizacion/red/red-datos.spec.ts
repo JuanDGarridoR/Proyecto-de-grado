@@ -70,12 +70,20 @@ describe('Red y mapa', () => {
     expect(rosa.symbol).toBeUndefined();
   });
 
-  it('el grafo por gustos une cada gusto con quien lo tiene', () => {
+  it('el grafo por gustos une a cada persona con todos sus gustos', () => {
     const { data, links } = serie(grafoGustos(red()));
 
-    // Ana no tiene gustos: no aparece
+    // Ana no tiene gustos: no aparece. Rosa queda unida a sus dos gustos.
     expect(data.map((n) => n.id)).toEqual(['g1', 'g2', 'p11', 'p10', 'v40']);
-    expect(links).toContainEqual({ source: 'v40', target: 'g2', detalle: 'Le gusta' });
+    expect(links.map((l) => [l.source, l.target])).toEqual([['p11', 'g1'], ['p10', 'g1'], ['p10', 'g2'], ['v40', 'g2']]);
+  });
+
+  it('en el grafo por gustos las personas son más grandes que los gustos', () => {
+    const { data } = serie(grafoGustos(red())) as unknown as { data: { id: string; symbolSize: number }[] };
+    const tamano = (id: string) => data.find((n) => n.id === id)!.symbolSize;
+
+    expect(tamano('p10')).toBeGreaterThan(tamano('g1'));
+    expect(tamano('v40')).toBeGreaterThan(tamano('g2'));
   });
 
   it('la tabla de la red pone primero a quienes no tienen acompañante', () => {
