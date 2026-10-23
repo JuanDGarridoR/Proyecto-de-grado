@@ -102,21 +102,6 @@
               <label> Dirección </label>
               <p>{{ informacion?.direccion || 'No registrada' }}</p>
             </div>
-
-            <div class="informacion__field">
-              <label> Ubicación en el mapa </label>
-              @if (informacion?.ubicacion; as ubicacion) {
-                <p>
-                  Tu sede ya aparece en el mapa de las personas mayores.
-                  <a [href]="verEnMapa(ubicacion)" target="_blank" rel="noopener">Ver en Google Maps</a>
-                </p>
-              } @else {
-                <p>
-                  Todavía no aparece. Se ubica sola con tu dirección en unos minutos; si no aparece,
-                  revisa que la dirección esté completa (por ejemplo "Calle 91 Sur # 3-15, Usme").
-                </p>
-              }
-            </div>
           }
           <!-- EPS / IPS (solo persona mayor) -->
           @if (esPersonaMayor) {
