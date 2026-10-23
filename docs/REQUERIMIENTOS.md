@@ -1,6 +1,6 @@
 # Requerimientos — VITA+
 
-Requerimientos de la plataforma **VITA+** al 16 de octubre de 2026. Se organizan según los módulos principales definidos en el Plan de Administración del Proyecto (SPMP, sección 1.2.2) y sirven como base para actualizar el documento de especificación de requerimientos (SRS).
+Requerimientos de la plataforma **VITA+** al 23 de octubre de 2026. Se organizan según los módulos principales definidos en el Plan de Administración del Proyecto (SPMP, sección 1.2.2) y sirven como base para actualizar el documento de especificación de requerimientos (SRS).
 
 Convenciones:
 
@@ -240,3 +240,4 @@ Indicadores, reportes y visualizaciones para identificar patrones, apoyar el per
 | RNF-26 | **Mantenibilidad.** Las dependencias deben revisarse automáticamente en busca de vulnerabilidades (Dependabot, revisión en cada pull request y `npm audit`), y las imágenes de Docker deben usar versiones exactas. | ✅ Implementado |
 | RNF-27 | **Disponibilidad.** Debe haber una copia de seguridad diaria de la base de datos, propia e independiente del proveedor, y un procedimiento para probar que se puede restaurar. | ✅ Implementado |
 | RNF-28 | **Seguridad.** Todas las tablas de la base deben tener Row Level Security activado, incluidas las que se creen después, para que la API REST automática de Supabase no deje leer ni cambiar datos sin pasar por el backend. Detalle en `ARQUITECTURA_DISPONIBILIDAD.md`. | ✅ Implementado |
+| RNF-29 | **Seguridad.** Ninguna clave (contraseña de la base de datos, secreto del JWT ni claves de los servicios externos) debe estar en el código ni en el historial de git; se leen de archivos que no se suben. Toda clave que haya quedado en un commit debe cambiarse y revocarse en su proveedor. Detalle en `ARQUITECTURA_DISPONIBILIDAD.md`. | ✅ Implementado |

@@ -48,6 +48,7 @@ flowchart TD
 | RNF-26 | Revisión de dependencias y versiones exactas de las imágenes | Punto 45 |
 | RNF-27 | Copias de seguridad propias y prueba de restauración | Punto 46 |
 | RNF-28 | RLS en todas las tablas de Supabase | Punto 47 |
+| RNF-29 | Claves fuera del código y cambio de las que quedaron en el historial | Punto 29 |
 | Seguridad y privacidad en general | Datos protegidos, acceso solo con vínculo, cifrado | Parte 2, puntos 22 a 32 |
 | Rendimiento | Páginas que cargan rápido con mala señal | Parte 3, puntos 33 a 37 |
 | Escalabilidad | Crecer agregando instancias | Parte 4, punto 38 |
@@ -430,7 +431,7 @@ Además, el gateway limita los envíos por IP (punto 26). Así, el gasto máximo
 - **Servicios ↔ proveedores externos** (TextBee, Hunter, Google Places y Supabase Storage): siempre por HTTPS.
 - **En reposo:** Supabase cifra en disco la base de datos y los archivos de Storage (AES-256). Esto lo da el proveedor, no el código de Vita+.
 
-### 29. Claves fuera del código
+### 29. Claves fuera del código (RNF-29)
 
 Ninguna clave va en el código. La contraseña de la base, el secreto del JWT y las claves de TextBee, Hunter, Supabase y Google se leen de variables:
 
@@ -450,6 +451,12 @@ Ninguna clave va en el código. La contraseña de la base, el secreto del JWT y 
 - **En el navegador:** no queda ninguna clave. Las llamadas a TextBee, Hunter, Google Places y Supabase Storage las hace el backend.
 
 - **Dónde:** `spring.config.import=optional:file:../secretos.properties` y las variables `${...}` de los `application.properties`, `.gitignore`, `backend/.dockerignore`, `.env.example`, `environment` de cada servicio en `docker-compose.yml`.
+
+**Claves que quedaron en el historial.** Antes de este esquema, entre agosto y principios de octubre de 2026, algunas claves estuvieron escritas en los `application.properties`: la contraseña de la base de Supabase, las claves de TextBee y Hunter, secretos del JWT y las credenciales de una cuenta de Twilio que ya no se usa. Sacarlas del código no las borra de los commits anteriores, y el repositorio es público, así que se tratan como comprometidas: se cambiaron la contraseña de la base, el secreto del JWT y las claves de TextBee y Hunter. Las de Supabase Storage y Google nunca estuvieron en el código.
+
+> **Decisiones:**
+> - No se reescribió el historial de git (con `git filter-repo` o BFG). Lo que ya fue público pudo quedar en clones, forks o cachés, así que borrarlo no lo protege. Lo que protege es que las claves viejas ya no sirvan.
+> - Cambiar una clave no basta: TextBee, Hunter y Twilio permiten tener varias activas a la vez, así que la vieja hay que **revocarla** en el panel de cada proveedor. Con la contraseña de la base y el secreto del JWT no hace falta, porque al cambiarlos los valores anteriores dejan de funcionar (los tokens firmados con el secreto viejo ya no son válidos).
 
 ### 30. Datos personales y privacidad
 
@@ -660,6 +667,7 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 | `auth-service/.../AuthControllerTest`, `ContrasenaControllerTest` | El login abre una sesión; renovar entrega un token con el rol de la pestaña, y solo uno que la cuenta tenga; con una sesión revocada responde 401; cambiar o restablecer la contraseña cierra las demás sesiones; una contraseña nueva de menos de 8 caracteres se rechaza |
 | `frontend/.../auth/auth.interceptor.spec.ts`, `auth.service.spec.ts` | Con un 401 se renueva el token una sola vez y se repite la petición; si la sesión ya no se puede renovar, se lleva a iniciar sesión; al cerrar sesión se revoca en el backend |
 | `docker compose config` | Cada contenedor recibe solo sus claves (tabla del punto 29), y sin `.env` Compose no arranca |
+| Búsqueda de cada clave actual de `secretos.properties` en todos los commits (`git grep` sobre `git rev-list --all`) | Ninguna clave en uso aparece en el historial ni en otro archivo del proyecto; las que sí aparecen son las anteriores, ya cambiadas (punto 29) |
 | `auth-service/.../FotoControllerTest`, `SinTokenValidoTest`, `UsuarioRepositoryTest`; `frontend/.../foto-perfil/foto-perfil.spec.ts` | Sin sesión, una foto no se entrega; solo se aceptan rutas de fotos; las URLs públicas de antes pasan a ruta y repetirlo no cambia nada; el frontend pide cada foto una sola vez |
 | `AuditoriaSaludInterceptorTest` (salud, acompañante y analítica), `AuditoriaSaludTablaTest` | Queda registrado quién consultó o cambió los datos de salud de quién, incluidos los intentos sin vínculo (403); la propia persona viendo lo suyo no se registra; la tabla se crea en una base real (H2) y el registro queda guardado |
 | `api-gateway/.../filter/JwtAuthGatewayFilterFactoryTest` | Sin token, con un token vencido o firmado con otra clave, la petición no llega al servicio; un `X-User-Id` enviado por el cliente se reemplaza por el del token |
@@ -675,7 +683,7 @@ Las personas escriben las horas de sus medicamentos, citas y actividades en hora
 
 Las pruebas existentes de todos los servicios siguen pasando.
 
-**Pendiente de verificar en el servidor:** levantar todo con `docker compose up -d --build` y comprobar con `docker compose ps` que todos los contenedores quedan `healthy`. Luego detener una réplica (`docker compose stop salud-service-2`) y confirmar que la plataforma sigue respondiendo. Estas pruebas no se hicieron todavía en un entorno real con Docker. Con la plataforma publicada, abrir las páginas principales (landing, paneles, mapas, analítica y foto de perfil) con la consola del navegador abierta y confirmar que la Content-Security-Policy no bloquea nada: no se pudo probar en local porque las cabeceras las pone Caddy. Comprobar también que, sin root, Caddy obtiene y renueva el certificado HTTPS, y que los servicios arrancan con solo sus claves. Por último: revisar en Supabase (*Database > Backups*) qué copias incluye el plan y por cuánto tiempo; programar `respaldo.sh` con `cron`, y correr `probar-restauracion.sh` con la primera copia. Los scripts no se probaron en local porque necesitan Docker. Con RLS ya activado en Supabase, confirmar que los servicios siguen leyendo y guardando datos con normalidad.
+**Pendiente de verificar en el servidor:** levantar todo con `docker compose up -d --build` y comprobar con `docker compose ps` que todos los contenedores quedan `healthy`. Luego detener una réplica (`docker compose stop salud-service-2`) y confirmar que la plataforma sigue respondiendo. Estas pruebas no se hicieron todavía en un entorno real con Docker. Con la plataforma publicada, abrir las páginas principales (landing, paneles, mapas, analítica y foto de perfil) con la consola del navegador abierta y confirmar que la Content-Security-Policy no bloquea nada: no se pudo probar en local porque las cabeceras las pone Caddy. Comprobar también que, sin root, Caddy obtiene y renueva el certificado HTTPS, y que los servicios arrancan con solo sus claves. Por último: revisar en Supabase (*Database > Backups*) qué copias incluye el plan y por cuánto tiempo; programar `respaldo.sh` con `cron`, y correr `probar-restauracion.sh` con la primera copia. Los scripts no se probaron en local porque necesitan Docker. Con RLS ya activado en Supabase, confirmar que los servicios siguen leyendo y guardando datos con normalidad. Confirmar en los paneles de TextBee y Hunter que las claves anteriores quedaron revocadas, y cerrar la cuenta de Twilio o cambiar su token.
 
 ---
 
@@ -694,4 +702,5 @@ Las pruebas existentes de todos los servicios siguen pasando.
 | Base de datos única (Supabase) | Si Supabase falla, fallan todos los servicios. Con `respaldo.sh` se pierde como máximo un día de datos, pero restaurar es manual | Según el plan de Supabase: réplicas de lectura y *point-in-time recovery* |
 | Límites de peticiones en la memoria del gateway | Con dos gateways, cada uno contaría aparte y el límite real sería el doble. Al reiniciar el gateway, los contadores empiezan de cero | `RequestRateLimiter` de Spring Cloud Gateway con Redis |
 | Sin monitoreo centralizado | Las caídas se ven en los logs, no en un tablero | Exponer `/actuator/prometheus` y usar Prometheus con Grafana |
+| Claves anteriores en el historial público de git | Quien revise los commits viejos las encuentra; no sirven si se revocaron en cada proveedor (punto 29) | Revisar periódicamente que sigan revocadas y activar el *secret scanning* de GitHub para que avise si se sube una clave nueva |
 | `ddl-auto=update` en producción | Un cambio de modelo podría alterar tablas al arrancar | Migraciones versionadas (Flyway) |
