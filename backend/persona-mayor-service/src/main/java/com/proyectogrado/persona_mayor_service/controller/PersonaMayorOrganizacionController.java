@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,6 +38,7 @@ import java.util.List;
  * lo atiende organizacion-service.
  */
 @RestController
+@RequestMapping("/api")
 public class PersonaMayorOrganizacionController {
 
     private final PersonaMayorOrganizacionRepository relacionRepository;
@@ -61,7 +63,7 @@ public PersonaMayorOrganizacionController(
      * Acompañantes aceptados de una persona mayor, para la organización. Solo
      * responde si la persona tiene un vínculo aceptado con esa organización.
      */
-@GetMapping("/api/organizacion/personas-mayores/{idPersonaMayor}/acompanantes")
+@GetMapping("/organizacion/personas-mayores/{idPersonaMayor}/acompanantes")
 public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
         @RequestHeader("X-User-Id") Integer idUsuarioOrganizacion,
         @PathVariable Integer idPersonaMayor
@@ -126,7 +128,7 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
 }
 
     /** Organizaciones con las que la persona mayor tiene un vínculo aceptado. */
-    @GetMapping("/api/persona-mayor/organizaciones")
+    @GetMapping("/persona-mayor/organizaciones")
     public ResponseEntity<List<OrganizacionSolicitudResponse>> obtenerOrganizaciones(
             @RequestHeader("X-User-Id") Integer idPersonaMayor
     ) {
@@ -134,7 +136,7 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
     }
 
     /** Invitaciones de organizaciones que la persona mayor aún no ha respondido. */
-    @GetMapping("/api/persona-mayor/organizaciones/solicitudes")
+    @GetMapping("/persona-mayor/organizaciones/solicitudes")
     public ResponseEntity<List<OrganizacionSolicitudResponse>> obtenerSolicitudes(
             @RequestHeader("X-User-Id") Integer idPersonaMayor
     ) {
@@ -146,7 +148,7 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
     }
 
     /** Solicitudes que envió la persona mayor y la organización aún no responde. */
-    @GetMapping("/api/persona-mayor/organizaciones/solicitudes/enviadas")
+    @GetMapping("/persona-mayor/organizaciones/solicitudes/enviadas")
     public ResponseEntity<List<OrganizacionSolicitudResponse>> obtenerSolicitudesEnviadas(
             @RequestHeader("X-User-Id") Integer idPersonaMayor
     ) {
@@ -163,7 +165,7 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
      * invitado, quedan vinculadas de una vez. Si antes la rechazaron, la
      * solicitud vuelve a PENDIENTE.
      */
-    @PostMapping("/api/persona-mayor/organizaciones/{idOrganizacion}/solicitud")
+    @PostMapping("/persona-mayor/organizaciones/{idOrganizacion}/solicitud")
     public ResponseEntity<String> solicitarVinculacion(
             @RequestHeader("X-User-Id") Integer idPersonaMayor,
             @PathVariable Integer idOrganizacion
@@ -213,7 +215,7 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
         return ResponseEntity.ok("Solicitud enviada. La organización te responderá pronto.");
     }
 
-    @PutMapping("/api/persona-mayor/organizaciones/solicitudes/{idOrganizacion}/aceptar")
+    @PutMapping("/persona-mayor/organizaciones/solicitudes/{idOrganizacion}/aceptar")
     public ResponseEntity<String> aceptarSolicitudOrganizacion(
             @RequestHeader("X-User-Id") Integer idPersonaMayor,
             @PathVariable Integer idOrganizacion
@@ -221,7 +223,7 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
         return cambiarEstadoOrganizacion(idPersonaMayor, idOrganizacion, "ACEPTADA", "aceptada");
     }
 
-    @PutMapping("/api/persona-mayor/organizaciones/solicitudes/{idOrganizacion}/rechazar")
+    @PutMapping("/persona-mayor/organizaciones/solicitudes/{idOrganizacion}/rechazar")
     public ResponseEntity<String> rechazarSolicitudOrganizacion(
             @RequestHeader("X-User-Id") Integer idPersonaMayor,
             @PathVariable Integer idOrganizacion
@@ -230,7 +232,7 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
     }
 
     /** Organizaciones con las que la persona mayor pausó el vínculo. */
-    @GetMapping("/api/persona-mayor/organizaciones/inactivas")
+    @GetMapping("/persona-mayor/organizaciones/inactivas")
     public ResponseEntity<List<OrganizacionSolicitudResponse>> obtenerOrganizacionesInactivas(
             @RequestHeader("X-User-Id") Integer idPersonaMayor
     ) {
@@ -241,7 +243,7 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
      * La persona mayor pausa un vínculo aceptado: la organización deja de
      * verla y ella deja de ver las actividades y avisos de la organización.
      */
-    @PutMapping("/api/persona-mayor/organizaciones/{idOrganizacion}/inactivar")
+    @PutMapping("/persona-mayor/organizaciones/{idOrganizacion}/inactivar")
     public ResponseEntity<String> inactivarAsociacion(
             @RequestHeader("X-User-Id") Integer idPersonaMayor,
             @PathVariable Integer idOrganizacion
@@ -265,7 +267,7 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
      * Reactiva un vínculo pausado. Si la cuenta de la organización está
      * inactiva, queda como CUENTA_INACTIVA y vuelve cuando la reactive.
      */
-    @PutMapping("/api/persona-mayor/organizaciones/{idOrganizacion}/reactivar")
+    @PutMapping("/persona-mayor/organizaciones/{idOrganizacion}/reactivar")
     public ResponseEntity<String> reactivarAsociacion(
             @RequestHeader("X-User-Id") Integer idPersonaMayor,
             @PathVariable Integer idOrganizacion
@@ -290,7 +292,7 @@ public ResponseEntity<?> obtenerAcompanantesPersonaMayor(
     }
 
     /** La persona mayor deshace el vínculo con una organización. */
-    @DeleteMapping("/api/persona-mayor/organizaciones/{idOrganizacion}")
+    @DeleteMapping("/persona-mayor/organizaciones/{idOrganizacion}")
     public ResponseEntity<?> cancelarAsociacionDesdePersonaMayor(
             @RequestHeader("X-User-Id") Integer idPersonaMayor,
             @PathVariable Integer idOrganizacion

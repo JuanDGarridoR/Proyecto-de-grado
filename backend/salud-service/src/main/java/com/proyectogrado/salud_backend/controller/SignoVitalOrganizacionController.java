@@ -23,7 +23,7 @@ import java.util.List;
  * mayores vinculadas a ella. Solo puede hacerlo si el vínculo está ACEPTADO.
  */
 @RestController
-@RequestMapping("/api/organizacion/signos-vitales")
+@RequestMapping("/api/organizacion/signos-vitales/{idPersonaMayor}")
 public class SignoVitalOrganizacionController {
 
     private final SignoVitalRepository signoVitalRepository;
@@ -41,7 +41,7 @@ public class SignoVitalOrganizacionController {
     }
 
     /** Últimos 10 registros de la persona mayor, del más reciente al más antiguo. */
-    @GetMapping("/{idPersonaMayor}")
+    @GetMapping
     public ResponseEntity<?> listarUltimos(
             @RequestHeader("X-User-Id") Integer idUsuarioOrganizacion,
             @PathVariable Integer idPersonaMayor
@@ -63,7 +63,7 @@ public class SignoVitalOrganizacionController {
     }
 
     /** Valida la medición y la registra con la fecha y hora actuales. */
-    @PostMapping("/{idPersonaMayor}")
+    @PostMapping
     public ResponseEntity<?> crear(
             @RequestHeader("X-User-Id") Integer idUsuarioOrganizacion,
             @PathVariable Integer idPersonaMayor,

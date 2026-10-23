@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
  * el gateway después de validar el token.
  */
 @RestController
+@RequestMapping("/api")
 public class VoluntarioOrganizacionController {
 
     private final VoluntarioOrganizacionRepository relacionRepository;
@@ -63,7 +65,7 @@ public class VoluntarioOrganizacionController {
      * voluntario (null si nunca ha solicitado). Con esto el frontend arma
      * "mis organizaciones", "mis solicitudes" y "disponibles".
      */
-    @GetMapping("/api/voluntario/organizaciones")
+    @GetMapping("/voluntario/organizaciones")
     public ResponseEntity<?> listarOrganizaciones(
             @RequestHeader("X-User-Id") Integer idVoluntario
     ) {
@@ -97,7 +99,7 @@ public class VoluntarioOrganizacionController {
      * Envía una solicitud de vinculación. Si la organización la había
      * rechazado antes, la solicitud vuelve a quedar PENDIENTE.
      */
-    @PostMapping("/api/voluntario/organizaciones/{idOrganizacion}/solicitud")
+    @PostMapping("/voluntario/organizaciones/{idOrganizacion}/solicitud")
     public ResponseEntity<String> solicitarVinculacion(
             @RequestHeader("X-User-Id") Integer idVoluntario,
             @PathVariable Integer idOrganizacion
@@ -152,7 +154,7 @@ public class VoluntarioOrganizacionController {
      * Borra el vínculo, sea cual sea su estado: cancela una solicitud
      * pendiente, descarta una rechazada o desvincula al voluntario.
      */
-    @DeleteMapping("/api/voluntario/organizaciones/{idOrganizacion}")
+    @DeleteMapping("/voluntario/organizaciones/{idOrganizacion}")
     public ResponseEntity<String> eliminarVinculoDesdeVoluntario(
             @RequestHeader("X-User-Id") Integer idVoluntario,
             @PathVariable Integer idOrganizacion
@@ -183,7 +185,7 @@ public class VoluntarioOrganizacionController {
      * El voluntario pausa un vínculo aceptado: la organización deja de verlo
      * y él deja de ver lo de la organización hasta que lo reactive.
      */
-    @PutMapping("/api/voluntario/organizaciones/{idOrganizacion}/inactivar")
+    @PutMapping("/voluntario/organizaciones/{idOrganizacion}/inactivar")
     public ResponseEntity<String> inactivarVinculo(
             @RequestHeader("X-User-Id") Integer idVoluntario,
             @PathVariable Integer idOrganizacion
@@ -207,7 +209,7 @@ public class VoluntarioOrganizacionController {
      * Reactiva un vínculo pausado. Si la cuenta de la organización está
      * inactiva, queda como CUENTA_INACTIVA y vuelve cuando la reactive.
      */
-    @PutMapping("/api/voluntario/organizaciones/{idOrganizacion}/reactivar")
+    @PutMapping("/voluntario/organizaciones/{idOrganizacion}/reactivar")
     public ResponseEntity<String> reactivarVinculo(
             @RequestHeader("X-User-Id") Integer idVoluntario,
             @PathVariable Integer idOrganizacion
@@ -242,7 +244,7 @@ public class VoluntarioOrganizacionController {
     // Lado de la organización: voluntarios y solicitudes
 
     /** Voluntarios vinculados (solicitud ACEPTADA), ordenados por nombre. */
-    @GetMapping("/api/organizacion/voluntarios")
+    @GetMapping("/organizacion/voluntarios")
     public ResponseEntity<?> listarVoluntarios(
             @RequestHeader("X-User-Id") Integer idUsuarioOrganizacion
     ) {
@@ -250,7 +252,7 @@ public class VoluntarioOrganizacionController {
     }
 
     /** Solicitudes PENDIENTES de voluntarios, ordenadas por nombre. */
-    @GetMapping("/api/organizacion/voluntarios/solicitudes")
+    @GetMapping("/organizacion/voluntarios/solicitudes")
     public ResponseEntity<?> listarSolicitudes(
             @RequestHeader("X-User-Id") Integer idUsuarioOrganizacion
     ) {
@@ -258,7 +260,7 @@ public class VoluntarioOrganizacionController {
     }
 
     /** Acepta una solicitud pendiente; si ya se respondió, responde 400. */
-    @PutMapping("/api/organizacion/voluntarios/solicitudes/{idVoluntario}/aceptar")
+    @PutMapping("/organizacion/voluntarios/solicitudes/{idVoluntario}/aceptar")
     public ResponseEntity<String> aceptarSolicitud(
             @RequestHeader("X-User-Id") Integer idUsuarioOrganizacion,
             @PathVariable Integer idVoluntario
@@ -268,7 +270,7 @@ public class VoluntarioOrganizacionController {
     }
 
     /** Rechaza una solicitud pendiente; el voluntario puede volver a enviarla. */
-    @PutMapping("/api/organizacion/voluntarios/solicitudes/{idVoluntario}/rechazar")
+    @PutMapping("/organizacion/voluntarios/solicitudes/{idVoluntario}/rechazar")
     public ResponseEntity<String> rechazarSolicitud(
             @RequestHeader("X-User-Id") Integer idUsuarioOrganizacion,
             @PathVariable Integer idVoluntario
@@ -278,7 +280,7 @@ public class VoluntarioOrganizacionController {
     }
 
     /** Quita el vínculo con un voluntario aceptado. */
-    @DeleteMapping("/api/organizacion/voluntarios/{idVoluntario}")
+    @DeleteMapping("/organizacion/voluntarios/{idVoluntario}")
     public ResponseEntity<String> desvincularVoluntario(
             @RequestHeader("X-User-Id") Integer idUsuarioOrganizacion,
             @PathVariable Integer idVoluntario

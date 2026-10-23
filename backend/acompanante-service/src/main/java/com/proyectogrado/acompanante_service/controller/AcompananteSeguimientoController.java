@@ -33,7 +33,7 @@ import java.util.List;
  * con entidades Lookup de solo lectura.
  */
 @RestController
-@RequestMapping("/api/acompanante/seguimiento")
+@RequestMapping("/api/acompanante/seguimiento/{idPersonaMayor}")
 public class AcompananteSeguimientoController {
 
     private final PersonaMayorAcompananteRepository relacionRepository;
@@ -57,7 +57,7 @@ public class AcompananteSeguimientoController {
     }
 
     /** Últimos 10 registros de signos vitales, del más reciente al más antiguo. */
-    @GetMapping("/{idPersonaMayor}/signos-vitales")
+    @GetMapping("/signos-vitales")
     public ResponseEntity<?> obtenerSignosVitales(
             @RequestHeader("X-User-Id") Integer idAcompanante,
             @PathVariable Integer idPersonaMayor
@@ -91,7 +91,7 @@ public class AcompananteSeguimientoController {
     }
 
     /** Medicamentos de la persona mayor con su próxima y su última toma. */
-    @GetMapping("/{idPersonaMayor}/medicamentos")
+    @GetMapping("/medicamentos")
     public ResponseEntity<?> obtenerMedicamentos(
             @RequestHeader("X-User-Id") Integer idAcompanante,
             @PathVariable Integer idPersonaMayor
@@ -127,7 +127,7 @@ public class AcompananteSeguimientoController {
      * Todas las citas médicas de la persona mayor, pasadas y futuras,
      * ordenadas por fecha y hora. El frontend las separa en próximas y pasadas.
      */
-    @GetMapping("/{idPersonaMayor}/citas-medicas")
+    @GetMapping("/citas-medicas")
     public ResponseEntity<?> obtenerCitasMedicas(
             @RequestHeader("X-User-Id") Integer idAcompanante,
             @PathVariable Integer idPersonaMayor
@@ -165,7 +165,7 @@ public class AcompananteSeguimientoController {
     }
 
     /** Todos los acompañantes aceptados de la persona mayor, incluido el que consulta. */
-    @GetMapping("/{idPersonaMayor}/contactos")
+    @GetMapping("/contactos")
     public ResponseEntity<?> obtenerContactos(
             @RequestHeader("X-User-Id") Integer idAcompanante,
             @PathVariable Integer idPersonaMayor
