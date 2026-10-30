@@ -2,7 +2,7 @@
 
 Este archivo reúne todo lo necesario para dejar terminado el documento **«Metodología CRISP-DM»** (*Plataforma web para apoyar la gestión de información, mediante analítica de datos, en organizaciones que asisten a personas mayores. Caso de estudio: UPL Entrenubes (Usme, Bogotá)*).
 
-Parte de la versión del documento del **21/10/2026** (la que ya tiene escritas las fases 1 a 6, las referencias y los anexos) y la contrasta con el código del repositorio al **22 de octubre de 2026** (commit `4417b14`).
+Parte de la versión del documento del **21/10/2026** (la que ya tiene escritas las fases 1 a 6, las referencias y los anexos) y la contrasta con el código del repositorio al **22 de octubre de 2026** (commit `4417b14`), más los cambios del **29 de octubre de 2026** (uso del celular en el reporte de población, B.8).
 
 | Parte | Para qué sirve |
 |---|---|
@@ -11,7 +11,7 @@ Parte de la versión del documento del **21/10/2026** (la que ya tiene escritas 
 | [C](#parte-c-cómo-llenar-cada-por-completar) | Cada `[POR COMPLETAR]` del documento: el dato (si ya se conoce) o cómo obtenerlo |
 | [D](#parte-d-imágenes-que-faltan) | **Lista de imágenes**: qué capturar, dónde, qué debe verse y en qué figura va |
 | [E](#parte-e-listas-de-tablas-y-figuras-e-historial-de-cambios) | Listas de tablas y figuras actualizadas, e historial de cambios |
-| [F](#parte-f-referencia-técnica-de-lo-nuevo) | Referencia técnica de lo nuevo (donaciones e inventario, datos ficticios de Entrenubes) |
+| [F](#parte-f-referencia-técnica-de-lo-nuevo) | Referencia técnica de lo nuevo (donaciones e inventario, datos ficticios de Entrenubes, uso del celular) |
 
 ---
 
@@ -29,7 +29,7 @@ Parte de la versión del documento del **21/10/2026** (la que ya tiene escritas 
 
 ## Parte B. Correcciones por los últimos cambios del código
 
-Entre el 21 y el 22 de octubre de 2026 entraron estos cambios que afectan el documento:
+Entre el 21 y el 29 de octubre de 2026 entraron estos cambios que afectan el documento:
 
 | Commit | Cambio | Afecta |
 |---|---|---|
@@ -39,6 +39,8 @@ Entre el 21 y el 22 de octubre de 2026 entraron estos cambios que afectan el doc
 | `9733c42` | El script de datos ficticios agrega **160 personas mayores a la Fundación Entrenubes Usme** con cuatro arquetipos bien diferenciados y **20 actividades** más | 2.1, 2.2.1, cierre de la Fase 2, 4.2, 4.4 |
 | `122766c` | Spring Boot 4.1.1 → **4.1.2** en todos los servicios (las URLs no cambian) | 6.1 (opcional) |
 | `4417b14` | El perfil de la organización ya no muestra «Ubicación en el mapa» | No afecta el documento |
+| 29/10/2026 | Nuevo dato opcional de la persona mayor: **nivel de uso del celular** (RF-84), y gráfica nueva **«Nivel de uso del celular»** en el reporte «Perfil de la población», con PDF; el script de datos ficticios lo llena | 2.1, 2.2.2, Tabla 5, 3.1, Tabla 13, Tabla 14, 6.2, Tabla 17, Anexo F (ver B.8) |
+| 29/10/2026 | El acompañante puede inscribir a sus personas mayores en actividades desde «Seguimiento» (RF-40) | No afecta el documento: la inscripción se guarda igual (`participacion`) y los indicadores de actividades no cambian |
 
 ### B.1 Pestaña «Perfiles» → «Grupos de atención»
 
@@ -176,6 +178,42 @@ Reemplazar «Debido a que el script de datos ficticios genera perfiles de salud 
 
 Y en **4.2, viñeta «Datos del experimento»**, precisar: «en primer lugar, se utiliza el conjunto de datos ficticios de la Fundación Entrenubes Usme, que tiene una estructura conocida de cuatro arquetipos; posteriormente, los datos reales cuando alcancen el mínimo requerido (ver 2.1)».
 
+### B.8 Nivel de uso del celular en el reporte «Perfil de la población»
+
+La persona mayor (o su acompañante en su nombre) puede indicar en su perfil, de forma opcional, su nivel de uso del celular. Se guarda en `persona_mayor.uso_celular` con uno de cuatro valores, de menor a mayor uso; si no lo indica, queda nulo. El reporte de población lo muestra en una gráfica nueva. Es una variable descriptiva: **no entra al modelo K-means** (las 14 variables de la Tabla 7 no cambian).
+
+| Valor | Opción que ve la persona | Nombre en la gráfica |
+|---|---|---|
+| `NO_USA` | No lo usa | No lo usa |
+| `BASICO` | Bajo (solo llamadas) | Bajo |
+| `INTERMEDIO` | Medio (llamadas y WhatsApp) | Medio |
+| `AVANZADO` | Alto (varias aplicaciones) | Alto |
+| nulo | (no lo ha indicado) | Sin dato |
+
+**2.2.2 Estructura de los datos** — en la viñeta de **Persona mayor (persona_mayor)**, agregar al final: «…y, de forma opcional, su nivel de uso del celular (no lo usa; bajo, solo llamadas; medio, llamadas y WhatsApp, o alto, varias aplicaciones)».
+
+**Tabla 5 Variables disponibles** — en la fila de la persona mayor, agregar la variable `uso_celular` y, en «Posible uso analítico», «caracterización del uso del celular para elegir el canal de comunicación con cada persona».
+
+**3.1, párrafo «Variables de los reportes descriptivos»** — donde se enumeran los datos del reporte de población (edad, género, si vive sola, EPS…), agregar «el nivel de uso del celular (`persona_mayor.uso_celular`)».
+
+**Tabla 14 Definición de los indicadores** — agregar en el bloque de Población:
+
+| Reporte | Indicador | Fórmula o regla | Fuente |
+|---|---|---|---|
+| Perfil de la población (RF-84) | Nivel de uso del celular | Personas asociadas en cada nivel (no lo usa, bajo, medio, alto) y sin dato, con su porcentaje sobre el total de asociadas. En la explicación del PDF, «uso bajo» = no lo usa + bajo, como porcentaje de quienes lo indicaron | `persona_mayor.uso_celular` |
+
+**6.2, «Gráficas por reporte»** — en la viñeta de **Población**, agregar después de «si viven solas»: «nivel de uso del celular (barras de menor a mayor nivel, en tonos de un mismo color, y una barra gris para quienes no lo han indicado)». Texto sugerido para el párrafo que explica para qué sirve:
+
+> La gráfica de nivel de uso del celular permite a la organización elegir el canal de comunicación más adecuado para cada grupo: con las personas que no usan el celular o tienen un uso bajo (solo llamadas) conviene avisar las actividades y los recordatorios por llamada o a través de su acompañante, mientras que quienes tienen un uso medio o alto (WhatsApp o varias aplicaciones) pueden aprovechar mejor la plataforma.
+
+**Tabla 17 Diccionario de datos** — en la fila `persona_mayor`, agregar «uso_celular (NO_USA, BASICO, INTERMEDIO o AVANZADO; nulo si no lo ha indicado)».
+
+**Datos ficticios (2.1)** — el script ahora llena este dato en las 460 personas mayores: a más edad, menos uso, y cerca del 12 % sin indicar. Puede agregarse a la enumeración del conjunto ficticio: «…si vive sola y su nivel de uso del celular…».
+
+**Anexos, viñeta del Anexo F** — sumar RF-84 a la lista de B.5: «RF-45 a RF-49, RF-60, RF-71 a RF-73, RF-79 a RF-81, RF-83, RF-84 y RNF-13».
+
+**Figura 8** — no hace falta cambiarla; si se vuelve a tomar, puede incluir la gráfica de nivel de uso del celular (ver D.2).
+
 ---
 
 ## Parte C. Cómo llenar cada `[POR COMPLETAR]`
@@ -220,24 +258,24 @@ Alternativa sin capturas: `GET /api/analitica/perfiles` (o `?k=4`) a través del
 
 ### C.4 Sección 5.1, resultado de las pruebas — ✅ Dato listo
 
-Ejecutadas el **22 de octubre de 2026** sobre el commit `4417b14`:
+Ejecutadas el **29 de octubre de 2026**, con los cambios del uso del celular (B.8):
 
-- **Backend** (`./mvnw test` en `backend/analitica-service`): **72 pruebas, 72 aprobadas**, 0 fallos, 0 errores, 0 omitidas.
-- **Frontend** (`npx ng test --watch=false` en `frontend`): **37 archivos de prueba y 169 pruebas, todas aprobadas** (incluye las 47 de los reportes de analítica y de la red).
+- **Backend** (`./mvnw test` en `backend/analitica-service`): **72 pruebas, 72 aprobadas**, 0 fallos, 0 errores, 0 omitidas. (Las mismas del 22/10: la prueba del reporte de población ahora también verifica el uso del celular, pero no se agregaron pruebas.)
+- **Frontend** (`npx ng test --watch=false` en `frontend`): **37 archivos de prueba y 172 pruebas, todas aprobadas** (incluye las 50 de los reportes de analítica y de la red; el 22/10 eran 169 y 47: 2 nuevas del uso del celular y 1 de la red, del commit `cd8f7e1`).
 
 Texto sugerido para reemplazar el `[POR COMPLETAR]`:
 
-> La última ejecución de las pruebas, realizada el 22 de octubre de 2026, arrojó 72 pruebas aprobadas de 72 en el servicio de analítica y 169 pruebas aprobadas de 169 en el frontend, sin fallos ni errores.
+> La última ejecución de las pruebas, realizada el 29 de octubre de 2026, arrojó 72 pruebas aprobadas de 72 en el servicio de analítica y 172 pruebas aprobadas de 172 en el frontend, sin fallos ni errores.
 
 (Si se vuelve a correr antes de entregar, actualizar la fecha y las cifras.)
 
 ### C.5 Tabla 15, criterio 2 (exactitud de los indicadores) — ✅ Dato listo
 
-Estado: **«Cumplido: todas las pruebas automatizadas aprobadas (22/10/2026)»**.
+Estado: **«Cumplido: todas las pruebas automatizadas aprobadas (29/10/2026)»**.
 
 ### C.6 Tabla 13 actualizada (reemplazar la tabla completa)
 
-Los conteos salen de la ejecución del 22/10/2026:
+Los conteos salen de la ejecución del 29/10/2026:
 
 | Componente | Pruebas | Qué verifican |
 |---|---|---|
@@ -251,7 +289,7 @@ Los conteos salen de la ejecución del 22/10/2026:
 | UbicadorAutomaticoTest | 11 | (igual) |
 | PdfControllerTest | 4 | (igual) |
 | **AuditoriaSaludInterceptorTest** | **2** | **Opcional.** Que las consultas a datos de salud queden en el registro de auditoría (RNF-25) |
-| Frontend (`reporte-*.spec.ts`, `red-datos.spec.ts`) | **4 + 9 + 6 + 9 + 4 + 5 + 10** | Actividades 4, salud 9, población 6, **donaciones e inventario 9**, retiros 4, grupos de atención 5 y red 10: el cálculo de los indicadores, las tablas y el contenido del PDF de cada reporte |
+| Frontend (`reporte-*.spec.ts`, `red-datos.spec.ts`) | **4 + 9 + 8 + 9 + 4 + 5 + 11** | Actividades 4, salud 9, **población 8** (2 nuevas: uso del celular y su explicación en el PDF), **donaciones e inventario 9**, retiros 4, grupos de atención 5 y **red 11** (1 nueva: el grafo de gustos destaca a las personas): el cálculo de los indicadores, las tablas y el contenido del PDF de cada reporte |
 
 ### C.7 Sección 5.2, separación de los perfiles
 
@@ -295,7 +333,7 @@ RNF-15 sigue **⏳ Pendiente** en `docs/REQUERIMIENTOS.md`. `[POR COMPLETAR POR 
 | C | Documento técnico del perfilamiento | `docs/KMEANS_PERFILES.md` (ya actualizado con «Grupos de atención» y los nombres nuevos). Se puede exportar a PDF y adjuntar |
 | D | Ejemplo de reporte en PDF | Descargar el PDF de **Grupos de atención** de la Fundación Entrenubes Usme (botón de descarga de la pestaña). Opcional: el de Salud |
 | E | Capturas | Ver Parte D, imágenes A-1 a A-4 |
-| F | Requerimientos | Copiar de `docs/REQUERIMIENTOS.md` la sección «4. Analítica de datos y visualización» (RF-45 a RF-48, RF-72, RF-73, RF-81 y el nuevo RF-83), RF-49, RF-60, RF-71, RF-79, RF-80, RNF-13 y RF-68 (reglas del inventario que usa RF-83) |
+| F | Requerimientos | Copiar de `docs/REQUERIMIENTOS.md` la sección «4. Analítica de datos y visualización» (RF-45 a RF-48, RF-72, RF-73, RF-81 y el nuevo RF-83), RF-49, RF-60, RF-71, RF-79, RF-80, RNF-13, RF-68 (reglas del inventario que usa RF-83) y el nuevo RF-84 (uso del celular, en la sección 2.1 del archivo) |
 
 ---
 
@@ -325,7 +363,7 @@ Numeración **nueva** (se agrega la del reporte de donaciones e inventario y la 
 | **5** | 4.4 | `fig05-tarjetas-perfil.png` | Grupos de atención → las tarjetas de los grupos | Nombre, tamaño (personas y %), rasgos, atención y actividades sugeridas, y asistencia. Si no caben todas, capturar dos (5a y 5b) o la del Grupo 1 y la del último | *Figura 5 Tarjetas de perfil* |
 | **6** | 6.2 | `fig06-reporte-actividades.png` | Analítica → **Actividades y participación** (Último año) | Los indicadores de arriba y la gráfica de inscritos y asistentes por mes | *Figura 6 Reporte de actividades y participación* |
 | **7** | 6.2 | `fig07-reporte-salud.png` | Analítica → **Salud de la población** (Último año) | Los indicadores, el estado actual por indicador y el inicio de la tabla «Personas que requieren atención» | *Figura 7 Reporte de salud de la población* |
-| **8** | 6.2 | `fig08-reporte-poblacion.png` | Analítica → **Perfil de la población** | Los indicadores y las gráficas de rangos de edad y género (o intereses) | *Figura 8 Reporte de perfil de la población* |
+| **8** | 6.2 | `fig08-reporte-poblacion.png` | Analítica → **Perfil de la población** | Los indicadores y las gráficas de rangos de edad y género (o intereses). Si cabe, también «Nivel de uso del celular» (B.8) | *Figura 8 Reporte de perfil de la población* |
 | **9 (nueva)** | 6.2 | `fig09-reporte-donaciones-inventario.png` | Analítica → **Donaciones e inventario** (Último año) | Los 5 indicadores (donaciones que llegaron, por recibir, agotados o por agotarse, vencidos o por vencer, dinero disponible) y la gráfica «Donaciones por mes» | *Figura 9 Reporte de donaciones e inventario* |
 | **10 (antes 9)** | 6.2 | `fig10-reporte-retiros.png` | Analítica → **Retiros** (Último año o Todo) | Los indicadores y la gráfica de razones | *Figura 10 Reporte de retiros* |
 
@@ -389,6 +427,7 @@ No hay tablas nuevas obligatorias: las filas nuevas van dentro de las tablas 5, 
 | Fecha de cambio | Autor | Descripción |
 |---|---|---|
 | 22/10/2026 | `[POR COMPLETAR: autor]` | Reporte de donaciones e inventario, pestaña «Grupos de atención», nuevos nombres de los grupos y de los ejes del mapa, datos ficticios de la Fundación Entrenubes Usme, resultado de las pruebas y actualización de las listas de tablas y figuras. |
+| 29/10/2026 | `[POR COMPLETAR: autor]` | Nivel de uso del celular de la persona mayor (RF-84) como variable del reporte de perfil de la población: estructura de los datos, indicador, gráfica, diccionario de datos y datos ficticios. |
 
 (Si las capturas y los resultados de 3.6 y 4.4 se pegan otro día, agregar otra fila con esa fecha.)
 
@@ -431,6 +470,14 @@ A la organización también le quedan las personas que las secciones anteriores 
 | Ninguna ≥ 0,4 y todas ≤ 0,1 | Activos e independientes |
 | Otro caso | Bienestar en equilibrio |
 
-### F.4 Lo que no cambió
+### F.4 Nivel de uso del celular (RF-84)
+
+- **Dato:** `persona_mayor.uso_celular`, opcional. Lo guarda auth-service desde «Mi información» de la persona mayor y desde el perfil que gestiona su acompañante; acepta solo `NO_USA`, `BASICO`, `INTERMEDIO` o `AVANZADO` (cualquier otro valor se rechaza) y vacío queda nulo. auth-service crea la columna al arrancar.
+- **Backend de analítica:** `GET /api/analitica/poblacion` devuelve `usoCelular` en cada persona, con la misma consulta de solo lectura del resto del reporte.
+- **Frontend:** `reporte-poblacion.ts`, gráfica «Nivel de uso del celular» después de «¿Viven solas?», con vista de tabla y sección en el PDF. Las opciones y sus textos están en `core/persona-mayor/uso-celular.ts`.
+- **Datos ficticios:** puntaje = número al azar + (edad − 60) / 50; menos de 0,25 → alto, menos de 0,65 → medio, menos de 1,05 → bajo, el resto → no lo usa. Cerca del 12 % queda sin indicar.
+- **Fuera del modelo:** no es una de las 14 variables de K-means. Si en el futuro se quisiera usar en los grupos de atención, habría que agregarla a `VariablePerfil` y actualizar la Tabla 7 y `docs/KMEANS_PERFILES.md`.
+
+### F.5 Lo que no cambió
 
 Las 14 variables del modelo (Tabla 7), las reglas de limpieza y suficiencia (Tablas 8 y 9), las transformaciones, el diseño del experimento (2 ≤ *k* ≤ mín(6, n/4), silueta, 20 reinicios, semilla 42), el algoritmo (K-means++, Lloyd, tolerancia 10⁻⁶, 300 iteraciones), las recomendaciones por dimensión (Tabla 11), el recomendador de organizaciones (Tabla 12), la red de apoyo, las limitaciones (4.5) y las demás filas de la Tabla 14 siguen siendo correctas tal como están en el documento.
