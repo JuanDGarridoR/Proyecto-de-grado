@@ -58,7 +58,7 @@ Registro, consulta y actualización de la información de personas mayores, acom
 | RF-13 | El sistema debe verificar con Hunter el nuevo correo electrónico solo cuando el usuario lo cambie. | ✅ Implementado |
 | RF-14 | El sistema debe permitir a la persona mayor registrar su EPS, su IPS y la dirección de la IPS. | ✅ Implementado |
 | RF-15 | El sistema debe permitir a la organización registrar y actualizar su información institucional. | ✅ Implementado |
-| RF-16 | El sistema debe permitir a la persona mayor y al voluntario registrar sus gustos e intereses a partir de un catálogo, y agregar al catálogo uno que no esté en la lista. | ✅ Implementado |
+| RF-16 | El sistema debe permitir a la persona mayor y al voluntario registrar sus gustos e intereses a partir de un catálogo, y agregar al catálogo uno que no esté en la lista. El catálogo trae opciones generales de gustos, talentos, pasatiempos y profesiones u oficios, sin opciones casi repetidas: si existen dos casi iguales, quien tenía marcada la que sobra queda con la que se conserva. | ✅ Implementado |
 | RF-71 | El sistema debe permitir a la persona mayor y al voluntario registrar, junto a sus intereses, su profesión u oficio (a qué se dedica o se dedicó), a partir de un catálogo; tenerla en cuenta, con menor peso que los gustos, en la recomendación de organizaciones, y mostrar a la organización las profesiones de sus personas mayores en el reporte de población. | ✅ Implementado |
 | RF-84 | El sistema debe permitir a la persona mayor, o a su acompañante en su nombre, indicar de forma opcional su nivel de uso del celular (no lo usa; bajo, solo llamadas; medio, llamadas y WhatsApp, o alto, varias aplicaciones), y mostrar a la organización, en el reporte de población, cuántas personas hay en cada nivel y cuántas no lo han indicado. | ✅ Implementado |
 | RF-61 | El sistema debe permitir a cada usuario subir, cambiar o quitar una foto de perfil (JPG, PNG o WebP), que se muestra a sus vínculos en sus listas y junto a su nombre en la barra superior del panel; si no tiene foto, se muestra su inicial o un ícono. | ✅ Implementado |
@@ -125,7 +125,7 @@ Relaciones de apoyo entre usuarios, contactos de emergencia, actividades de acom
 | --- | --- | --- |
 | RF-38 | El sistema debe permitir a la organización crear, editar y eliminar actividades, indicando nombre, tipo, fecha, hora, lugar, responsable y cupos. | ✅ Implementado |
 | RF-39 | El sistema debe permitir a la organización registrar rápidamente una actividad desde su página de inicio, exigiendo nombre, fecha, hora y lugar. | ✅ Implementado |
-| RF-40 | El sistema debe permitir que la persona mayor, o su acompañante en su nombre, se inscriba o cancele la inscripción en las actividades de las organizaciones a las que está vinculada. | ✅ Implementado |
+| RF-40 | El sistema debe permitir que la persona mayor, o su acompañante en su nombre, se inscriba o cancele la inscripción en las actividades de las organizaciones a las que está vinculada. El acompañante lo hace desde la página de seguimiento, con las mismas reglas de cupos y fechas. | ✅ Implementado |
 | RF-41 | El sistema debe permitir a la organización consultar los participantes de cada actividad y registrar su asistencia. | ✅ Implementado |
 | RF-42 | El sistema debe permitir que voluntarios y personas mayores propongan actividades a las organizaciones a las que están vinculados, y que la organización acepte o rechace cada propuesta. | ✅ Implementado |
 | RF-44 | El sistema debe eliminar las inscripciones de una actividad cuando esta se elimine. | ✅ Implementado |
@@ -179,7 +179,7 @@ Indicadores, reportes y visualizaciones para identificar patrones, apoyar el per
 
 | ID | Requerimiento | Estado |
 | --- | --- | --- |
-| RF-60 | El sistema debe mostrar a la organización, en su sección de alertas, las personas mayores vinculadas que podrían estar en situación de aislamiento o vulnerabilidad: las que no participan en actividades desde hace un tiempo definido, las que no tienen acompañantes y las que tienen signos vitales recientes fuera de rango, indicando el motivo de cada alerta. | ⏳ Pendiente |
+| RF-60 | El sistema debe mostrar a la organización, en su sección de alertas, las personas mayores vinculadas que podrían estar en situación de aislamiento o vulnerabilidad: las que no participan en actividades desde hace un tiempo definido, las que no tienen acompañantes y las que tienen signos vitales recientes fuera de rango, indicando el motivo de cada alerta. Las señales de aislamiento son no tener acompañantes, no participar en actividades de la organización en los últimos 60 días y vivir sola: con las tres la alerta es de prioridad alta, con dos es media, y quienes tienen una sola (sin contar vivir sola) se agrupan en una alerta de prioridad baja. | ✅ Implementado |
 
 ### 4.3 Recomendaciones
 
