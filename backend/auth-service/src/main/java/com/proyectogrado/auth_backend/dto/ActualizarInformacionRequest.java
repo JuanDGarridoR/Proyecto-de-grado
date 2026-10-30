@@ -20,6 +20,16 @@ public class ActualizarInformacionRequest {
     private String direccionIps;
     /** null si no lo indica. */
     private Boolean viveSolo;
+    /** Uno de PersonaMayor.USOS_CELULAR; null si no lo indica. */
+    private String usoCelular;
+
+    public String getUsoCelular() {
+        return usoCelular;
+    }
+
+    public void setUsoCelular(String usoCelular) {
+        this.usoCelular = usoCelular;
+    }
 
     public Boolean getViveSolo() {
         return viveSolo;

@@ -7,10 +7,10 @@ import { ReportePoblacion } from './reporte-poblacion';
 function poblacion(): PoblacionAnalitica {
   return {
     personas: [
-      { idUsuario: 10, nombre: 'Rosa Díaz', fechaNacimiento: '1950-03-14', genero: 'Femenino', eps: 'Capital Salud', viveSolo: true },
-      { idUsuario: 11, nombre: 'Luis Gómez', fechaNacimiento: '1944-07-01', genero: 'Masculino', eps: 'Capital Salud', viveSolo: false },
-      { idUsuario: 12, nombre: 'Marta Ruiz', fechaNacimiento: '1962-07-08', genero: 'Femenino', eps: 'Famisanar', viveSolo: true },
-      { idUsuario: 13, nombre: 'Oliva', fechaNacimiento: null, genero: null, eps: null, viveSolo: null }
+      { idUsuario: 10, nombre: 'Rosa Díaz', fechaNacimiento: '1950-03-14', genero: 'Femenino', eps: 'Capital Salud', viveSolo: true, usoCelular: 'BASICO' },
+      { idUsuario: 11, nombre: 'Luis Gómez', fechaNacimiento: '1944-07-01', genero: 'Masculino', eps: 'Capital Salud', viveSolo: false, usoCelular: 'INTERMEDIO' },
+      { idUsuario: 12, nombre: 'Marta Ruiz', fechaNacimiento: '1962-07-08', genero: 'Femenino', eps: 'Famisanar', viveSolo: true, usoCelular: 'INTERMEDIO' },
+      { idUsuario: 13, nombre: 'Oliva', fechaNacimiento: null, genero: null, eps: null, viveSolo: null, usoCelular: null }
     ],
     intereses: [
       { nombre: 'Baile', categoria: 'HOBBY', personas: 2 },
@@ -36,6 +36,7 @@ interface VistaReporte {
   tablaIntereses(): { filas: (string | number)[][] };
   tablaProfesiones(): { filas: (string | number)[][] };
   tablaViveSolo(): { filas: (string | number)[][] };
+  tablaUsoCelular(): { filas: (string | number)[][] };
 }
 
 // Reporte de población de la analítica (RF-47): rangos de edad, género, EPS e
@@ -113,5 +114,22 @@ describe('ReportePoblacion', () => {
       ['Vive con otras personas', 1, '25 %'],
       ['Sin dato', 1, '25 %']
     ]);
+  });
+
+  // RF-84: nivel de uso del celular.
+  it('cuenta cuántas personas hay en cada nivel de uso del celular, de menor a mayor y al final quienes no lo indicaron', () => {
+    expect(reporte.tablaUsoCelular().filas).toEqual([
+      ['No lo usa', 0, '0 %'],
+      ['Bajo', 1, '25 %'],
+      ['Medio', 2, '50 %'],
+      ['Alto', 0, '0 %'],
+      ['Sin dato', 1, '25 %']
+    ]);
+  });
+
+  it('en el PDF explica cuántas personas tienen un uso bajo del celular entre quienes lo indicaron', () => {
+    const seccion = fixture.componentInstance.contenidoPdf().secciones.find((s) => s.titulo === 'Nivel de uso del celular');
+    expect(seccion?.explicacion).toContain('"Medio (llamadas y WhatsApp)" (2 de 3 que lo indicaron)');
+    expect(seccion?.explicacion).toContain('1 persona no lo usa o tiene un uso bajo, solo para llamadas (33 %');
   });
 });

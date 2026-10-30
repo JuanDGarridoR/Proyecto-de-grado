@@ -21,6 +21,8 @@ public class InformacionUsuarioResponse {
     private String direccionIps;
     /** Si vive sola; null si no lo ha indicado. */
     private Boolean viveSolo;
+    /** Nivel de uso del celular (PersonaMayor.USOS_CELULAR); null si no lo ha indicado. */
+    private String usoCelular;
 
     /** Si es false, el usuario entra solo con OTP y puede crear una contraseña sin dar la actual. */
     private boolean tieneContrasena;
@@ -43,6 +45,7 @@ public class InformacionUsuarioResponse {
             String ips,
             String direccionIps,
             Boolean viveSolo,
+            String usoCelular,
             boolean tieneContrasena,
             boolean activo,
             String fotoPerfil
@@ -50,6 +53,7 @@ public class InformacionUsuarioResponse {
         this.activo = activo;
         this.fotoPerfil = fotoPerfil;
         this.viveSolo = viveSolo;
+        this.usoCelular = usoCelular;
         this.idUsuario = idUsuario;
         this.nombre = nombre;
         this.celular = celular;
@@ -105,6 +109,10 @@ public class InformacionUsuarioResponse {
 
     public Boolean getViveSolo() {
         return viveSolo;
+    }
+
+    public String getUsoCelular() {
+        return usoCelular;
     }
 
     public boolean isTieneContrasena() {

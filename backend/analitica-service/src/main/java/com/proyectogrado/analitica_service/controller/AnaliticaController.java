@@ -156,8 +156,8 @@ public class AnaliticaController {
     }
 
     /**
-     * Perfil de la población: fecha de nacimiento, género y EPS de cada
-     * persona vinculada, cuántas personas tienen marcado cada gusto (gustos,
+     * Perfil de la población: fecha de nacimiento, género, EPS y uso del
+     * celular de cada persona vinculada, cuántas personas tienen marcado cada gusto (gustos,
      * talentos y pasatiempos) y, aparte, cada profesión u oficio.
      */
     @GetMapping("/poblacion")
@@ -170,13 +170,15 @@ public class AnaliticaController {
         MapSqlParameterSource params = new MapSqlParameterSource("org", idOrganizacion);
 
         // La fecha de nacimiento y el género están en usuario (registro y "Mi
-        // información"); de persona_mayor salen la EPS y si vive sola.
+        // información"); de persona_mayor salen la EPS, si vive sola y el
+        // nivel de uso del celular.
         List<PersonaPoblacion> personas = jdbc.query("""
                 SELECT u.id_usuario, u.nombre_usuario,
                        u.fecha_nacimiento,
                        NULLIF(u.genero, '') AS genero,
                        NULLIF(TRIM(pm.eps), '') AS eps,
-                       pm.vive_solo
+                       pm.vive_solo,
+                       NULLIF(pm.uso_celular, '') AS uso_celular
                   FROM usuario u
                   LEFT JOIN persona_mayor pm ON pm.id_usuario = u.id_usuario
                  WHERE u.id_usuario IN (%s)
@@ -188,7 +190,8 @@ public class AnaliticaController {
                         fecha(rs, "fecha_nacimiento"),
                         rs.getString("genero"),
                         rs.getString("eps"),
-                        (Boolean) rs.getObject("vive_solo")
+                        (Boolean) rs.getObject("vive_solo"),
+                        rs.getString("uso_celular")
                 ));
 
         List<InteresConteo> intereses = conteoDeGustos(false, params);

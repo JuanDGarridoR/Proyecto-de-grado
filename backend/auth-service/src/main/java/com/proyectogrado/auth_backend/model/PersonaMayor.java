@@ -2,6 +2,8 @@ package com.proyectogrado.auth_backend.model;
 
 import jakarta.persistence.*;
 
+import java.util.Set;
+
 /**
  * Datos propios de la persona mayor. Comparte la llave con usuario
  * (id_usuario): cada persona mayor es también un usuario.
@@ -9,6 +11,12 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "persona_mayor")
 public class PersonaMayor {
+
+    /**
+     * Nivel de uso del celular, de menor a mayor: no lo usa, bajo (solo
+     * llamadas), medio (llamadas y WhatsApp) o alto (varias aplicaciones).
+     */
+    public static final Set<String> USOS_CELULAR = Set.of("NO_USA", "BASICO", "INTERMEDIO", "AVANZADO");
 
     @Id
     @Column(name = "id_usuario")
@@ -35,7 +43,19 @@ public class PersonaMayor {
     @Column(name = "vive_solo")
     private Boolean viveSolo;
 
+    /** Uno de USOS_CELULAR, o null si no lo ha indicado. */
+    @Column(name = "uso_celular", length = 20)
+    private String usoCelular;
+
     public PersonaMayor() {
+    }
+
+    public String getUsoCelular() {
+        return usoCelular;
+    }
+
+    public void setUsoCelular(String usoCelular) {
+        this.usoCelular = usoCelular;
     }
 
     public Boolean getViveSolo() {

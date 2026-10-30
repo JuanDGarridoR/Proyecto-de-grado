@@ -13,7 +13,8 @@ CREATE TABLE usuario (
 CREATE TABLE persona_mayor (
     id_usuario       INTEGER PRIMARY KEY,
     eps              VARCHAR(120),
-    vive_solo        BOOLEAN
+    vive_solo        BOOLEAN,
+    uso_celular      VARCHAR(20)
 );
 
 CREATE TABLE retiro_cuenta (

@@ -1,6 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 
 import { PoblacionAnalitica } from '../../../../../core/analitica/analitica.service';
+import { OPCIONES_USO_CELULAR } from '../../../../../core/persona-mayor/uso-celular';
 import {
   ANCHO_BARRA, tooltip, GRIS, RAMPA_AZUL, SERIE, base, ejeCategorias, ejeValores,
   estiloBarra, etiquetaValor, leyenda
@@ -44,13 +45,16 @@ const CONVIVENCIA: { valor: boolean | null; nombre: string; color: string }[] = 
   { valor: null, nombre: 'Sin dato', color: GRIS }
 ];
 
+/** Niveles de uso del celular que se cuentan como "usa poco" (no lo usa o solo llama). */
+const USO_BAJO = new Set(['NO_USA', 'BASICO']);
+
 /** Porcentaje entero; 0 si el total es 0. */
 const pct = (parte: number, total: number) => (total > 0 ? Math.round((parte / total) * 100) : 0);
 
 /**
  * Reporte 3: quiénes son las personas mayores de la organización
- * (edad, género, si viven solas, EPS, intereses y profesión u oficio). No
- * depende del período.
+ * (edad, género, si viven solas, uso del celular, EPS, intereses y
+ * profesión u oficio). No depende del período.
  */
 @Component({
   selector: 'app-reporte-poblacion',
@@ -205,7 +209,50 @@ export class ReportePoblacion implements ReporteExportable {
     filas: this.porConvivencia().map((c) => [c.nombre, c.personas, `${c.porcentaje} %`])
   }));
 
-  // Gráfica 4: EPS
+  // Gráfica 4: uso del celular
+
+  /** Un nivel por barra, de menos a más uso, y al final quienes no lo han indicado. */
+  private readonly porUsoCelular = computed(() => {
+    const personas = this.datos().personas;
+    const total = personas.length;
+    const niveles = OPCIONES_USO_CELULAR.map((o, i) => {
+      const cuantas = personas.filter((p) => p.usoCelular === o.valor).length;
+      return {
+        valor: o.valor as string | null, nombre: o.corta, etiqueta: o.etiqueta,
+        color: RAMPA_AZUL[i + 1], personas: cuantas, porcentaje: pct(cuantas, total)
+      };
+    });
+    const sinDato = personas.filter((p) => !p.usoCelular).length;
+    return sinDato > 0
+      ? [...niveles, {
+          valor: null, nombre: 'Sin dato', etiqueta: 'Sin dato',
+          color: GRIS, personas: sinDato, porcentaje: pct(sinDato, total)
+        }]
+      : niveles;
+  });
+
+  protected readonly graficaUsoCelular = computed<OpcionesGrafica>(() => {
+    const datos = this.porUsoCelular();
+    return base({
+      grid: { left: 8, right: 16, top: 28, bottom: 8, containLabel: true },
+      tooltip: tooltip({ trigger: 'axis', axisPointer: { type: 'shadow' } }),
+      xAxis: ejeCategorias(datos.map((d) => d.nombre)),
+      yAxis: ejeValores(),
+      series: [{
+        name: 'Personas', type: 'bar', barMaxWidth: 40,
+        label: etiquetaValor('top'),
+        // Niveles ordenados: rampa azul de claro (poco uso) a oscuro (mucho uso).
+        data: datos.map((d) => ({ value: d.personas, itemStyle: estiloBarra(d.color) }))
+      }]
+    });
+  });
+
+  protected readonly tablaUsoCelular = computed<TablaGrafica>(() => ({
+    columnas: ['Nivel de uso', 'Personas', 'Porcentaje'],
+    filas: this.porUsoCelular().map((d) => [d.nombre, d.personas, `${d.porcentaje} %`])
+  }));
+
+  // Gráfica 5: EPS
 
   private readonly porEps = computed(() => {
     const conteo = new Map<string, number>();
@@ -248,7 +295,7 @@ export class ReportePoblacion implements ReporteExportable {
     filas: this.porEps().map((d) => [d.eps, d.personas])
   }));
 
-  // Gráfica 5: intereses más comunes
+  // Gráfica 6: intereses más comunes
 
   private readonly topIntereses = computed(() => this.datos().intereses.slice(0, 10));
 
@@ -288,7 +335,7 @@ export class ReportePoblacion implements ReporteExportable {
     ])
   }));
 
-  // Gráfica 6: profesiones u oficios
+  // Gráfica 7: profesiones u oficios
 
   private readonly topProfesiones = computed(() => this.datos().profesiones.slice(0, 10));
 
@@ -400,6 +447,35 @@ export class ReportePoblacion implements ReporteExportable {
       + 'desapercibida, por lo que conviene darles prioridad en las llamadas, visitas y actividades de la organización.';
   }
 
+  private explicacionUsoCelular(): string {
+    const total = this.datos().personas.length;
+    if (total === 0) {
+      return `${this.sinPersonas}su nivel de uso del celular.`;
+    }
+
+    const datos = this.porUsoCelular();
+    const sinDato = datos.find((d) => d.valor === null)?.personas ?? 0;
+    const conDato = total - sinDato;
+    if (conDato === 0) {
+      return 'Ninguna de las personas asociadas ha indicado su nivel de uso del celular. Completar ese dato en su '
+        + 'perfil ayuda a elegir el mejor medio para comunicarse con cada una.';
+    }
+
+    const usoBajo = datos.filter((d) => d.valor !== null && USO_BAJO.has(d.valor)).reduce((s, d) => s + d.personas, 0);
+    const mayor = datos.filter((d) => d.valor !== null).reduce((a, b) => (b.personas > a.personas ? b : a));
+    const faltantes = sinDato > 0
+      ? `${sinDato} ${sinDato === 1 ? 'persona no ha indicado' : 'personas no han indicado'} su nivel de uso. `
+      : '';
+
+    return 'Las barras muestran el nivel de uso del celular de las personas asociadas, de menor a mayor. El nivel '
+      + `más frecuente es "${mayor.etiqueta}" (${mayor.personas} de ${conDato} que lo indicaron). `
+      + `${usoBajo} ${usoBajo === 1 ? 'persona no lo usa o tiene' : 'personas no lo usan o tienen'} un uso bajo, `
+      + `solo para llamadas (${pct(usoBajo, conDato)} % de quienes lo indicaron). ${faltantes}`
+      + 'Con quienes usan poco el celular conviene avisar las actividades y recordatorios por llamada o a través '
+      + 'de su acompañante, y quienes ya usan mensajes o aplicaciones pueden aprovechar mejor la plataforma o '
+      + 'participar en talleres para sacarle más provecho.';
+  }
+
   private explicacionEps(): string {
     const total = this.datos().personas.length;
     if (total === 0) {
@@ -473,6 +549,9 @@ export class ReportePoblacion implements ReporteExportable {
         { titulo: '¿Viven solas?', descripcion: 'Cuántas personas asociadas viven solas.',
           opciones: hayPersonas ? this.graficaViveSolo() : null, tabla: this.tablaViveSolo(),
           explicacion: this.explicacionViveSolo() },
+        { titulo: 'Nivel de uso del celular', descripcion: 'Nivel de uso del celular de las personas asociadas.',
+          opciones: hayPersonas ? this.graficaUsoCelular() : null, tabla: this.tablaUsoCelular(),
+          explicacion: this.explicacionUsoCelular() },
         { titulo: 'EPS', descripcion: 'Entidades de salud de las personas asociadas.',
           opciones: hayPersonas ? this.graficaEps() : null, tabla: this.tablaEps(),
           explicacion: this.explicacionEps() },

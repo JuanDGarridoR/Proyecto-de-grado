@@ -35,6 +35,15 @@
   />
 
   <app-tarjeta-grafica
+    titulo="Nivel de uso del celular"
+    descripcion="Nivel de uso del celular de las personas asociadas, de menor a mayor. Ayuda a elegir cómo avisarles de actividades y recordatorios."
+    [opciones]="graficaUsoCelular()"
+    [tabla]="tablaUsoCelular()"
+    [vacio]="datos().personas.length === 0"
+    textoVacio="Aún no tienes personas mayores asociadas."
+  />
+
+  <app-tarjeta-grafica
     titulo="EPS"
     descripcion="Entidades de salud de las personas asociadas."
     [opciones]="graficaEps()"

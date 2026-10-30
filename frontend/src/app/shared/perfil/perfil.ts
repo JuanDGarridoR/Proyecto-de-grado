@@ -29,6 +29,7 @@ import { Cargando } from '../cargando/cargando';
 import { Icono } from '../icono/icono';
 import { Avatar } from '../avatar/avatar';
 import { reducirFoto } from '../../core/foto-perfil/reducir-foto';
+import { OPCIONES_USO_CELULAR, UsoCelular, textoUsoCelular } from '../../core/persona-mayor/uso-celular';
 
 /** Rol del perfil que se muestra; llega en data.tipoPerfil de la ruta. */
 export type TipoPerfil = 'PERSONA_MAYOR' | 'ACOMPANANTE' | 'VOLUNTARIO' | 'ORGANIZACION';
@@ -48,6 +49,8 @@ interface PerfilInformacion {
   direccionIps?: string;
   /** Si vive sola; null si no lo ha indicado. */
   viveSolo?: boolean | null;
+  /** Nivel de uso del celular; null si no lo ha indicado. */
+  usoCelular?: UsoCelular | null;
   /** URL de la foto de perfil (solo persona mayor), o null si no tiene. */
   fotoPerfil?: string | null;
   tieneContrasena: boolean;
@@ -74,6 +77,8 @@ export class Perfil implements OnInit {
 
   /** Para el minlength y el texto de ayuda de los campos de contraseña. */
   protected readonly largoMinimoContrasena = LARGO_MINIMO_CONTRASENA;
+  protected readonly opcionesUsoCelular = OPCIONES_USO_CELULAR;
+  protected readonly textoUsoCelular = textoUsoCelular;
   @Input({ required: true })
   tipoPerfil!: TipoPerfil;
 
@@ -188,6 +193,7 @@ export class Perfil implements OnInit {
             ips: data.ips,
             direccionIps: data.direccionIps,
             viveSolo: data.viveSolo ?? null,
+            usoCelular: data.usoCelular ?? null,
             fotoPerfil: data.fotoPerfil ?? null,
             tieneContrasena: data.tieneContrasena,
           };
@@ -329,6 +335,7 @@ export class Perfil implements OnInit {
           ips: this.formulario.ips || null,
           direccionIps: this.formulario.direccionIps || null,
           viveSolo: this.formulario.viveSolo ?? null,
+          usoCelular: this.formulario.usoCelular ?? null,
         })
         .pipe(timeout(10000))
         .subscribe({
@@ -345,6 +352,7 @@ export class Perfil implements OnInit {
               ips: data.ips,
               direccionIps: data.direccionIps,
               viveSolo: data.viveSolo ?? null,
+              usoCelular: data.usoCelular ?? null,
               fotoPerfil: data.fotoPerfil ?? null,
               tieneContrasena: data.tieneContrasena,
             };

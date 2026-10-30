@@ -13,8 +13,8 @@ INSERT INTO usuario (id_usuario, nombre_usuario, fecha_nacimiento, genero) VALUE
 INSERT INTO usuario (id_usuario, nombre_usuario, fecha_nacimiento, genero) VALUES (13, 'Pedro León', '1948-11-02', 'Masculino');
 INSERT INTO usuario (id_usuario, nombre_usuario, fecha_nacimiento, genero) VALUES (14, 'Ana Torres', '1955-05-05', 'Femenino');
 
--- Rosa vive sola; Luis no lo ha indicado.
-INSERT INTO persona_mayor (id_usuario, eps, vive_solo) VALUES (10, 'Capital Salud', TRUE);
+-- Rosa vive sola y tiene un nivel medio de uso del celular; Luis no ha indicado ninguna de las dos.
+INSERT INTO persona_mayor (id_usuario, eps, vive_solo, uso_celular) VALUES (10, 'Capital Salud', TRUE, 'INTERMEDIO');
 INSERT INTO persona_mayor (id_usuario, eps) VALUES (11, '  ');
 INSERT INTO persona_mayor (id_usuario) VALUES (12);
 INSERT INTO persona_mayor (id_usuario) VALUES (13);

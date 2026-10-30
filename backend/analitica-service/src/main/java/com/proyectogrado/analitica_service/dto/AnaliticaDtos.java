@@ -58,7 +58,8 @@ public final class AnaliticaDtos {
             String fechaNacimiento, // YYYY-MM-DD o null
             String genero,
             String eps,
-            Boolean viveSolo       // null si no lo ha indicado
+            Boolean viveSolo,      // null si no lo ha indicado
+            String usoCelular      // NO_USA, BASICO, INTERMEDIO, AVANZADO o null si no lo ha indicado
     ) {
     }
 

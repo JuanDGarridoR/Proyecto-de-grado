@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '../api';
+import { UsoCelular } from '../persona-mayor/uso-celular';
 
 /** Una actividad del período con sus inscritos y asistentes. */
 export interface ActividadAnalitica {
@@ -51,6 +52,8 @@ export interface PersonaPoblacion {
   eps: string | null;
   /** null si no lo ha indicado. */
   viveSolo: boolean | null;
+  /** Nivel de uso del celular; null si no lo ha indicado. */
+  usoCelular: UsoCelular | null;
 }
 
 /** Cuántas personas tienen marcado un gusto. */

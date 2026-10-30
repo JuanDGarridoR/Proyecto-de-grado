@@ -123,6 +123,10 @@
                 {{ informacion?.viveSolo === true ? 'Sí' : informacion?.viveSolo === false ? 'No, vivo con otras personas' : 'No registrado' }}
               </p>
             </div>
+            <div class="informacion__field">
+              <label> Nivel de uso del celular </label>
+              <p>{{ textoUsoCelular(informacion?.usoCelular) || 'No registrado' }}</p>
+            </div>
           }
         </div>
       </div>
@@ -280,6 +284,15 @@
                 <option [ngValue]="null">Selecciona una opción</option>
                 <option [ngValue]="true">Sí</option>
                 <option [ngValue]="false">No, vivo con otras personas</option>
+              </select>
+            </div>
+            <div class="informacion__field">
+              <label for="usoCelular"> Nivel de uso del celular </label>
+              <select id="usoCelular" [(ngModel)]="formulario.usoCelular">
+                <option [ngValue]="null">Selecciona una opción</option>
+                @for (opcion of opcionesUsoCelular; track opcion.valor) {
+                  <option [ngValue]="opcion.valor">{{ opcion.etiqueta }}</option>
+                }
               </select>
             </div>
           }

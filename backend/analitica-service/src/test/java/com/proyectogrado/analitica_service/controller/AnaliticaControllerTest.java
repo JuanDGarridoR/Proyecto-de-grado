@@ -67,6 +67,8 @@ class AnaliticaControllerTest {
                 // Rosa vive sola; Luis no lo ha indicado.
                 .andExpect(jsonPath("$.personas[1].viveSolo").value(true))
                 .andExpect(jsonPath("$.personas[0].viveSolo").doesNotExist())
+                .andExpect(jsonPath("$.personas[1].usoCelular").value("INTERMEDIO"))
+                .andExpect(jsonPath("$.personas[0].usoCelular").doesNotExist())
                 .andExpect(jsonPath("$.intereses[*].nombre", contains("Boleros", "Tejer")))
                 .andExpect(jsonPath("$.intereses[0].personas").value(2))
                 .andExpect(jsonPath("$.personasConIntereses").value(2))

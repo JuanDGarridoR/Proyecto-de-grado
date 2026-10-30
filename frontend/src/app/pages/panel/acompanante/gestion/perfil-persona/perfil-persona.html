@@ -71,6 +71,10 @@
         <dt>¿Vive solo o sola?</dt>
         <dd [class.perfil__vacio]="p.viveSolo === null">{{ textoViveSolo(p.viveSolo) || 'No registrado' }}</dd>
       </div>
+      <div class="perfil__campo">
+        <dt>Nivel de uso del celular</dt>
+        <dd [class.perfil__vacio]="!p.usoCelular">{{ textoUsoCelular(p.usoCelular) || 'No registrado' }}</dd>
+      </div>
     </dl>
   } @else {
     <!-- Formulario de edición -->
@@ -119,6 +123,15 @@
             <option [ngValue]="null">Selecciona una opción</option>
             <option [ngValue]="true">Sí</option>
             <option [ngValue]="false">No, vive con otras personas</option>
+          </select>
+        </div>
+        <div class="perfil__campo">
+          <label for="perfilUsoCelular">Nivel de uso del celular</label>
+          <select id="perfilUsoCelular" name="usoCelular" [(ngModel)]="formulario.usoCelular">
+            <option [ngValue]="null">Selecciona una opción</option>
+            @for (opcion of opcionesUsoCelular; track opcion.valor) {
+              <option [ngValue]="opcion.valor">{{ opcion.etiqueta }}</option>
+            }
           </select>
         </div>
       </div>

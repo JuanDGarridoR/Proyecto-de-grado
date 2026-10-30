@@ -7,6 +7,11 @@ import {
 } from '../../../../../core/acompanantes/acompanante.service';
 import { Icono } from '../../../../../shared/icono/icono';
 import { mensajeDeError } from '../../../../../core/formato/formato';
+import {
+  OPCIONES_USO_CELULAR,
+  UsoCelular,
+  textoUsoCelular
+} from '../../../../../core/persona-mayor/uso-celular';
 
 /** Campos que edita el acompañante; el celular y el correo no se tocan. */
 interface FormularioPerfil {
@@ -18,12 +23,14 @@ interface FormularioPerfil {
   ips: string;
   direccionIps: string;
   viveSolo: boolean | null;
+  usoCelular: UsoCelular | null;
 }
 
 /**
  * Pestaña "Perfil" de "Gestionar cuidado": datos personales de la persona
  * mayor que el acompañante puede consultar y completar (nombre, fecha de
- * nacimiento, género, dirección, EPS, IPS y si vive sola). El celular y el correo solo
+ * nacimiento, género, dirección, EPS, IPS, si vive sola y cómo usa el
+ * celular). El celular y el correo solo
  * los ve, porque con ellos la persona inicia sesión.
  */
 @Component({
@@ -37,6 +44,9 @@ export class PerfilPersona {
   private acompananteService = inject(AcompananteService);
 
   readonly idPersonaMayor = input.required<number>();
+
+  protected readonly opcionesUsoCelular = OPCIONES_USO_CELULAR;
+  protected readonly textoUsoCelular = textoUsoCelular;
 
   protected readonly perfil = signal<PerfilPersonaMayor | null>(null);
   protected readonly cargando = signal(true);
@@ -102,7 +112,8 @@ export class PerfilPersona {
       eps: perfil.eps ?? '',
       ips: perfil.ips ?? '',
       direccionIps: perfil.direccionIps ?? '',
-      viveSolo: perfil.viveSolo ?? null
+      viveSolo: perfil.viveSolo ?? null,
+      usoCelular: perfil.usoCelular ?? null
     };
     this.errorGuardado.set('');
     this.guardadoExitoso.set(false);
@@ -140,7 +151,8 @@ export class PerfilPersona {
       eps: f.eps.trim() || null,
       ips: f.ips.trim() || null,
       direccionIps: f.direccionIps.trim() || null,
-      viveSolo: f.viveSolo
+      viveSolo: f.viveSolo,
+      usoCelular: f.usoCelular
     }).subscribe({
       next: (perfil) => {
         this.guardando.set(false);
@@ -182,7 +194,8 @@ export class PerfilPersona {
 
   private formularioVacio(): FormularioPerfil {
     return {
-      nombre: '', fechaNacimiento: '', genero: '', direccion: '', eps: '', ips: '', direccionIps: '', viveSolo: null
+      nombre: '', fechaNacimiento: '', genero: '', direccion: '', eps: '', ips: '', direccionIps: '', viveSolo: null,
+      usoCelular: null
     };
   }
 

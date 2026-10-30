@@ -85,6 +85,11 @@ public class UsuarioInformacionController {
             return ResponseEntity.badRequest().body(errorSalud);
         }
 
+        String errorUsoCelular = validarUsoCelular(request.getUsoCelular());
+        if (errorUsoCelular != null) {
+            return ResponseEntity.badRequest().body(errorUsoCelular);
+        }
+
         String correo = request.getCorreo() == null || request.getCorreo().isBlank()
                 ? null
                 : request.getCorreo().trim().toLowerCase();
@@ -126,6 +131,7 @@ usuario = usuarioRepository.save(usuario);
             personaMayor.setIps(ips);
             personaMayor.setDireccionIps(direccionIps);
             personaMayor.setViveSolo(request.getViveSolo());
+            personaMayor.setUsoCelular(textoOpcional(request.getUsoCelular()));
             personaMayorRepository.save(personaMayor);
         });
 
@@ -164,6 +170,7 @@ usuario = usuarioRepository.save(usuario);
                 personaMayor != null ? personaMayor.getIps() : null,
                 personaMayor != null ? personaMayor.getDireccionIps() : null,
                 personaMayor != null ? personaMayor.getViveSolo() : null,
+                personaMayor != null ? personaMayor.getUsoCelular() : null,
                 tieneContrasena,
                 !Boolean.FALSE.equals(usuario.getActivo()),
                 usuario.getFotoPerfil()
@@ -184,6 +191,19 @@ usuario = usuarioRepository.save(usuario);
             return "La dirección de la IPS no puede tener más de " + MAX_DIRECCION_IPS + " caracteres";
         }
 
+        return null;
+    }
+
+    /**
+     * Mensaje de error si el uso del celular no es una de las opciones, o
+     * null si está bien (vacío es "no lo indica"). También la usa
+     * PersonaMayorAcompananteInformacionController.
+     */
+    static String validarUsoCelular(String usoCelular) {
+        String uso = textoOpcional(usoCelular);
+        if (uso != null && !PersonaMayor.USOS_CELULAR.contains(uso)) {
+            return "Elige una de las opciones del nivel de uso del celular";
+        }
         return null;
     }
 

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static com.proyectogrado.auth_backend.controller.UsuarioInformacionController.textoOpcional;
 import static com.proyectogrado.auth_backend.controller.UsuarioInformacionController.validarDatosDeSalud;
+import static com.proyectogrado.auth_backend.controller.UsuarioInformacionController.validarUsoCelular;
 
 /**
  * Perfil de una persona mayor consultado y editado por su acompañante:
@@ -95,6 +96,11 @@ public class PersonaMayorAcompananteInformacionController {
             return ResponseEntity.badRequest().body(errorSalud);
         }
 
+        String errorUsoCelular = validarUsoCelular(request.getUsoCelular());
+        if (errorUsoCelular != null) {
+            return ResponseEntity.badRequest().body(errorUsoCelular);
+        }
+
         usuario.setNombreUsuario(request.getNombre().trim());
         usuario.setFechaNacimiento(request.getFechaNacimiento());
         usuario.setGenero(textoOpcional(request.getGenero()));
@@ -105,6 +111,7 @@ public class PersonaMayorAcompananteInformacionController {
         personaMayor.setIps(ips);
         personaMayor.setDireccionIps(direccionIps);
         personaMayor.setViveSolo(request.getViveSolo());
+        personaMayor.setUsoCelular(textoOpcional(request.getUsoCelular()));
         personaMayor = personaMayorRepository.save(personaMayor);
 
         return ResponseEntity.ok(aRespuesta(usuario, personaMayor));
@@ -138,6 +145,7 @@ public class PersonaMayorAcompananteInformacionController {
                 personaMayor.getIps(),
                 personaMayor.getDireccionIps(),
                 personaMayor.getViveSolo(),
+                personaMayor.getUsoCelular(),
                 false,
                 !Boolean.FALSE.equals(usuario.getActivo()),
                 usuario.getFotoPerfil()

@@ -41,7 +41,9 @@
 --     del acompañante
 --   - notificaciones del panel (recordatorios de medicamentos, citas y
 --     actividades, y alertas de emergencia)
---   - EPS, IPS con su dirección y si vive sola, para cada persona mayor
+--   - EPS, IPS con su dirección, si vive sola y su nivel de uso del celular
+--     (menos uso a más edad; algunas no lo han indicado), para cada
+--     persona mayor
 --   - cuentas inactivas coherentes con la aplicación: sus vínculos quedan
 --     en CUENTA_INACTIVA / PENDIENTE_CUENTA_INACTIVA, como los deja
 --     auth-service; y algunos vínculos pausados a mano (INACTIVA)
@@ -195,9 +197,10 @@ ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS id_acompanante_cita integer;
 ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS punto_encuentro varchar(300);
 ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS fecha_acompanamiento_aceptado timestamp;
 
--- Dirección de la IPS y si vive sola; las agrega auth-service al arrancar.
+-- Dirección de la IPS, si vive sola y nivel de uso del celular; las agrega auth-service al arrancar.
 ALTER TABLE persona_mayor ADD COLUMN IF NOT EXISTS direccion_ips varchar(255);
 ALTER TABLE persona_mayor ADD COLUMN IF NOT EXISTS vive_solo boolean;
+ALTER TABLE persona_mayor ADD COLUMN IF NOT EXISTS uso_celular varchar(20);
 
 -- Por qué alguien eliminó su cuenta; la crea auth-service al arrancar.
 CREATE TABLE IF NOT EXISTS retiro_cuenta (
@@ -577,7 +580,7 @@ ins_usuario AS (
     FROM con_ips c CROSS JOIN seed_tmp.seed_reloj r
     RETURNING id_usuario, correo
 )
-INSERT INTO persona_mayor (id_usuario, eps, ips, direccion_ips, vive_solo)
+INSERT INTO persona_mayor (id_usuario, eps, ips, direccion_ips, vive_solo, uso_celular)
 SELECT u.id_usuario, c.eps, c.ips,
        CASE c.ips
          WHEN 'USS Usme - Subred Sur'          THEN 'Carrera 3 # 90A-30 Sur, Usme Centro'
@@ -599,8 +602,19 @@ SELECT u.id_usuario, c.eps, c.ips,
        -- ~25% vive sola, ~60% con otras personas y ~15% no lo ha indicado
        CASE WHEN c.r_vive < 0.25 THEN true
             WHEN c.r_vive < 0.85 THEN false
+       END,
+       -- Nivel de uso del celular: a más edad, menos uso (a los 60 años
+       -- casi nadie queda en "No lo usa"; pasados los 85, casi nadie en
+       -- "Alto"). ~12% no lo ha indicado.
+       CASE WHEN c.r_dato_cel < 0.12 THEN NULL
+            WHEN c.r_cel + (date_part('year', age(c.fecha_nacimiento)) - 60) / 50.0 < 0.25 THEN 'AVANZADO'
+            WHEN c.r_cel + (date_part('year', age(c.fecha_nacimiento)) - 60) / 50.0 < 0.65 THEN 'INTERMEDIO'
+            WHEN c.r_cel + (date_part('year', age(c.fecha_nacimiento)) - 60) / 50.0 < 1.05 THEN 'BASICO'
+            ELSE 'NO_USA'
        END
-FROM ins_usuario u JOIN (SELECT con_ips.*, random() AS r_vive FROM con_ips) c ON c.correo = u.correo;
+FROM ins_usuario u
+JOIN (SELECT con_ips.*, random() AS r_vive, random() AS r_cel, random() AS r_dato_cel FROM con_ips) c
+  ON c.correo = u.correo;
 
 -- 5. 60 acompañantes (usuario + acompanante)
 WITH datos AS (
@@ -2316,7 +2330,7 @@ SELECT e.id_usuario, r.id_rol
 FROM seed_tmp.seed_entrenubes e JOIN rol r ON r.nombre = 'PERSONA_MAYOR'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO persona_mayor (id_usuario, eps, ips, direccion_ips, vive_solo)
+INSERT INTO persona_mayor (id_usuario, eps, ips, direccion_ips, vive_solo, uso_celular)
 SELECT e.id_usuario, e.eps,
        CASE e.eps WHEN 'Capital Salud' THEN 'USS Usme - Subred Sur'
                   WHEN 'Nueva EPS'     THEN 'Virrey Solís IPS Santa Librada'
@@ -2326,8 +2340,16 @@ SELECT e.id_usuario, e.eps,
                   WHEN 'Nueva EPS'     THEN 'Calle 75 Sur # 14-15, Santa Librada'
                   WHEN 'Compensar'     THEN 'Calle 90 Sur # 4-20, Usme Centro'
                   ELSE 'Calle 74 Sur # 14-60, Santa Librada' END,
-       e.vive_solo
-FROM seed_tmp.seed_entrenubes e;
+       e.vive_solo,
+       -- Nivel de uso del celular con la misma regla de la sección 4 (a más edad,
+       -- menos uso; ~12% sin indicar).
+       CASE WHEN e.r_dato_cel < 0.12 THEN NULL
+            WHEN e.r_cel + (e.edad - 60) / 50.0 < 0.25 THEN 'AVANZADO'
+            WHEN e.r_cel + (e.edad - 60) / 50.0 < 0.65 THEN 'INTERMEDIO'
+            WHEN e.r_cel + (e.edad - 60) / 50.0 < 1.05 THEN 'BASICO'
+            ELSE 'NO_USA'
+       END
+FROM (SELECT s.*, random() AS r_cel, random() AS r_dato_cel FROM seed_tmp.seed_entrenubes s) e;
 
 INSERT INTO aceptacion_terminos (id_usuario, acepto, fecha_aceptacion, version_terminos, origen)
 SELECT u.id_usuario, true, u.fecha_creacion, '2026-10', 'REGISTRO'

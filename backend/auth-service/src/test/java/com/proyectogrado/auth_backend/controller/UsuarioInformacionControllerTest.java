@@ -148,6 +148,40 @@ class UsuarioInformacionControllerTest {
         assertNull(personaMayor.getViveSolo());
     }
 
+    /** RF-84: uso del celular, opcional y solo con las opciones dadas. */
+    @Test
+    void laPersonaMayorIndicaQueTantoUsaElCelularSoloConLasOpcionesDadas() throws Exception {
+        PersonaMayor personaMayor = personaMayor();
+        when(personaMayorRepository.findById(40)).thenReturn(Optional.of(personaMayor));
+        String datos = """
+                {"nombre": "Rosa Díaz", "correo": "rosa@vitamas.co", "fechaNacimiento": "1948-07-02",
+                 "genero": "Femenino", "direccion": "Calle 100 Sur # 1-10", "usoCelular": %s}
+                """;
+
+        mockMvc.perform(put("/api/auth/informacion")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(datos.formatted("\"INTERMEDIO\"")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.usoCelular").value("INTERMEDIO"));
+        assertEquals("INTERMEDIO", personaMayor.getUsoCelular());
+
+        mockMvc.perform(put("/api/auth/informacion")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(datos.formatted("\"EXPERTO\"")))
+                .andExpect(status().isBadRequest());
+        assertEquals("INTERMEDIO", personaMayor.getUsoCelular());
+
+        // No es obligatorio: vacío queda como "no lo ha indicado"
+        mockMvc.perform(put("/api/auth/informacion")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(datos.formatted("\"\"")))
+                .andExpect(status().isOk());
+        assertNull(personaMayor.getUsoCelular());
+    }
+
     @Test
     void actualizarSinNombreSeRechazaYNoGuardaNada() throws Exception {
         mockMvc.perform(put("/api/auth/informacion")

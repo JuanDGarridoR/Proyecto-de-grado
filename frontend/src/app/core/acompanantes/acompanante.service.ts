@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { SignoVitalResponse } from '../signos-vitales/signos-vitales.services';
 import { CitaMedica } from '../citas-medicas/cita-medica.service';
+import { UsoCelular } from '../persona-mayor/uso-celular';
 import { AcompananteResumen } from '../../shared/modal-acompanantes/modal-acompanantes';
 import { API_URL } from '../api';
 
@@ -85,6 +86,8 @@ export interface PerfilPersonaMayor {
   direccionIps: string | null;
   /** Si vive sola; null si no se ha indicado. */
   viveSolo: boolean | null;
+  /** Nivel de uso del celular; null si no se ha indicado. */
+  usoCelular: UsoCelular | null;
 }
 
 /** El correo y el celular no se envían: solo la persona mayor los cambia. */
@@ -98,6 +101,8 @@ export interface ActualizarPerfilPersonaMayorRequest {
   direccionIps: string | null;
   /** Si vive sola; null si no se ha indicado. */
   viveSolo: boolean | null;
+  /** Nivel de uso del celular; null si no se ha indicado. */
+  usoCelular: UsoCelular | null;
 }
 
 /**
