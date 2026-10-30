@@ -37,7 +37,26 @@ public final class Oficios {
             Map.entry("Fuerza pública (militar o policía)", List.of("seguridad", "prevencion", "civica")),
             Map.entry("Ingeniería o trabajo técnico", List.of("celular", "computador", "tecnologia", "reparaciones")),
             Map.entry("Trabajo social o psicología", List.of("bienestar", "memoria", "recuerdos", "acompañamiento", "conversatorio")),
-            Map.entry("Estudiante", List.of("lectura", "taller", "celular", "tecnologia", "juegos"))
+            Map.entry("Estudiante", List.of("lectura", "taller", "celular", "tecnologia", "juegos")),
+            Map.entry("Trabajo doméstico remunerado", List.of("cocina", "manualidades", "limpieza", "huerta")),
+            Map.entry("Cuidado de personas", List.of("bienestar", "salud", "acompañamiento", "cuidado", "autocuidado")),
+            Map.entry("Ganadería", List.of("campo", "huerta", "animales", "granja", "siembra")),
+            Map.entry("Jardinería o paisajismo", List.of("jardin", "huerta", "plantas", "siembra", "flores")),
+            Map.entry("Electricidad", List.of("reparaciones", "tecnologia", "manualidades")),
+            Map.entry("Plomería", List.of("reparaciones", "manualidades")),
+            Map.entry("Pintura de casas", List.of("pintura", "manualidades", "arte", "reparaciones")),
+            Map.entry("Negocio propio", List.of("mercado", "bazar", "emprendimiento", "ventas", "finanzas")),
+            Map.entry("Mensajería o domicilios", List.of("paseo", "salida", "recorrido", "caminata")),
+            Map.entry("Zapatería", List.of("manualidades", "artesanias", "reparaciones")),
+            Map.entry("Panadería", List.of("cocina", "reposteria", "culinaria", "comida")),
+            Map.entry("Restaurante o atención al público", List.of("cocina", "comida", "almuerzo", "integracion")),
+            Map.entry("Secretariado", List.of("celular", "computador", "tecnologia", "lectura")),
+            Map.entry("Contaduría o finanzas", List.of("finanzas", "emprendimiento", "celular", "computador")),
+            Map.entry("Derecho", List.of("derechos", "conversatorio", "charla", "orientacion")),
+            Map.entry("Empleado público", List.of("civica", "charla", "orientacion", "tramites")),
+            Map.entry("Fábrica u operario", List.of("manualidades", "reparaciones", "taller")),
+            Map.entry("Música o arte", List.of("musica", "canto", "coro", "baile", "pintura", "arte", "teatro")),
+            Map.entry("Sistemas o informática", List.of("celular", "computador", "tecnologia", "internet"))
     );
 
     private Oficios() {

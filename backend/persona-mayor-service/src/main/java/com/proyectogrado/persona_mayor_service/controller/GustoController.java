@@ -29,7 +29,7 @@ import java.util.Set;
 @RequestMapping("/api/gustos")
 public class GustoController {
 
-    /** Categorías válidas (ver CatalogoProfesiones para PROFESION). */
+    /** Categorías válidas (las opciones base de cada una están en CatalogoIntereses). */
     private static final Set<String> CATEGORIAS = Set.of("GUSTO", "TALENTO", "HOBBY", "PROFESION");
 
     private static final int LARGO_MAXIMO_NOMBRE = 60;

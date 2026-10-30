@@ -22,7 +22,7 @@ public class Gusto {
     @Column(name = "nombre", nullable = false, unique = true)
     private String nombre;
 
-    /** Grupo del gusto: GUSTO, TALENTO, HOBBY o PROFESION (ver CatalogoProfesiones). */
+    /** Grupo del gusto: GUSTO, TALENTO, HOBBY o PROFESION (opciones base en CatalogoIntereses). */
     @Column(name = "categoria", length = 20)
     private String categoria;
 
