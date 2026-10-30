@@ -10,7 +10,7 @@
 --   - datos de salud de cada persona mayor (enfermedades, alergias y
 --     discapacidades), coherentes con su perfil de salud
 --   - 60 acompañantes y 50 voluntarios (los voluntarios con dirección)
---   - catálogo de gustos, talentos y pasatiempos + 3 a 6 por persona
+--   - 3 a 6 gustos, talentos y pasatiempos (del catálogo) por persona
 --     mayor y por voluntario (con ellos se les recomiendan organizaciones)
 --   - profesión u oficio de la mayoría de personas mayores y voluntarios
 --     (categoría PROFESION del mismo catálogo)
@@ -75,8 +75,12 @@
 --     Supabase, con los datos de conexión que están en el
 --     application.properties de cualquiera de ellos
 --     (spring.datasource.url/username/password).
---   - Las tablas las crea Hibernate al arrancar (ddl-auto=update): arranca
---     al menos una vez todos los servicios antes de correr este script.
+--   - Arranca al menos una vez todos los servicios antes de correr este
+--     script: las tablas y sus columnas las crea Hibernate al arrancar
+--     (ddl-auto=update), analitica-service agrega las columnas de
+--     ubicación y persona-mayor-service, el catálogo de intereses. Este
+--     script no las crea: solo agrega datos. Si falta el catálogo, se
+--     detiene con un aviso antes de borrar nada.
 --   - SQL Editor de Supabase, pgAdmin 4 o cualquier cliente: pega este
 --     archivo completo y ejecútalo.
 --   - psql: psql "<cadena de conexión>" -f seed_datos_fictisios.sql
@@ -122,179 +126,27 @@ CREATE TABLE seed_tmp.seed_reloj AS
 SELECT date_trunc('minute', now() AT TIME ZONE 'America/Bogota') AS ahora,
        (now() AT TIME ZONE 'America/Bogota')::date                AS hoy;
 
+-- Antes de borrar nada: los catálogos que usa el script. El de intereses
+-- (gustos, talentos, pasatiempos y profesiones) lo agrega
+-- persona-mayor-service al arrancar (CatalogoIntereses) y el de
+-- condiciones de salud, salud-service (CatalogoCondicionSaludInicializador).
+-- Las secciones 10, 10c, 11b y 24 eligen opciones por su nombre; si
+-- faltara un catálogo, las personas quedarían sin esos datos sin ningún
+-- aviso. Va antes de la limpieza porque el SQL Editor de Supabase no
+-- mantiene la transacción: si fallara después, los datos ficticios ya
+-- estarían borrados.
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM gusto WHERE nombre = 'Música tradicional y de antaño')
+       OR NOT EXISTS (SELECT 1 FROM gusto WHERE nombre = 'Trabajo doméstico remunerado') THEN
+        RAISE EXCEPTION 'Falta el catálogo de intereses: arranca persona-mayor-service (lo crea al iniciar) y vuelve a correr este script.';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM condicion_salud WHERE nombre = 'Hipertensión arterial') THEN
+        RAISE EXCEPTION 'Falta el catálogo de condiciones de salud: arranca salud-service (lo crea al iniciar) y vuelve a correr este script.';
+    END IF;
+END $$;
+
 -- 0. Limpieza idempotente (solo borra lo generado por este script)
--- voluntario_organizacion la crea voluntario-service al arrancar; se
--- crea aquí igual por si esta base de datos nunca lo ha arrancado.
-CREATE TABLE IF NOT EXISTS voluntario_organizacion (
-    id_voluntario   integer      NOT NULL,
-    id_organizacion integer      NOT NULL,
-    estado          varchar(255) NOT NULL,
-    PRIMARY KEY (id_organizacion, id_voluntario)
-);
-
--- Columnas de las propuestas de actividades de voluntarios; las agrega
--- actividad-service al arrancar, y aquí igual por la misma razón.
-ALTER TABLE actividad ADD COLUMN IF NOT EXISTS id_voluntario integer;
-
--- Estatura de los signos vitales; la agrega salud-service al arrancar.
-ALTER TABLE signo_vital ADD COLUMN IF NOT EXISTS estatura double precision;
-ALTER TABLE actividad ADD COLUMN IF NOT EXISTS estado varchar(255);
--- Hora en que termina cada actividad; la agrega actividad-service al arrancar.
-ALTER TABLE actividad ADD COLUMN IF NOT EXISTS hora_fin varchar(255);
-
--- Ubicación en el mapa de las actividades y las sedes. Las agrega
--- analitica-service, que también las llena solo: le pregunta a Google
--- dónde quedan el lugar de cada actividad y la dirección de cada
--- organización (UbicadorAutomatico), así que este script no las llena.
-ALTER TABLE actividad ADD COLUMN IF NOT EXISTS latitud double precision;
-ALTER TABLE actividad ADD COLUMN IF NOT EXISTS longitud double precision;
-ALTER TABLE actividad ADD COLUMN IF NOT EXISTS ubicacion_buscada varchar(255);
-ALTER TABLE organizacion ADD COLUMN IF NOT EXISTS latitud double precision;
-ALTER TABLE organizacion ADD COLUMN IF NOT EXISTS longitud double precision;
-ALTER TABLE organizacion ADD COLUMN IF NOT EXISTS ubicacion_buscada varchar(255);
--- Barrio de cada persona mayor (nunca sus coordenadas): lo saca
--- analitica-service de la dirección; aquí ya viene escrito en ella.
-ALTER TABLE persona_mayor ADD COLUMN IF NOT EXISTS barrio varchar(100);
-ALTER TABLE persona_mayor ADD COLUMN IF NOT EXISTS barrio_buscado varchar(255);
-
--- Quién envió la solicitud de acompañamiento; la agregan
--- persona-mayor-service y acompanante-service al arrancar.
-ALTER TABLE persona_mayor_acompanante ADD COLUMN IF NOT EXISTS solicitada_por varchar(255);
-
--- Parentesco del acompañante en cada vínculo (puede ser distinto con cada
--- persona mayor); la agregan persona-mayor-service y acompanante-service
--- al arrancar. Antes iba en acompanante.relacion; auth-service pasa ese
--- valor a los vínculos y borra la columna al arrancar.
-ALTER TABLE persona_mayor_acompanante ADD COLUMN IF NOT EXISTS relacion varchar(255);
-
--- Quién envió la solicitud persona mayor <-> organización; la agregan
--- persona-mayor-service y organizacion-service al arrancar.
-ALTER TABLE persona_mayor_organizacion ADD COLUMN IF NOT EXISTS solicitada_por varchar(255);
-
--- Gustos de los voluntarios; la crea voluntario-service al arrancar.
-CREATE TABLE IF NOT EXISTS voluntario_gusto (
-    id_voluntario integer NOT NULL,
-    id_gusto      integer NOT NULL,
-    PRIMARY KEY (id_gusto, id_voluntario)
-);
-
--- Emergencias (botón de emergencia); la crea persona-mayor-service al arrancar.
-CREATE TABLE IF NOT EXISTS emergencia (
-    id_emergencia    integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    id_persona_mayor integer   NOT NULL,
-    fecha_hora       timestamp NOT NULL
-);
-
--- Recordatorios de citas médicas ya enviados; los agrega salud-service al
--- arrancar.
-ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS recordatorio_dia_enviado_para timestamp;
-ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS recordatorio_hora_enviado_para timestamp;
-ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS consultorio varchar(255);
-
--- Acompañamiento a las citas; lo agregan salud-service y acompanante-service al arrancar.
-ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS acompanamiento varchar(20);
-ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS id_acompanante_cita integer;
-ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS punto_encuentro varchar(300);
-ALTER TABLE cita_medica ADD COLUMN IF NOT EXISTS fecha_acompanamiento_aceptado timestamp;
-
--- Dirección de la IPS, si vive sola y nivel de uso del celular; las agrega auth-service al arrancar.
-ALTER TABLE persona_mayor ADD COLUMN IF NOT EXISTS direccion_ips varchar(255);
-ALTER TABLE persona_mayor ADD COLUMN IF NOT EXISTS vive_solo boolean;
-ALTER TABLE persona_mayor ADD COLUMN IF NOT EXISTS uso_celular varchar(20);
-
--- Por qué alguien eliminó su cuenta; la crea auth-service al arrancar.
-CREATE TABLE IF NOT EXISTS retiro_cuenta (
-    id_retiro       integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    id_organizacion integer,
-    nombre          varchar(255),
-    rol             varchar(255),
-    razon           varchar(255) NOT NULL,
-    comentario      varchar(500),
-    fecha           timestamp    NOT NULL
-);
-
--- Tipos de notificación que cada usuario apagó; la crea
--- mensajeria-service al arrancar.
-CREATE TABLE IF NOT EXISTS preferencia_notificacion (
-    id_preferencia bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    id_usuario     integer     NOT NULL,
-    tipo           varchar(40) NOT NULL,
-    activa         boolean     NOT NULL,
-    UNIQUE (id_usuario, tipo)
-);
-
--- Constancias de aceptación de los términos; la crea auth-service al arrancar.
-CREATE TABLE IF NOT EXISTS aceptacion_terminos (
-    id_aceptacion    integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    id_usuario       integer     NOT NULL,
-    acepto           boolean     NOT NULL,
-    fecha_aceptacion timestamp   NOT NULL,
-    version_terminos varchar(20),
-    origen           varchar(20) NOT NULL
-);
-
--- Notas de las organizaciones sobre sus personas mayores; la crea
--- organizacion-service al arrancar.
-CREATE TABLE IF NOT EXISTS nota_persona_mayor (
-    id_nota             integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    id_organizacion     integer       NOT NULL,
-    id_persona_mayor    integer       NOT NULL,
-    texto               varchar(2000) NOT NULL,
-    id_autor            integer       NOT NULL,
-    fecha_creacion      timestamp     NOT NULL,
-    fecha_actualizacion timestamp     NOT NULL
-);
-
--- Donaciones e inventario; las crea donacion-service al arrancar.
-CREATE TABLE IF NOT EXISTS donacion (
-    id_donacion       integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    id_donante        integer      NOT NULL,
-    rol_donante       varchar(255) NOT NULL,
-    id_organizacion   integer      NOT NULL,
-    fecha_entrega     date         NOT NULL,
-    hora_entrega      time,
-    observaciones     varchar(500),
-    estado            varchar(255) NOT NULL,
-    nota_organizacion varchar(300),
-    fecha_registro    timestamp    NOT NULL,
-    fecha_respuesta   timestamp
-);
-
-CREATE TABLE IF NOT EXISTS donacion_articulo (
-    id_articulo       integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    id_donacion       integer        NOT NULL REFERENCES donacion (id_donacion),
-    categoria         varchar(255)   NOT NULL,
-    descripcion       varchar(120)   NOT NULL,
-    cantidad          numeric(12, 2) NOT NULL,
-    unidad            varchar(30)    NOT NULL,
-    fecha_vencimiento date,
-    cantidad_recibida numeric(12, 2)
-);
-
-CREATE TABLE IF NOT EXISTS inventario_articulo (
-    id_inventario       integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    id_organizacion     integer        NOT NULL,
-    nombre              varchar(120)   NOT NULL,
-    categoria           varchar(255)   NOT NULL,
-    unidad              varchar(30)    NOT NULL,
-    cantidad            numeric(12, 2) NOT NULL,
-    cantidad_minima     numeric(12, 2),
-    fecha_vencimiento   date,
-    fecha_actualizacion timestamp      NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS inventario_movimiento (
-    id_movimiento integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    id_inventario integer        NOT NULL,
-    tipo          varchar(255)   NOT NULL,
-    cantidad      numeric(12, 2) NOT NULL,
-    motivo        varchar(255)   NOT NULL,
-    detalle       varchar(300),
-    id_donacion   integer,
-    id_usuario    integer        NOT NULL,
-    fecha         timestamp      NOT NULL
-);
-
 CREATE TABLE seed_tmp.seed_usuarios_viejos AS
 SELECT id_usuario, celular FROM usuario WHERE correo LIKE '%@vitaplus.test';
 
@@ -377,34 +229,9 @@ DELETE FROM preferencia_notificacion
 DELETE FROM aceptacion_terminos
  WHERE id_usuario IN (SELECT id_usuario FROM seed_tmp.seed_usuarios_viejos);
 
--- calificacion_plataforma la crea auth-service al arrancar; se crea aquí
--- igual por si esta base de datos nunca lo ha arrancado.
-CREATE TABLE IF NOT EXISTS calificacion_plataforma (
-    id_calificacion     integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    id_usuario          integer       NOT NULL UNIQUE,
-    estrellas           integer       NOT NULL,
-    comentario          varchar(1000),
-    fecha_creacion      timestamp     NOT NULL,
-    fecha_actualizacion timestamp     NOT NULL
-);
 DELETE FROM calificacion_plataforma
  WHERE id_usuario IN (SELECT id_usuario FROM seed_tmp.seed_usuarios_viejos);
 
--- auditoria_salud la crean salud, acompañante y analítica al arrancar
--- (AuditoriaSaludInterceptor), con esta misma definición.
-CREATE TABLE IF NOT EXISTS auditoria_salud (
-    id_auditoria     bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    fecha            timestamp    NOT NULL,
-    id_usuario       integer      NOT NULL,
-    rol              varchar(30),
-    id_persona_mayor integer,
-    recurso          varchar(40)  NOT NULL,
-    accion           varchar(20)  NOT NULL,
-    metodo           varchar(10)  NOT NULL,
-    ruta             varchar(255) NOT NULL,
-    estado           integer      NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_auditoria_salud_persona ON auditoria_salud (id_persona_mayor);
 DELETE FROM auditoria_salud
  WHERE id_usuario IN (SELECT id_usuario FROM seed_tmp.seed_usuarios_viejos)
     OR id_persona_mayor IN (SELECT id_usuario FROM seed_tmp.seed_usuarios_viejos);
@@ -425,7 +252,8 @@ DELETE FROM persona_mayor  WHERE id_usuario IN (SELECT id_usuario FROM seed_tmp.
 DELETE FROM usuario        WHERE id_usuario IN (SELECT id_usuario FROM seed_tmp.seed_usuarios_viejos);
 DELETE FROM organizacion   WHERE id_organizacion IN (SELECT id_organizacion FROM seed_tmp.seed_orgs_viejas);
 
--- 1. Roles base (por si esta base de datos nunca ha arrancado el backend)
+-- 1. Roles base. Ningún servicio los crea, y sin ellos el registro falla
+--    ("El rol solicitado no existe").
 INSERT INTO rol (nombre)
 SELECT r FROM (VALUES ('ORGANIZACION'), ('VOLUNTARIO'), ('ACOMPANANTE'), ('PERSONA_MAYOR')) AS v(r)
 ON CONFLICT (nombre) DO NOTHING;
@@ -463,41 +291,9 @@ SELECT iu.id_usuario, r.id_rol
 FROM ins_usuario iu, rol r
 WHERE r.nombre = 'ORGANIZACION';
 
--- 3. Catálogo de gustos, talentos y pasatiempos (3 de las 4 categorías de
---    la pantalla "Intereses"; las profesiones van en la sección 10c). Si un nombre ya existe con una
---    categoría vieja que el frontend ya no muestra (MUSICA, ARTE...), se
---    le corrige; si ya tiene una categoría vigente, no se toca.
-INSERT INTO gusto (nombre, categoria)
-VALUES
- ('Boleros', 'GUSTO'),
- ('Música ranchera', 'GUSTO'),
- ('Música carranguera', 'GUSTO'),
- ('Novelas de televisión', 'GUSTO'),
- ('Películas clásicas', 'GUSTO'),
- ('Fútbol por televisión', 'GUSTO'),
- ('Tomar café con amigos', 'GUSTO'),
- ('Misa dominical', 'GUSTO'),
- ('Tejido', 'TALENTO'),
- ('Bordado', 'TALENTO'),
- ('Costura', 'TALENTO'),
- ('Cocina tradicional', 'TALENTO'),
- ('Repostería', 'TALENTO'),
- ('Carpintería', 'TALENTO'),
- ('Canto', 'TALENTO'),
- ('Contar historias', 'TALENTO'),
- ('Jardinería', 'HOBBY'),
- ('Caminatas', 'HOBBY'),
- ('Juegos de mesa', 'HOBBY'),
- ('Bingo', 'HOBBY'),
- ('Parqués', 'HOBBY'),
- ('Crucigramas', 'HOBBY'),
- ('Lectura', 'HOBBY'),
- ('Baile', 'HOBBY'),
- ('Pintura', 'HOBBY'),
- ('Tejo', 'HOBBY')
-ON CONFLICT (nombre) DO UPDATE
-   SET categoria = EXCLUDED.categoria
- WHERE gusto.categoria IS NULL OR gusto.categoria NOT IN ('GUSTO', 'TALENTO', 'HOBBY', 'PROFESION');
+-- 3. Catálogos de intereses y de condiciones de salud: no se crean aquí,
+--    los crean los servicios al arrancar (se revisa al inicio, antes de la
+--    limpieza).
 
 -- 4. 300 personas mayores (usuario + persona_mayor con EPS e IPS)
 WITH datos AS (
@@ -948,21 +744,10 @@ INSERT INTO voluntario_gusto (id_voluntario, id_gusto)
 SELECT DISTINCT id_voluntario, id_gusto FROM asignaciones
 ON CONFLICT DO NOTHING;
 
--- 10c. Profesión u oficio (categoría PROFESION del mismo catálogo; los
---      mismos nombres que agrega persona-mayor-service al arrancar, ver
---      CatalogoProfesiones). ~85% de las personas mayores registra una
---      (~15% de ellas, dos) y ~90% de los voluntarios, una.
-INSERT INTO gusto (nombre, categoria)
-SELECT nombre, 'PROFESION' FROM (VALUES
-    ('Labores del hogar'), ('Agricultura o trabajo del campo'), ('Construcción'), ('Comercio o ventas'),
-    ('Conducción o transporte'), ('Modistería o sastrería'), ('Docencia'), ('Salud (enfermería o medicina)'),
-    ('Cocina'), ('Servicios generales o aseo'), ('Oficina o administración'), ('Vigilancia o seguridad'),
-    ('Mecánica'), ('Carpintería o ebanistería'), ('Peluquería o belleza'), ('Artesanía'),
-    ('Fuerza pública (militar o policía)'), ('Ingeniería o trabajo técnico'), ('Trabajo social o psicología'),
-    ('Estudiante')
-) AS v(nombre)
-ON CONFLICT (nombre) DO NOTHING;
-
+-- 10c. Profesión u oficio (categoría PROFESION del catálogo, ver sección 3).
+--      ~85% de las personas mayores registra una (~15% de ellas, dos) y
+--      ~90% de los voluntarios, una.
+--
 --      Oficios más comunes en personas mayores de Usme; los repetidos
 --      salen más seguido.
 WITH oficios AS (
@@ -1049,40 +834,11 @@ SELECT b.*,
 FROM base b;
 
 -- 11b. Datos de salud (enfermedades, alergias y discapacidades) del
---      catálogo condicion_salud. Lo llena salud-service al arrancar
---      (CatalogoCondicionSaludInicializador); por si esta base de datos
---      nunca lo ha arrancado, aquí se agregan las que usa este script,
---      con los mismos nombres y categorías, solo si faltan. Las
+--      catálogo condicion_salud, que crea salud-service al arrancar
+--      (CatalogoCondicionSaludInicializador; ver sección 3). Las
 --      enfermedades siguen el perfil de salud (hipertensión, diabetes,
 --      EPOC) y se agregan otras frecuentes en la vejez; ~25% tiene una
 --      alergia y ~15% una discapacidad, más probable a mayor edad.
-INSERT INTO condicion_salud (tipo, categoria, nombre, es_otra)
-SELECT v.tipo, v.categoria, v.nombre, false
-FROM (VALUES
-    ('ENFERMEDAD', 'Cardiovascular', 'Hipertensión arterial'),
-    ('ENFERMEDAD', 'Metabólica', 'Diabetes'),
-    ('ENFERMEDAD', 'Metabólica', 'Colesterol o triglicéridos altos'),
-    ('ENFERMEDAD', 'Metabólica', 'Hipotiroidismo'),
-    ('ENFERMEDAD', 'Respiratoria', 'EPOC'),
-    ('ENFERMEDAD', 'Osteomuscular', 'Artrosis'),
-    ('ENFERMEDAD', 'Salud mental', 'Depresión'),
-    ('ENFERMEDAD', 'Visual', 'Cataratas'),
-    ('ENFERMEDAD', 'Digestiva', 'Gastritis o reflujo'),
-    ('ALERGIA', 'Medicamentos', 'Penicilina'),
-    ('ALERGIA', 'Medicamentos', 'Sulfas'),
-    ('ALERGIA', 'Medicamentos', 'Aspirina'),
-    ('ALERGIA', 'Medicamentos', 'Antiinflamatorios (ibuprofeno, naproxeno)'),
-    ('ALERGIA', 'Medicamentos', 'Dipirona'),
-    ('ALERGIA', 'Alimentos', 'Mariscos'),
-    ('ALERGIA', 'Ambientales', 'Polen'),
-    ('ALERGIA', 'Ambientales', 'Ácaros del polvo'),
-    ('DISCAPACIDAD', 'Física', 'Dificultad para caminar'),
-    ('DISCAPACIDAD', 'Física', 'Usa silla de ruedas'),
-    ('DISCAPACIDAD', 'Visual', 'Baja visión'),
-    ('DISCAPACIDAD', 'Auditiva', 'Pérdida auditiva parcial')
-) AS v(tipo, categoria, nombre)
-WHERE NOT EXISTS (SELECT 1 FROM condicion_salud c WHERE c.tipo = v.tipo AND c.nombre = v.nombre);
-
 WITH elegidas AS (
     SELECT p.id_usuario, 'ENFERMEDAD' AS tipo, 'Hipertensión arterial' AS nombre FROM seed_tmp.seed_perfil p WHERE p.hta
     UNION ALL SELECT p.id_usuario, 'ENFERMEDAD', 'Diabetes' FROM seed_tmp.seed_perfil p WHERE p.dm
@@ -2389,11 +2145,13 @@ ON CONFLICT DO NOTHING;
 -- y una profesión u oficio
 WITH temas AS (
     SELECT * FROM (VALUES
-        (1, ARRAY['Caminatas', 'Baile', 'Tejo', 'Fútbol por televisión', 'Juegos de mesa', 'Jardinería']),
-        (2, ARRAY['Tejido', 'Cocina tradicional', 'Novelas de televisión', 'Bingo', 'Misa dominical', 'Bordado']),
-        (3, ARRAY['Parqués', 'Tomar café con amigos', 'Música ranchera', 'Crucigramas', 'Repostería',
-                  'Música carranguera']),
-        (4, ARRAY['Boleros', 'Contar historias', 'Misa dominical', 'Lectura', 'Películas clásicas', 'Canto'])
+        (1, ARRAY['Caminar', 'Baile', 'Tejo', 'Ver deportes', 'Juegos de mesa', 'Jardinería']),
+        (2, ARRAY['Costura o tejido', 'Cocina tradicional', 'Ver novelas', 'Bingo', 'Actividades religiosas',
+                  'Bordado']),
+        (3, ARRAY['Parqués', 'Conversar con amigos', 'Música tradicional y de antaño', 'Crucigramas',
+                  'Repostería', 'Escuchar radio']),
+        (4, ARRAY['Música tradicional y de antaño', 'Contar historias', 'Actividades religiosas', 'Leer',
+                  'Ver televisión o películas', 'Cantar'])
     ) AS v(arquetipo, gustos)
 ),
 elegidos AS (
