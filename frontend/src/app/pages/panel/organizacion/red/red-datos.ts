@@ -63,21 +63,27 @@ interface Nodo {
   symbol?: string;
   detalle: string;
   label?: { show: boolean };
+  itemStyle?: { opacity: number };
 }
 
 interface Enlace {
   source: string;
   target: string;
   detalle: string;
+  lineStyle?: { opacity: number };
 }
+
+/** Opacidad de lo que queda de fondo al resaltar: se ve, pero no compite. */
+const ATENUADO = 0.15;
 
 /**
  * La organización al centro, unida a sus personas mayores y voluntarios;
  * cada persona mayor, unida a sus acompañantes. Las personas sin
  * acompañante quedan colgando solo de la organización: es lo que hay que
- * mirar (posible aislamiento).
+ * mirar (posible aislamiento). Con `resaltarAisladas` ellas quedan al
+ * frente, más grandes y con su nombre, y el resto de la red pasa al fondo.
  */
-export function grafoRedApoyo(red: Red): OpcionesGrafica {
+export function grafoRedApoyo(red: Red, resaltarAisladas = false): OpcionesGrafica {
   const aisladas = new Set(sinAcompanante(red).map((p) => p.id));
   const acompanantesDe = new Map<number, number>();
   red.vinculos.forEach((v) => acompanantesDe.set(v.idPersonaMayor, (acompanantesDe.get(v.idPersonaMayor) ?? 0) + 1));
@@ -123,6 +129,23 @@ export function grafoRedApoyo(red: Red): OpcionesGrafica {
   for (const v of red.voluntarios) {
     nodos.push({ id: `v${v.id}`, name: v.nombre, category: 4, symbolSize: 20, detalle: 'Voluntario' });
     enlaces.push({ source: 'o', target: `v${v.id}`, detalle: 'Voluntario de la organización' });
+  }
+
+  if (resaltarAisladas) {
+    const alFrente = new Set(['o', ...[...aisladas].map((id) => `p${id}`)]);
+    for (const n of nodos) {
+      if (n.category === 2) {
+        n.symbolSize = 36;
+        n.label = { show: true };
+      } else if (!alFrente.has(n.id)) {
+        n.itemStyle = { opacity: ATENUADO };
+      }
+    }
+    for (const e of enlaces) {
+      if (!alFrente.has(e.source) || !alFrente.has(e.target)) {
+        e.lineStyle = { opacity: ATENUADO };
+      }
+    }
   }
 
   // Es la vista principal: nodos grandes y bien separados para que se lea de lejos.

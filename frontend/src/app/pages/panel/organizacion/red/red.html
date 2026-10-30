@@ -39,6 +39,12 @@
       [vacio]="red.personasMayores.length === 0"
       textoVacio="Aún no tienes personas mayores asociadas."
     >
+      @if (vistaGrafo() === 'red') {
+        <div acciones class="selector">
+          <button type="button" [class.activo]="resaltarAisladas()" [attr.aria-pressed]="resaltarAisladas()"
+                  (click)="resaltarAisladas.set(!resaltarAisladas())">Resaltar sin acompañante</button>
+        </div>
+      }
       <div acciones class="selector" role="group" aria-label="Vista del grafo">
         <button type="button" [class.activo]="vistaGrafo() === 'red'" [attr.aria-pressed]="vistaGrafo() === 'red'"
                 (click)="vistaGrafo.set('red')">Red de apoyo</button>

@@ -47,6 +47,8 @@ export class Red implements OnInit {
 
   /** Vista del grafo: la red de apoyo o los gustos en común. */
   protected readonly vistaGrafo = signal<'red' | 'gustos'>('red');
+  /** En la red de apoyo: deja al frente solo a las personas sin acompañante. */
+  protected readonly resaltarAisladas = signal(false);
   /** Filtro del mapa (null = todas las personas). */
   protected readonly gusto = signal<number | null>(null);
   protected readonly verTablaMapa = signal(false);
@@ -89,7 +91,7 @@ export class Red implements OnInit {
       return null;
     }
     return this.vistaGrafo() === 'red'
-      ? { opciones: grafoRedApoyo(red), tabla: tablaRedApoyo(red) }
+      ? { opciones: grafoRedApoyo(red, this.resaltarAisladas()), tabla: tablaRedApoyo(red) }
       : { opciones: grafoGustos(red), tabla: tablaGustos(red) };
   });
 

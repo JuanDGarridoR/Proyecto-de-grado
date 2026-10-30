@@ -70,6 +70,22 @@ describe('Red y mapa', () => {
     expect(rosa.symbol).toBeUndefined();
   });
 
+  it('al resaltar, las personas sin acompañante quedan al frente y el resto de fondo', () => {
+    const { data, links } = serie(grafoRedApoyo(red(), true)) as unknown as {
+      data: { id: string; label?: { show: boolean }; itemStyle?: { opacity: number } }[];
+      links: { source: string; target: string; lineStyle?: { opacity: number } }[];
+    };
+    const nodo = (id: string) => data.find((n) => n.id === id)!;
+
+    expect(nodo('p11').label?.show).toBe(true);
+    expect(nodo('p11').itemStyle).toBeUndefined();
+    expect(nodo('o').itemStyle).toBeUndefined();
+    expect(nodo('p10').itemStyle?.opacity).toBeLessThan(1);
+    expect(nodo('v40').itemStyle?.opacity).toBeLessThan(1);
+    expect(links.find((l) => l.target === 'p11')!.lineStyle).toBeUndefined();
+    expect(links.find((l) => l.target === 'a50')!.lineStyle?.opacity).toBeLessThan(1);
+  });
+
   it('el grafo por gustos une a cada persona con todos sus gustos', () => {
     const { data, links } = serie(grafoGustos(red()));
 
