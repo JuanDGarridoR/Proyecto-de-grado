@@ -13,4 +13,7 @@ public interface PersonaMayorAcompananteLookupRepository
         extends JpaRepository<PersonaMayorAcompananteLookup, PersonaMayorAcompananteId> {
 
     List<PersonaMayorAcompananteLookup> findById_IdAcompananteAndEstado(Integer idAcompanante, String estado);
+
+    boolean existsById_IdPersonaMayorAndId_IdAcompananteAndEstado(
+            Integer idPersonaMayor, Integer idAcompanante, String estado);
 }

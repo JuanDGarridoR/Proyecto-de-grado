@@ -33,11 +33,17 @@ import { Icono } from '../../../../shared/icono/icono';
 import { SignosVitalesLista } from '../../../../shared/signos-vitales-lista/signos-vitales-lista';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
 import { haceDias } from '../../../../core/fechas/fechas';
-import { iniciales } from '../../../../core/formato/formato';
+import { iniciales, mensajeDeError } from '../../../../core/formato/formato';
 import { Cargando } from '../../../../shared/cargando/cargando';
+import {
+  ActividadDisponible,
+  ActividadService,
+  separarPorFecha
+} from '../../../../core/actividades/actividad.service';
+import { TarjetaActividad } from '../../../../shared/tarjeta-actividad/tarjeta-actividad';
 
 /** Pestañas con la información de la persona seleccionada. */
-type Pestana = 'medicamentos' | 'citas' | 'signos';
+type Pestana = 'medicamentos' | 'citas' | 'signos' | 'actividades';
 
 /** Citas pasadas que se muestran en el seguimiento (las más recientes). */
 const CITAS_PASADAS_VISIBLES = 5;
@@ -58,12 +64,13 @@ interface ValorSigno {
  * Seguimiento de las personas mayores que acompaña el usuario. Arriba se
  * elige a la persona (tarjetas con su avatar); debajo, su ficha con un
  * resumen (medicamentos, próxima cita y última medición) y pestañas con el
- * detalle de medicamentos, citas médicas y signos vitales.
+ * detalle de medicamentos, citas médicas y signos vitales, y las próximas
+ * actividades de sus organizaciones, donde el acompañante puede inscribirla.
  */
 @Component({
   selector: 'app-seguimiento',
   standalone: true,
-  imports: [Icono, SignosVitalesLista, Cargando, AcompanamientoCita, HojaFecha],
+  imports: [Icono, SignosVitalesLista, Cargando, AcompanamientoCita, HojaFecha, TarjetaActividad],
   templateUrl: './seguimiento.html',
   styleUrl: './seguimiento.css'
 })
@@ -85,16 +92,24 @@ export class Seguimiento implements OnInit, OnDestroy {
   protected readonly medicamentos = signal<MedicamentoSeguimiento[]>([]);
   protected readonly citas = signal<CitaMedica[]>([]);
   protected readonly signos = signal<SignoVitalResponse[]>([]);
+  protected readonly actividades = signal<ActividadDisponible[]>([]);
 
   protected readonly cargandoPersonas = signal(true);
   protected readonly cargandoMedicamentos = signal(false);
   protected readonly cargandoCitas = signal(false);
   protected readonly cargandoSignos = signal(false);
+  protected readonly cargandoActividades = signal(false);
 
   protected readonly errorPersonas = signal('');
   protected readonly errorMedicamentos = signal('');
   protected readonly errorCitas = signal('');
   protected readonly errorSignos = signal<string | null>(null);
+  protected readonly errorActividades = signal('');
+
+  /** Actividad cuya inscripción se está enviando; deshabilita su botón. */
+  protected readonly procesandoActividad = signal<number | null>(null);
+  /** Por qué no se pudo inscribir o cancelar (sin cupos, ya pasó...). */
+  protected readonly errorInscripcion = signal('');
 
   // ---- Medicamentos ----
 
@@ -157,14 +172,25 @@ export class Seguimiento implements OnInit, OnDestroy {
     return s ? indicadoresFueraDeRango(s).map((i) => NOMBRE_INDICADOR[i]).join(', ') : '';
   });
 
+  // ---- Actividades ----
+
+  /** Solo las próximas: en las pasadas ya no se puede inscribir. */
+  protected readonly actividadesProximas = computed(() => separarPorFecha(this.actividades()).proximas);
+
+  protected readonly actividadesInscritas = computed(() =>
+    this.actividadesProximas().filter((a) => a.inscrito)
+  );
+
   constructor(
     private acompananteService: AcompananteService,
+    private actividadService: ActividadService,
     private route: ActivatedRoute
   ) {
     alCambiar(['acompanamientos', 'usuarios'], () => this.cargarPersonasMayores(false));
     alCambiar(['medicamentos'], () => this.recargarDetalle('medicamentos'));
     alCambiar(['citas-medicas'], () => this.recargarDetalle('citas'));
     alCambiar(['signos-vitales'], () => this.recargarDetalle('signos'));
+    alCambiar(['actividades', 'organizaciones'], () => this.recargarDetalle('actividades'));
   }
 
   /** Al aceptar o cancelar un acompañamiento, se actualiza la cita en la lista. */
@@ -220,6 +246,8 @@ export class Seguimiento implements OnInit, OnDestroy {
     this.medicamentos.set([]);
     this.citas.set([]);
     this.signos.set([]);
+    this.actividades.set([]);
+    this.errorInscripcion.set('');
 
     if (!persona) {
       return;
@@ -228,6 +256,7 @@ export class Seguimiento implements OnInit, OnDestroy {
     this.cargarMedicamentos(persona.idUsuario);
     this.cargarCitas(persona.idUsuario);
     this.cargarSignos(persona.idUsuario);
+    this.cargarActividades(persona.idUsuario);
   }
 
   /** Vuelve a pedir una sección de la persona seleccionada, sin mostrar "cargando". */
@@ -240,6 +269,7 @@ export class Seguimiento implements OnInit, OnDestroy {
     if (seccion === 'medicamentos') this.cargarMedicamentos(id, false);
     if (seccion === 'citas') this.cargarCitas(id, false);
     if (seccion === 'signos') this.cargarSignos(id, false);
+    if (seccion === 'actividades') this.cargarActividades(id, false);
   }
 
   /**
@@ -312,6 +342,55 @@ export class Seguimiento implements OnInit, OnDestroy {
         if (!this.sigueSeleccionada(idPersonaMayor)) return;
         this.cargandoSignos.set(false);
         this.errorSignos.set(this.mensajeError(error, 'los signos vitales'));
+      }
+    });
+  }
+
+  private cargarActividades(idPersonaMayor: number, mostrarCargando = true): void {
+    if (mostrarCargando) {
+      this.cargandoActividades.set(true);
+    }
+    this.errorActividades.set('');
+
+    this.actividadService.listarDisponiblesDeAcompanada(idPersonaMayor).subscribe({
+      next: (data) => {
+        if (!this.sigueSeleccionada(idPersonaMayor)) return;
+        this.actividades.set(data);
+        this.cargandoActividades.set(false);
+      },
+      error: (error) => {
+        if (!this.sigueSeleccionada(idPersonaMayor)) return;
+        this.cargandoActividades.set(false);
+        this.errorActividades.set(this.mensajeError(error, 'las actividades'));
+      }
+    });
+  }
+
+  /** Inscribe a la persona seleccionada o cancela su inscripción, según cómo esté. */
+  protected cambiarInscripcion(actividad: ActividadDisponible): void {
+    const persona = this.personaSeleccionada();
+    if (!persona) {
+      return;
+    }
+
+    this.procesandoActividad.set(actividad.idActividad);
+    this.errorInscripcion.set('');
+
+    const peticion = actividad.inscrito
+      ? this.actividadService.cancelarInscripcionDeAcompanada(actividad.idActividad, persona.idUsuario)
+      : this.actividadService.inscribirAcompanada(actividad.idActividad, persona.idUsuario);
+
+    peticion.subscribe({
+      next: () => {
+        this.procesandoActividad.set(null);
+        this.cargarActividades(persona.idUsuario, false);
+      },
+      error: (error) => {
+        this.procesandoActividad.set(null);
+        this.errorInscripcion.set(mensajeDeError(
+          error,
+          actividad.inscrito ? 'No se pudo cancelar la inscripción.' : 'No se pudo completar la inscripción.'
+        ));
       }
     });
   }

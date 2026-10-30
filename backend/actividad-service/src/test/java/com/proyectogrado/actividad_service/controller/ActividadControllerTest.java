@@ -408,6 +408,73 @@ class ActividadControllerTest {
     }
 
     @Test
+    void elAcompananteInscribeALaPersonaQueAcompana() throws Exception {
+        when(personaMayorAcompananteRepository
+                .existsById_IdPersonaMayorAndId_IdAcompananteAndEstado(PERSONA_MAYOR, ACOMPANANTE, "ACEPTADA"))
+                .thenReturn(true);
+        when(actividadRepository.findById(1)).thenReturn(Optional.of(actividad(1, manana, 20)));
+        when(participacionRepository.findById_IdPersonaMayorAndId_IdActividad(PERSONA_MAYOR, 1)).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/actividades/1/inscritos/" + PERSONA_MAYOR).header("X-User-Id", ACOMPANANTE))
+                .andExpect(status().isCreated());
+
+        ArgumentCaptor<Participacion> inscripcion = ArgumentCaptor.forClass(Participacion.class);
+        verify(participacionRepository).save(inscripcion.capture());
+        assertEquals(PERSONA_MAYOR, inscripcion.getValue().getId().getIdPersonaMayor());
+    }
+
+    @Test
+    void elAcompananteNoInscribeAQuienNoAcompana() throws Exception {
+        when(actividadRepository.findById(1)).thenReturn(Optional.of(actividad(1, manana, 20)));
+
+        mockMvc.perform(post("/api/actividades/1/inscritos/" + PERSONA_MAYOR).header("X-User-Id", ACOMPANANTE))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/actividades/acompanadas/" + PERSONA_MAYOR + "/disponibles").header("X-User-Id", ACOMPANANTE))
+                .andExpect(status().isForbidden());
+
+        verify(participacionRepository, never()).save(any());
+    }
+
+    @Test
+    void alAcompananteLeExplicanQueLaPersonaYaEstaInscrita() throws Exception {
+        when(personaMayorAcompananteRepository
+                .existsById_IdPersonaMayorAndId_IdAcompananteAndEstado(PERSONA_MAYOR, ACOMPANANTE, "ACEPTADA"))
+                .thenReturn(true);
+        when(actividadRepository.findById(1)).thenReturn(Optional.of(actividad(1, manana, 20)));
+        when(participacionRepository.findById_IdPersonaMayorAndId_IdActividad(PERSONA_MAYOR, 1))
+                .thenReturn(Optional.of(new Participacion(PERSONA_MAYOR, 1)));
+
+        mockMvc.perform(post("/api/actividades/1/inscritos/" + PERSONA_MAYOR).header("X-User-Id", ACOMPANANTE))
+                .andExpect(status().isConflict())
+                .andExpect(content().string("La persona mayor ya está inscrita en esta actividad"));
+    }
+
+    @Test
+    void elAcompananteVeEnCualesActividadesEstaInscritaLaPersonaYCancela() throws Exception {
+        when(personaMayorAcompananteRepository
+                .existsById_IdPersonaMayorAndId_IdAcompananteAndEstado(PERSONA_MAYOR, ACOMPANANTE, "ACEPTADA"))
+                .thenReturn(true);
+        when(actividadRepository.findByIdOrganizacion(ORGANIZACION))
+                .thenReturn(List.of(actividad(1, manana, 20), actividad(2, manana, 20)));
+        Participacion inscripcion = new Participacion(PERSONA_MAYOR, 2);
+        when(participacionRepository.findById_IdPersonaMayor(PERSONA_MAYOR)).thenReturn(List.of(inscripcion));
+
+        mockMvc.perform(get("/api/actividades/acompanadas/" + PERSONA_MAYOR + "/disponibles").header("X-User-Id", ACOMPANANTE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].inscrito").value(false))
+                .andExpect(jsonPath("$[1].inscrito").value(true));
+
+        when(participacionRepository.findById_IdPersonaMayorAndId_IdActividad(PERSONA_MAYOR, 2))
+                .thenReturn(Optional.of(inscripcion));
+        when(actividadRepository.findById(2)).thenReturn(Optional.of(actividad(2, manana, 20)));
+
+        mockMvc.perform(delete("/api/actividades/2/inscritos/" + PERSONA_MAYOR).header("X-User-Id", ACOMPANANTE))
+                .andExpect(status().isNoContent());
+
+        verify(participacionRepository).delete(inscripcion);
+    }
+
+    @Test
     void unaPropuestaPendienteNoExisteParaLaPersonaMayor() throws Exception {
         Actividad propuesta = actividad(3, manana, 20);
         propuesta.setIdVoluntario(VOLUNTARIO);

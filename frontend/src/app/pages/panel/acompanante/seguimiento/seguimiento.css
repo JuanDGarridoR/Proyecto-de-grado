@@ -402,6 +402,36 @@
   font-size: 0.85rem;
 }
 
+.panel__intro {
+  margin: 0 0 14px;
+  color: var(--vita-text-gray);
+}
+
+/* Actividades (las tarjetas son las mismas de las páginas de actividades) */
+
+.actividades {
+  display: grid;
+  gap: 14px;
+}
+
+.actividades .seguimiento__error,
+.panel__intro + .seguimiento__error {
+  margin-bottom: 14px;
+}
+
+.estado-inscrito {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--vita-green) 15%, white);
+  color: var(--vita-green);
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 /* Filas (medicamentos y próximas citas) */
 
 .filas {

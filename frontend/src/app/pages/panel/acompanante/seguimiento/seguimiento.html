@@ -164,6 +164,17 @@
         >
           <app-icono name="activity" /> Signos vitales
         </button>
+        <button
+          type="button"
+          role="tab"
+          class="pestana"
+          [class.pestana--activa]="pestana() === 'actividades'"
+          [attr.aria-selected]="pestana() === 'actividades'"
+          (click)="pestana.set('actividades')"
+        >
+          <app-icono name="calendar" /> Actividades
+          <span class="pestana__contador">{{ actividadesInscritas().length }}</span>
+        </button>
       </div>
 
       <section class="panel" role="tabpanel">
@@ -323,6 +334,53 @@
               [error]="errorSignos()"
               [compacta]="false"
             />
+          }
+
+          <!-- Actividades: el acompañante inscribe a la persona -->
+          @case ('actividades') {
+            @if (cargandoActividades()) {
+              <div class="seguimiento__mensaje"><app-cargando texto="Cargando actividades..." /></div>
+            } @else if (errorActividades()) {
+              <div class="seguimiento__error"><app-icono name="alert-circle" /> {{ errorActividades() }}</div>
+            } @else if (actividadesProximas().length === 0) {
+              <div class="vacio">
+                <div class="vacio__icono"><app-icono name="calendar" /></div>
+                <h3>No hay próximas actividades</h3>
+                <p>Cuando una organización de {{ persona.nombre }} publique una actividad, podrás inscribirla aquí.</p>
+              </div>
+            } @else {
+              <p class="panel__intro">
+                Actividades de las organizaciones de {{ persona.nombre }}. Puedes inscribirla o cancelar su inscripción.
+              </p>
+
+              @if (errorInscripcion()) {
+                <div class="seguimiento__error"><app-icono name="alert-circle" /> {{ errorInscripcion() }}</div>
+              }
+
+              <div class="actividades">
+                @for (actividad of actividadesProximas(); track actividad.idActividad) {
+                  <app-tarjeta-actividad [actividad]="actividad">
+                    @if (actividad.inscrito) {
+                      <span class="estado-inscrito"><app-icono name="check-circle" /> Inscripción confirmada</span>
+                    }
+                    <button
+                      type="button"
+                      class="btn"
+                      [class.btn-primary]="!actividad.inscrito"
+                      [class.btn-outline]="actividad.inscrito"
+                      [disabled]="procesandoActividad() === actividad.idActividad"
+                      (click)="cambiarInscripcion(actividad)"
+                    >
+                      @if (procesandoActividad() === actividad.idActividad) {
+                        {{ actividad.inscrito ? 'Cancelando...' : 'Inscribiendo...' }}
+                      } @else {
+                        {{ actividad.inscrito ? 'Cancelar inscripción' : 'Inscribir' }}
+                      }
+                    </button>
+                  </app-tarjeta-actividad>
+                }
+              </div>
+            }
           }
         }
 

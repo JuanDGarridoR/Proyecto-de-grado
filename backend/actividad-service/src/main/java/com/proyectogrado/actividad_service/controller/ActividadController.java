@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 /**
  * Actividades de las organizaciones: la organización las crea y registra la
  * asistencia, la persona mayor se inscribe y el acompañante consulta las de
- * las personas que acompaña. Un voluntario o una persona mayor pueden
+ * las personas que acompaña y puede inscribirlas. Un voluntario o una persona mayor pueden
  * proponer actividades a sus organizaciones; mientras la organización no
  * las acepte, nadie más las ve.
  *
@@ -185,6 +185,30 @@ public class ActividadController {
                     .body("Solo una persona mayor puede ver esto");
         }
 
+        return ResponseEntity.ok(disponiblesPara(idPersonaMayor));
+    }
+
+    /**
+     * Lo mismo que ve la persona mayor en /disponibles, pero pedido por un
+     * acompañante con vínculo aceptado, para inscribirla desde el seguimiento.
+     */
+    @GetMapping("/acompanadas/{idPersonaMayor}/disponibles")
+    public ResponseEntity<?> listarDisponiblesDeAcompanada(
+            @PathVariable Integer idPersonaMayor,
+            @RequestHeader("X-User-Id") Integer idAcompanante
+    ) {
+
+        if (!acompanaA(idAcompanante, idPersonaMayor)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Solo puedes ver las actividades de las personas mayores que acompañas");
+        }
+
+        return ResponseEntity.ok(disponiblesPara(idPersonaMayor));
+    }
+
+    /** Actividades de las organizaciones de la persona mayor, marcando en cuáles está inscrita. */
+    private List<ActividadDisponibleResponse> disponiblesPara(Integer idPersonaMayor) {
+
         Set<Integer> idsOrganizaciones = organizacionesAceptadasDe(idPersonaMayor);
 
         List<Actividad> actividades = actividadesDe(idsOrganizaciones);
@@ -195,7 +219,7 @@ public class ActividadController {
                         .map(p -> p.getId().getIdActividad())
                         .collect(Collectors.toSet());
 
-        List<ActividadDisponibleResponse> respuesta = actividades.stream()
+        return actividades.stream()
                 .map(a -> {
                     ActividadDisponibleResponse disponible = new ActividadDisponibleResponse(
                             a.getIdActividad(),
@@ -215,8 +239,6 @@ public class ActividadController {
                     return disponible;
                 })
                 .toList();
-
-        return ResponseEntity.ok(respuesta);
     }
 
     /** Inscritos en una actividad y si asistieron. Solo para la organización dueña. */
@@ -322,6 +344,35 @@ public class ActividadController {
                     .body("Solo una persona mayor puede inscribirse");
         }
 
+        return inscribir(idPersonaMayor, id, false);
+    }
+
+    /**
+     * El acompañante inscribe a una persona mayor que acompaña (vínculo
+     * aceptado), con las mismas reglas que si ella se inscribiera.
+     */
+    @PostMapping("/{id}/inscritos/{idPersonaMayor}")
+    public ResponseEntity<?> inscribirAcompanada(
+            @PathVariable Integer id,
+            @PathVariable Integer idPersonaMayor,
+            @RequestHeader("X-User-Id") Integer idAcompanante
+    ) {
+
+        if (!acompanaA(idAcompanante, idPersonaMayor)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Solo puedes inscribir a las personas mayores que acompañas");
+        }
+
+        return inscribir(idPersonaMayor, id, true);
+    }
+
+    /**
+     * Exige que la persona mayor tenga vínculo aceptado con la organización,
+     * que la actividad no haya pasado y que queden cupos. porAcompanante
+     * cambia los mensajes: el acompañante habla de la persona, no de sí mismo.
+     */
+    private ResponseEntity<?> inscribir(Integer idPersonaMayor, Integer id, boolean porAcompanante) {
+
         Actividad actividad = actividadRepository.findById(id).orElse(null);
 
         // Una propuesta pendiente o rechazada no existe para la persona mayor
@@ -334,12 +385,16 @@ public class ActividadController {
 
         if (!asociada) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("No puedes inscribirte en actividades de una organización a la que no estás asociado");
+                    .body(porAcompanante
+                            ? "La persona mayor no está asociada a la organización de esta actividad"
+                            : "No puedes inscribirte en actividades de una organización a la que no estás asociado");
         }
 
         if (yaPaso(actividad)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("No puedes inscribirte en una actividad que ya pasó");
+                    .body(porAcompanante
+                            ? "No se puede inscribir en una actividad que ya pasó"
+                            : "No puedes inscribirte en una actividad que ya pasó");
         }
 
         boolean yaInscrito =
@@ -349,7 +404,9 @@ public class ActividadController {
 
         if (yaInscrito) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Ya estás inscrito en esta actividad");
+                    .body(porAcompanante
+                            ? "La persona mayor ya está inscrita en esta actividad"
+                            : "Ya estás inscrito en esta actividad");
         }
 
         if (actividad.getCupos() != null) {
@@ -380,6 +437,27 @@ public class ActividadController {
                     .body("Solo una persona mayor puede cancelar su inscripción");
         }
 
+        return cancelar(idPersonaMayor, id, false);
+    }
+
+    /** El acompañante cancela la inscripción de una persona mayor que acompaña. */
+    @DeleteMapping("/{id}/inscritos/{idPersonaMayor}")
+    public ResponseEntity<?> cancelarInscripcionDeAcompanada(
+            @PathVariable Integer id,
+            @PathVariable Integer idPersonaMayor,
+            @RequestHeader("X-User-Id") Integer idAcompanante
+    ) {
+
+        if (!acompanaA(idAcompanante, idPersonaMayor)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Solo puedes cancelar inscripciones de las personas mayores que acompañas");
+        }
+
+        return cancelar(idPersonaMayor, id, true);
+    }
+
+    private ResponseEntity<?> cancelar(Integer idPersonaMayor, Integer id, boolean porAcompanante) {
+
         Participacion participacion =
                 participacionRepository
                         .findById_IdPersonaMayorAndId_IdActividad(idPersonaMayor, id)
@@ -393,7 +471,9 @@ public class ActividadController {
 
         if (actividad != null && yaPaso(actividad)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("No puedes cancelar la inscripción de una actividad que ya pasó");
+                    .body(porAcompanante
+                            ? "No se puede cancelar la inscripción de una actividad que ya pasó"
+                            : "No puedes cancelar la inscripción de una actividad que ya pasó");
         }
 
         participacionRepository.delete(participacion);
@@ -880,6 +960,12 @@ public class ActividadController {
 
     private boolean esAcompanante(Integer idUsuario) {
         return acompananteLookupRepository.existsById(idUsuario);
+    }
+
+    /** Si el usuario acompaña a la persona mayor con vínculo aceptado. */
+    private boolean acompanaA(Integer idAcompanante, Integer idPersonaMayor) {
+        return personaMayorAcompananteRepository
+                .existsById_IdPersonaMayorAndId_IdAcompananteAndEstado(idPersonaMayor, idAcompanante, "ACEPTADA");
     }
 
     /** Organizaciones con las que la persona mayor tiene vínculo aceptado. */

@@ -234,6 +234,31 @@ export class ActividadService {
     );
   }
 
+  // =========================================================
+  // INSCRIPCIONES QUE HACE EL ACOMPAÑANTE
+  // =========================================================
+
+  /** Actividades de una persona mayor que acompaña el usuario, marcando en cuáles está inscrita. */
+  listarDisponiblesDeAcompanada(idPersonaMayor: number): Observable<ActividadDisponible[]> {
+    return this.http.get<ActividadDisponible[]>(
+      `${this.apiUrl}/acompanadas/${idPersonaMayor}/disponibles`
+    );
+  }
+
+  /** El acompañante inscribe a una persona mayor que acompaña. */
+  inscribirAcompanada(idActividad: number, idPersonaMayor: number): Observable<void> {
+    return this.http.post<void>(
+      `${this.apiUrl}/${idActividad}/inscritos/${idPersonaMayor}`,
+      {}
+    );
+  }
+
+  cancelarInscripcionDeAcompanada(idActividad: number, idPersonaMayor: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/${idActividad}/inscritos/${idPersonaMayor}`
+    );
+  }
+
   crear(request: ActividadRequest): Observable<Actividad> {
     return this.http.post<Actividad>(
       this.apiUrl,
