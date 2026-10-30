@@ -54,6 +54,13 @@ export interface PersonaPoblacion {
   viveSolo: boolean | null;
   /** Nivel de uso del celular; null si no lo ha indicado. */
   usoCelular: UsoCelular | null;
+  /** Acompañantes con vínculo aceptado (para las alertas de posible aislamiento). */
+  acompanantes: number;
+  /**
+   * YYYY-MM-DD de su última actividad en la organización (asistió, falta
+   * registrar la asistencia o está inscrita en una próxima); null si nunca.
+   */
+  ultimaParticipacion: string | null;
 }
 
 /** Cuántas personas tienen marcado un gusto. */

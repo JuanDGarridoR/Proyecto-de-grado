@@ -135,9 +135,10 @@ describe('PanelOrganizacion: resumen del inicio', () => {
             actividades: () => of([]),
             poblacion: () => of({
               personas: [
-                { idUsuario: 10, nombre: 'Rosa Díaz', fechaNacimiento: null, genero: null, eps: null },
-                { idUsuario: 11, nombre: 'Luis Gómez', fechaNacimiento: null, genero: null, eps: null },
-                { idUsuario: 12, nombre: 'Marta Ruiz', fechaNacimiento: null, genero: null, eps: null }
+                ...['Rosa Díaz', 'Luis Gómez', 'Marta Ruiz'].map((nombre, i) => ({
+                  idUsuario: 10 + i, nombre, fechaNacimiento: null, genero: null, eps: null,
+                  acompanantes: 1, ultimaParticipacion: '2026-10-01'
+                }))
               ],
               intereses: [],
               personasConIntereses: 2,
@@ -189,6 +190,48 @@ describe('PanelOrganizacion: resumen del inicio', () => {
     ]);
     expect(pagina.textContent).toContain('1 solicitud nueva');
     expect(pagina.textContent).toContain('1 urgente');
+  });
+
+  // RF-60: posible aislamiento. Ana tiene las tres señales; Pedro, dos; Sara
+  // solo no tiene acompañantes y Juan solo no participa: van agrupadas. A
+  // Lucía, que solo vive sola, no se le avisa.
+  it('avisa de posible aislamiento según las señales de cada persona', () => {
+    const persona = (idUsuario: number, nombre: string, acompanantes: number,
+                     ultimaParticipacion: string | null, viveSolo: boolean) =>
+      ({ idUsuario, nombre, fechaNacimiento: null, genero: null, eps: null,
+         acompanantes, ultimaParticipacion, viveSolo });
+
+    TestBed.overrideProvider(AnaliticaService, {
+      useValue: {
+        actividades: () => of([]),
+        salud: () => of(null),
+        poblacion: () => of({
+          personas: [
+            persona(20, 'Ana Ruiz', 0, null, true),
+            persona(21, 'Pedro León', 0, '2026-07-01', false),
+            persona(22, 'Sara Gil', 0, '2026-10-01', false),
+            persona(23, 'Juan Mora', 2, '2026-08-01', false),
+            persona(24, 'Lucía Paz', 1, '2026-10-20', true)
+          ],
+          intereses: [],
+          personasConIntereses: 0,
+          acompanantesActivos: 3
+        })
+      }
+    });
+    const fixture = TestBed.createComponent(PanelOrganizacion);
+    fixture.detectChanges();
+
+    const alertas = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.alerta')]
+      .map((a) => [a.querySelector('.alerta__tag')?.textContent?.trim(), a.querySelector('strong')?.textContent?.trim()]);
+
+    expect(alertas).toContainEqual(['Alta', 'Posible aislamiento: Ana Ruiz']);
+    expect(alertas).toContainEqual(['Media', 'Posible aislamiento: Pedro León']);
+    expect(alertas).toContainEqual(['Baja', 'Sara Gil no tiene acompañantes']);
+    expect(alertas).toContainEqual(['Baja', 'Juan Mora no participa en actividades']);
+    expect(alertas.some(([, titulo]) => titulo?.includes('Lucía'))).toBe(false);
+    expect(fixture.nativeElement.textContent)
+      .toContain('No tiene acompañantes, no ha participado en actividades en los últimos 60 días y vive sola.');
   });
 
   it('tiene accesos rápidos para registrar signos vitales y actividades', () => {

@@ -92,6 +92,8 @@ const DIAS_PARTICIPACION = 30;
 const DIAS_SIN_MEDICION = 30;
 /** Cumpleaños que se anuncian: los de los próximos días. */
 const DIAS_CUMPLEANOS = 30;
+/** Pasados estos días sin participar en actividades, cuenta como señal de aislamiento. */
+const DIAS_SIN_PARTICIPAR = 60;
 
 const ORDEN_PRIORIDAD: Record<Prioridad, number> = { Alta: 0, Media: 1, Baja: 2 };
 
@@ -203,6 +205,8 @@ export class PanelOrganizacion implements OnInit, OnDestroy {
       this.cargarActividades();
       this.cargarPropuestas();
       this.cargarParticipacion();
+      // La última participación de cada persona (alertas de aislamiento).
+      this.cargarPoblacion();
     });
     alCambiar(['usuarios'], () => this.cargarInformacionOrganizacion());
     alCambiar(['organizaciones', 'usuarios', 'acompanamientos', 'gustos'], () => this.cargarPoblacion());
@@ -320,13 +324,16 @@ export class PanelOrganizacion implements OnInit, OnDestroy {
 
   /**
    * Alertas calculadas con los datos de la organización:
-   *  - Alta: personas cuya última medición tiene valores fuera de rango.
-   *  - Media: asistencia sin registrar, solicitudes de personas mayores y
-   *    de voluntarios, y propuestas de actividades por revisar.
-   *  - Baja: personas sin mediciones hace más de DIAS_SIN_MEDICION días.
+   *  - Alta: personas cuya última medición tiene valores fuera de rango, y
+   *    posible aislamiento con las tres señales (ver alertasDeAislamiento).
+   *  - Media: posible aislamiento con dos señales, asistencia sin
+   *    registrar, solicitudes de personas mayores y de voluntarios, y
+   *    propuestas de actividades por revisar.
+   *  - Baja: personas sin mediciones hace más de DIAS_SIN_MEDICION días, y
+   *    las que tienen una sola señal de aislamiento (agrupadas).
    */
   protected readonly alertas = computed<Alerta[]>(() => {
-    const alertas: Alerta[] = [];
+    const alertas: Alerta[] = [...this.alertasDeAislamiento()];
     const hoy = fechaLocal(this.ahora());
 
     const salud = this.salud();
@@ -423,6 +430,76 @@ export class PanelOrganizacion implements OnInit, OnDestroy {
     }
 
     return alertas.sort((a, b) => ORDEN_PRIORIDAD[a.prioridad] - ORDEN_PRIORIDAD[b.prioridad]);
+  });
+
+  /**
+   * Posible aislamiento (RF-60). Señales de cada persona: no tiene
+   * acompañantes, no participa en actividades de la organización hace más
+   * de DIAS_SIN_PARTICIPAR días (o nunca) y vive sola. Con las tres, alerta
+   * Alta; con dos, Media, cada una con sus motivos. Quienes solo tienen
+   * "sin acompañantes" o "sin participar" van agrupados en alertas Bajas,
+   * para no llenar la lista. Vivir sola, por sí solo, no es alerta.
+   */
+  private readonly alertasDeAislamiento = computed<Alerta[]>(() => {
+    const alertas: Alerta[] = [];
+    const soloSinAcompanante: string[] = [];
+    const soloSinParticipar: string[] = [];
+
+    for (const p of this.poblacion()?.personas ?? []) {
+      const sinAcompanante = p.acompanantes === 0;
+      const sinParticipar = !p.ultimaParticipacion
+        || diasDesde(`${p.ultimaParticipacion}T00:00`, this.ahora()) > DIAS_SIN_PARTICIPAR;
+      const viveSola = p.viveSolo === true;
+
+      const motivos = [
+        sinAcompanante ? 'no tiene acompañantes' : null,
+        sinParticipar ? `no ha participado en actividades en los últimos ${DIAS_SIN_PARTICIPAR} días` : null,
+        viveSola ? 'vive sola' : null
+      ].filter((m): m is string => m !== null);
+
+      if (motivos.length >= 2) {
+        const texto = motivos.length === 3
+          ? `${motivos[0]}, ${motivos[1]} y ${motivos[2]}`
+          : `${motivos[0]} y ${motivos[1]}`;
+        alertas.push({
+          clave: `aislamiento-${p.idUsuario}`,
+          prioridad: motivos.length === 3 ? 'Alta' : 'Media',
+          titulo: `Posible aislamiento: ${p.nombre}`,
+          descripcion: `${texto.charAt(0).toUpperCase()}${texto.slice(1)}.`,
+          enlace: `${RUTA}/personas-mayores`
+        });
+      } else if (sinAcompanante) {
+        soloSinAcompanante.push(p.nombre);
+      } else if (sinParticipar) {
+        soloSinParticipar.push(p.nombre);
+      }
+    }
+
+    if (soloSinAcompanante.length > 0) {
+      alertas.push({
+        clave: 'sin-acompanante',
+        prioridad: 'Baja',
+        titulo: soloSinAcompanante.length === 1
+          ? `${soloSinAcompanante[0]} no tiene acompañantes`
+          : `${soloSinAcompanante.length} personas sin acompañantes`,
+        descripcion: 'Nadie de su red de apoyo está vinculado en la plataforma.',
+        enlace: `${RUTA}/personas-mayores`
+      });
+    }
+
+    if (soloSinParticipar.length > 0) {
+      alertas.push({
+        clave: 'sin-participar',
+        prioridad: 'Baja',
+        titulo: soloSinParticipar.length === 1
+          ? `${soloSinParticipar[0]} no participa en actividades`
+          : `${soloSinParticipar.length} personas sin participar en actividades`,
+        descripcion: `Sin actividades de la organización en los últimos ${DIAS_SIN_PARTICIPAR} días.`,
+        enlace: `${RUTA}/actividades`
+      });
+    }
+
+    return alertas;
   });
 
   protected readonly stats = computed<StatCard[]>(() => {

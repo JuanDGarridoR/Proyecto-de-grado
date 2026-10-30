@@ -59,7 +59,9 @@ public final class AnaliticaDtos {
             String genero,
             String eps,
             Boolean viveSolo,      // null si no lo ha indicado
-            String usoCelular      // NO_USA, BASICO, INTERMEDIO, AVANZADO o null si no lo ha indicado
+            String usoCelular,     // NO_USA, BASICO, INTERMEDIO, AVANZADO o null si no lo ha indicado
+            int acompanantes,      // acompañantes con vínculo aceptado
+            String ultimaParticipacion // YYYY-MM-DD de su última actividad en la organización, o null si nunca
     ) {
     }
 

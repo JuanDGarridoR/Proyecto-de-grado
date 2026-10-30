@@ -69,6 +69,12 @@ class AnaliticaControllerTest {
                 .andExpect(jsonPath("$.personas[0].viveSolo").doesNotExist())
                 .andExpect(jsonPath("$.personas[1].usoCelular").value("INTERMEDIO"))
                 .andExpect(jsonPath("$.personas[0].usoCelular").doesNotExist())
+                // RF-60: acompañantes aceptados (el pendiente de Rosa no cuenta) y última
+                // participación (Luis solo tiene una a la que no asistió).
+                .andExpect(jsonPath("$.personas[1].acompanantes").value(1))
+                .andExpect(jsonPath("$.personas[0].acompanantes").value(2))
+                .andExpect(jsonPath("$.personas[1].ultimaParticipacion").value("2026-09-25"))
+                .andExpect(jsonPath("$.personas[0].ultimaParticipacion").doesNotExist())
                 .andExpect(jsonPath("$.intereses[*].nombre", contains("Boleros", "Tejer")))
                 .andExpect(jsonPath("$.intereses[0].personas").value(2))
                 .andExpect(jsonPath("$.personasConIntereses").value(2))

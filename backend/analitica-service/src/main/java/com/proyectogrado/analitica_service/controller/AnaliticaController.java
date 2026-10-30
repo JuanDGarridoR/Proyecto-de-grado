@@ -171,14 +171,24 @@ public class AnaliticaController {
 
         // La fecha de nacimiento y el género están en usuario (registro y "Mi
         // información"); de persona_mayor salen la EPS, si vive sola y el
-        // nivel de uso del celular.
+        // nivel de uso del celular. Para las alertas de posible aislamiento
+        // (RF-60) van cuántos acompañantes aceptados tiene y la fecha de su
+        // última participación en actividades de esta organización: asistió,
+        // falta registrar la asistencia o está inscrita en una próxima.
         List<PersonaPoblacion> personas = jdbc.query("""
                 SELECT u.id_usuario, u.nombre_usuario,
                        u.fecha_nacimiento,
                        NULLIF(u.genero, '') AS genero,
                        NULLIF(TRIM(pm.eps), '') AS eps,
                        pm.vive_solo,
-                       NULLIF(pm.uso_celular, '') AS uso_celular
+                       NULLIF(pm.uso_celular, '') AS uso_celular,
+                       (SELECT COUNT(*) FROM persona_mayor_acompanante pa
+                         WHERE pa.id_persona_mayor = u.id_usuario AND pa.estado = 'ACEPTADA') AS acompanantes,
+                       (SELECT MAX(a.fecha) FROM participacion p
+                          JOIN actividad a ON a.id_actividad = p.id_actividad
+                         WHERE p.id_persona_mayor = u.id_usuario
+                           AND a.id_organizacion = :org
+                           AND (p.asistio IS NULL OR p.asistio = TRUE)) AS ultima_participacion
                   FROM usuario u
                   LEFT JOIN persona_mayor pm ON pm.id_usuario = u.id_usuario
                  WHERE u.id_usuario IN (%s)
@@ -191,7 +201,9 @@ public class AnaliticaController {
                         rs.getString("genero"),
                         rs.getString("eps"),
                         (Boolean) rs.getObject("vive_solo"),
-                        rs.getString("uso_celular")
+                        rs.getString("uso_celular"),
+                        rs.getInt("acompanantes"),
+                        fecha(rs, "ultima_participacion")
                 ));
 
         List<InteresConteo> intereses = conteoDeGustos(false, params);
