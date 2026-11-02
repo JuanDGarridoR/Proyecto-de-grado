@@ -124,7 +124,7 @@ class AcompananteSeguimientoControllerTest {
 
     @Test
     void veSiLaCitaNecesitaAcompanamientoQuienLaAcompanaYDondeSeEncuentran() throws Exception {
-        // RF-75
+        // RF-73
         CitaMedicaLookup cita = mock(CitaMedicaLookup.class);
         when(cita.getTitulo()).thenReturn("Colonoscopia");
         when(cita.getFecha()).thenReturn(LocalDate.of(2026, 10, 22));

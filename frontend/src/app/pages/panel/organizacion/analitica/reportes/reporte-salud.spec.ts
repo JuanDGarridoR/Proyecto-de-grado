@@ -164,7 +164,7 @@ describe('ReporteSalud', () => {
     expect(luis?.motivos).toContain('1 medición con valores imposibles (posible error de registro)');
     expect(reporte.kpis().errores).toBe(1);
   });
-  // RF-72: IMC más reciente de cada persona, por categoría de la OMS.
+  // RF-70: IMC más reciente de cada persona, por categoría de la OMS.
   it('agrupa a las personas por su IMC más reciente y no usa pesos imposibles', () => {
     const conPeso = datos();
     conPeso.mediciones = [

@@ -102,12 +102,12 @@ describe('ReportePoblacion', () => {
     expect(filas).toHaveLength(8);
     expect(filas[7]).toEqual(['Otras', 3]);
   });
-  // RF-71: las profesiones u oficios van en su propia gráfica, no entre los intereses.
+  // RF-69: las profesiones u oficios van en su propia gráfica, no entre los intereses.
   it('muestra las profesiones u oficios aparte de los intereses', () => {
     expect(reporte.tablaProfesiones().filas).toEqual([['Cocina', 2], ['Docencia', 1]]);
     expect(reporte.tablaIntereses().filas.map((f) => f[0])).not.toContain('Docencia');
   });
-  // RF-72: cuántas personas viven solas.
+  // RF-70: cuántas personas viven solas.
   it('cuenta cuántas personas viven solas, con otras personas o sin dato', () => {
     expect(reporte.tablaViveSolo().filas).toEqual([
       ['Vive sola', 2, '50 %'],
@@ -116,7 +116,7 @@ describe('ReportePoblacion', () => {
     ]);
   });
 
-  // RF-84: nivel de uso del celular.
+  // RF-82: nivel de uso del celular.
   it('cuenta cuántas personas hay en cada nivel de uso del celular, de menor a mayor y al final quienes no lo indicaron', () => {
     expect(reporte.tablaUsoCelular().filas).toEqual([
       ['No lo usa', 0, '0 %'],

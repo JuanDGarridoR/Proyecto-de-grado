@@ -148,7 +148,7 @@ class UsuarioInformacionControllerTest {
         assertNull(personaMayor.getViveSolo());
     }
 
-    /** RF-84: uso del celular, opcional y solo con las opciones dadas. */
+    /** RF-82: uso del celular, opcional y solo con las opciones dadas. */
     @Test
     void laPersonaMayorIndicaQueTantoUsaElCelularSoloConLasOpcionesDadas() throws Exception {
         PersonaMayor personaMayor = personaMayor();

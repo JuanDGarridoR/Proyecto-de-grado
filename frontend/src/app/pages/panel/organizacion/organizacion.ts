@@ -433,7 +433,7 @@ export class PanelOrganizacion implements OnInit, OnDestroy {
   });
 
   /**
-   * Posible aislamiento (RF-60). Señales de cada persona: no tiene
+   * Posible aislamiento (RF-58). Señales de cada persona: no tiene
    * acompañantes, no participa en actividades de la organización hace más
    * de DIAS_SIN_PARTICIPAR días (o nunca) y vive sola. Con las tres, alerta
    * Alta; con dos, Media, cada una con sus motivos. Quienes solo tienen

@@ -12,7 +12,7 @@ function nota(idNota: number, texto: string): NotaPersonaMayor {
   };
 }
 
-// Notas de la organización sobre una persona mayor (RF-74): agregar,
+// Notas de la organización sobre una persona mayor (RF-72): agregar,
 // editar y eliminar desde el modal.
 describe('ModalNotas', () => {
   const servicio = {

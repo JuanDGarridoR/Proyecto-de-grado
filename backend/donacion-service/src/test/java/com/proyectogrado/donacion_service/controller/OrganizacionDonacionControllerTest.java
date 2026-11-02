@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Donaciones del lado de la organización (RF-64 y RF-65): al recibirlas, lo que llegó entra
+ * Donaciones del lado de la organización (RF-62 y RF-63): al recibirlas, lo que llegó entra
  * al inventario (sumándose a lo que ya había); solo se procesan una vez.
  */
 class OrganizacionDonacionControllerTest {

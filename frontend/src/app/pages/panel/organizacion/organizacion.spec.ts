@@ -192,7 +192,7 @@ describe('PanelOrganizacion: resumen del inicio', () => {
     expect(pagina.textContent).toContain('1 urgente');
   });
 
-  // RF-60: posible aislamiento. Ana tiene las tres señales; Pedro, dos; Sara
+  // RF-58: posible aislamiento. Ana tiene las tres señales; Pedro, dos; Sara
   // solo no tiene acompañantes y Juan solo no participa: van agrupadas. A
   // Lucía, que solo vive sola, no se le avisa.
   it('avisa de posible aislamiento según las señales de cada persona', () => {

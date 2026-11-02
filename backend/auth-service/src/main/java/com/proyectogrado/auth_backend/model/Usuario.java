@@ -62,7 +62,7 @@ public class Usuario {
 
     /**
      * Último rol con el que se usó la cuenta, para quien es persona mayor y
-     * acompañante a la vez (RF-76): al iniciar sesión entra con ese. Null si
+     * acompañante a la vez (RF-74): al iniciar sesión entra con ese. Null si
      * nunca ha cambiado de rol.
      */
     @Column(name = "ultimo_rol", length = 30)

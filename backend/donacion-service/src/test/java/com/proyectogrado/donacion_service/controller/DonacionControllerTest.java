@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Donaciones del lado del donante (RF-62 y RF-63): solo acompañantes y voluntarios, solo a
+ * Donaciones del lado del donante (RF-60 y RF-61): solo acompañantes y voluntarios, solo a
  * organizaciones vinculadas, con fecha válida y al menos un artículo.
  */
 class DonacionControllerTest {

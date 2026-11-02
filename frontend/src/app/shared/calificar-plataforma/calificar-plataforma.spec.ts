@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 
 import { CalificarPlataforma } from './calificar-plataforma';
 
-// Calificación de la plataforma desde el perfil (RF-70): de 0 a 5
+// Calificación de la plataforma desde el perfil (RF-68): de 0 a 5
 // estrellas y una observación opcional; si ya calificó, se actualiza.
 describe('CalificarPlataforma', () => {
   const get = vi.fn();

@@ -172,7 +172,7 @@ public class AnaliticaController {
         // La fecha de nacimiento y el género están en usuario (registro y "Mi
         // información"); de persona_mayor salen la EPS, si vive sola y el
         // nivel de uso del celular. Para las alertas de posible aislamiento
-        // (RF-60) van cuántos acompañantes aceptados tiene y la fecha de su
+        // (RF-58) van cuántos acompañantes aceptados tiene y la fecha de su
         // última participación en actividades de esta organización: asistió,
         // falta registrar la asistencia o está inscrita en una próxima.
         List<PersonaPoblacion> personas = jdbc.query("""

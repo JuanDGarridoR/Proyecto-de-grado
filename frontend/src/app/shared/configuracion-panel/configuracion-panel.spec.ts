@@ -39,7 +39,7 @@ describe('CONFIGURACION_PANEL', () => {
       .toBe(rutas.indexOf('/panel/organizacion/analitica') + 1);
   });
 
-  // RF-62 a RF-68
+  // RF-60 a RF-66
   it('la organización tiene Donaciones e Inventario en el menú', () => {
     const rutas = CONFIGURACION_PANEL['ORGANIZACION'].navItems.map((opcion) => opcion.path);
 

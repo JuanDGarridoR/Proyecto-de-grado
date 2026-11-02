@@ -69,7 +69,7 @@ class AnaliticaControllerTest {
                 .andExpect(jsonPath("$.personas[0].viveSolo").doesNotExist())
                 .andExpect(jsonPath("$.personas[1].usoCelular").value("INTERMEDIO"))
                 .andExpect(jsonPath("$.personas[0].usoCelular").doesNotExist())
-                // RF-60: acompañantes aceptados (el pendiente de Rosa no cuenta) y última
+                // RF-58: acompañantes aceptados (el pendiente de Rosa no cuenta) y última
                 // participación (Luis solo tiene una a la que no asistió).
                 .andExpect(jsonPath("$.personas[1].acompanantes").value(1))
                 .andExpect(jsonPath("$.personas[0].acompanantes").value(2))
@@ -78,7 +78,7 @@ class AnaliticaControllerTest {
                 .andExpect(jsonPath("$.intereses[*].nombre", contains("Boleros", "Tejer")))
                 .andExpect(jsonPath("$.intereses[0].personas").value(2))
                 .andExpect(jsonPath("$.personasConIntereses").value(2))
-                // La profesión va aparte y no cuenta como interés (RF-71).
+                // La profesión va aparte y no cuenta como interés (RF-69).
                 .andExpect(jsonPath("$.intereses[*].nombre", not(hasItem("Docencia"))))
                 .andExpect(jsonPath("$.profesiones[*].nombre", contains("Docencia")))
                 .andExpect(jsonPath("$.personasConProfesion").value(1))
@@ -144,7 +144,7 @@ class AnaliticaControllerTest {
                 .andExpect(jsonPath("$.mediciones[1].saturacionOxigeno").value(92))
                 // Lo que no se midió llega vacío, no en cero.
                 .andExpect(jsonPath("$.mediciones[1].presionSistolica").doesNotExist())
-                // Peso y estatura, para el IMC (RF-72).
+                // Peso y estatura, para el IMC (RF-70).
                 .andExpect(jsonPath("$.mediciones[0].peso").value(60.0))
                 .andExpect(jsonPath("$.mediciones[0].estatura").value(155.0));
     }
@@ -171,7 +171,7 @@ class AnaliticaControllerTest {
 
     @Test
     void elReporteDeRetirosTraeLosDeLaOrganizacionDelMasReciente() throws Exception {
-        // RF-73: por qué las personas mayores eliminaron su cuenta.
+        // RF-71: por qué las personas mayores eliminaron su cuenta.
         mockMvc.perform(get("/api/analitica/retiros").header("X-User-Id", CUENTA_ORGANIZACION))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.retiros[*].nombre", contains("Jorge Ríos", "Carmen Peña")))

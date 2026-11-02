@@ -8,7 +8,7 @@ Convenciones:
 * Los roles del sistema son **persona mayor**, **acompañante**, **organización** y **voluntario**.
 * Un vínculo está **aceptado** cuando la otra parte aprobó la solicitud correspondiente.
 * **Estado**: ✅ Implementado · ⏳ Pendiente.
-* Los identificadores no se renumeran, porque las pruebas automatizadas los citan. Por eso, dentro de cada módulo pueden aparecer en desorden. Los requerimientos nuevos continúan la numeración (RF-58 en adelante, RNF-11 en adelante).
+* Las pruebas automatizadas y los comentarios del código citan los identificadores; si se renumeran, hay que actualizar también esas citas. Dentro de cada módulo pueden aparecer en desorden. Los requerimientos nuevos continúan la numeración (RF-83 en adelante, RNF-30 en adelante).
 
 ---
 
@@ -22,7 +22,7 @@ Autenticación de los usuarios, verificación de sus correos electrónicos y adm
 | --- | --- | --- |
 | RF-01 | El sistema debe permitir que un usuario se registre con uno de los cuatro roles, ingresando sus datos personales en un único formulario que marca los campos obligatorios. | ✅ Implementado |
 | RF-02 | El sistema debe exigir que el usuario acepte los términos y condiciones antes de completar el registro. | ✅ Implementado |
-| RF-69 | El sistema debe guardar una constancia de la aceptación de los términos y condiciones de cada cuenta creada, con el usuario, la fecha y la hora (hora de Colombia) y la versión de los términos aceptada. La constancia se conserva aunque la cuenta se elimine. | ✅ Implementado |
+| RF-67 | El sistema debe guardar una constancia de la aceptación de los términos y condiciones de cada cuenta creada, con el usuario, la fecha y la hora (hora de Colombia) y la versión de los términos aceptada. La constancia se conserva aunque la cuenta se elimine. | ✅ Implementado |
 | RF-03 | El sistema debe verificar, mediante un servicio externo (Hunter), que el correo electrónico ingresado existe y puede recibir mensajes; si no es válido, la cuenta no se crea. | ✅ Implementado |
 | RF-04 | El sistema debe permitir iniciar sesión con correo electrónico y contraseña. | ✅ Implementado |
 | RF-05 | El sistema debe permitir iniciar sesión con número de celular y un código de un solo uso (OTP) enviado por SMS, validando previamente que el número esté registrado. | ✅ Implementado |
@@ -42,7 +42,7 @@ Autenticación de los usuarios, verificación de sus correos electrónicos y adm
 | ID | Requerimiento | Estado |
 | --- | --- | --- |
 | RF-11 | El sistema debe redirigir a cada usuario, después de iniciar sesión, al panel que corresponde a su rol y restringir el acceso a los paneles de los demás roles. | ✅ Implementado |
-| RF-76 | El sistema debe permitir que una misma cuenta sea persona mayor y acompañante, con la misma información personal, y cambiar entre los dos roles desde el óvalo del rol en la barra superior, previa confirmación; si la cuenta aún no tiene el otro rol, se activa al confirmar sin un nuevo registro. Una cuenta no puede ser acompañante de sí misma. | ✅ Implementado |
+| RF-74 | El sistema debe permitir que una misma cuenta sea persona mayor y acompañante, con la misma información personal, y cambiar entre los dos roles desde el óvalo del rol en la barra superior, previa confirmación; si la cuenta aún no tiene el otro rol, se activa al confirmar sin un nuevo registro. Una cuenta no puede ser acompañante de sí misma. | ✅ Implementado |
 
 ---
 
@@ -59,10 +59,10 @@ Registro, consulta y actualización de la información de personas mayores, acom
 | RF-14 | El sistema debe permitir a la persona mayor registrar su EPS, su IPS y la dirección de la IPS. | ✅ Implementado |
 | RF-15 | El sistema debe permitir a la organización registrar y actualizar su información institucional. | ✅ Implementado |
 | RF-16 | El sistema debe permitir a la persona mayor y al voluntario registrar sus gustos e intereses a partir de un catálogo, y agregar al catálogo uno que no esté en la lista. El catálogo trae opciones generales de gustos, talentos, pasatiempos y profesiones u oficios, sin opciones casi repetidas: si existen dos casi iguales, quien tenía marcada la que sobra queda con la que se conserva. | ✅ Implementado |
-| RF-71 | El sistema debe permitir a la persona mayor y al voluntario registrar, junto a sus intereses, su profesión u oficio (a qué se dedica o se dedicó), a partir de un catálogo; tenerla en cuenta, con menor peso que los gustos, en la recomendación de organizaciones, y mostrar a la organización las profesiones de sus personas mayores en el reporte de población. | ✅ Implementado |
-| RF-84 | El sistema debe permitir a la persona mayor, o a su acompañante en su nombre, indicar de forma opcional su nivel de uso del celular (no lo usa; bajo, solo llamadas; medio, llamadas y WhatsApp, o alto, varias aplicaciones), y mostrar a la organización, en el reporte de población, cuántas personas hay en cada nivel y cuántas no lo han indicado. | ✅ Implementado |
-| RF-61 | El sistema debe permitir a cada usuario subir, cambiar o quitar una foto de perfil (JPG, PNG o WebP), que se muestra a sus vínculos en sus listas y junto a su nombre en la barra superior del panel; si no tiene foto, se muestra su inicial o un ícono. | ✅ Implementado |
-| RF-70 | El sistema debe permitir a cada usuario calificar la plataforma desde su perfil, de 0 a 5 estrellas, con una observación u oportunidad de mejora opcional; cada usuario tiene una sola calificación, que puede actualizar. | ✅ Implementado |
+| RF-69 | El sistema debe permitir a la persona mayor y al voluntario registrar, junto a sus intereses, su profesión u oficio (a qué se dedica o se dedicó), a partir de un catálogo; tenerla en cuenta, con menor peso que los gustos, en la recomendación de organizaciones, y mostrar a la organización las profesiones de sus personas mayores en el reporte de población. | ✅ Implementado |
+| RF-82 | El sistema debe permitir a la persona mayor, o a su acompañante en su nombre, indicar de forma opcional su nivel de uso del celular (no lo usa; bajo, solo llamadas; medio, llamadas y WhatsApp, o alto, varias aplicaciones), y mostrar a la organización, en el reporte de población, cuántas personas hay en cada nivel y cuántas no lo han indicado. | ✅ Implementado |
+| RF-59 | El sistema debe permitir a cada usuario subir, cambiar o quitar una foto de perfil (JPG, PNG o WebP), que se muestra a sus vínculos en sus listas y junto a su nombre en la barra superior del panel; si no tiene foto, se muestra su inicial o un ícono. | ✅ Implementado |
+| RF-68 | El sistema debe permitir a cada usuario calificar la plataforma desde su perfil, de 0 a 5 estrellas, con una observación u oportunidad de mejora opcional; cada usuario tiene una sola calificación, que puede actualizar. | ✅ Implementado |
 
 ### 2.2 Información de salud de la persona mayor
 
@@ -70,7 +70,7 @@ Registro, consulta y actualización de la información de personas mayores, acom
 | --- | --- | --- |
 | RF-24 | El sistema debe permitir registrar, consultar, editar y eliminar los medicamentos de la persona mayor, con su dosis, frecuencia, hora de la primera toma, intervalo entre tomas y fechas de inicio y fin del tratamiento. | ✅ Implementado |
 | RF-26 | El sistema debe permitir registrar, consultar, editar y eliminar citas médicas de la persona mayor, incluyendo el consultorio. | ✅ Implementado |
-| RF-75 | El sistema debe permitir indicar, al registrar o editar una cita médica, si necesita acompañamiento (porque la cita lo requiere o porque la persona mayor quiere ir acompañada); mostrar esas citas en el seguimiento de sus acompañantes para que uno de ellos acepte acompañarla indicando el punto de encuentro, y avisar por SMS a la persona mayor quién la acompañará y dónde se encontrarán. | ✅ Implementado |
+| RF-73 | El sistema debe permitir indicar, al registrar o editar una cita médica, si necesita acompañamiento (porque la cita lo requiere o porque la persona mayor quiere ir acompañada); mostrar esas citas en el seguimiento de sus acompañantes para que uno de ellos acepte acompañarla indicando el punto de encuentro, y avisar por SMS a la persona mayor quién la acompañará y dónde se encontrarán. | ✅ Implementado |
 | RF-28 | El sistema debe permitir registrar las condiciones de salud de la persona mayor (enfermedades, alergias y discapacidades) a partir de un catálogo. | ✅ Implementado |
 | RF-29 | El sistema debe permitir registrar signos vitales (presión arterial, pulso, temperatura corporal, saturación de oxígeno, frecuencia respiratoria, peso y estatura) tanto a la persona mayor como a la organización. | ✅ Implementado |
 | RF-30 | El sistema debe rechazar valores de signos vitales que estén fuera de los límites físicamente posibles. | ✅ Implementado |
@@ -82,9 +82,7 @@ Registro, consulta y actualización de la información de personas mayores, acom
 
 | ID | Requerimiento | Estado |
 | --- | --- | --- |
-| RF-58 | El sistema debe permitir a la organización consultar, en una sola sección, los acompañantes de todas las personas mayores vinculadas a ella. | ⏳ Pendiente |
-| RF-59 | El sistema debe permitir a la organización consultar los medicamentos vigentes de las personas mayores vinculadas a ella. | ⏳ Pendiente |
-| RF-74 | El sistema debe permitir a la organización tomar notas sobre cada persona mayor vinculada (con su fecha, hora y autor), y editarlas o eliminarlas cuando quiera; las notas solo las ve la organización que las escribió. | ✅ Implementado |
+| RF-72 | El sistema debe permitir a la organización tomar notas sobre cada persona mayor vinculada (con su fecha, hora y autor), y editarlas o eliminarlas cuando quiera; las notas solo las ve la organización que las escribió. | ✅ Implementado |
 
 ---
 
@@ -103,7 +101,7 @@ Relaciones de apoyo entre usuarios, contactos de emergencia, actividades de acom
 | RF-21 | El sistema debe mostrar las solicitudes pendientes recibidas y las enviadas por el usuario. | ✅ Implementado |
 | RF-22 | El sistema debe permitir a la organización consultar los acompañantes de cada persona mayor vinculada, y al acompañante consultar los demás acompañantes de sus personas mayores. | ✅ Implementado |
 | RF-23 | El sistema debe permitir buscar por nombre dentro de las listas de personas vinculadas. | ✅ Implementado |
-| RF-77 | El sistema debe guardar el parentesco del acompañante en cada vínculo, porque puede ser distinto con cada persona mayor, y permitir editarlo desde las tarjetas: la persona mayor, en sus acompañantes, y el acompañante, en sus personas mayores. Los vínculos creados antes conservan el parentesco que tenían. | ✅ Implementado |
+| RF-75 | El sistema debe guardar el parentesco del acompañante en cada vínculo, porque puede ser distinto con cada persona mayor, y permitir editarlo desde las tarjetas: la persona mayor, en sus acompañantes, y el acompañante, en sus personas mayores. Los vínculos creados antes conservan el parentesco que tenían. | ✅ Implementado |
 
 ### 3.2 Contactos y emergencias
 
@@ -129,7 +127,7 @@ Relaciones de apoyo entre usuarios, contactos de emergencia, actividades de acom
 | RF-41 | El sistema debe permitir a la organización consultar los participantes de cada actividad y registrar su asistencia. | ✅ Implementado |
 | RF-42 | El sistema debe permitir que voluntarios y personas mayores propongan actividades a las organizaciones a las que están vinculados, y que la organización acepte o rechace cada propuesta. | ✅ Implementado |
 | RF-44 | El sistema debe eliminar las inscripciones de una actividad cuando esta se elimine. | ✅ Implementado |
-| RF-78 | El sistema debe mostrar a la persona mayor, en un mapa, sus próximas actividades y las organizaciones a las que pertenece o puede unirse, con la opción "Cómo llegar" (Google Maps) y la distancia desde su ubicación actual si la comparte. La ubicación de cada sede y de cada lugar de actividad se obtiene automáticamente a partir de su dirección (Google Places), sin que nadie escriba coordenadas; si no se encuentra el lugar, la actividad se muestra en la sede de su organización. | ✅ Implementado |
+| RF-76 | El sistema debe mostrar a la persona mayor, en un mapa, sus próximas actividades y las organizaciones a las que pertenece o puede unirse, con la opción "Cómo llegar" (Google Maps) y la distancia desde su ubicación actual si la comparte. La ubicación de cada sede y de cada lugar de actividad se obtiene automáticamente a partir de su dirección (Google Places), sin que nadie escriba coordenadas; si no se encuentra el lugar, la actividad se muestra en la sede de su organización. | ✅ Implementado |
 
 ### 3.5 Recordatorios y notificaciones
 
@@ -148,13 +146,13 @@ Las donaciones registran lo que un acompañante o un voluntario se compromete a 
 
 | ID | Requerimiento | Estado |
 | --- | --- | --- |
-| RF-62 | El sistema debe permitir al acompañante y al voluntario programar una donación para una organización con la que estén vinculados, indicando la fecha de entrega, una hora aproximada opcional, observaciones y uno o más artículos, cada uno con categoría, descripción, cantidad, unidad y fecha de vencimiento opcional. El voluntario puede donar a las organizaciones en las que está aceptado; el acompañante, a las organizaciones de las personas mayores que acompaña. | ✅ Implementado |
-| RF-63 | El sistema debe permitir al donante consultar sus donaciones con su estado (programada, recibida, no entregada o cancelada) y cancelar las que aún estén programadas. | ✅ Implementado |
-| RF-64 | El sistema debe permitir a la organización consultar las donaciones programadas para ella y marcar cada una como recibida, indicando la cantidad que llegó de cada artículo, o como no entregada, con una nota opcional para el donante. Una donación solo se procesa una vez. | ✅ Implementado |
-| RF-65 | El sistema debe sumar automáticamente al inventario de la organización lo recibido de cada donación, agregándolo al artículo existente con el mismo nombre, categoría y unidad, o creando uno nuevo. | ✅ Implementado |
-| RF-66 | El sistema debe permitir a la organización crear, editar y eliminar artículos de su inventario, con nombre, categoría, unidad, cantidad mínima de aviso y fecha de vencimiento opcional. | ✅ Implementado |
-| RF-67 | El sistema debe permitir a la organización registrar entradas y salidas de cada artículo con su motivo (compra, entrega a personas mayores, uso en actividades, vencimiento, daño o ajuste), sin permitir salidas mayores que la existencia, y consultar el historial de movimientos de cada artículo. | ✅ Implementado |
-| RF-68 | El sistema debe señalar en el inventario los artículos agotados o por debajo de su cantidad mínima y los vencidos o que vencen en los próximos 30 días, y mostrar el dinero disponible. | ✅ Implementado |
+| RF-60 | El sistema debe permitir al acompañante y al voluntario programar una donación para una organización con la que estén vinculados, indicando la fecha de entrega, una hora aproximada opcional, observaciones y uno o más artículos, cada uno con categoría, descripción, cantidad, unidad y fecha de vencimiento opcional. El voluntario puede donar a las organizaciones en las que está aceptado; el acompañante, a las organizaciones de las personas mayores que acompaña. | ✅ Implementado |
+| RF-61 | El sistema debe permitir al donante consultar sus donaciones con su estado (programada, recibida, no entregada o cancelada) y cancelar las que aún estén programadas. | ✅ Implementado |
+| RF-62 | El sistema debe permitir a la organización consultar las donaciones programadas para ella y marcar cada una como recibida, indicando la cantidad que llegó de cada artículo, o como no entregada, con una nota opcional para el donante. Una donación solo se procesa una vez. | ✅ Implementado |
+| RF-63 | El sistema debe sumar automáticamente al inventario de la organización lo recibido de cada donación, agregándolo al artículo existente con el mismo nombre, categoría y unidad, o creando uno nuevo. | ✅ Implementado |
+| RF-64 | El sistema debe permitir a la organización crear, editar y eliminar artículos de su inventario, con nombre, categoría, unidad, cantidad mínima de aviso y fecha de vencimiento opcional. | ✅ Implementado |
+| RF-65 | El sistema debe permitir a la organización registrar entradas y salidas de cada artículo con su motivo (compra, entrega a personas mayores, uso en actividades, vencimiento, daño o ajuste), sin permitir salidas mayores que la existencia, y consultar el historial de movimientos de cada artículo. | ✅ Implementado |
+| RF-66 | El sistema debe señalar en el inventario los artículos agotados o por debajo de su cantidad mínima y los vencidos o que vencen en los próximos 30 días, y mostrar el dinero disponible. | ✅ Implementado |
 
 ---
 
@@ -170,16 +168,16 @@ Indicadores, reportes y visualizaciones para identificar patrones, apoyar el per
 | RF-46 | El sistema debe mostrar a la organización un reporte de salud con el estado actual de cada indicador y la lista de personas mayores que requieren atención. | ✅ Implementado |
 | RF-47 | El sistema debe mostrar a la organización un reporte de población con la distribución por rangos de edad, género, EPS e intereses más comunes, como apoyo al perfilamiento de las personas mayores. | ✅ Implementado |
 | RF-48 | El sistema debe permitir descargar cada reporte en PDF, incluyendo una explicación de cada gráfica. | ✅ Implementado |
-| RF-72 | El sistema debe mostrar a la organización, en el reporte de población, cuántas personas mayores viven solas y, en el reporte de salud, cuántas están en cada categoría de índice de masa corporal (IMC) según su medición más reciente. | ✅ Implementado |
-| RF-73 | El sistema debe mostrar a la organización un reporte de retiros con las personas mayores que eliminaron su cuenta en el período: cuántas fueron, la tasa de retiro, las razones (separando las relacionadas con la plataforma), los retiros por mes y los comentarios que dejaron. | ✅ Implementado |
-| RF-83 | El sistema debe mostrar a la organización un reporte de donaciones e inventario, filtrado por el período elegido, con el porcentaje de donaciones que llegaron (sobre las recibidas y no entregadas), las donaciones por recibir y las que tienen la fecha de entrega vencida, las donaciones por mes según su estado, qué se recibe por categoría y quién dona; y, con el estado de hoy del inventario, los artículos agotados o por agotarse, los vencidos o por vencer, el dinero disponible, las entradas y salidas por motivo y las existencias por categoría, con las mismas reglas de RF-68. | ✅ Implementado |
-| RF-81 | El sistema debe agrupar a las personas mayores de la organización en perfiles con características parecidas (edad, condiciones de salud, signos vitales y necesidades de acompañamiento) mediante K-means, eligiendo el número de grupos con el coeficiente de silueta; evaluar antes si la calidad y la cantidad de los datos alcanzan para entrenar el modelo, explicando a quién se excluyó y por qué; y mostrar en la pestaña "Grupos de atención" de la analítica cada perfil con sus rasgos, recomendaciones de atención y de actividades, un mapa de los grupos en dos dimensiones (PCA) y las advertencias sobre los datos, con exportación a PDF. Detalle en `KMEANS_PERFILES.md`. | ✅ Implementado |
+| RF-70 | El sistema debe mostrar a la organización, en el reporte de población, cuántas personas mayores viven solas y, en el reporte de salud, cuántas están en cada categoría de índice de masa corporal (IMC) según su medición más reciente. | ✅ Implementado |
+| RF-71 | El sistema debe mostrar a la organización un reporte de retiros con las personas mayores que eliminaron su cuenta en el período: cuántas fueron, la tasa de retiro, las razones (separando las relacionadas con la plataforma), los retiros por mes y los comentarios que dejaron. | ✅ Implementado |
+| RF-81 | El sistema debe mostrar a la organización un reporte de donaciones e inventario, filtrado por el período elegido, con el porcentaje de donaciones que llegaron (sobre las recibidas y no entregadas), las donaciones por recibir y las que tienen la fecha de entrega vencida, las donaciones por mes según su estado, qué se recibe por categoría y quién dona; y, con el estado de hoy del inventario, los artículos agotados o por agotarse, los vencidos o por vencer, el dinero disponible, las entradas y salidas por motivo y las existencias por categoría, con las mismas reglas de RF-66. | ✅ Implementado |
+| RF-79 | El sistema debe agrupar a las personas mayores de la organización en perfiles con características parecidas (edad, condiciones de salud, signos vitales y necesidades de acompañamiento) mediante K-means, eligiendo el número de grupos con el coeficiente de silueta; evaluar antes si la calidad y la cantidad de los datos alcanzan para entrenar el modelo, explicando a quién se excluyó y por qué; y mostrar en la pestaña "Grupos de atención" de la analítica cada perfil con sus rasgos, recomendaciones de atención y de actividades, un mapa de los grupos en dos dimensiones (PCA) y las advertencias sobre los datos, con exportación a PDF. Detalle en `KMEANS_PERFILES.md`. | ✅ Implementado |
 
 ### 4.2 Alertas básicas de seguimiento
 
 | ID | Requerimiento | Estado |
 | --- | --- | --- |
-| RF-60 | El sistema debe mostrar a la organización, en su sección de alertas, las personas mayores vinculadas que podrían estar en situación de aislamiento o vulnerabilidad: las que no participan en actividades desde hace un tiempo definido, las que no tienen acompañantes y las que tienen signos vitales recientes fuera de rango, indicando el motivo de cada alerta. Las señales de aislamiento son no tener acompañantes, no participar en actividades de la organización en los últimos 60 días y vivir sola: con las tres la alerta es de prioridad alta, con dos es media, y quienes tienen una sola (sin contar vivir sola) se agrupan en una alerta de prioridad baja. | ✅ Implementado |
+| RF-58 | El sistema debe mostrar a la organización, en su sección de alertas, las personas mayores vinculadas que podrían estar en situación de aislamiento o vulnerabilidad: las que no participan en actividades desde hace un tiempo definido, las que no tienen acompañantes y las que tienen signos vitales recientes fuera de rango, indicando el motivo de cada alerta. Las señales de aislamiento son no tener acompañantes, no participar en actividades de la organización en los últimos 60 días y vivir sola: con las tres la alerta es de prioridad alta, con dos es media, y quienes tienen una sola (sin contar vivir sola) se agrupan en una alerta de prioridad baja. | ✅ Implementado |
 
 ### 4.3 Recomendaciones
 
@@ -191,8 +189,8 @@ Indicadores, reportes y visualizaciones para identificar patrones, apoyar el per
 
 | ID | Requerimiento | Estado |
 | --- | --- | --- |
-| RF-79 | El sistema debe mostrar a la organización, en la sección "Red y mapa", un grafo de su red de apoyo (la organización unida a sus personas mayores y voluntarios, y cada persona mayor a sus acompañantes), resaltando a las personas mayores sin acompañante como posible aislamiento, y un grafo por gustos que una cada gusto con quienes lo tienen. | ✅ Implementado |
-| RF-80 | El sistema debe mostrar a la organización un mapa de su red con la sede, las personas mayores agrupadas por barrio (nunca su dirección exacta), los lugares de sus actividades de los últimos 3 meses y los próximos 2, y líneas de cada barrio a los lugares a los que va su gente, con filtro por gusto. Cada gráfica incluye indicadores y una vista de tabla. | ✅ Implementado |
+| RF-77 | El sistema debe mostrar a la organización, en la sección "Red y mapa", un grafo de su red de apoyo (la organización unida a sus personas mayores y voluntarios, y cada persona mayor a sus acompañantes), resaltando a las personas mayores sin acompañante como posible aislamiento, y un grafo por gustos que una cada gusto con quienes lo tienen. | ✅ Implementado |
+| RF-78 | El sistema debe mostrar a la organización un mapa de su red con la sede, las personas mayores agrupadas por barrio (nunca su dirección exacta), los lugares de sus actividades de los últimos 3 meses y los próximos 2, y líneas de cada barrio a los lugares a los que va su gente, con filtro por gusto. Cada gráfica incluye indicadores y una vista de tabla. | ✅ Implementado |
 
 ---
 
@@ -205,7 +203,7 @@ Indicadores, reportes y visualizaciones para identificar patrones, apoyar el per
 | RF-55 | El sistema debe mostrar a la organización, en su inicio, el resumen de sus personas mayores, voluntarios y actividades, con acciones rápidas para registrar signos vitales y actividades. | ✅ Implementado |
 | RF-56 | El sistema debe mostrar al voluntario, en su inicio, sus organizaciones y actividades. | ✅ Implementado |
 | RF-57 | El sistema debe ofrecer una página pública de inicio (landing) que presente la plataforma y sus módulos. | ✅ Implementado |
-| RF-82 | El sistema debe ofrecer en todas las páginas un botón flotante para activar o desactivar un lector de voz que diga en voz alta para qué sirve lo que el usuario toca: botones, campos de texto y texto común. | ✅ Implementado |
+| RF-80 | El sistema debe ofrecer en todas las páginas un botón flotante para activar o desactivar un lector de voz que diga en voz alta para qué sirve lo que el usuario toca: botones, campos de texto y texto común. | ✅ Implementado |
 
 ---
 

@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Notas de la organización sobre sus personas mayores (RF-74): solo de
+ * Notas de la organización sobre sus personas mayores (RF-72): solo de
  * personas vinculadas, privadas de cada organización y editables.
  */
 class NotaPersonaMayorControllerTest {

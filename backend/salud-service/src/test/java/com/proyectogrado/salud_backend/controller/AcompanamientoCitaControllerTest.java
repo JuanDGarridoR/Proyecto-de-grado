@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Acompañamiento a citas médicas (RF-75): un acompañante se ofrece a ir con
+ * Acompañamiento a citas médicas (RF-73): un acompañante se ofrece a ir con
  * la persona mayor, dice dónde se encuentran y ella recibe un SMS.
  */
 class AcompanamientoCitaControllerTest {

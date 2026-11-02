@@ -25,7 +25,7 @@ interface VistaReporte {
   tablaMeses(): { filas: (string | number)[][] };
 }
 
-// Reporte de retiros de la analítica (RF-73): cuántas personas mayores
+// Reporte de retiros de la analítica (RF-71): cuántas personas mayores
 // eliminaron su cuenta en el período, por qué y qué comentaron. La fecha se
 // fija en el 14 de octubre de 2026.
 describe('ReporteRetiros', () => {

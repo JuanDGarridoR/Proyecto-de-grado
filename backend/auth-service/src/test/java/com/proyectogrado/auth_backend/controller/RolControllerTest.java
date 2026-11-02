@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Cambio de rol entre persona mayor y acompañante (RF-76): la misma cuenta,
+ * Cambio de rol entre persona mayor y acompañante (RF-74): la misma cuenta,
  * con su misma información, se usa con uno u otro rol.
  */
 class RolControllerTest {

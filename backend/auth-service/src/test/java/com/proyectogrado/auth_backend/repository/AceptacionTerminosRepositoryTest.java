@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Constancias de aceptación de los términos (RF-69) en una base H2 en
+ * Constancias de aceptación de los términos (RF-67) en una base H2 en
  * memoria: las cuentas anteriores reciben la suya una sola vez, con la fecha
  * de creación de la cuenta, y la constancia sobrevive al borrar la cuenta.
  */

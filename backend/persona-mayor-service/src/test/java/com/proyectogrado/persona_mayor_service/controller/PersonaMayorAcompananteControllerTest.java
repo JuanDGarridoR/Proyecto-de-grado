@@ -114,7 +114,7 @@ class PersonaMayorAcompananteControllerTest {
 
     @Test
     void unaPersonaMayorQueTambienEsAcompananteNoSeAgregaASiMisma() throws Exception {
-        // La cuenta 20 tiene los dos roles (RF-76) y escribe su propio celular.
+        // La cuenta 20 tiene los dos roles (RF-74) y escribe su propio celular.
         mockMvc.perform(post("/api/persona-mayor/acompanantes")
                         .header("X-User-Id", ACOMPANANTE)
                         .contentType(MediaType.APPLICATION_JSON)

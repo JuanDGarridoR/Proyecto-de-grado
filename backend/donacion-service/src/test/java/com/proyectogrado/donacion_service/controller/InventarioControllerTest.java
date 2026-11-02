@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Inventario de la organización (RF-66 y RF-67): la cantidad solo cambia con movimientos,
+ * Inventario de la organización (RF-64 y RF-65): la cantidad solo cambia con movimientos,
  * una salida no puede dejarla negativa y no se duplican artículos.
  */
 class InventarioControllerTest {

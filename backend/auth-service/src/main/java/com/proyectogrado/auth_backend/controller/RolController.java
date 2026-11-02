@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Cambio de rol entre persona mayor y acompañante (RF-76).
+ * Cambio de rol entre persona mayor y acompañante (RF-74).
  *
  * Una misma cuenta (un solo usuario: nombre, celular, dirección, foto...)
  * puede tener los dos roles; cada uno tiene su fila en usuario_rol y en su

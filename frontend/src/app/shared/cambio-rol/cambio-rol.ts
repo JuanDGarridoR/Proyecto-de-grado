@@ -4,7 +4,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { mensajeDeError } from '../../core/formato/formato';
 import { Icono } from '../icono/icono';
 
-/** Rol al que puede pasar cada uno (RF-76): solo persona mayor ↔ acompañante. */
+/** Rol al que puede pasar cada uno (RF-74): solo persona mayor ↔ acompañante. */
 const OTRO_ROL: Record<string, string> = {
   PERSONA_MAYOR: 'ACOMPANANTE',
   ACOMPANANTE: 'PERSONA_MAYOR'

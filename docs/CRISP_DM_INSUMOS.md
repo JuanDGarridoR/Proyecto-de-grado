@@ -39,7 +39,7 @@ Entre el 21 y el 29 de octubre de 2026 entraron estos cambios que afectan el doc
 | `9733c42` | El script de datos ficticios agrega **160 personas mayores a la Fundación Entrenubes Usme** con cuatro arquetipos bien diferenciados y **20 actividades** más | 2.1, 2.2.1, cierre de la Fase 2, 4.2, 4.4 |
 | `122766c` | Spring Boot 4.1.1 → **4.1.2** en todos los servicios (las URLs no cambian) | 6.1 (opcional) |
 | `4417b14` | El perfil de la organización ya no muestra «Ubicación en el mapa» | No afecta el documento |
-| 29/10/2026 | Nuevo dato opcional de la persona mayor: **nivel de uso del celular** (RF-84), y gráfica nueva **«Nivel de uso del celular»** en el reporte «Perfil de la población», con PDF; el script de datos ficticios lo llena | 2.1, 2.2.2, Tabla 5, 3.1, Tabla 13, Tabla 14, 6.2, Tabla 17, Anexo F (ver B.8) |
+| 29/10/2026 | Nuevo dato opcional de la persona mayor: **nivel de uso del celular** (RF-82), y gráfica nueva **«Nivel de uso del celular»** en el reporte «Perfil de la población», con PDF; el script de datos ficticios lo llena | 2.1, 2.2.2, Tabla 5, 3.1, Tabla 13, Tabla 14, 6.2, Tabla 17, Anexo F (ver B.8) |
 | 29/10/2026 | El acompañante puede inscribir a sus personas mayores en actividades desde «Seguimiento» (RF-40) | No afecta el documento: la inscripción se guarda igual (`participacion`) y los indicadores de actividades no cambian |
 
 ### B.1 Pestaña «Perfiles» → «Grupos de atención»
@@ -50,7 +50,7 @@ Reemplazar en todo el documento. Ubicaciones exactas:
 |---|---|---|
 | 3.6, primer `[POR COMPLETAR]` | «Se obtiene en Analítica → Perfiles» | «Se obtiene en Analítica → Grupos de atención» |
 | 3.6, placeholder de la Figura 1 | «…de la pestaña Perfiles» | «…de la pestaña «Grupos de atención»» |
-| Tabla 10, fila Perfilamiento | «Pestaña «Perfiles» (RF-81)» | «Pestaña «Grupos de atención» (RF-81)» |
+| Tabla 10, fila Perfilamiento | «Pestaña «Perfiles» (RF-79)» | «Pestaña «Grupos de atención» (RF-79)» |
 | 6.1, «Ubicación en la plataforma» | Ver B.4 (cambia la lista completa de pestañas) | |
 | 6.3, título y primer párrafo | «La pestaña «Perfiles» presenta…» | «La pestaña «Grupos de atención» presenta…». El título de la sección puede quedarse «6.3 Visualización de Perfiles» (en el modelo se siguen llamando perfiles) |
 | Tabla 16, encabezado | «Elemento de la pestaña «Perfiles»» | «Elemento de la pestaña «Grupos de atención»» |
@@ -102,7 +102,7 @@ Y en el punto **Arquitectura** de 6.1, agregar los dos endpoints nuevos:
 | Regla | Detalle | Motivo |
 |---|---|---|
 | Donaciones sin desenlace | El porcentaje de donaciones que llegaron se calcula solo sobre las donaciones recibidas y no entregadas; las programadas y las canceladas no cuentan. Una donación programada cuya fecha de entrega ya pasó se señala como vencida. | Una donación que todavía no debía llegar, o que el donante canceló, no es un incumplimiento. |
-| Vencimiento de artículos agotados | Un artículo solo se marca como vencido o por vencer (próximos 30 días) si todavía tiene existencias. | Un artículo agotado no representa un riesgo de vencimiento. Son las mismas reglas de la página de Inventario (RF-68). |
+| Vencimiento de artículos agotados | Un artículo solo se marca como vencido o por vencer (próximos 30 días) si todavía tiene existencias. | Un artículo agotado no representa un riesgo de vencimiento. Son las mismas reglas de la página de Inventario (RF-66). |
 
 **3.3, viñeta «Agregaciones temporales»** — cambiar por:
 
@@ -114,7 +114,7 @@ Y en el punto **Arquitectura** de 6.1, agregar los dos endpoints nuevos:
 
 | Objetivo analítico (Fase 1) | Técnica | Dónde se ve en la plataforma |
 |---|---|---|
-| Indicadores de seguimiento (1.3.3): recursos de la organización | Estadística descriptiva y reglas explícitas de aviso (agotado, por debajo de la cantidad mínima, vencido o por vencer en 30 días) | Pestaña «Donaciones e inventario» (RF-83) |
+| Indicadores de seguimiento (1.3.3): recursos de la organización | Estadística descriptiva y reglas explícitas de aviso (agotado, por debajo de la cantidad mínima, vencido o por vencer en 30 días) | Pestaña «Donaciones e inventario» (RF-81) |
 
 y en 1.3.3, en la lista de indicadores finales, agregar «donaciones e inventario» antes de «y retiros».
 
@@ -124,13 +124,13 @@ y en 1.3.3, en la lista de indicadores finales, agregar «donaciones e inventari
 
 | Reporte | Indicador | Fórmula o regla | Fuente |
 |---|---|---|---|
-| Donaciones e inventario (RF-83) | Donaciones que llegaron | Donaciones recibidas / (recibidas + no entregadas) × 100, con fecha de entrega en el período | `donacion.estado` |
-| Donaciones e inventario (RF-83) | Donaciones por recibir | Donaciones en estado programada con fecha de entrega en el período; se señalan las que tienen la fecha vencida | `donacion` |
-| Donaciones e inventario (RF-83) | Agotados o por agotarse | Artículos con cantidad 0 o menor o igual que su cantidad mínima | `inventario_articulo` |
-| Donaciones e inventario (RF-83) | Vencidos o por vencer | Artículos con existencias y fecha de vencimiento pasada o en los próximos 30 días | `inventario_articulo.fecha_vencimiento` |
-| Donaciones e inventario (RF-83) | Dinero disponible | Suma de las existencias de la categoría dinero; se muestra además el dinero recibido en donaciones del período | `inventario_articulo`, `donacion_articulo.cantidad_recibida` |
+| Donaciones e inventario (RF-81) | Donaciones que llegaron | Donaciones recibidas / (recibidas + no entregadas) × 100, con fecha de entrega en el período | `donacion.estado` |
+| Donaciones e inventario (RF-81) | Donaciones por recibir | Donaciones en estado programada con fecha de entrega en el período; se señalan las que tienen la fecha vencida | `donacion` |
+| Donaciones e inventario (RF-81) | Agotados o por agotarse | Artículos con cantidad 0 o menor o igual que su cantidad mínima | `inventario_articulo` |
+| Donaciones e inventario (RF-81) | Vencidos o por vencer | Artículos con existencias y fecha de vencimiento pasada o en los próximos 30 días | `inventario_articulo.fecha_vencimiento` |
+| Donaciones e inventario (RF-81) | Dinero disponible | Suma de las existencias de la categoría dinero; se muestra además el dinero recibido en donaciones del período | `inventario_articulo`, `donacion_articulo.cantidad_recibida` |
 
-> En la columna «Reporte» de estas filas va «Donaciones e inventario (RF-83)». RF-83 es el requerimiento nuevo de este reporte en `docs/REQUERIMIENTOS.md` (sección 4.1).
+> En la columna «Reporte» de estas filas va «Donaciones e inventario (RF-81)». RF-81 es el requerimiento nuevo de este reporte en `docs/REQUERIMIENTOS.md` (sección 4.1).
 
 **5.3, párrafo final** — cambiar por:
 
@@ -153,7 +153,7 @@ y en **«Filtros»**: «los reportes de actividades, salud, donaciones e inventa
 | inventario_articulo | id_inventario, id_organizacion, nombre, categoria, unidad, cantidad, cantidad_minima, fecha_vencimiento |
 | inventario_movimiento | id_inventario, tipo (ENTRADA o SALIDA), cantidad, motivo, fecha |
 
-**Anexos, viñeta del Anexo F** — cambiar «RF-45 a RF-49, RF-60, RF-71 a RF-73, RF-79 a RF-81 y RNF-13» por «RF-45 a RF-49, RF-60, RF-71 a RF-73, RF-79 a RF-81, RF-83 y RNF-13».
+**Anexos, viñeta del Anexo F** — cambiar «RF-45 a RF-49, RF-58, RF-69 a RF-71, RF-77 a RF-79 y RNF-13» por «RF-45 a RF-49, RF-58, RF-69 a RF-71, RF-77 a RF-79, RF-81 y RNF-13».
 
 ### B.6 Datos ficticios: nuevas cifras
 
@@ -200,7 +200,7 @@ La persona mayor (o su acompañante en su nombre) puede indicar en su perfil, de
 
 | Reporte | Indicador | Fórmula o regla | Fuente |
 |---|---|---|---|
-| Perfil de la población (RF-84) | Nivel de uso del celular | Personas asociadas en cada nivel (no lo usa, bajo, medio, alto) y sin dato, con su porcentaje sobre el total de asociadas. En la explicación del PDF, «uso bajo» = no lo usa + bajo, como porcentaje de quienes lo indicaron | `persona_mayor.uso_celular` |
+| Perfil de la población (RF-82) | Nivel de uso del celular | Personas asociadas en cada nivel (no lo usa, bajo, medio, alto) y sin dato, con su porcentaje sobre el total de asociadas. En la explicación del PDF, «uso bajo» = no lo usa + bajo, como porcentaje de quienes lo indicaron | `persona_mayor.uso_celular` |
 
 **6.2, «Gráficas por reporte»** — en la viñeta de **Población**, agregar después de «si viven solas»: «nivel de uso del celular (barras de menor a mayor nivel, en tonos de un mismo color, y una barra gris para quienes no lo han indicado)». Texto sugerido para el párrafo que explica para qué sirve:
 
@@ -210,7 +210,7 @@ La persona mayor (o su acompañante en su nombre) puede indicar en su perfil, de
 
 **Datos ficticios (2.1)** — el script ahora llena este dato en las 460 personas mayores: a más edad, menos uso, y cerca del 12 % sin indicar. Puede agregarse a la enumeración del conjunto ficticio: «…si vive sola y su nivel de uso del celular…».
 
-**Anexos, viñeta del Anexo F** — sumar RF-84 a la lista de B.5: «RF-45 a RF-49, RF-60, RF-71 a RF-73, RF-79 a RF-81, RF-83, RF-84 y RNF-13».
+**Anexos, viñeta del Anexo F** — sumar RF-82 a la lista de B.5: «RF-45 a RF-49, RF-58, RF-69 a RF-71, RF-77 a RF-79, RF-81, RF-82 y RNF-13».
 
 **Figura 8** — no hace falta cambiarla; si se vuelve a tomar, puede incluir la gráfica de nivel de uso del celular (ver D.2).
 
@@ -304,7 +304,7 @@ No sale del código. `[POR COMPLETAR POR EL EQUIPO]`: con qué organizaciones o 
 
 Fuentes internas que menciona la sección:
 
-- **Calificación de la plataforma (RF-70):** el promedio y el número de calificaciones se consultan en la tabla `calificacion_plataforma`. Ojo: el script ficticio genera calificaciones para cerca de la mitad de las cuentas, así que **solo cuentan las de cuentas reales** (correo que no termina en `@vitaplus.test`). Consulta de solo lectura sugerida:
+- **Calificación de la plataforma (RF-68):** el promedio y el número de calificaciones se consultan en la tabla `calificacion_plataforma`. Ojo: el script ficticio genera calificaciones para cerca de la mitad de las cuentas, así que **solo cuentan las de cuentas reales** (correo que no termina en `@vitaplus.test`). Consulta de solo lectura sugerida:
   ```sql
   SELECT count(*), round(avg(c.estrellas), 2)
     FROM calificacion_plataforma c JOIN usuario u ON u.id_usuario = c.id_usuario
@@ -333,7 +333,7 @@ RNF-15 sigue **⏳ Pendiente** en `docs/REQUERIMIENTOS.md`. `[POR COMPLETAR POR 
 | C | Documento técnico del perfilamiento | `docs/KMEANS_PERFILES.md` (ya actualizado con «Grupos de atención» y los nombres nuevos). Se puede exportar a PDF y adjuntar |
 | D | Ejemplo de reporte en PDF | Descargar el PDF de **Grupos de atención** de la Fundación Entrenubes Usme (botón de descarga de la pestaña). Opcional: el de Salud |
 | E | Capturas | Ver Parte D, imágenes A-1 a A-4 |
-| F | Requerimientos | Copiar de `docs/REQUERIMIENTOS.md` la sección «4. Analítica de datos y visualización» (RF-45 a RF-48, RF-72, RF-73, RF-81 y el nuevo RF-83), RF-49, RF-60, RF-71, RF-79, RF-80, RNF-13, RF-68 (reglas del inventario que usa RF-83) y el nuevo RF-84 (uso del celular, en la sección 2.1 del archivo) |
+| F | Requerimientos | Copiar de `docs/REQUERIMIENTOS.md` la sección «4. Analítica de datos y visualización» (RF-45 a RF-48, RF-70, RF-71, RF-79 y el nuevo RF-81), RF-49, RF-58, RF-69, RF-77, RF-78, RNF-13, RF-66 (reglas del inventario que usa RF-81) y el nuevo RF-82 (uso del celular, en la sección 2.1 del archivo) |
 
 ---
 
@@ -427,7 +427,7 @@ No hay tablas nuevas obligatorias: las filas nuevas van dentro de las tablas 5, 
 | Fecha de cambio | Autor | Descripción |
 |---|---|---|
 | 22/10/2026 | `[POR COMPLETAR: autor]` | Reporte de donaciones e inventario, pestaña «Grupos de atención», nuevos nombres de los grupos y de los ejes del mapa, datos ficticios de la Fundación Entrenubes Usme, resultado de las pruebas y actualización de las listas de tablas y figuras. |
-| 29/10/2026 | `[POR COMPLETAR: autor]` | Nivel de uso del celular de la persona mayor (RF-84) como variable del reporte de perfil de la población: estructura de los datos, indicador, gráfica, diccionario de datos y datos ficticios. |
+| 29/10/2026 | `[POR COMPLETAR: autor]` | Nivel de uso del celular de la persona mayor (RF-82) como variable del reporte de perfil de la población: estructura de los datos, indicador, gráfica, diccionario de datos y datos ficticios. |
 
 (Si las capturas y los resultados de 3.6 y 4.4 se pegan otro día, agregar otra fila con esa fecha.)
 
@@ -441,9 +441,9 @@ No hay tablas nuevas obligatorias: las filas nuevas van dentro de las tablas 5, 
 - **Frontend:** `reporte-recursos.ts` (pestaña 5 de la Analítica). Los estados de donación se muestran con su nombre y su color (recibidas, por recibir, no llegaron, canceladas), nunca solo con el color.
 - **Indicadores:** los 5 de la Tabla 14 (B.5). Umbral «bueno» del cumplimiento: 80 % o más.
 - **Gráficas:** Donaciones por mes (barras apiladas por estado), Qué se recibe (artículos recibidos por categoría), Quién dona (programadas frente a recibidas por donante), De dónde llega y a dónde va (entradas y salidas por motivo), Existencias por categoría (con existencias, por agotarse, agotados) y la tabla «Artículos que requieren atención» (primero agotados, luego vencidos, por agotarse y por vencer).
-- **Reglas:** las mismas de la página de Inventario (RF-68): por agotarse = cantidad ≤ cantidad mínima; aviso de vencimiento a 30 días; el vencimiento solo se señala si hay existencias.
+- **Reglas:** las mismas de la página de Inventario (RF-66): por agotarse = cantidad ≤ cantidad mínima; aviso de vencimiento a 30 días; el vencimiento solo se señala si hay existencias.
 - **PDF:** igual que los demás reportes (RF-48), con la explicación de cada gráfica.
-- **Requerimiento:** RF-83 (agregado a `docs/REQUERIMIENTOS.md` el 22/10/2026).
+- **Requerimiento:** RF-81 (agregado a `docs/REQUERIMIENTOS.md` el 22/10/2026).
 
 ### F.2 Arquetipos de la Fundación Entrenubes Usme (sección 24 del script)
 
@@ -470,7 +470,7 @@ A la organización también le quedan las personas que las secciones anteriores 
 | Ninguna ≥ 0,4 y todas ≤ 0,1 | Activos e independientes |
 | Otro caso | Bienestar en equilibrio |
 
-### F.4 Nivel de uso del celular (RF-84)
+### F.4 Nivel de uso del celular (RF-82)
 
 - **Dato:** `persona_mayor.uso_celular`, opcional. Lo guarda auth-service desde «Mi información» de la persona mayor y desde el perfil que gestiona su acompañante; acepta solo `NO_USA`, `BASICO`, `INTERMEDIO` o `AVANZADO` (cualquier otro valor se rechaza) y vacío queda nulo. auth-service crea la columna al arrancar.
 - **Backend de analítica:** `GET /api/analitica/poblacion` devuelve `usoCelular` en cada persona, con la misma consulta de solo lectura del resto del reporte.

@@ -312,7 +312,7 @@ restablecerContrasena(
     return this.http.put(`${this.apiUrl}/cuenta/reactivar`, {}, { responseType: 'text' });
   }
 
-  /** Roles de la cuenta: una persona mayor también puede ser acompañante y al revés (RF-76). */
+  /** Roles de la cuenta: una persona mayor también puede ser acompañante y al revés (RF-74). */
   roles(): Observable<string[]> {
     return this.http
       .get<{ roles: string[] }>(`${this.apiUrl}/roles`)

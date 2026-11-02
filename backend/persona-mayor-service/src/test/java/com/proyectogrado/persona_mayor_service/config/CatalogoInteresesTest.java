@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Opciones base del catálogo de intereses (RF-16 y RF-71): al arrancar se
+ * Opciones base del catálogo de intereses (RF-16 y RF-69): al arrancar se
  * agregan las que falten, cada una en su categoría, sin duplicar las que
  * ya existen.
  */

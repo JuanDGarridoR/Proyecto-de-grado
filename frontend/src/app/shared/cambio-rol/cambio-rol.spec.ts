@@ -4,7 +4,7 @@ import { of, throwError } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { CambioRol } from './cambio-rol';
 
-// Cambio de rol desde el óvalo de la barra superior (RF-76): persona mayor y
+// Cambio de rol desde el óvalo de la barra superior (RF-74): persona mayor y
 // acompañante pasan al otro rol con la misma cuenta, después de confirmar.
 describe('CambioRol', () => {
   let auth: {

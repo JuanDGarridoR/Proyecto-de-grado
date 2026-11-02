@@ -118,7 +118,7 @@ class AcompananteRelacionControllerTest {
 
     @Test
     void unAcompananteQueTambienEsPersonaMayorNoSeAcompanaASiMismo() throws Exception {
-        // La cuenta 10 tiene los dos roles (RF-76) y escribe su propio celular.
+        // La cuenta 10 tiene los dos roles (RF-74) y escribe su propio celular.
         when(acompananteInfoLookupRepository.findById(PERSONA_MAYOR))
                 .thenReturn(Optional.of(mock(AcompananteInfoLookup.class)));
 

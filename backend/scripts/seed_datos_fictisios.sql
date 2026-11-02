@@ -603,7 +603,7 @@ SELECT id_persona_mayor, id_acompanante, estado,
 FROM con_estado
 ON CONFLICT DO NOTHING;
 
--- 8b. Cuentas con los dos roles (RF-76): pm001 a pm005 también son
+-- 8b. Cuentas con los dos roles (RF-74): pm001 a pm005 también son
 --     acompañantes, con la misma cuenta y la misma información. Cada una
 --     acompaña a la persona mayor siguiente (pm001 -> pm002...), como un
 --     vecino o una pareja. Desde el óvalo de la barra superior cambian de rol.
@@ -1855,7 +1855,7 @@ SELECT setval(pg_get_serial_sequence('donacion', 'id_donacion'), (SELECT max(id_
 SELECT setval(pg_get_serial_sequence('donacion_articulo', 'id_articulo'), (SELECT max(id_articulo) FROM donacion_articulo));
 SELECT setval(pg_get_serial_sequence('inventario_articulo', 'id_inventario'), (SELECT max(id_inventario) FROM inventario_articulo));
 
--- 22. Calificaciones de la plataforma (RF-70): cerca de la mitad de las
+-- 22. Calificaciones de la plataforma (RF-68): cerca de la mitad de las
 --     cuentas calificó desde su perfil. La mayoría está contenta; unas
 --     pocas dan 0 a 2 estrellas, casi siempre con una oportunidad de
 --     mejora. Una de cada cinco cambió su calificación después.

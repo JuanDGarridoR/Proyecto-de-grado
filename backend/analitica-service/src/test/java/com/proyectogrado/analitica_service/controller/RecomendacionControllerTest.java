@@ -83,7 +83,7 @@ class RecomendacionControllerTest {
 
     @Test
     void laProfesionSumaComoOficioYNoComoGusto() throws Exception {
-        // RF-71: Laura fue docente, el Centro Día Renacer tiene un grupo de
+        // RF-69: Laura fue docente, el Centro Día Renacer tiene un grupo de
         // lectura y Luis, una de sus personas mayores, también fue docente.
         mockMvc.perform(get("/api/analitica/recomendaciones/organizaciones").header("X-User-Id", LAURA_VOLUNTARIA))
                 .andExpect(status().isOk())

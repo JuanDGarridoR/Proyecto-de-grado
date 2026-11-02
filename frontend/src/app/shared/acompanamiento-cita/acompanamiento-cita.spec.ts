@@ -17,7 +17,7 @@ function cita(extra: Partial<CitaMedica> = {}): CitaMedica {
   };
 }
 
-// Acompañamiento a citas médicas (RF-75): el acompañante se ofrece, escribe
+// Acompañamiento a citas médicas (RF-73): el acompañante se ofrece, escribe
 // el punto de encuentro y puede cambiarlo o decir que ya no puede ir.
 describe('AcompanamientoCita', () => {
   const servicio = { aceptarAcompanamientoCita: vi.fn(), cancelarAcompanamientoCita: vi.fn() };

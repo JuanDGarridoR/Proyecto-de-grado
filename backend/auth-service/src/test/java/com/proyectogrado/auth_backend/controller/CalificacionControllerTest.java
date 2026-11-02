@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Calificación de la plataforma desde el perfil (RF-70): de 0 a 5 estrellas
+ * Calificación de la plataforma desde el perfil (RF-68): de 0 a 5 estrellas
  * y una observación opcional; cada usuario tiene una sola, que actualiza.
  */
 class CalificacionControllerTest {
