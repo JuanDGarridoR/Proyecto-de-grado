@@ -87,11 +87,23 @@
   }
 }
 
-/* Móviles */
+/* Móviles: solo cabe un botón; se prioriza «Iniciar sesión» porque es la
+   acción más frecuente. «Crear cuenta» sigue disponible desde esa página. */
 
 @media (max-width: 600px) {
-  .navbar__login-link {
+  .navbar__signup-btn {
     display: none;
+  }
+
+  .navbar__login-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    background: var(--vita-navy);
+    color: var(--vita-white);
+    font-weight: 600;
+    font-size: 0.95rem;
   }
 }
 
