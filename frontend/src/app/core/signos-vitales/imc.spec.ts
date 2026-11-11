@@ -1,11 +1,20 @@
 import { calcularImc, imcPorRegistro } from './imc';
 
-// Índice de masa corporal que se muestra junto a los signos vitales.
+// Índice de masa corporal que se muestra junto a los signos vitales, con los
+// puntos de corte para personas mayores (Minsalud 2024 / OPS 2002).
 describe('calcularImc', () => {
   it('calcula el IMC con un decimal y lo clasifica', () => {
-    expect(calcularImc(64, 160)).toEqual({ valor: 25, categoria: 'Sobrepeso', normal: false });
-    expect(calcularImc(55, 160)).toEqual({ valor: 21.5, categoria: 'Peso normal', normal: true });
-    expect(calcularImc(45, 160)).toEqual({ valor: 17.6, categoria: 'Bajo peso', normal: false });
+    expect(calcularImc(64, 160)).toEqual({ valor: 25, categoria: 'Normal', normal: true });
+    expect(calcularImc(72, 160)).toEqual({ valor: 28.1, categoria: 'Sobrepeso', normal: false });
+    expect(calcularImc(82, 160)).toEqual({ valor: 32, categoria: 'Obesidad', normal: false });
+    expect(calcularImc(55, 160)).toEqual({ valor: 21.5, categoria: 'Delgadez', normal: false });
+  });
+
+  it('un IMC de 23,0 ya es delgadez en la persona mayor', () => {
+    // 58,9 kg y 160 cm → 23,0
+    expect(calcularImc(58.9, 160)).toEqual({ valor: 23, categoria: 'Delgadez', normal: false });
+    // 59,1 kg y 160 cm → 23,1
+    expect(calcularImc(59.1, 160)).toEqual({ valor: 23.1, categoria: 'Normal', normal: true });
   });
 
   it('sin peso o sin estatura no hay IMC', () => {

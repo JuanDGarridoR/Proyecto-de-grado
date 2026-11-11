@@ -33,7 +33,10 @@ import {
   momentoDeCita
 } from '../../../core/citas-medicas/cita-medica.service';
 import { SignoVitalResponse } from '../../../core/signos-vitales/signos-vitales.services';
-import { NOMBRE_INDICADOR, indicadoresFueraDeRango } from '../../../core/signos-vitales/rangos';
+import { ContextoClinico, indicadoresFueraDeRango, motivoFueraDeRango } from '../../../core/signos-vitales/rangos';
+import {
+  CondicionSaludRegistrada, CondicionSaludService, tieneEpoc
+} from '../../../core/condiciones-salud/condicion-salud.service';
 import { AltoPantalla } from '../../../shared/alto-pantalla/alto-pantalla';
 import { diasDesde, fechaLocal, haceDias } from '../../../core/fechas/fechas';
 import { iniciales } from '../../../core/formato/formato';
@@ -45,6 +48,8 @@ interface DatosPersona {
   medicamentos: MedicamentoSeguimiento[];
   citas: CitaMedica[];
   ultimoSigno: SignoVitalResponse | null;
+  /** Con EPOC cambia su rango de saturación. */
+  contexto: ContextoClinico;
 }
 
 /** Estado de un elemento de la agenda de hoy. */
@@ -95,7 +100,7 @@ const DIAS_SIN_MEDICION = 30;
 
 const ORDEN_PRIORIDAD: Record<Prioridad, number> = { Emergencia: 0, Alta: 1, Media: 2, Baja: 3 };
 
-const DATOS_VACIOS: DatosPersona = { medicamentos: [], citas: [], ultimoSigno: null };
+const DATOS_VACIOS: DatosPersona = { medicamentos: [], citas: [], ultimoSigno: null, contexto: {} };
 
 /**
  * Inicio del panel del acompañante:
@@ -143,7 +148,8 @@ export class PanelAcompanante implements OnInit, OnDestroy {
   constructor(
     private actividadService: ActividadService,
     private acompananteService: AcompananteService,
-    private authService: AuthService
+    private authService: AuthService,
+    private condicionSaludService: CondicionSaludService
   ) {
     this.nombreUsuario = this.authService.getNombreUsuario();
 
@@ -227,14 +233,21 @@ export class PanelAcompanante implements OnInit, OnDestroy {
           citas: this.acompananteService.obtenerCitasMedicasSeguimiento(p.idUsuario)
             .pipe(catchError(() => of([] as CitaMedica[]))),
           signos: this.acompananteService.obtenerSignosVitalesSeguimiento(p.idUsuario)
-            .pipe(catchError(() => of([] as SignoVitalResponse[])))
+            .pipe(catchError(() => of([] as SignoVitalResponse[]))),
+          condiciones: this.condicionSaludService.listar(p.idUsuario)
+            .pipe(catchError(() => of([] as CondicionSaludRegistrada[])))
         })
       )
     ).subscribe((respuestas) => {
       const datos: Record<number, DatosPersona> = {};
       respuestas.forEach((r, i) => {
         // Los signos llegan del más reciente al más antiguo.
-        datos[personas[i].idUsuario] = { medicamentos: r.medicamentos, citas: r.citas, ultimoSigno: r.signos[0] ?? null };
+        datos[personas[i].idUsuario] = {
+          medicamentos: r.medicamentos,
+          citas: r.citas,
+          ultimoSigno: r.signos[0] ?? null,
+          contexto: { epoc: tieneEpoc(r.condiciones) }
+        };
       });
       this.datos.set(datos);
       this.cargandoDatos.set(false);
@@ -302,7 +315,7 @@ export class PanelAcompanante implements OnInit, OnDestroy {
     const resumenes: Record<number, ResumenPersona> = {};
 
     for (const persona of this.personasMayores()) {
-      const { medicamentos, citas, ultimoSigno } = this.datosDe(persona);
+      const { medicamentos, citas, ultimoSigno, contexto } = this.datosDe(persona);
       const tomas = medicamentos.flatMap((m) => tomasDeHoy(m, ahora));
       const cita = citas
         .filter((c) => momentoDeCita(c) > ahora)
@@ -313,7 +326,7 @@ export class PanelAcompanante implements OnInit, OnDestroy {
         tomasTotal: tomas.length,
         sinTomar: tomas.filter((t) => t.estado === 'atrasado').length,
         ultimaMedicion: ultimoSigno
-          ? { hace: haceDias(ultimoSigno.fechaHora, this.ahora()), normal: indicadoresFueraDeRango(ultimoSigno).length === 0 }
+          ? { hace: haceDias(ultimoSigno.fechaHora, this.ahora()), normal: indicadoresFueraDeRango(ultimoSigno, contexto).length === 0 }
           : null,
         proximaCita: cita ? this.cuandoCita(cita) : null
       };
@@ -369,13 +382,14 @@ export class PanelAcompanante implements OnInit, OnDestroy {
       }
 
       if (ultimoSigno) {
-        const fuera = indicadoresFueraDeRango(ultimoSigno).map((i) => NOMBRE_INDICADOR[i]);
+        const contexto = this.datosDe(persona).contexto;
+        const fuera = indicadoresFueraDeRango(ultimoSigno, contexto).map((i) => motivoFueraDeRango(ultimoSigno, i, contexto));
         if (fuera.length > 0) {
           alertas.push({
             clave: `${id}-signos`,
             prioridad: 'Alta',
             persona,
-            texto: `${fuera.join(', ')} fuera de lo habitual en la última medición (${haceDias(ultimoSigno.fechaHora, this.ahora())}).`
+            texto: `Fuera de lo habitual en la última medición (${haceDias(ultimoSigno.fechaHora, this.ahora())}): ${fuera.join('; ')}.`
           });
         }
       }

@@ -51,6 +51,7 @@ interface PersonaAtencion {
   nombre: string;
   motivos: string[];
   indicadores: string[];
+  critico: boolean;
 }
 
 /** Acceso a los computed protegidos del reporte. */
@@ -87,7 +88,8 @@ describe('ReporteSalud', () => {
     // Primero los valores fuera de rango; luego, por nombre.
     expect(atencion.map((p) => p.nombre)).toEqual(['Rosa Díaz', 'Marta Ruiz', 'Pedro León']);
     expect(atencion[0].indicadores).toEqual(['presion']);
-    expect(atencion[0].motivos).toEqual(['Presión: 150/95 mmHg']);
+    // El motivo dice el indicador, el valor y el rango esperado.
+    expect(atencion[0].motivos).toEqual(['Presión 150/95 mmHg (esperado 91–139 / < 90 mmHg)']);
     expect(atencion[1].motivos[0]).toMatch(/^Sin medición hace 4[45] días$/);
     expect(atencion[2].motivos).toEqual(['Nunca se le han medido signos vitales']);
   });
@@ -164,7 +166,58 @@ describe('ReporteSalud', () => {
     expect(luis?.motivos).toContain('1 medición con valores imposibles (posible error de registro)');
     expect(reporte.kpis().errores).toBe(1);
   });
-  // RF-70: IMC más reciente de cada persona, por categoría de la OMS.
+  it('primero quien tiene un valor crítico, aunque tenga menos indicadores fuera de rango', () => {
+    const conCritico = datos();
+    // Rosa: presión y pulso fuera de rango (2 indicadores, ninguno crítico).
+    conCritico.mediciones.push(medicion(10, 0, { presionSistolica: 150, presionDiastolica: 95, frecuenciaCardiaca: 105 }));
+    // Luis: solo la saturación, pero en 91 % (crítica).
+    conCritico.mediciones.push(medicion(11, 0, { ...NORMAL, saturacionOxigeno: 91 }));
+    fixture.componentRef.setInput('datos', conCritico);
+
+    const atencion = reporte.atencion();
+    expect(atencion.map((p) => p.nombre).slice(0, 2)).toEqual(['Luis Gómez', 'Rosa Díaz']);
+    expect(atencion[0].critico).toBe(true);
+    expect(atencion[0].motivos).toEqual(['Saturación 91 % (esperado ≥ 94 %) · valor crítico']);
+    expect(atencion[1].critico).toBe(false);
+    expect(atencion[1].indicadores).toEqual(['presion', 'pulso']);
+  });
+
+  it('con EPOC la saturación se evalúa contra 88–92 %', () => {
+    const conEpoc = datos();
+    conEpoc.personas[1] = { idUsuario: 11, nombre: 'Luis Gómez', tieneEpoc: true };
+    // 90 % es normal para Luis (EPOC); 97 % está por encima de su objetivo.
+    conEpoc.mediciones.push(medicion(11, 0, { ...NORMAL, saturacionOxigeno: 90 }));
+    fixture.componentRef.setInput('datos', conEpoc);
+    expect(reporte.atencion().map((p) => p.nombre)).not.toContain('Luis Gómez');
+
+    conEpoc.mediciones.push(medicion(11, 0, { ...NORMAL, saturacionOxigeno: 97 }));
+    fixture.componentRef.setInput('datos', { ...conEpoc, mediciones: [...conEpoc.mediciones] });
+    const luis = reporte.atencion().find((p) => p.nombre === 'Luis Gómez');
+    expect(luis?.motivos).toEqual(['Saturación 97 % (esperado 88–92 % por EPOC)']);
+  });
+
+  it('la frecuencia respiratoria fuera de rango entra en la lista con su motivo', () => {
+    const conRespiracion = datos();
+    conRespiracion.mediciones.push(medicion(11, 0, { ...NORMAL, frecuenciaRespiratoria: 22 }));
+    fixture.componentRef.setInput('datos', conRespiracion);
+
+    const luis = reporte.atencion().find((p) => p.nombre === 'Luis Gómez');
+    expect(luis?.indicadores).toEqual(['respiracion']);
+    expect(luis?.motivos).toEqual(['Frecuencia respiratoria 22 rpm (esperado 12–20 rpm)']);
+
+    reporte.filtroIndicador.set('respiracion');
+    expect(reporte.atencionFiltrada().map((p) => p.nombre)).toEqual(['Luis Gómez']);
+  });
+
+  it('una frecuencia respiratoria de 25 o más es crítica', () => {
+    const conRespiracion = datos();
+    conRespiracion.mediciones.push(medicion(11, 0, { ...NORMAL, frecuenciaRespiratoria: 25 }));
+    fixture.componentRef.setInput('datos', conRespiracion);
+
+    expect(reporte.atencion()[0]).toMatchObject({ nombre: 'Luis Gómez', critico: true });
+  });
+
+  // RF-70: IMC más reciente de cada persona, con los puntos de corte para personas mayores.
   it('agrupa a las personas por su IMC más reciente y no usa pesos imposibles', () => {
     const conPeso = datos();
     conPeso.mediciones = [
@@ -172,17 +225,17 @@ describe('ReporteSalud', () => {
       medicion(12, 45, { ...NORMAL, peso: 300, estatura: 150 }),
       // Rosa: 80 kg y 155 cm → IMC 33,3 (obesidad). Su última medición no trae peso.
       medicion(10, 40, { ...NORMAL, peso: 80, estatura: 155 }),
-      // Luis: 70 kg y 170 cm → IMC 24,2 (normal).
+      // Luis: 70 kg y 170 cm → IMC 24,2 (normal en persona mayor: más de 23 y menos de 28).
       medicion(11, 3, { ...NORMAL, peso: 70, estatura: 170 }),
       medicion(10, 2, { presionSistolica: 150, presionDiastolica: 95 })
     ];
     fixture.componentRef.setInput('datos', conPeso);
 
     expect(reporte.tablaImc().filas).toEqual([
-      ['Bajo peso', 'Menos de 18,5', 0, '0 %'],
-      ['Peso normal', '18,5 a 24,9', 1, '25 %'],
-      ['Sobrepeso', '25 a 29,9', 0, '0 %'],
-      ['Obesidad', '30 o más', 1, '25 %'],
+      ['Delgadez', '23,0 o menos', 0, '0 %'],
+      ['Normal', 'Más de 23 y menos de 28', 1, '25 %'],
+      ['Sobrepeso', '28 a menos de 32', 0, '0 %'],
+      ['Obesidad', '32 o más', 1, '25 %'],
       // Marta (peso imposible) y Pedro (sin mediciones)
       ['Sin peso o estatura', '—', 2, '50 %']
     ]);

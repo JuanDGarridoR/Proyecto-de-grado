@@ -60,6 +60,7 @@ CREATE TABLE signo_vital (
     frecuencia_cardiaca     INTEGER,
     temperatura             DOUBLE PRECISION,
     saturacion_oxigeno      INTEGER,
+    frecuencia_respiratoria INTEGER,
     peso                    DOUBLE PRECISION,
     estatura                DOUBLE PRECISION
 );

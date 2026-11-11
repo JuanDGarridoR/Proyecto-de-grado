@@ -705,6 +705,21 @@
   color: #8a5a00;
 }
 
+/* Presión elevada o en estadio 1: no está fuera de rango, pero conviene vigilarla */
+.signo--aviso {
+  border-color: #e9cf7a;
+  background: #fffcf0;
+}
+
+.signo--aviso .signo__estado {
+  color: #7a5b00;
+}
+
+.signo__esperado {
+  font-size: 0.8rem;
+  color: var(--vita-text-gray);
+}
+
 .signos__nota {
   margin: 14px 0 0;
   font-size: 0.95rem;

@@ -77,7 +77,7 @@
     <header class="atencion__header">
       <div>
         <h3>Personas que requieren atención</h3>
-        <p>Última medición fuera de rango, sin medición en los últimos 30 días o con posibles errores de registro. Haz clic en un nombre para ver su evolución.</p>
+        <p>Última medición fuera de rango, sin medición en los últimos 30 días o con posibles errores de registro. Primero aparecen quienes tienen un valor crítico. Haz clic en un nombre para ver su evolución.</p>
       </div>
 
       @if (filtroIndicador(); as filtro) {
@@ -122,7 +122,9 @@
                 <td>
                   <ul class="atencion__motivos">
                     @for (motivo of p.motivos; track motivo) {
-                      <li><app-icono name="alert-circle" /> {{ motivo }}</li>
+                      <li [class.atencion__motivo--critico]="motivo.endsWith('valor crítico')">
+                        <app-icono name="alert-circle" /> {{ motivo }}
+                      </li>
                     }
                   </ul>
                 </td>
@@ -137,8 +139,7 @@
 </div>
 
 <p class="nota">
-  Los rangos "normales" son referencias generales para adultos (presión 90–139 / 60–89 mmHg, pulso 60–100 lpm,
-  oxígeno 95 % o más). El IMC usa la clasificación de la OMS para adultos (normal entre 18,5 y 24,9). Son orientativos y no reemplazan el criterio médico. Un "posible error de registro" es un
+  {{ notaRangos }} Son orientativos y no reemplazan el criterio médico. Un "posible error de registro" es un
   valor que no puede ser real (por ejemplo, presión sistólica mayor a 260) y probablemente corresponde a un
   error de digitación.
 </p>

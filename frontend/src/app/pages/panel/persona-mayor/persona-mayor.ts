@@ -21,7 +21,9 @@ import {
   SignosVitalesService,
   SignoVitalResponse
 } from '../../../core/signos-vitales/signos-vitales.services';
-import { RANGOS, evaluarIndicador } from '../../../core/signos-vitales/rangos';
+import {
+  Estado, INDICADORES, NOMBRE_INDICADOR, RANGOS, estadoIndicador, rangoEsperado
+} from '../../../core/signos-vitales/rangos';
 import {
   MedicamentoService,
   Medicamento,
@@ -38,7 +40,8 @@ import {
 import {
   CondicionSaludService,
   CondicionSaludRegistrada,
-  TipoCondicionSalud
+  TipoCondicionSalud,
+  tieneEpoc
 } from '../../../core/condiciones-salud/condicion-salud.service';
 import { AltoPantalla } from '../../../shared/alto-pantalla/alto-pantalla';
 import { fechaLocal, haceDias, proximoCumpleanos } from '../../../core/fechas/fechas';
@@ -91,7 +94,9 @@ interface SignoResumen {
   etiqueta: string;
   valor: string;
   unidad: string;
-  normal: boolean;
+  normal: boolean;     // false = fuera de rango
+  estado: Estado;      // Normal, Revisar o la clasificación de la presión
+  esperado: string;    // rango esperado, para explicar el estado
 }
 
 /** Grupo de datos de salud (enfermedades, alergias o discapacidades). */
@@ -540,30 +545,29 @@ export class PanelPersonaMayor implements OnInit, OnDestroy {
       return [];
     }
 
-    const lista: SignoResumen[] = [];
+    // Con EPOC su saturación objetivo es otra.
+    const ctx = { epoc: tieneEpoc(this.condiciones()) };
+    const valores = {
+      presion: `${s.presionSistolica ?? '-'}/${s.presionDiastolica ?? '-'}`,
+      pulso: `${s.frecuenciaCardiaca}`,
+      temperatura: `${s.temperatura}`.replace('.', ','),
+      oxigeno: `${s.saturacionOxigeno}`,
+      respiracion: `${s.frecuenciaRespiratoria}`
+    };
 
-    if (evaluarIndicador(s, 'presion') !== null) {
-      lista.push({
-        etiqueta: 'Presión',
-        valor: `${s.presionSistolica ?? '-'}/${s.presionDiastolica ?? '-'}`,
-        unidad: RANGOS.sistolica.unidad,
-        normal: evaluarIndicador(s, 'presion')!
-      });
-    }
-    if (s.frecuenciaCardiaca !== null) {
-      lista.push({ etiqueta: 'Pulso', valor: `${s.frecuenciaCardiaca}`, unidad: RANGOS.pulso.unidad,
-        normal: evaluarIndicador(s, 'pulso')! });
-    }
-    if (s.temperatura !== null) {
-      lista.push({ etiqueta: 'Temperatura corporal', valor: `${s.temperatura}`, unidad: RANGOS.temperatura.unidad,
-        normal: evaluarIndicador(s, 'temperatura')! });
-    }
-    if (s.saturacionOxigeno !== null) {
-      lista.push({ etiqueta: 'Oxígeno', valor: `${s.saturacionOxigeno}`, unidad: RANGOS.oxigeno.unidad,
-        normal: evaluarIndicador(s, 'oxigeno')! });
-    }
-
-    return lista;
+    return INDICADORES.flatMap((i) => {
+      const estado = estadoIndicador(s, i, ctx);
+      return estado
+        ? [{
+            etiqueta: NOMBRE_INDICADOR[i],
+            valor: valores[i],
+            unidad: RANGOS[i].unidad,
+            normal: estado.tono !== 'revisar',
+            estado,
+            esperado: rangoEsperado(i, ctx)
+          }]
+        : [];
+    });
   });
 
   protected readonly hayValoresFueraDeRango = computed(() =>

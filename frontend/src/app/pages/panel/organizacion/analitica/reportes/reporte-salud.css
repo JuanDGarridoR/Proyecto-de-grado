@@ -106,6 +106,12 @@
   color: #8a5a00;
 }
 
+/* Valor crítico: rojo y en negrita (además del texto "valor crítico") */
+.atencion__motivos li.atencion__motivo--critico {
+  color: #b42318;
+  font-weight: 600;
+}
+
 /* Oculto a la vista, pero lo leen los lectores de pantalla */
 .sr-only {
   position: absolute;

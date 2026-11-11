@@ -146,7 +146,10 @@ class AnaliticaControllerTest {
                 .andExpect(jsonPath("$.mediciones[1].presionSistolica").doesNotExist())
                 // Peso y estatura, para el IMC (RF-70).
                 .andExpect(jsonPath("$.mediciones[0].peso").value(60.0))
-                .andExpect(jsonPath("$.mediciones[0].estatura").value(155.0));
+                .andExpect(jsonPath("$.mediciones[0].estatura").value(155.0))
+                // EPOC registrada como enfermedad (Rosa); una alergia con ese nombre no cuenta (Luis).
+                .andExpect(jsonPath("$.personas[1].tieneEpoc").value(true))
+                .andExpect(jsonPath("$.personas[0].tieneEpoc").value(false));
     }
 
     @Test

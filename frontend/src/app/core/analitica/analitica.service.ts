@@ -20,6 +20,8 @@ export interface ActividadAnalitica {
 export interface PersonaAnalitica {
   idUsuario: number;
   nombre: string;
+  /** Tiene registrada la EPOC: su saturación objetivo es 88–92 % (ver rangos.ts). */
+  tieneEpoc?: boolean;
 }
 
 /** Una medición de signos vitales. */

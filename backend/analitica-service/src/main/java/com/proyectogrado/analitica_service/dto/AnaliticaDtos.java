@@ -25,8 +25,11 @@ public final class AnaliticaDtos {
     ) {
     }
 
-    /** Persona mayor vinculada a la organización. */
-    public record PersonaAnalitica(Integer idUsuario, String nombre) {
+    /**
+     * Persona mayor vinculada a la organización. tieneEpoc: tiene registrada
+     * la EPOC, que cambia su rango objetivo de saturación (RangosClinicos).
+     */
+    public record PersonaAnalitica(Integer idUsuario, String nombre, boolean tieneEpoc) {
     }
 
     /** Una medición de signos vitales. */

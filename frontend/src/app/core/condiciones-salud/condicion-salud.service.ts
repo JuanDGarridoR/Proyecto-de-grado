@@ -37,6 +37,14 @@ export interface CondicionSaludRequest {
  * mayor autenticada; con él, los de una persona mayor que gestiona el
  * acompañante autenticado.
  */
+/**
+ * true si entre las condiciones está la EPOC como enfermedad: cambia el
+ * rango objetivo de saturación (core/signos-vitales/rangos.ts).
+ */
+export function tieneEpoc(condiciones: Pick<CondicionSalud, 'tipo' | 'nombre'>[]): boolean {
+  return condiciones.some((c) => c.tipo === 'ENFERMEDAD' && c.nombre.trim().toUpperCase() === 'EPOC');
+}
+
 @Injectable({ providedIn: 'root' })
 export class CondicionSaludService {
 

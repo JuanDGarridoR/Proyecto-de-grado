@@ -6,6 +6,7 @@ import { ActividadService } from '../../../core/actividades/actividad.service';
 import { AcompananteService, MedicamentoSeguimiento } from '../../../core/acompanantes/acompanante.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { CitaMedica } from '../../../core/citas-medicas/cita-medica.service';
+import { CondicionSaludService } from '../../../core/condiciones-salud/condicion-salud.service';
 import { SignoVitalResponse } from '../../../core/signos-vitales/signos-vitales.services';
 import { TiempoRealService } from '../../../core/tiempo-real/tiempo-real.service';
 import { PanelAcompanante } from './acompanante';
@@ -85,6 +86,7 @@ describe('PanelAcompanante', () => {
             obtenerSignosVitalesSeguimiento: (id: number) => of(signos[id])
           }
         },
+        { provide: CondicionSaludService, useValue: { listar: () => of([]) } },
         { provide: TiempoRealService, useValue: { cambios: () => NEVER } }
       ]
     });

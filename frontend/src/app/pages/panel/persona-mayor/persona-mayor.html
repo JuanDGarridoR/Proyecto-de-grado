@@ -327,16 +327,19 @@
 
           <ul class="signos">
             @for (s of signosResumen(); track s.etiqueta) {
-              <li class="signo" [class.signo--revisar]="!s.normal">
+              <li
+                class="signo"
+                [class.signo--revisar]="s.estado.tono === 'revisar'"
+                [class.signo--aviso]="s.estado.tono === 'aviso'"
+              >
                 <span class="signo__etiqueta">{{ s.etiqueta }}</span>
                 <span class="signo__valor">{{ s.valor }} <small>{{ s.unidad }}</small></span>
                 <span class="signo__estado">
-                  @if (s.normal) {
-                    <app-icono name="check-circle" /> Normal
-                  } @else {
-                    <app-icono name="alert-circle" /> Revisar
-                  }
+                  <app-icono [name]="s.estado.tono === 'normal' ? 'check-circle' : 'alert-circle'" /> {{ s.estado.etiqueta }}
                 </span>
+                @if (s.estado.tono !== 'normal') {
+                  <small class="signo__esperado">Lo esperado: {{ s.esperado }}</small>
+                }
               </li>
             }
           </ul>

@@ -1,5 +1,7 @@
 package com.proyectogrado.analitica_service.perfiles;
 
+import com.proyectogrado.analitica_service.salud.RangosClinicos;
+import com.proyectogrado.analitica_service.salud.RangosClinicos.Signos;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -11,9 +13,11 @@ import java.time.Period;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Lee de la base compartida (solo lectura) los datos de cada persona mayor
@@ -45,15 +49,11 @@ public class DatosPerfiles {
     private static final double[] PULSO = {30, 220};
     private static final double[] TEMPERATURA = {32, 43};
     private static final double[] SATURACION = {50, 100};
+    private static final double[] RESPIRACION = {5, 60};
     private static final double[] PESO = {20, 250};
     private static final double[] ESTATURA = {100, 220};
 
-    // Rangos de referencia para adultos (los de RANGOS en el frontend).
-    private static final double[] SISTOLICA_NORMAL = {90, 139};
-    private static final double[] DIASTOLICA_NORMAL = {60, 89};
-    private static final double[] PULSO_NORMAL = {60, 100};
-    private static final double[] TEMPERATURA_NORMAL = {36, 37.5};
-    private static final double SATURACION_MINIMA = 95;
+    // Los rangos de referencia (qué es "fuera de rango") están en RangosClinicos.
 
     private static final String PERSONAS = """
             SELECT pmo.id_persona_mayor
@@ -143,15 +143,20 @@ public class DatosPerfiles {
         }
 
         // Enfermedades, discapacidades y condiciones severas (las alergias no
-        // entran: no describen necesidad de cuidado ni de acompañamiento)
+        // entran: no describen necesidad de cuidado ni de acompañamiento).
+        // Quien tiene EPOC tiene otro rango objetivo de saturación.
+        Set<Integer> conEpoc = new HashSet<>();
         jdbc.query("""
-                SELECT pc.id_persona_mayor, c.tipo, pc.severidad
+                SELECT pc.id_persona_mayor, c.tipo, c.nombre, pc.severidad
                   FROM persona_mayor_condicion_salud pc
                   JOIN condicion_salud c ON c.id_condicion_salud = pc.id_condicion_salud
                  WHERE pc.id_persona_mayor IN (%s)
                 """.formatted(PERSONAS), params, rs -> {
             double[] fila = valores.get(rs.getInt("id_persona_mayor"));
             String tipo = rs.getString("tipo");
+            if (fila != null && "ENFERMEDAD".equals(tipo) && "EPOC".equalsIgnoreCase(rs.getString("nombre"))) {
+                conEpoc.add(rs.getInt("id_persona_mayor"));
+            }
             if (fila == null || "ALERGIA".equals(tipo)) {
                 return;
             }
@@ -174,7 +179,7 @@ public class DatosPerfiles {
                  GROUP BY id_persona_mayor
                 """, params, valores, VariablePerfil.MEDICAMENTOS);
 
-        leerSignosVitales(params, valores);
+        leerSignosVitales(params, valores, conEpoc);
 
         conteo("""
                 SELECT pa.id_persona_mayor AS id, COUNT(*) AS n
@@ -246,14 +251,15 @@ public class DatosPerfiles {
     /**
      * Promedios de presión sistólica, saturación y pulso, IMC de la última
      * medición con peso y estatura, y porcentaje de mediciones con algún
-     * indicador fuera del rango de referencia.
+     * indicador fuera del rango de referencia (RangosClinicos; con EPOC, su
+     * rango de saturación).
      */
-    private void leerSignosVitales(MapSqlParameterSource params, Map<Integer, double[]> valores) {
+    private void leerSignosVitales(MapSqlParameterSource params, Map<Integer, double[]> valores, Set<Integer> conEpoc) {
         Map<Integer, double[]> acumulado = new HashMap<>();
         // [suma sistólica, n, suma saturación, n, suma pulso, n, evaluadas, fuera de rango, imc]
         jdbc.query("""
                 SELECT id_persona_mayor, presion_sistolica, presion_diastolica, frecuencia_cardiaca,
-                       temperatura, saturacion_oxigeno, peso, estatura
+                       temperatura, saturacion_oxigeno, frecuencia_respiratoria, peso, estatura
                   FROM signo_vital
                  WHERE id_persona_mayor IN (%s)
                    AND fecha_hora >= :desdeSignos
@@ -269,6 +275,7 @@ public class DatosPerfiles {
             Double pulso = valido(rs.getObject("frecuencia_cardiaca"), PULSO);
             Double temperatura = valido(rs.getObject("temperatura"), TEMPERATURA);
             Double saturacion = valido(rs.getObject("saturacion_oxigeno"), SATURACION);
+            Double respiracion = valido(rs.getObject("frecuencia_respiratoria"), RESPIRACION);
             Double peso = valido(rs.getObject("peso"), PESO);
             Double estatura = valido(rs.getObject("estatura"), ESTATURA);
 
@@ -276,14 +283,11 @@ public class DatosPerfiles {
             if (saturacion != null) { a[2] += saturacion; a[3]++; }
             if (pulso != null) { a[4] += pulso; a[5]++; }
 
-            boolean evaluada = sistolica != null || diastolica != null || pulso != null
-                    || temperatura != null || saturacion != null;
-            if (evaluada) {
+            Signos signos = new Signos(sistolica, diastolica, pulso, temperatura, saturacion, respiracion);
+            if (signos.tieneAlguno()) {
                 a[6]++;
-                boolean fuera = fuera(sistolica, SISTOLICA_NORMAL) || fuera(diastolica, DIASTOLICA_NORMAL)
-                        || fuera(pulso, PULSO_NORMAL) || fuera(temperatura, TEMPERATURA_NORMAL)
-                        || (saturacion != null && saturacion < SATURACION_MINIMA);
-                if (fuera) {
+                boolean epoc = conEpoc.contains(rs.getInt("id_persona_mayor"));
+                if (RangosClinicos.fueraDeRango(signos, epoc)) {
                     a[7]++;
                 }
             }
@@ -323,9 +327,5 @@ public class DatosPerfiles {
         }
         double numero = ((Number) valor).doubleValue();
         return numero >= limites[0] && numero <= limites[1] ? numero : null;
-    }
-
-    private static boolean fuera(Double valor, double[] rango) {
-        return valor != null && (valor < rango[0] || valor > rango[1]);
     }
 }

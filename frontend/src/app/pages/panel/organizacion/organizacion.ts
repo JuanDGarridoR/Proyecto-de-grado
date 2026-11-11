@@ -33,7 +33,9 @@ import {
   VoluntarioOrganizacion
 } from '../../../core/organizacion/organizacion.service';
 import { alCambiar } from '../../../core/tiempo-real/tiempo-real.service';
-import { NOMBRE_INDICADOR, indicadoresFueraDeRango } from '../../../core/signos-vitales/rangos';
+import {
+  camposImposibles, gravedadMaxima, indicadoresFueraDeRango, motivoFueraDeRango
+} from '../../../core/signos-vitales/rangos';
 import { formatearHora } from '../../../core/medicamentos/medicamento.service';
 import { mensajeDeError } from '../../../core/formato/formato';
 import { formatearFechaCita } from '../../../core/citas-medicas/cita-medica.service';
@@ -348,13 +350,18 @@ export class PanelOrganizacion implements OnInit, OnDestroy {
           continue;
         }
 
-        const fuera = indicadoresFueraDeRango(ultima).map((i) => NOMBRE_INDICADOR[i]);
+        // Con EPOC su saturación objetivo es otra (RangosClinicos / rangos.ts).
+        const ctx = { epoc: !!persona.tieneEpoc };
+        const fuera = indicadoresFueraDeRango(ultima, ctx).map((i) => motivoFueraDeRango(ultima, i, ctx));
         if (fuera.length > 0) {
+          // Un valor imposible es un error de digitación, no un valor crítico.
+          const critico = camposImposibles(ultima).length === 0 && gravedadMaxima(ultima, ctx) === 'critica';
           alertas.push({
             clave: `signos-${persona.idUsuario}`,
             prioridad: 'Alta',
             titulo: persona.nombre,
-            descripcion: `${fuera.join(', ')} fuera de lo habitual en su última medición (${haceDias(ultima.fechaHora, this.ahora())}).`,
+            descripcion: `${critico ? 'Valor crítico. ' : ''}Fuera de lo habitual en su última medición `
+              + `(${haceDias(ultima.fechaHora, this.ahora())}): ${fuera.join('; ')}.`,
             enlace: `${RUTA}/signos-vitales`
           });
         }

@@ -307,13 +307,21 @@
 
                 <div class="ultima__valores">
                   @for (v of valoresUltimoSigno(); track v.indicador) {
-                    <div class="valor" [class.valor--revisar]="!v.normal">
+                    <div
+                      class="valor"
+                      [class.valor--revisar]="v.estado.tono === 'revisar'"
+                      [class.valor--aviso]="v.estado.tono === 'aviso'"
+                      [title]="'Esperado: ' + v.esperado"
+                    >
                       <span class="valor__nombre">{{ v.nombre }}</span>
                       <strong class="valor__numero">{{ v.valor }} <small>{{ v.unidad }}</small></strong>
                       <span class="valor__estado">
-                        <app-icono [name]="v.normal ? 'check-circle' : 'alert-circle'" />
-                        {{ v.normal ? 'Normal' : 'Revisar' }}
+                        <app-icono [name]="v.estado.tono === 'normal' ? 'check-circle' : 'alert-circle'" />
+                        {{ v.estado.etiqueta }}
                       </span>
+                      @if (v.estado.tono !== 'normal') {
+                        <small class="valor__esperado">Esperado: {{ v.esperado }}</small>
+                      }
                     </div>
                   }
                 </div>

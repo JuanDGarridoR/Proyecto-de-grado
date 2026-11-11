@@ -23,12 +23,16 @@ import { AcompanamientoCita } from '../../../../shared/acompanamiento-cita/acomp
 import { HojaFecha } from '../../../../shared/hoja-fecha/hoja-fecha';
 import { SignoVitalResponse } from '../../../../core/signos-vitales/signos-vitales.services';
 import {
+  ContextoClinico,
+  Estado,
   INDICADORES,
   Indicador,
   NOMBRE_INDICADOR,
-  evaluarIndicador,
-  indicadoresFueraDeRango
+  estadoIndicador,
+  indicadoresFueraDeRango,
+  rangoEsperado
 } from '../../../../core/signos-vitales/rangos';
+import { CondicionSaludService, tieneEpoc } from '../../../../core/condiciones-salud/condicion-salud.service';
 import { Icono } from '../../../../shared/icono/icono';
 import { SignosVitalesLista } from '../../../../shared/signos-vitales-lista/signos-vitales-lista';
 import { alCambiar } from '../../../../core/tiempo-real/tiempo-real.service';
@@ -58,6 +62,8 @@ interface ValorSigno {
   valor: string;
   unidad: string;
   normal: boolean;
+  estado: Estado;
+  esperado: string;
 }
 
 /**
@@ -92,6 +98,8 @@ export class Seguimiento implements OnInit, OnDestroy {
   protected readonly medicamentos = signal<MedicamentoSeguimiento[]>([]);
   protected readonly citas = signal<CitaMedica[]>([]);
   protected readonly signos = signal<SignoVitalResponse[]>([]);
+  /** Con EPOC cambia el rango de saturación de la persona elegida. */
+  private readonly contexto = signal<ContextoClinico>({});
   protected readonly actividades = signal<ActividadDisponible[]>([]);
 
   protected readonly cargandoPersonas = signal(true);
@@ -152,24 +160,31 @@ export class Seguimiento implements OnInit, OnDestroy {
     const valores: Record<Indicador, { valor: string; unidad: string }> = {
       presion: { valor: `${s.presionSistolica ?? '-'}/${s.presionDiastolica ?? '-'}`, unidad: 'mmHg' },
       pulso: { valor: `${s.frecuenciaCardiaca}`, unidad: 'lpm' },
-      temperatura: { valor: `${s.temperatura}`, unidad: '°C' },
-      oxigeno: { valor: `${s.saturacionOxigeno}`, unidad: '%' }
+      temperatura: { valor: `${s.temperatura}`.replace('.', ','), unidad: '°C' },
+      oxigeno: { valor: `${s.saturacionOxigeno}`, unidad: '%' },
+      respiracion: { valor: `${s.frecuenciaRespiratoria}`, unidad: 'rpm' }
     };
 
-    return INDICADORES
-      .filter((i) => evaluarIndicador(s, i) !== null)
-      .map((i) => ({
-        indicador: i,
-        nombre: NOMBRE_INDICADOR[i],
-        ...valores[i],
-        normal: evaluarIndicador(s, i)!
-      }));
+    const ctx = this.contexto();
+    return INDICADORES.flatMap((i) => {
+      const estado = estadoIndicador(s, i, ctx);
+      return estado
+        ? [{
+            indicador: i,
+            nombre: NOMBRE_INDICADOR[i],
+            ...valores[i],
+            normal: estado.tono !== 'revisar',
+            estado,
+            esperado: rangoEsperado(i, ctx)
+          }]
+        : [];
+    });
   });
 
   /** Nombres de los valores fuera de rango en la última medición ("Presión, Pulso"). */
   protected readonly fueraDeRango = computed(() => {
     const s = this.ultimoSigno();
-    return s ? indicadoresFueraDeRango(s).map((i) => NOMBRE_INDICADOR[i]).join(', ') : '';
+    return s ? indicadoresFueraDeRango(s, this.contexto()).map((i) => NOMBRE_INDICADOR[i]).join(', ') : '';
   });
 
   // ---- Actividades ----
@@ -184,7 +199,8 @@ export class Seguimiento implements OnInit, OnDestroy {
   constructor(
     private acompananteService: AcompananteService,
     private actividadService: ActividadService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private condicionSaludService: CondicionSaludService
   ) {
     alCambiar(['acompanamientos', 'usuarios'], () => this.cargarPersonasMayores(false));
     alCambiar(['medicamentos'], () => this.recargarDetalle('medicamentos'));
@@ -257,6 +273,19 @@ export class Seguimiento implements OnInit, OnDestroy {
     this.cargarCitas(persona.idUsuario);
     this.cargarSignos(persona.idUsuario);
     this.cargarActividades(persona.idUsuario);
+    this.cargarContexto(persona.idUsuario);
+  }
+
+  /** Si tiene EPOC; si no se puede saber, se usan los rangos generales. */
+  private cargarContexto(idPersonaMayor: number): void {
+    this.contexto.set({});
+    this.condicionSaludService.listar(idPersonaMayor).subscribe({
+      next: (condiciones) => {
+        if (!this.sigueSeleccionada(idPersonaMayor)) return;
+        this.contexto.set({ epoc: tieneEpoc(condiciones) });
+      },
+      error: () => {}
+    });
   }
 
   /** Vuelve a pedir una sección de la persona seleccionada, sin mostrar "cargando". */

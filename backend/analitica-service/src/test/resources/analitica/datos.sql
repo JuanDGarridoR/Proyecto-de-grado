@@ -82,3 +82,8 @@ INSERT INTO persona_mayor_gusto VALUES (11, 4);
 INSERT INTO retiro_cuenta VALUES (1, 5, 'Carmen Peña', 'PERSONA_MAYOR', 'FALLECIMIENTO', 'Gracias por todo', '2026-08-10 09:00:00');
 INSERT INTO retiro_cuenta VALUES (2, 5, 'Jorge Ríos', 'PERSONA_MAYOR', 'DIFICULTAD_USO', '  ', '2026-09-28 15:30:00');
 INSERT INTO retiro_cuenta VALUES (3, 6, 'Elvia Mora', 'PERSONA_MAYOR', 'CAMBIO_RESIDENCIA', NULL, '2026-09-01 10:00:00');
+
+-- Condiciones de salud: Rosa tiene EPOC (cambia su rango de saturación);
+-- Luis tiene una alergia que se llama igual, que no cuenta.
+INSERT INTO condicion_salud VALUES (1, 'ENFERMEDAD', 'EPOC'), (2, 'ALERGIA', 'EPOC');
+INSERT INTO persona_mayor_condicion_salud (id_persona_mayor, id_condicion_salud) VALUES (10, 1), (11, 2);

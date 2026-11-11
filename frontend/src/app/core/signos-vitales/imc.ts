@@ -1,20 +1,15 @@
+import { CategoriaImc, categoriaImc } from './rangos';
+
 /**
- * Índice de masa corporal (IMC = peso en kg / estatura en m²) con la
- * clasificación general de la OMS para adultos. Es orientativo y no
- * reemplaza la valoración médica.
+ * Índice de masa corporal (IMC = peso en kg / estatura en m²) con los
+ * puntos de corte para personas mayores (están en rangos.ts, con su
+ * fuente). Es orientativo y no reemplaza la valoración médica.
  */
 export interface Imc {
   valor: number;      // redondeado a un decimal
-  categoria: string;
+  categoria: CategoriaImc;
   normal: boolean;
 }
-
-const CATEGORIAS = [
-  { hasta: 18.5, categoria: 'Bajo peso' },
-  { hasta: 25, categoria: 'Peso normal' },
-  { hasta: 30, categoria: 'Sobrepeso' },
-  { hasta: Infinity, categoria: 'Obesidad' }
-];
 
 /** IMC a partir del peso (kg) y la estatura (cm); null si falta alguno. */
 export function calcularImc(peso: number | null, estaturaCm: number | null): Imc | null {
@@ -24,9 +19,9 @@ export function calcularImc(peso: number | null, estaturaCm: number | null): Imc
 
   const metros = estaturaCm / 100;
   const valor = Math.round((peso / (metros * metros)) * 10) / 10;
-  const categoria = CATEGORIAS.find((c) => valor < c.hasta)!.categoria;
+  const categoria = categoriaImc(valor);
 
-  return { valor, categoria, normal: categoria === 'Peso normal' };
+  return { valor, categoria, normal: categoria === 'Normal' };
 }
 
 /**

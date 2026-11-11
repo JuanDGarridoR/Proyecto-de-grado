@@ -4,7 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { MedicionAnalitica, SaludAnalitica } from '../../../../../core/analitica/analitica.service';
 import { Imc, imcPorRegistro } from '../../../../../core/signos-vitales/imc';
 import {
-  CampoSigno, Indicador, LIMITES, NOMBRE_INDICADOR, RANGOS, camposImposibles, evaluarIndicador
+  CATEGORIAS_IMC as CATEGORIAS_IMC_BASE, CampoSigno, ContextoClinico, INDICADORES as TODOS_LOS_INDICADORES,
+  Indicador, LIMITES, NOMBRE_INDICADOR, NOTA_RANGOS, RANGOS, camposImposibles, evaluarIndicador, franjaNormal,
+  gravedadIndicador, motivoFueraDeRango, rangoEsperado, textoValor
 } from '../../../../../core/signos-vitales/rangos';
 import {
   ANCHO_BARRA, ESTADO, GRIS, GRIS_SUAVE, SERIE, base, ejeCategorias, ejeValores,
@@ -21,15 +23,28 @@ const DIA = 24 * 60 * 60 * 1000;
 /** Sin mediciones en más de estos días, la persona aparece como "requiere atención". */
 const DIAS_SIN_MEDICION = 30;
 
-/** Indicadores que muestra la analítica (la temperatura no). */
+/**
+ * Indicadores de las gráficas (la temperatura no: casi no se mide en las
+ * organizaciones). La lista de atención sí revisa todos.
+ */
 type IndicadorAnalitica = Exclude<Indicador, 'temperatura'>;
-const INDICADORES: IndicadorAnalitica[] = ['presion', 'pulso', 'oxigeno'];
+const INDICADORES: IndicadorAnalitica[] = ['presion', 'pulso', 'oxigeno', 'respiracion'];
 
 /** Campos de la medición que forman cada indicador. */
-const CAMPOS: Record<IndicadorAnalitica, CampoSigno[]> = {
+const CAMPOS: Record<Indicador, CampoSigno[]> = {
   presion: ['presionSistolica', 'presionDiastolica'],
   pulso: ['frecuenciaCardiaca'],
-  oxigeno: ['saturacionOxigeno']
+  temperatura: ['temperatura'],
+  oxigeno: ['saturacionOxigeno'],
+  respiracion: ['frecuenciaRespiratoria']
+};
+
+/** Unidad de cada indicador de las gráficas. */
+const UNIDAD: Record<IndicadorAnalitica, string> = {
+  presion: RANGOS.presion.unidad,
+  pulso: RANGOS.pulso.unidad,
+  oxigeno: RANGOS.oxigeno.unidad,
+  respiracion: RANGOS.respiracion.unidad
 };
 
 /**
@@ -39,16 +54,13 @@ const CAMPOS: Record<IndicadorAnalitica, CampoSigno[]> = {
 const COLOR_ERROR = '#6b7785';
 
 /**
- * Categorías del IMC (las de core/signos-vitales/imc.ts, clasificación de la
- * OMS para adultos). El color sí indica estado: normal en verde, bajo peso y
- * sobrepeso en amarillo, obesidad en rojo; siempre con su nombre.
+ * Categorías del IMC de la persona mayor (core/signos-vitales/rangos.ts).
+ * El color sí indica estado: normal en verde, delgadez y sobrepeso en
+ * amarillo, obesidad en rojo; siempre con su nombre.
  */
-const CATEGORIAS_IMC = [
-  { categoria: 'Bajo peso', rango: 'Menos de 18,5', color: ESTADO.aviso },
-  { categoria: 'Peso normal', rango: '18,5 a 24,9', color: ESTADO.bueno },
-  { categoria: 'Sobrepeso', rango: '25 a 29,9', color: ESTADO.aviso },
-  { categoria: 'Obesidad', rango: '30 o más', color: ESTADO.critico }
-];
+const COLOR_IMC = { Delgadez: ESTADO.aviso, Normal: ESTADO.bueno, Sobrepeso: ESTADO.aviso, Obesidad: ESTADO.critico };
+const CATEGORIAS_IMC: { categoria: string; rango: string; color: string }[] =
+  CATEGORIAS_IMC_BASE.map((c) => ({ ...c, color: COLOR_IMC[c.categoria] }));
 
 const SIN_IMC = 'Sin peso o estatura';
 
@@ -57,15 +69,16 @@ interface PersonaAtencion {
   idUsuario: number;
   nombre: string;
   motivos: string[];
-  indicadores: IndicadorAnalitica[];  // fuera de rango en la última medición
-  errores: number;                    // mediciones con valores imposibles en el período
+  indicadores: Indicador[];  // fuera de rango en la última medición
+  critico: boolean;          // algún indicador en valor crítico
+  errores: number;           // mediciones con valores imposibles en el período
   ultima: string | null;
 }
 
 /** Indicadores de la medición con algún valor imposible. */
-function indicadoresConError(m: MedicionAnalitica): IndicadorAnalitica[] {
+function indicadoresConError(m: MedicionAnalitica): Indicador[] {
   const imposibles = camposImposibles(m);
-  return INDICADORES.filter((i) => CAMPOS[i].some((c) => imposibles.includes(c)));
+  return TODOS_LOS_INDICADORES.filter((i) => CAMPOS[i].some((c) => imposibles.includes(c)));
 }
 
 /**
@@ -86,6 +99,7 @@ export class ReporteSalud implements ReporteExportable {
 
   protected readonly indicadores = INDICADORES;
   protected readonly nombreIndicador = NOMBRE_INDICADOR;
+  protected readonly notaRangos = NOTA_RANGOS;
 
   // Filtros interactivos
   protected readonly filtroIndicador = signal<IndicadorAnalitica | null>(null);
@@ -93,6 +107,14 @@ export class ReporteSalud implements ReporteExportable {
   protected readonly indicadorEvolucion = signal<IndicadorAnalitica>('presion');
 
   // Datos base
+
+  /** Con EPOC cambia el rango de saturación de la persona. */
+  private readonly contextos = computed(() =>
+    new Map<number, ContextoClinico>(this.datos().personas.map((p) => [p.idUsuario, { epoc: !!p.tieneEpoc }])));
+
+  private contexto(idPersona: number | null): ContextoClinico {
+    return (idPersona !== null ? this.contextos().get(idPersona) : undefined) ?? {};
+  }
 
   private readonly medicionesPorPersona = computed(() => {
     const mapa = new Map<number, MedicionAnalitica[]>();
@@ -152,6 +174,8 @@ export class ReporteSalud implements ReporteExportable {
   /**
    * Personas con la última medición fuera de rango, sin medir hace más de
    * DIAS_SIN_MEDICION días, sin ninguna medición o con valores imposibles.
+   * Primero quienes tienen un valor crítico; luego, quienes tienen más
+   * indicadores fuera de rango.
    */
   protected readonly atencion = computed<PersonaAtencion[]>(() => {
     const ahora = Date.now();
@@ -166,18 +190,23 @@ export class ReporteSalud implements ReporteExportable {
       const ultima = this.ultimaPorPersona().get(persona.idUsuario);
       const errores = erroresPorPersona.get(persona.idUsuario) ?? 0;
       const motivos: string[] = [];
-      let indicadores: IndicadorAnalitica[] = [];
+      const ctx = this.contexto(persona.idUsuario);
+      let indicadores: Indicador[] = [];
+      let critico = false;
 
       if (!ultima) {
         motivos.push('Nunca se le han medido signos vitales');
       } else {
-        indicadores = INDICADORES.filter((i) => evaluarIndicador(ultima, i) === false);
         const conError = indicadoresConError(ultima);
+        indicadores = TODOS_LOS_INDICADORES.filter((i) => evaluarIndicador(ultima, i, ctx) === false);
         for (const i of indicadores) {
-          const valor = this.valor(ultima, i);
-          motivos.push(conError.includes(i)
-            ? `${NOMBRE_INDICADOR[i]}: ${valor} (valor imposible)`
-            : `${NOMBRE_INDICADOR[i]}: ${valor}`);
+          if (conError.includes(i)) {
+            motivos.push(`${NOMBRE_INDICADOR[i]}: ${textoValor(ultima, i)} (valor imposible)`);
+            continue;
+          }
+          const esCritico = gravedadIndicador(ultima, i, ctx) === 'critica';
+          critico ||= esCritico;
+          motivos.push(motivoFueraDeRango(ultima, i, ctx) + (esCritico ? ' · valor crítico' : ''));
         }
         const dias = Math.floor((ahora - new Date(ultima.fechaHora).getTime()) / DIA);
         if (dias > DIAS_SIN_MEDICION) {
@@ -197,15 +226,19 @@ export class ReporteSalud implements ReporteExportable {
           nombre: persona.nombre,
           motivos,
           indicadores,
+          critico,
           errores,
           ultima: ultima?.fechaHora ?? null
         });
       }
     }
 
-    // Primero valores fuera de rango, luego errores de registro.
+    // Primero valores críticos, luego más indicadores fuera de rango, luego errores de registro.
     return lista.sort((a, b) =>
-      b.indicadores.length - a.indicadores.length || b.errores - a.errores || a.nombre.localeCompare(b.nombre));
+      Number(b.critico) - Number(a.critico)
+      || b.indicadores.length - a.indicadores.length
+      || b.errores - a.errores
+      || a.nombre.localeCompare(b.nombre));
   });
 
   protected readonly atencionFiltrada = computed(() => {
@@ -257,7 +290,7 @@ export class ReporteSalud implements ReporteExportable {
       let revisar = 0;
       let error = 0;
       for (const m of this.ultimaPorPersona().values()) {
-        const evaluacion = evaluarIndicador(m, indicador);
+        const evaluacion = evaluarIndicador(m, indicador, this.contexto(m.idPersonaMayor));
         if (evaluacion === null) continue;
         if (indicadoresConError(m).includes(indicador)) error++;
         else if (evaluacion) normal++;
@@ -491,16 +524,22 @@ export class ReporteSalud implements ReporteExportable {
     const punto = (m: MedicionAnalitica, campo: CampoSigno) =>
       [m.fechaHora.replace('T', ' '), this.valorGraficable(m, campo)] as [string, number | null];
 
-    // Series a dibujar según el indicador
-    const definiciones: { nombre: string; campo: CampoSigno; color: string; rango: { min: number; max: number }; franja: string }[] =
+    // Series a dibujar según el indicador, con la franja del rango normal
+    // (la de la saturación cambia si la persona tiene EPOC).
+    const ctx = this.contexto(this.personaActual());
+    const definiciones: { nombre: string; campo: Parameters<typeof franjaNormal>[0]; color: string; franja: string }[] =
       indicador === 'presion'
         ? [
-            { nombre: 'Sistólica (mmHg)', campo: 'presionSistolica', color: SERIE[0], rango: RANGOS.sistolica, franja: 'Normal sistólica' },
-            { nombre: 'Diastólica (mmHg)', campo: 'presionDiastolica', color: SERIE[1], rango: RANGOS.diastolica, franja: 'Normal diastólica' }
+            { nombre: 'Sistólica (mmHg)', campo: 'presionSistolica', color: SERIE[0], franja: 'Normal sistólica' },
+            { nombre: 'Diastólica (mmHg)', campo: 'presionDiastolica', color: SERIE[1], franja: 'Normal diastólica' }
           ]
         : indicador === 'pulso'
-          ? [{ nombre: 'Pulso (lpm)', campo: 'frecuenciaCardiaca', color: SERIE[0], rango: RANGOS.pulso, franja: 'Rango normal' }]
-          : [{ nombre: 'Oxígeno (%)', campo: 'saturacionOxigeno', color: SERIE[0], rango: RANGOS.oxigeno, franja: 'Rango normal' }];
+          ? [{ nombre: 'Pulso (lpm)', campo: 'frecuenciaCardiaca', color: SERIE[0], franja: 'Rango normal' }]
+          : indicador === 'respiracion'
+            ? [{ nombre: 'Frecuencia respiratoria (rpm)', campo: 'frecuenciaRespiratoria', color: SERIE[0], franja: 'Rango normal' }]
+            : [{ nombre: 'Oxígeno (%)', campo: 'saturacionOxigeno', color: SERIE[0],
+                 franja: ctx.epoc ? 'Objetivo con EPOC' : 'Rango normal' }];
+    const rangos = definiciones.map((d) => franjaNormal(d.campo, ctx));
 
     const series = definiciones.map((d) => ({
       ...d,
@@ -510,8 +549,9 @@ export class ReporteSalud implements ReporteExportable {
     const sinDatos = valores.length === 0;
 
     // Eje Y: siempre incluye el rango normal (para que se vea la franja).
-    const bajo = Math.min(...valores, ...definiciones.map((d) => d.rango.min));
-    const alto = Math.max(...valores, ...definiciones.map((d) => d.rango.max));
+    // Un rango sin mínimo (la diastólica) baja hasta donde llegue el eje.
+    const bajo = Math.min(...valores, ...rangos.flatMap((r) => (r.min === null ? [] : [r.min])));
+    const alto = Math.max(...valores, ...rangos.map((r) => r.max));
     const margen = Math.max((alto - bajo) * 0.15, 2);
     const minimoY = Math.max(0, Math.floor(bajo - margen));
     const maximoY = indicador === 'oxigeno' ? 100 : Math.ceil(alto + margen);
@@ -525,7 +565,7 @@ export class ReporteSalud implements ReporteExportable {
         ? new Date(lista[0].fechaHora)
         : new Date(ahora.getTime() - 30 * DIA);
 
-    const unidad = RANGOS[indicador === 'presion' ? 'sistolica' : indicador === 'pulso' ? 'pulso' : 'oxigeno'].unidad;
+    const unidad = UNIDAD[indicador];
 
     return base({
       legend: definiciones.length > 1 ? leyenda() : undefined,
@@ -540,7 +580,7 @@ export class ReporteSalud implements ReporteExportable {
         splitLine: { show: false }
       },
       yAxis: ejeValores({ min: minimoY, max: maximoY, minInterval: 0 }),
-      series: series.map((s) => ({
+      series: series.map((s, i) => ({
         name: s.nombre,
         ...estiloLinea(s.color),
         connectNulls: true,
@@ -549,7 +589,7 @@ export class ReporteSalud implements ReporteExportable {
           silent: true,
           itemStyle: { color: GRIS_SUAVE, opacity: 0.6 },
           label: { show: true, position: 'insideTopLeft', color: '#586576', fontSize: 11 },
-          data: [[{ name: s.franja, yAxis: s.rango.min }, { yAxis: s.rango.max }]]
+          data: [[{ name: s.franja, yAxis: rangos[i].min ?? minimoY }, { yAxis: rangos[i].max }]]
         }
       })),
       // Sin datos: el marco completo con un aviso en el centro.
@@ -574,7 +614,7 @@ export class ReporteSalud implements ReporteExportable {
   });
 
   protected readonly tablaEvolucion = computed<TablaGrafica>(() => ({
-    columnas: ['Fecha', 'Presión (mmHg)', 'Pulso (lpm)', 'Oxígeno (%)'],
+    columnas: ['Fecha', 'Presión (mmHg)', 'Pulso (lpm)', 'Oxígeno (%)', 'Frec. respiratoria (rpm)'],
     filas: this.serieEvolucion().map((m) => {
       const imposibles = camposImposibles(m);
       const marca = (campo: CampoSigno, texto: string) => (imposibles.includes(campo) ? `⚠ ${texto}` : texto);
@@ -584,7 +624,8 @@ export class ReporteSalud implements ReporteExportable {
         m.presionSistolica !== null || m.presionDiastolica !== null
           ? `${presionErronea ? '⚠ ' : ''}${m.presionSistolica ?? '-'}/${m.presionDiastolica ?? '-'}` : '—',
         m.frecuenciaCardiaca !== null ? marca('frecuenciaCardiaca', String(m.frecuenciaCardiaca)) : '—',
-        m.saturacionOxigeno !== null ? marca('saturacionOxigeno', String(m.saturacionOxigeno)) : '—'
+        m.saturacionOxigeno !== null ? marca('saturacionOxigeno', String(m.saturacionOxigeno)) : '—',
+        m.frecuenciaRespiratoria !== null ? marca('frecuenciaRespiratoria', String(m.frecuenciaRespiratoria)) : '—'
       ];
     })
   }));
@@ -599,14 +640,6 @@ export class ReporteSalud implements ReporteExportable {
   protected fecha(fechaHora: string | null): string {
     if (!fechaHora) return '—';
     return new Date(fechaHora).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' });
-  }
-
-  private valor(m: MedicionAnalitica, i: IndicadorAnalitica): string {
-    switch (i) {
-      case 'presion': return `${m.presionSistolica ?? '-'}/${m.presionDiastolica ?? '-'} mmHg`;
-      case 'pulso': return `${m.frecuenciaCardiaca} lpm`;
-      case 'oxigeno': return `${m.saturacionOxigeno} %`;
-    }
   }
 
   // ---------- Tarjetas (pantalla y PDF) ----------
@@ -635,7 +668,7 @@ export class ReporteSalud implements ReporteExportable {
     const datos = this.estadoActual();
     const evaluadas = datos.reduce((s, d) => s + d.normal + d.revisar + d.error, 0);
     if (evaluadas === 0) {
-      return 'Todavía no hay mediciones de presión, pulso u oxígeno, por eso la gráfica no muestra datos. '
+      return 'Todavía no hay mediciones de presión, pulso, oxígeno o frecuencia respiratoria, por eso la gráfica no muestra datos. '
         + 'Cuando se registren signos vitales, aquí se verá cuántas personas tienen su última medición '
         + 'dentro del rango normal y cuántas conviene revisar.';
     }
@@ -648,7 +681,7 @@ export class ReporteSalud implements ReporteExportable {
       : `${NOMBRE_INDICADOR[peor.indicador]} es el indicador con el mayor número de personas por revisar: `
         + `${peor.revisar} de ${medidas} ${medidas === 1 ? 'medida' : 'medidas'}.`;
 
-    return 'Para cada indicador (presión, pulso y oxígeno), la barra divide a las personas según su última '
+    return 'Para cada indicador (presión, pulso, oxígeno y frecuencia respiratoria), la barra divide a las personas según su última '
       + 'medición: en verde las que están dentro del rango normal y en amarillo las que conviene revisar'
       + (hayErrores ? ', y en gris los valores que parecen un error de registro. ' : '. ')
       + `${resumen} Los casos por revisar se detallan en la tabla "Personas que requieren atención".`;
@@ -689,37 +722,34 @@ export class ReporteSalud implements ReporteExportable {
     }
 
     const filas = this.porImc().filter((d) => d.categoria !== SIN_IMC);
-    const normal = filas.find((d) => d.categoria === 'Peso normal')!;
-    const fuera = filas.filter((d) => d.categoria !== 'Peso normal' && d.personas > 0);
+    const normal = filas.find((d) => d.categoria === 'Normal')!;
+    const fuera = filas.filter((d) => d.categoria !== 'Normal' && d.personas > 0);
     const mayorFuera = fuera.reduce<(typeof fuera)[number] | null>(
       (a, b) => (!a || b.personas > a.personas ? b : a), null);
     const sinDato = total - conImc;
 
     return `La gráfica agrupa a las personas según su IMC más reciente. ${conImc} de ${total} personas tienen `
       + `peso y estatura registrados, con un IMC promedio de ${formatoNumero(this.imcPromedio()!)}. `
-      + `${normal.personas} ${normal.personas === 1 ? 'está' : 'están'} en peso normal`
+      + `${normal.personas} ${normal.personas === 1 ? 'está' : 'están'} en la categoría normal`
       + (mayorFuera
         ? ` y el grupo más grande fuera de ese rango es "${mayorFuera.categoria}" (${mayorFuera.personas}). `
         : '. ')
       + (sinDato > 0
         ? `${sinDato} ${sinDato === 1 ? 'persona no tiene' : 'personas no tienen'} peso o estatura registrados. `
         : '')
-      + 'Tanto el bajo peso como el sobrepeso y la obesidad aumentan los riesgos de salud en las personas '
+      + 'Tanto la delgadez como el sobrepeso y la obesidad aumentan los riesgos de salud en las personas '
       + 'mayores; conviene revisarlos con el personal de salud y tenerlos en cuenta en la alimentación y la '
       + 'actividad física que ofrece la organización.';
   }
 
   private explicacionEvolucion(nombre: string): string {
     const indicador = this.indicadorEvolucion();
-    const rango = indicador === 'presion'
-      ? `${RANGOS.sistolica.min}–${RANGOS.sistolica.max} / ${RANGOS.diastolica.min}–${RANGOS.diastolica.max} mmHg`
-      : indicador === 'pulso'
-        ? `${RANGOS.pulso.min}–${RANGOS.pulso.max} lpm`
-        : `${RANGOS.oxigeno.min} % o más`;
+    const ctx = this.contexto(this.personaActual());
+    const rango = rangoEsperado(indicador, ctx);
 
     // Mediciones válidas del indicador (sin valores imposibles)
     const validas = this.serieEvolucion().filter((m) =>
-      evaluarIndicador(m, indicador) !== null && !indicadoresConError(m).includes(indicador));
+      evaluarIndicador(m, indicador, ctx) !== null && !indicadoresConError(m).includes(indicador));
 
     const inicio = `La gráfica sigue las mediciones de ${NOMBRE_INDICADOR[indicador].toLowerCase()} de `
       + `${nombre} a lo largo del período; la franja gris marca el rango normal de referencia (${rango}). `;
@@ -729,14 +759,14 @@ export class ReporteSalud implements ReporteExportable {
         + 'ninguna línea. Conviene programar una nueva medición para conocer su estado actual.';
     }
 
-    const fuera = validas.filter((m) => evaluarIndicador(m, indicador) === false).length;
+    const fuera = validas.filter((m) => evaluarIndicador(m, indicador, ctx) === false).length;
     const ultima = validas[validas.length - 1];
-    const ultimaNormal = evaluarIndicador(ultima, indicador);
+    const ultimaNormal = evaluarIndicador(ultima, indicador, ctx);
 
     return inicio
       + `Se registraron ${validas.length} ${validas.length === 1 ? 'medición válida' : 'mediciones válidas'}, `
       + `de las cuales ${fuera} ${fuera === 1 ? 'quedó' : 'quedaron'} fuera del rango normal. La más reciente, `
-      + `del ${this.fecha(ultima.fechaHora)}, fue de ${this.valor(ultima, indicador)}, `
+      + `del ${this.fecha(ultima.fechaHora)}, fue de ${textoValor(ultima, indicador)}, `
       + `${ultimaNormal ? 'dentro del rango normal' : 'fuera del rango normal'}. Los puntos que salen de la `
       + 'franja son los que conviene revisar con el personal de salud.';
   }
@@ -776,8 +806,7 @@ export class ReporteSalud implements ReporteExportable {
             filas: this.atencion().map((p) => [p.nombre, p.motivos.join('; '), this.fecha(p.ultima)])
           } }
       ],
-      nota: 'Los rangos "normales" son referencias generales para adultos (presión 90–139 / 60–89 mmHg, pulso 60–100 lpm, '
-        + 'oxígeno 95 % o más). El IMC usa la clasificación de la OMS para adultos (normal entre 18,5 y 24,9). '
+      nota: `${NOTA_RANGOS} `
         + 'Son orientativos y no reemplazan el criterio médico. Un "posible error de registro" '
         + 'es un valor que no puede ser real y probablemente corresponde a un error de digitación.'
     };

@@ -124,12 +124,19 @@ public class AnaliticaController {
         MapSqlParameterSource params = new MapSqlParameterSource("org", idOrganizacion);
 
         List<PersonaAnalitica> personas = jdbc.query("""
-                SELECT u.id_usuario, u.nombre_usuario
+                SELECT u.id_usuario, u.nombre_usuario,
+                       EXISTS (SELECT 1
+                                 FROM persona_mayor_condicion_salud pc
+                                 JOIN condicion_salud c ON c.id_condicion_salud = pc.id_condicion_salud
+                                WHERE pc.id_persona_mayor = u.id_usuario
+                                  AND c.tipo = 'ENFERMEDAD'
+                                  AND UPPER(c.nombre) = 'EPOC') AS tiene_epoc
                   FROM usuario u
                  WHERE u.id_usuario IN (%s)
                  ORDER BY u.nombre_usuario
                 """.formatted(PERSONAS_ASOCIADAS), params,
-                (rs, i) -> new PersonaAnalitica(rs.getInt("id_usuario"), rs.getString("nombre_usuario")));
+                (rs, i) -> new PersonaAnalitica(rs.getInt("id_usuario"), rs.getString("nombre_usuario"),
+                        rs.getBoolean("tiene_epoc")));
 
         List<MedicionAnalitica> mediciones = jdbc.query("""
                 SELECT s.id_persona_mayor, s.fecha_hora,
