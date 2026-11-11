@@ -155,7 +155,7 @@ public class AcompananteRelacionController {
         relacion.setRelacion(limpiar(request.relacion()));
         relacionRepository.saveAndFlush(relacion);
 
-        return ResponseEntity.ok("Solicitud de acompañamiento enviada correctamente");
+        return ResponseEntity.ok("Solicitud enviada. La persona mayor debe ingresar a VITA+ y aceptarla en el menú Acompañantes para que queden vinculados.");
     }
 
     /** Cambia su parentesco con una de las personas mayores que acompaña. */

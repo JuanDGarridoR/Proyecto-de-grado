@@ -90,7 +90,7 @@ class PersonaMayorAcompananteControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(agregar(CELULAR_ACOMPANANTE, "Hijo")))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Solicitud de acompañamiento enviada correctamente"));
+                .andExpect(content().string("Solicitud enviada. Tu acompañante debe ingresar a VITA+ y aceptarla en el menú Personas mayores para que queden vinculados."));
 
         ArgumentCaptor<PersonaMayorAcompanante> guardada = ArgumentCaptor.forClass(PersonaMayorAcompanante.class);
         verify(relacionRepository).saveAndFlush(guardada.capture());

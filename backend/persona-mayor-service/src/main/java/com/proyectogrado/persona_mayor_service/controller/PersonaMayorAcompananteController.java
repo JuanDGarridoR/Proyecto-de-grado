@@ -168,7 +168,7 @@ public class PersonaMayorAcompananteController {
             relacionExistente.setRelacion(limpiar(request.relacion()));
             relacionRepository.saveAndFlush(relacionExistente);
 
-            return ResponseEntity.ok("Solicitud de acompañamiento enviada correctamente");
+            return ResponseEntity.ok("Solicitud enviada. Tu acompañante debe ingresar a VITA+ y aceptarla en el menú Personas mayores para que queden vinculados.");
         }
 
         PersonaMayorAcompanante relacion =
@@ -179,7 +179,7 @@ public class PersonaMayorAcompananteController {
         relacion.setRelacion(limpiar(request.relacion()));
         relacionRepository.saveAndFlush(relacion);
 
-        return ResponseEntity.ok("Solicitud de acompañamiento enviada correctamente");
+        return ResponseEntity.ok("Solicitud enviada. Tu acompañante debe ingresar a VITA+ y aceptarla en el menú Personas mayores para que queden vinculados.");
     }
 
     /** Cambia el parentesco de uno de sus acompañantes (por ejemplo, de "Vecina" a "Sobrina"). */
