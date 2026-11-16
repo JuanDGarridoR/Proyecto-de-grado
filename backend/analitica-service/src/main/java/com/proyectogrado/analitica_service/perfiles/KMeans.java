@@ -9,8 +9,6 @@ import java.util.Random;
  * inercia). Recibe los datos ya normalizados: una fila por persona, una
  * columna por variable. Usa una semilla fija, así que con los mismos datos
  * siempre da los mismos grupos.
- *
- * Ver docs/KMEANS_PERFILES.md para la explicación del método.
  */
 public final class KMeans {
 

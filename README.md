@@ -67,9 +67,9 @@ La solución consiste en una plataforma web, **VITA+**, orientada a apoyar la ge
 
 El backend está dividido en **Servicios**. El frontend nunca habla directamente con ellos: todas las peticiones pasan por el **API Gateway**, que valida el token JWT y las redirige al servicio correspondiente.
 
-Las decisiones de arquitectura con las que la plataforma cumple los requisitos no funcionales (disponibilidad, seguridad y privacidad, rendimiento, escalabilidad y mantenibilidad) están en [ARQUITECTURA_DISPONIBILIDAD.md](docs/ARQUITECTURA_DISPONIBILIDAD.md).
+Las decisiones de arquitectura con las que la plataforma cumple los requisitos no funcionales (disponibilidad, seguridad y privacidad, rendimiento, escalabilidad y mantenibilidad) están en la documentación del proyecto (PDF).
 
-Cómo funcionan los perfiles de las personas mayores (segmentación con K-means en analitica-service) está en [KMEANS_PERFILES.md](docs/KMEANS_PERFILES.md).
+Cómo funcionan los perfiles de las personas mayores (segmentación con K-means en analitica-service) está en la documentación del proyecto (PDF).
 
 ```text
 ┌──────────────────────┐
@@ -148,20 +148,12 @@ Proyecto-de-grado/
 │   ├── angular.json
 │   └── package.json
 │
-├── docs/                          ← documentación de apoyo
-│   ├── ARQUITECTURA_DISPONIBILIDAD.md ← arquitectura y requisitos no funcionales
-│   ├── GUIA_COMENTARIOS.md            ← cómo se comenta el código
-│   ├── KMEANS_PERFILES.md             ← perfiles de las personas mayores con K-means
-│   └── REQUERIMIENTOS.md              ← requerimientos funcionales y no funcionales
-│
 ├── docker-compose.yml
 ├── .env.example               ← plantilla de claves (servidor y desarrollo local)
 └── README.md
 ```
 
 Cada servicio del backend es un proyecto Spring Boot independiente con su propio `pom.xml`, `mvnw.cmd` y `src/main/resources/application.properties` (o `application.yml` en el gateway).
-
-Las reglas para comentar el código están en [GUIA_COMENTARIOS.md](docs/GUIA_COMENTARIOS.md).
 
 ---
 

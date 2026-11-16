@@ -13,7 +13,7 @@
 #   (ver backend/Dockerfile y frontend/Dockerfile). La excepción es autoheal,
 #   que necesita el socket de Docker para reiniciar contenedores.
 #
-# Disponibilidad (ver docs/ARQUITECTURA_DISPONIBILIDAD.md):
+# Disponibilidad:
 # - Cada servicio tiene health check; si deja de responder, autoheal lo reinicia.
 # - auth, persona mayor y salud corren en dos réplicas (servicio y servicio-2);
 #   el gateway reparte las peticiones entre ellas.
