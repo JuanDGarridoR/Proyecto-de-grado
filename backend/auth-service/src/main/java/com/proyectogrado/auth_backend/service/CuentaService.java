@@ -68,6 +68,19 @@ public class CuentaService {
                     + " AND estado IN ('PENDIENTE', 'RECHAZADA')", idUsuario);
         }
         ejecutar("DELETE FROM medicamento WHERE id_persona_mayor = :id", idUsuario);
+        // Salud, citas, emergencias y notas de las organizaciones sobre ella:
+        // los términos prometen que se borran con la cuenta. Las tablas son
+        // de otros servicios, así que puede que aún no existan.
+        ejecutarSiExisteTabla("signo_vital",
+                "DELETE FROM signo_vital WHERE id_persona_mayor = :id", idUsuario);
+        ejecutarSiExisteTabla("cita_medica",
+                "DELETE FROM cita_medica WHERE id_persona_mayor = :id", idUsuario);
+        ejecutarSiExisteTabla("emergencia",
+                "DELETE FROM emergencia WHERE id_persona_mayor = :id", idUsuario);
+        ejecutarSiExisteTabla("nota_persona_mayor",
+                "DELETE FROM nota_persona_mayor WHERE id_persona_mayor = :id", idUsuario);
+        ejecutarSiExisteTabla("auditoria_salud",
+                "DELETE FROM auditoria_salud WHERE id_persona_mayor = :id", idUsuario);
         ejecutarSiExisteTabla("persona_mayor_condicion_salud",
                 "DELETE FROM persona_mayor_condicion_salud WHERE id_persona_mayor = :id", idUsuario);
         ejecutar("DELETE FROM persona_mayor_gusto WHERE id_persona_mayor = :id", idUsuario);
@@ -76,6 +89,14 @@ public class CuentaService {
         // Vínculos persona mayor - acompañante, sea cual sea su lado
         ejecutar("DELETE FROM persona_mayor_acompanante"
                 + " WHERE id_persona_mayor = :id OR id_acompanante = :id", idUsuario);
+
+        // Citas de otras personas mayores a las que se había comprometido a
+        // ir como acompañante: quedan otra vez sin acompañante.
+        if (existeColumna("cita_medica", "id_acompanante_cita")
+                && existeColumna("cita_medica", "punto_encuentro")) {
+            ejecutar("UPDATE cita_medica SET id_acompanante_cita = NULL, punto_encuentro = NULL"
+                    + " WHERE id_acompanante_cita = :id", idUsuario);
+        }
 
         // Vínculos y solicitudes como voluntario
         ejecutarSiExisteTabla("voluntario_organizacion",
