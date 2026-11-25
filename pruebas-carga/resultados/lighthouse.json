@@ -1,0 +1,311 @@
+[
+  {
+    "pagina": "Iniciar sesión",
+    "ruta": "/iniciar-sesion",
+    "modo": "escritorio",
+    "fcp_ms": 651,
+    "lcp_ms": 1316,
+    "tti_ms": 1440,
+    "tbt_ms": 92,
+    "puntaje": 95,
+    "corridas": [
+      {
+        "fcp": 1104.0299999999997,
+        "lcp": 1771.6799999999998,
+        "tti": 1855.6799999999998,
+        "tbt": 121,
+        "puntaje": 86,
+        "url_final": "https://vita-plus.app/iniciar-sesion",
+        "error": null
+      },
+      {
+        "fcp": 624.9279,
+        "lcp": 1134.3679000000002,
+        "tti": 1134.3679000000002,
+        "tbt": 30.430000000000177,
+        "puntaje": 97,
+        "url_final": "https://vita-plus.app/iniciar-sesion",
+        "error": null
+      },
+      {
+        "fcp": 650.9001000000001,
+        "lcp": 1315.9001,
+        "tti": 1439.9001,
+        "tbt": 91.99999999999989,
+        "puntaje": 95,
+        "url_final": "https://vita-plus.app/iniciar-sesion",
+        "error": null
+      }
+    ]
+  },
+  {
+    "pagina": "Iniciar sesión",
+    "ruta": "/iniciar-sesion",
+    "modo": "movil",
+    "fcp_ms": 2501,
+    "lcp_ms": 6341,
+    "tti_ms": 6797,
+    "tbt_ms": 527,
+    "puntaje": 60,
+    "corridas": [
+      {
+        "fcp": 2805.2019999999998,
+        "lcp": 6565.086499999999,
+        "tti": 7032.315,
+        "tbt": 758.9999999999995,
+        "puntaje": 53,
+        "url_final": "https://vita-plus.app/iniciar-sesion",
+        "error": null
+      },
+      {
+        "fcp": 2501.0064500000003,
+        "lcp": 6340.836925,
+        "tti": 6796.944600000001,
+        "tbt": 527,
+        "puntaje": 60,
+        "url_final": "https://vita-plus.app/iniciar-sesion",
+        "error": null
+      },
+      {
+        "fcp": 2465.0186000000003,
+        "lcp": 6284.5186,
+        "tti": 6728.018600000001,
+        "tbt": 482,
+        "puntaje": 61,
+        "url_final": "https://vita-plus.app/iniciar-sesion",
+        "error": null
+      }
+    ]
+  },
+  {
+    "pagina": "Panel persona mayor (inicio)",
+    "ruta": "/panel/persona-mayor",
+    "modo": "escritorio",
+    "fcp_ms": 764,
+    "lcp_ms": 1597,
+    "tti_ms": 1697,
+    "tbt_ms": 163,
+    "puntaje": 85,
+    "corridas": [
+      {
+        "fcp": 631.8632,
+        "lcp": 882.05235,
+        "tti": 1369.7025675,
+        "tbt": 482.0542499999999,
+        "puntaje": 77,
+        "url_final": "https://vita-plus.app/panel/persona-mayor",
+        "error": null
+      },
+      {
+        "fcp": 909.4139,
+        "lcp": 1801.9724999999999,
+        "tti": 1809.1225,
+        "tbt": 149.4999999999999,
+        "puntaje": 85,
+        "url_final": "https://vita-plus.app/panel/persona-mayor",
+        "error": null
+      },
+      {
+        "fcp": 764.1226999999999,
+        "lcp": 1596.8733499999998,
+        "tti": 1697.0324999999998,
+        "tbt": 163,
+        "puntaje": 88,
+        "url_final": "https://vita-plus.app/panel/persona-mayor",
+        "error": null
+      }
+    ]
+  },
+  {
+    "pagina": "Panel persona mayor (inicio)",
+    "ruta": "/panel/persona-mayor",
+    "modo": "movil",
+    "fcp_ms": 2788,
+    "lcp_ms": 7476,
+    "tti_ms": 7646,
+    "tbt_ms": 1186,
+    "puntaje": 27,
+    "corridas": [
+      {
+        "fcp": 2788.296,
+        "lcp": 7406.6219999999985,
+        "tti": 7875.723999999999,
+        "tbt": 1186,
+        "puntaje": 27,
+        "url_final": "https://vita-plus.app/panel/persona-mayor",
+        "error": null
+      },
+      {
+        "fcp": 2694.5950000000003,
+        "lcp": 7476.072600000001,
+        "tti": 7646.072600000002,
+        "tbt": 1055,
+        "puntaje": 27,
+        "url_final": "https://vita-plus.app/panel/persona-mayor",
+        "error": null
+      },
+      {
+        "tti": null,
+        "puntaje": 0,
+        "url_final": "https://vita-plus.app/panel/persona-mayor",
+        "error": "The page did not paint any content. Please ensure you keep the browser window in the foreground during the load and try again. (NO_FCP)"
+      }
+    ]
+  },
+  {
+    "pagina": "Panel persona mayor (signos vitales)",
+    "ruta": "/panel/persona-mayor/signos-vitales",
+    "modo": "escritorio",
+    "fcp_ms": 1194,
+    "lcp_ms": 1599,
+    "tti_ms": 2145,
+    "tbt_ms": 141,
+    "puntaje": 74,
+    "corridas": [
+      {
+        "fcp": 1193.5738,
+        "lcp": 1290.7196999999999,
+        "tti": 2144.95,
+        "tbt": 215.5,
+        "puntaje": 69,
+        "url_final": "https://vita-plus.app/panel/persona-mayor/signos-vitales",
+        "error": null
+      },
+      {
+        "fcp": 1293.588,
+        "lcp": 2102.513,
+        "tti": 2189.463,
+        "tbt": 111.99999999999977,
+        "puntaje": 74,
+        "url_final": "https://vita-plus.app/panel/persona-mayor/signos-vitales",
+        "error": null
+      },
+      {
+        "fcp": 901.8459999999998,
+        "lcp": 1598.56,
+        "tti": 1882.6440000000002,
+        "tbt": 141,
+        "puntaje": 81,
+        "url_final": "https://vita-plus.app/panel/persona-mayor/signos-vitales",
+        "error": null
+      }
+    ]
+  },
+  {
+    "pagina": "Panel persona mayor (signos vitales)",
+    "ruta": "/panel/persona-mayor/signos-vitales",
+    "modo": "movil",
+    "fcp_ms": 2884,
+    "lcp_ms": 7138,
+    "tti_ms": 8179,
+    "tbt_ms": 1484,
+    "puntaje": 19,
+    "corridas": [
+      {
+        "fcp": 2884.4735,
+        "lcp": 7029.494500000002,
+        "tti": 7746.111500000003,
+        "tbt": 1067,
+        "puntaje": 24,
+        "url_final": "https://vita-plus.app/panel/persona-mayor/signos-vitales",
+        "error": null
+      },
+      {
+        "fcp": 2804.2935,
+        "lcp": 7387.3803,
+        "tti": 8179.4639,
+        "tbt": 1484,
+        "puntaje": 19,
+        "url_final": "https://vita-plus.app/panel/persona-mayor/signos-vitales",
+        "error": null
+      },
+      {
+        "fcp": 3202.721,
+        "lcp": 7137.52895,
+        "tti": 8302.7062,
+        "tbt": 1618,
+        "puntaje": 17,
+        "url_final": "https://vita-plus.app/panel/persona-mayor/signos-vitales",
+        "error": null
+      }
+    ]
+  },
+  {
+    "pagina": "Panel organización (inicio)",
+    "ruta": "/panel/organizacion",
+    "modo": "escritorio",
+    "fcp_ms": 779,
+    "lcp_ms": 1785,
+    "tti_ms": 1905,
+    "tbt_ms": 258,
+    "puntaje": 80,
+    "corridas": [
+      {
+        "fcp": 1082.098,
+        "lcp": 2003.1977499999996,
+        "tti": 2257.7453874999997,
+        "tbt": 257.51049999999964,
+        "puntaje": 73,
+        "url_final": "https://vita-plus.app/panel/organizacion",
+        "error": null
+      },
+      {
+        "fcp": 778.8801000000001,
+        "lcp": 1665.7437,
+        "tti": 1829.82244,
+        "tbt": 217.9746,
+        "puntaje": 84,
+        "url_final": "https://vita-plus.app/panel/organizacion",
+        "error": null
+      },
+      {
+        "fcp": 771.033,
+        "lcp": 1785.05,
+        "tti": 1905.078325,
+        "tbt": 260.97425,
+        "puntaje": 80,
+        "url_final": "https://vita-plus.app/panel/organizacion",
+        "error": null
+      }
+    ]
+  },
+  {
+    "pagina": "Panel organización (inicio)",
+    "ruta": "/panel/organizacion",
+    "modo": "movil",
+    "fcp_ms": 2797,
+    "lcp_ms": 7649,
+    "tti_ms": 8498,
+    "tbt_ms": 1609,
+    "puntaje": 43,
+    "corridas": [
+      {
+        "fcp": 3422.2085,
+        "lcp": 3995.9965,
+        "tti": 9126.0129,
+        "tbt": 1466.3559999999998,
+        "puntaje": 46,
+        "url_final": "https://vita-plus.app/panel/organizacion",
+        "error": null
+      },
+      {
+        "fcp": 2764.954,
+        "lcp": 7648.822050000001,
+        "tti": 8497.698635,
+        "tbt": 1608.9081499999993,
+        "puntaje": 42,
+        "url_final": "https://vita-plus.app/panel/organizacion",
+        "error": null
+      },
+      {
+        "fcp": 2797.369,
+        "lcp": 7971.033600000001,
+        "tti": 8425.507770000002,
+        "tbt": 1625.9713000000002,
+        "puntaje": 43,
+        "url_final": "https://vita-plus.app/panel/organizacion",
+        "error": null
+      }
+    ]
+  }
+]

@@ -1,0 +1,417 @@
+2026-11-24 20:45:27,856 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2026-11-24 20:45:27,924 INFO o.a.j.JMeter: Loading user properties from: C:\Users\user\tools\apache-jmeter-5.6.3\bin\user.properties
+2026-11-24 20:45:27,926 INFO o.a.j.JMeter: Loading system properties from: C:\Users\user\tools\apache-jmeter-5.6.3\bin\system.properties
+2026-11-24 20:45:27,927 INFO o.a.j.JMeter: Setting JMeter property: jmeter.reportgenerator.sample_filter=GET.*
+2026-11-24 20:45:27,927 INFO o.a.j.JMeter: Setting JMeter property: jmeter.reportgenerator.apdex_satisfied_threshold=3000
+2026-11-24 20:45:27,927 INFO o.a.j.JMeter: Setting JMeter property: jmeter.reportgenerator.apdex_tolerated_threshold=6000
+2026-11-24 20:45:27,949 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
+2026-11-24 20:45:27,950 INFO o.a.j.JMeter: Version 5.6.3
+2026-11-24 20:45:27,951 INFO o.a.j.JMeter: java.version=22.0.1
+2026-11-24 20:45:27,951 INFO o.a.j.JMeter: java.vm.name=Java HotSpot(TM) 64-Bit Server VM
+2026-11-24 20:45:27,951 INFO o.a.j.JMeter: os.name=Windows 10
+2026-11-24 20:45:27,951 INFO o.a.j.JMeter: os.arch=amd64
+2026-11-24 20:45:27,952 INFO o.a.j.JMeter: os.version=10.0
+2026-11-24 20:45:27,952 INFO o.a.j.JMeter: file.encoding=UTF-8
+2026-11-24 20:45:27,952 INFO o.a.j.JMeter: java.awt.headless=true
+2026-11-24 20:45:27,952 INFO o.a.j.JMeter: Max memory     =1073741824
+2026-11-24 20:45:27,952 INFO o.a.j.JMeter: Available Processors =4
+2026-11-24 20:45:27,993 INFO o.a.j.JMeter: Default Locale=English (EN)
+2026-11-24 20:45:27,993 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2026-11-24 20:45:27,993 INFO o.a.j.JMeter: JMeterHome=C:\Users\user\tools\apache-jmeter-5.6.3
+2026-11-24 20:45:27,994 INFO o.a.j.JMeter: user.dir  =c:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga
+2026-11-24 20:45:27,995 INFO o.a.j.JMeter: PWD       =C:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga
+2026-11-24 20:45:28,005 INFO o.a.j.JMeter: IP: 192.168.1.107 Name: DESKTOP-4DBT86M FullName: DESKTOP-4DBT86M
+2026-11-24 20:45:28,061 INFO o.a.j.JMeter: Setting property 'jmeter.reportgenerator.outputdir' to:'c:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga\resultados\reporte'
+2026-11-24 20:45:28,072 INFO o.a.j.s.FileServer: Default base='c:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga'
+2026-11-24 20:45:28,078 INFO o.a.j.s.FileServer: Set new base='c:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga'
+2026-11-24 20:45:30,167 INFO o.a.j.s.SaveService: Testplan (JMX) version: 2.2. Testlog (JTL) version: 2.2
+2026-11-24 20:45:30,985 INFO o.a.j.s.SaveService: Using SaveService properties version 5.0
+2026-11-24 20:45:31,059 INFO o.a.j.s.SaveService: Using SaveService properties file encoding UTF-8
+2026-11-24 20:45:31,091 INFO o.a.j.s.SaveService: Loading file: vita-carga.jmx
+2026-11-24 20:45:31,975 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/html is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-11-24 20:45:31,976 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xhtml+xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-11-24 20:45:31,977 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-11-24 20:45:31,977 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-11-24 20:45:31,978 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/vnd.wap.wml is org.apache.jmeter.protocol.http.parser.RegexpHTMLParser
+2026-11-24 20:45:31,978 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/css is org.apache.jmeter.protocol.http.parser.CssParser
+2026-11-24 20:45:32,192 INFO o.a.j.JMeter: Creating summariser <summary>
+2026-11-24 20:45:32,237 INFO o.a.j.r.d.ReportGenerator: ReportGenerator will use for Parsing the separator: ','
+2026-11-24 20:45:32,238 INFO o.a.j.r.d.ReportGenerator: Will generate report at end of test from  results file: resultados/carga.jtl
+2026-11-24 20:45:32,238 INFO o.a.j.r.d.ReportGenerator: Reading report generator properties from: C:\Users\user\tools\apache-jmeter-5.6.3\bin\reportgenerator.properties
+2026-11-24 20:45:32,240 INFO o.a.j.r.d.ReportGenerator: Merging with JMeter properties
+2026-11-24 20:45:32,254 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.temp_dir' not found, using default value 'temp' instead.
+2026-11-24 20:45:32,268 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.apdex_per_transaction' not found, using default value 'null' instead.
+2026-11-24 20:45:32,269 INFO o.a.j.r.c.ReportGeneratorConfiguration: apdex_per_transaction is empty, not APDEX per transaction customization
+2026-11-24 20:45:32,269 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.report_title' not found, using default value 'null' instead.
+2026-11-24 20:45:32,269 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.start_date' not found, using default value 'null' instead.
+2026-11-24 20:45:32,271 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.end_date' not found, using default value 'null' instead.
+2026-11-24 20:45:32,271 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.date_format' not found, using default value 'null' instead.
+2026-11-24 20:45:32,272 INFO o.a.j.r.c.ReportGeneratorConfiguration: Will use date range start date: null, end date: null
+2026-11-24 20:45:32,289 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.graph.totalTPS.exclude_controllers' not found, using default value 'false' instead.
+2026-11-24 20:45:32,290 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.graph.activeThreadsOverTime.exclude_controllers' not found, using default value 'false' instead.
+2026-11-24 20:45:32,291 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.graph.timeVsThreads.exclude_controllers' not found, using default value 'false' instead.
+2026-11-24 20:45:32,291 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.graph.responseTimeDistribution.exclude_controllers' not found, using default value 'false' instead.
+2026-11-24 20:45:32,291 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.graph.transactionsPerSecond.exclude_controllers' not found, using default value 'false' instead.
+2026-11-24 20:45:32,292 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.graph.responseTimePercentiles.exclude_controllers' not found, using default value 'false' instead.
+2026-11-24 20:45:32,292 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.graph.responseTimePercentilesOverTime.exclude_controllers' not found, using default value 'false' instead.
+2026-11-24 20:45:32,292 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.graph.responseTimesOverTime.exclude_controllers' not found, using default value 'false' instead.
+2026-11-24 20:45:32,293 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.graph.connectTimeOverTime.exclude_controllers' not found, using default value 'false' instead.
+2026-11-24 20:45:32,294 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.graph.latenciesOverTime.exclude_controllers' not found, using default value 'false' instead.
+2026-11-24 20:45:32,299 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.exporter.json.filters_only_sample_series' not found, using default value 'true' instead.
+2026-11-24 20:45:32,301 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.exporter.json.series_filter' not found, using default value '' instead.
+2026-11-24 20:45:32,302 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.exporter.json.show_controllers_only' not found, using default value 'false' instead.
+2026-11-24 20:45:32,304 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.exporter.html.filters_only_sample_series' not found, using default value 'true' instead.
+2026-11-24 20:45:32,304 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.exporter.html.series_filter' not found, using default value '' instead.
+2026-11-24 20:45:32,305 INFO o.a.j.r.c.ReportGeneratorConfiguration: Property 'jmeter.reportgenerator.exporter.html.show_controllers_only' not found, using default value 'false' instead.
+2026-11-24 20:45:32,353 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-11-24 20:45:32,357 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-11-24 20:45:32,357 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-11-24 20:45:32,374 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must contain the string: '.functions.'
+2026-11-24 20:45:32,374 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must not contain the string: '.gui.'
+2026-11-24 20:45:33,490 INFO o.a.j.JMeter: Running test (1795571133490)
+2026-11-24 20:45:33,492 INFO o.a.j.e.StandardJMeterEngine: Starting setUp thread groups
+2026-11-24 20:45:33,493 INFO o.a.j.e.StandardJMeterEngine: Starting setUp ThreadGroup: 1 : LOGIN una vez por cuenta 
+2026-11-24 20:45:33,493 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group LOGIN una vez por cuenta.
+2026-11-24 20:45:33,493 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-11-24 20:45:33,493 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-11-24 20:45:33,507 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-11-24 20:45:33,507 INFO o.a.j.e.StandardJMeterEngine: Waiting for all setup thread groups to exit
+2026-11-24 20:45:33,533 INFO o.a.j.t.JMeterThread: Thread started: LOGIN una vez por cuenta 1-1
+2026-11-24 20:45:33,537 INFO o.a.j.s.FileServer: Stored: cuentas.csv
+2026-11-24 20:45:40,641 INFO o.a.j.p.h.s.HTTPHCAbstractImpl: Local host = DESKTOP-4DBT86M
+2026-11-24 20:45:40,660 INFO o.a.j.p.h.s.HTTPHC4Impl: HTTP request retry count = 0
+2026-11-24 20:45:40,670 INFO o.a.j.s.SampleResult: Note: Sample TimeStamps are START times
+2026-11-24 20:45:40,670 INFO o.a.j.s.SampleResult: sampleresult.default.encoding is set to UTF-8
+2026-11-24 20:45:40,670 INFO o.a.j.s.SampleResult: sampleresult.useNanoTime=true
+2026-11-24 20:45:40,670 INFO o.a.j.s.SampleResult: sampleresult.nanoThreadSleep=5000
+2026-11-24 20:45:40,960 INFO o.a.j.p.h.s.h.LazyLayeredConnectionSocketFactory: Setting up HTTPS TrustAll Socket Factory
+2026-11-24 20:45:40,974 INFO o.a.j.u.JsseSSLManager: Using default SSL protocol: TLS
+2026-11-24 20:45:40,975 INFO o.a.j.u.JsseSSLManager: SSL session context: per-thread
+2026-11-24 20:45:41,207 INFO o.a.j.u.SSLManager: JmeterKeyStore Location:  type JKS
+2026-11-24 20:45:41,217 INFO o.a.j.u.SSLManager: KeyStore created OK
+2026-11-24 20:45:41,217 WARN o.a.j.u.SSLManager: Keystore file not found, loading empty keystore
+2026-11-24 20:45:46,074 INFO o.a.j.e.J.Guardar token por tipo: Login OK org01@vitaplus.test (ORG)
+2026-11-24 20:45:53,386 INFO o.a.j.e.J.Guardar token por tipo: Login OK org02@vitaplus.test (ORG)
+2026-11-24 20:46:01,064 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm001@vitaplus.test (PM)
+2026-11-24 20:46:01,069 INFO o.a.j.r.Summariser: summary +      3 in 00:00:28 =    0.1/s Avg:   803 Min:   276 Max:  1472 Err:     0 (0.00%) Active: 1 Started: 1 Finished: 0
+2026-11-24 20:46:08,383 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm002@vitaplus.test (PM)
+2026-11-24 20:46:15,682 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm003@vitaplus.test (PM)
+2026-11-24 20:46:23,015 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm004@vitaplus.test (PM)
+2026-11-24 20:46:30,569 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm005@vitaplus.test (PM)
+2026-11-24 20:46:30,570 INFO o.a.j.r.Summariser: summary +      4 in 00:00:30 =    0.1/s Avg:   362 Min:   282 Max:   541 Err:     0 (0.00%) Active: 1 Started: 1 Finished: 0
+2026-11-24 20:46:30,570 INFO o.a.j.r.Summariser: summary =      7 in 00:00:57 =    0.1/s Avg:   551 Min:   276 Max:  1472 Err:     0 (0.00%)
+2026-11-24 20:46:37,980 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm006@vitaplus.test (PM)
+2026-11-24 20:46:45,617 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm007@vitaplus.test (PM)
+2026-11-24 20:46:53,034 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm008@vitaplus.test (PM)
+2026-11-24 20:47:00,334 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm009@vitaplus.test (PM)
+2026-11-24 20:47:00,335 INFO o.a.j.r.Summariser: summary +      4 in 00:00:30 =    0.1/s Avg:   430 Min:   290 Max:   622 Err:     0 (0.00%) Active: 1 Started: 1 Finished: 0
+2026-11-24 20:47:00,337 INFO o.a.j.r.Summariser: summary =     11 in 00:01:27 =    0.1/s Avg:   507 Min:   276 Max:  1472 Err:     0 (0.00%)
+2026-11-24 20:47:07,625 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm010@vitaplus.test (PM)
+2026-11-24 20:47:15,048 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm011@vitaplus.test (PM)
+2026-11-24 20:47:22,341 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm012@vitaplus.test (PM)
+2026-11-24 20:47:22,341 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread LOGIN una vez por cuenta 1-1, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:cuentas.csv detected for CSV DataSet:Cuentas ficticias configured with stopThread:true, recycle:false
+2026-11-24 20:47:22,342 INFO o.a.j.t.JMeterThread: Thread finished: LOGIN una vez por cuenta 1-1
+2026-11-24 20:47:22,344 INFO o.a.j.e.StandardJMeterEngine: All Setup Threads have ended
+2026-11-24 20:47:22,404 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Persona mayor
+2026-11-24 20:47:22,404 INFO o.a.j.e.StandardJMeterEngine: Starting 80 threads for group Persona mayor.
+2026-11-24 20:47:22,405 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-11-24 20:47:22,406 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=80 ramp-up=30 delayedStart=false
+2026-11-24 20:47:22,408 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-1
+2026-11-24 20:47:22,593 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-11-24 20:47:22,594 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 2 : Organizacion
+2026-11-24 20:47:22,597 INFO o.a.j.e.StandardJMeterEngine: Starting 20 threads for group Organizacion.
+2026-11-24 20:47:22,597 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-11-24 20:47:22,598 INFO o.a.j.t.ThreadGroup: Starting thread group... number=2 threads=20 ramp-up=30 delayedStart=false
+2026-11-24 20:47:22,640 INFO o.a.j.t.ThreadGroup: Started thread group number 2
+2026-11-24 20:47:22,640 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-11-24 20:47:22,748 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-1
+2026-11-24 20:47:22,949 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-2
+2026-11-24 20:47:23,179 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-3
+2026-11-24 20:47:23,561 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-4
+2026-11-24 20:47:23,935 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-5
+2026-11-24 20:47:24,258 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-2
+2026-11-24 20:47:24,309 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-6
+2026-11-24 20:47:24,681 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-7
+2026-11-24 20:47:25,055 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-8
+2026-11-24 20:47:25,428 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-9
+2026-11-24 20:47:25,800 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-3
+2026-11-24 20:47:25,819 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-10
+2026-11-24 20:47:26,176 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-11
+2026-11-24 20:47:26,550 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-12
+2026-11-24 20:47:26,925 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-13
+2026-11-24 20:47:27,261 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-4
+2026-11-24 20:47:27,304 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-14
+2026-11-24 20:47:27,683 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-15
+2026-11-24 20:47:28,055 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-16
+2026-11-24 20:47:28,427 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-17
+2026-11-24 20:47:28,775 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-5
+2026-11-24 20:47:28,803 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-18
+2026-11-24 20:47:29,177 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-19
+2026-11-24 20:47:29,550 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-20
+2026-11-24 20:47:29,945 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-21
+2026-11-24 20:47:30,121 INFO o.a.j.r.Summariser: summary +     34 in 00:00:30 =    1.1/s Avg:   372 Min:   129 Max:   701 Err:     0 (0.00%) Active: 26 Started: 26 Finished: 0
+2026-11-24 20:47:30,122 INFO o.a.j.r.Summariser: summary =     45 in 00:01:57 =    0.4/s Avg:   405 Min:   129 Max:  1472 Err:     0 (0.00%)
+2026-11-24 20:47:30,315 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-22
+2026-11-24 20:47:30,480 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-6
+2026-11-24 20:47:30,717 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-23
+2026-11-24 20:47:31,082 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-24
+2026-11-24 20:47:31,450 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-25
+2026-11-24 20:47:31,831 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-26
+2026-11-24 20:47:32,007 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-7
+2026-11-24 20:47:32,205 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-27
+2026-11-24 20:47:32,581 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-28
+2026-11-24 20:47:32,973 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-29
+2026-11-24 20:47:33,344 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-30
+2026-11-24 20:47:33,492 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-8
+2026-11-24 20:47:33,723 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-31
+2026-11-24 20:47:34,091 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-32
+2026-11-24 20:47:34,475 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-33
+2026-11-24 20:47:34,852 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-34
+2026-11-24 20:47:35,041 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-9
+2026-11-24 20:47:35,228 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-35
+2026-11-24 20:47:35,686 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-36
+2026-11-24 20:47:36,072 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-37
+2026-11-24 20:47:36,447 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-38
+2026-11-24 20:47:36,547 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-10
+2026-11-24 20:47:36,825 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-39
+2026-11-24 20:47:37,197 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-40
+2026-11-24 20:47:37,573 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-41
+2026-11-24 20:47:37,950 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-42
+2026-11-24 20:47:38,041 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-11
+2026-11-24 20:47:38,326 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-43
+2026-11-24 20:47:38,702 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-44
+2026-11-24 20:47:39,125 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-45
+2026-11-24 20:47:39,501 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-46
+2026-11-24 20:47:39,543 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-12
+2026-11-24 20:47:39,874 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-47
+2026-11-24 20:47:40,246 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-48
+2026-11-24 20:47:40,620 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-49
+2026-11-24 20:47:40,997 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-50
+2026-11-24 20:47:41,042 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-13
+2026-11-24 20:47:41,357 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-51
+2026-11-24 20:47:41,732 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-52
+2026-11-24 20:47:42,096 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-53
+2026-11-24 20:47:42,476 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-54
+2026-11-24 20:47:42,543 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-14
+2026-11-24 20:47:42,853 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-55
+2026-11-24 20:47:43,227 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-56
+2026-11-24 20:47:43,601 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-57
+2026-11-24 20:47:43,976 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-58
+2026-11-24 20:47:44,043 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-15
+2026-11-24 20:47:44,352 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-59
+2026-11-24 20:47:44,726 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-60
+2026-11-24 20:47:45,100 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-61
+2026-11-24 20:47:45,477 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-62
+2026-11-24 20:47:45,542 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-16
+2026-11-24 20:47:45,842 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-63
+2026-11-24 20:47:46,217 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-64
+2026-11-24 20:47:46,589 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-65
+2026-11-24 20:47:46,961 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-66
+2026-11-24 20:47:47,042 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-17
+2026-11-24 20:47:47,338 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-67
+2026-11-24 20:47:47,709 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-68
+2026-11-24 20:47:48,085 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-69
+2026-11-24 20:47:48,456 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-70
+2026-11-24 20:47:48,542 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-18
+2026-11-24 20:47:48,835 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-71
+2026-11-24 20:47:49,209 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-72
+2026-11-24 20:47:49,582 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-73
+2026-11-24 20:47:49,952 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-74
+2026-11-24 20:47:50,041 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-19
+2026-11-24 20:47:50,320 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-75
+2026-11-24 20:47:50,687 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-76
+2026-11-24 20:47:51,063 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-77
+2026-11-24 20:47:51,439 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-78
+2026-11-24 20:47:51,539 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-20
+2026-11-24 20:47:51,811 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-79
+2026-11-24 20:47:52,189 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-80
+2026-11-24 20:48:00,024 INFO o.a.j.r.Summariser: summary +    923 in 00:00:30 =   30.9/s Avg:   261 Min:   102 Max:  3039 Err:     0 (0.00%) Active: 100 Started: 100 Finished: 0
+2026-11-24 20:48:00,024 INFO o.a.j.r.Summariser: summary =    968 in 00:02:27 =    6.6/s Avg:   268 Min:   102 Max:  3039 Err:     0 (0.00%)
+2026-11-24 20:48:30,012 INFO o.a.j.r.Summariser: summary +   1273 in 00:00:30 =   42.5/s Avg:   320 Min:   102 Max:  3464 Err:     0 (0.00%) Active: 100 Started: 100 Finished: 0
+2026-11-24 20:48:30,013 INFO o.a.j.r.Summariser: summary =   2241 in 00:02:57 =   12.7/s Avg:   298 Min:   102 Max:  3464 Err:     0 (0.00%)
+2026-11-24 20:49:00,029 INFO o.a.j.r.Summariser: summary +   1183 in 00:00:30 =   39.4/s Avg:   488 Min:   101 Max: 12136 Err:     0 (0.00%) Active: 100 Started: 100 Finished: 0
+2026-11-24 20:49:00,029 INFO o.a.j.r.Summariser: summary =   3424 in 00:03:27 =   16.6/s Avg:   363 Min:   101 Max: 12136 Err:     0 (0.00%)
+2026-11-24 20:49:30,007 INFO o.a.j.r.Summariser: summary +    947 in 00:00:30 =   31.6/s Avg:  1115 Min:   103 Max: 24249 Err:     0 (0.00%) Active: 100 Started: 100 Finished: 0
+2026-11-24 20:49:30,008 INFO o.a.j.r.Summariser: summary =   4371 in 00:03:57 =   18.5/s Avg:   526 Min:   101 Max: 24249 Err:     0 (0.00%)
+2026-11-24 20:50:00,099 INFO o.a.j.r.Summariser: summary +   1235 in 00:00:30 =   41.0/s Avg:   491 Min:   101 Max: 46237 Err:     0 (0.00%) Active: 100 Started: 100 Finished: 0
+2026-11-24 20:50:00,101 INFO o.a.j.r.Summariser: summary =   5606 in 00:04:27 =   21.0/s Avg:   519 Min:   101 Max: 46237 Err:     0 (0.00%)
+2026-11-24 20:50:30,041 INFO o.a.j.r.Summariser: summary +   1375 in 00:00:30 =   45.9/s Avg:   185 Min:   101 Max:   570 Err:     0 (0.00%) Active: 100 Started: 100 Finished: 0
+2026-11-24 20:50:30,042 INFO o.a.j.r.Summariser: summary =   6981 in 00:04:57 =   23.5/s Avg:   453 Min:   101 Max: 46237 Err:     0 (0.00%)
+2026-11-24 20:51:00,058 INFO o.a.j.r.Summariser: summary +   1359 in 00:00:30 =   45.3/s Avg:   200 Min:   102 Max:   754 Err:     0 (0.00%) Active: 100 Started: 100 Finished: 0
+2026-11-24 20:51:00,059 INFO o.a.j.r.Summariser: summary =   8340 in 00:05:27 =   25.5/s Avg:   412 Min:   101 Max: 46237 Err:     0 (0.00%)
+2026-11-24 20:51:30,002 INFO o.a.j.r.Summariser: summary +   1376 in 00:00:30 =   46.0/s Avg:   181 Min:   100 Max:   641 Err:     0 (0.00%) Active: 100 Started: 100 Finished: 0
+2026-11-24 20:51:30,006 INFO o.a.j.r.Summariser: summary =   9716 in 00:05:57 =   27.3/s Avg:   379 Min:   100 Max: 46237 Err:     0 (0.00%)
+2026-11-24 20:52:00,025 INFO o.a.j.r.Summariser: summary +   1185 in 00:00:30 =   39.5/s Avg:   441 Min:   101 Max: 10086 Err:     0 (0.00%) Active: 100 Started: 100 Finished: 0
+2026-11-24 20:52:00,026 INFO o.a.j.r.Summariser: summary =  10901 in 00:06:27 =   28.2/s Avg:   386 Min:   100 Max: 46237 Err:     0 (0.00%)
+2026-11-24 20:52:19,811 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-49
+2026-11-24 20:52:19,911 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-13
+2026-11-24 20:52:19,912 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-40
+2026-11-24 20:52:19,980 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-31
+2026-11-24 20:52:19,981 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-2
+2026-11-24 20:52:20,093 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-20
+2026-11-24 20:52:20,217 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-8
+2026-11-24 20:52:20,238 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-53
+2026-11-24 20:52:20,254 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-34
+2026-11-24 20:52:20,444 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-3
+2026-11-24 20:52:20,481 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-74
+2026-11-24 20:52:20,487 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-19
+2026-11-24 20:52:20,490 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-8
+2026-11-24 20:52:20,528 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-30
+2026-11-24 20:52:20,556 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-1
+2026-11-24 20:52:20,570 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-7
+2026-11-24 20:52:20,577 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-50
+2026-11-24 20:52:20,604 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-63
+2026-11-24 20:52:20,677 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-18
+2026-11-24 20:52:20,722 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-78
+2026-11-24 20:52:20,730 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-71
+2026-11-24 20:52:20,756 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-75
+2026-11-24 20:52:20,907 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-61
+2026-11-24 20:52:20,930 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-60
+2026-11-24 20:52:21,015 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-24
+2026-11-24 20:52:21,057 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-11
+2026-11-24 20:52:21,086 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-37
+2026-11-24 20:52:21,169 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-2
+2026-11-24 20:52:21,275 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-66
+2026-11-24 20:52:21,319 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-67
+2026-11-24 20:52:21,369 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-18
+2026-11-24 20:52:21,372 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-45
+2026-11-24 20:52:21,485 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-69
+2026-11-24 20:52:21,524 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-21
+2026-11-24 20:52:21,540 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-17
+2026-11-24 20:52:21,554 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-52
+2026-11-24 20:52:21,557 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-80
+2026-11-24 20:52:21,565 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-14
+2026-11-24 20:52:21,578 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-9
+2026-11-24 20:52:21,581 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-12
+2026-11-24 20:52:21,600 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-32
+2026-11-24 20:52:21,608 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-57
+2026-11-24 20:52:21,612 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-12
+2026-11-24 20:52:21,622 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-33
+2026-11-24 20:52:21,642 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-5
+2026-11-24 20:52:21,651 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-62
+2026-11-24 20:52:21,665 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-55
+2026-11-24 20:52:21,697 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-16
+2026-11-24 20:52:21,702 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-77
+2026-11-24 20:52:21,706 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-72
+2026-11-24 20:52:21,717 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-56
+2026-11-24 20:52:21,746 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-46
+2026-11-24 20:52:21,769 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-11
+2026-11-24 20:52:21,790 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-51
+2026-11-24 20:52:21,797 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-13
+2026-11-24 20:52:21,810 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-44
+2026-11-24 20:52:21,874 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-48
+2026-11-24 20:52:21,896 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-79
+2026-11-24 20:52:21,923 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-76
+2026-11-24 20:52:21,988 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-7
+2026-11-24 20:52:22,007 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-29
+2026-11-24 20:52:22,068 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-47
+2026-11-24 20:52:22,077 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-70
+2026-11-24 20:52:22,098 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-10
+2026-11-24 20:52:22,104 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-17
+2026-11-24 20:52:22,124 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-26
+2026-11-24 20:52:22,128 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-27
+2026-11-24 20:52:22,154 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-16
+2026-11-24 20:52:22,159 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-23
+2026-11-24 20:52:22,180 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-20
+2026-11-24 20:52:22,270 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-15
+2026-11-24 20:52:22,296 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-41
+2026-11-24 20:52:22,296 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-42
+2026-11-24 20:52:22,404 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-4
+2026-11-24 20:52:22,538 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-10
+2026-11-24 20:52:22,538 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-10
+2026-11-24 20:52:22,545 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-59
+2026-11-24 20:52:22,545 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-59
+2026-11-24 20:52:22,561 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-58
+2026-11-24 20:52:22,561 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-58
+2026-11-24 20:52:22,612 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-64
+2026-11-24 20:52:22,612 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-64
+2026-11-24 20:52:22,619 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-35
+2026-11-24 20:52:22,619 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-35
+2026-11-24 20:52:22,674 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Organizacion 2-5
+2026-11-24 20:52:22,674 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-5
+2026-11-24 20:52:22,685 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-54
+2026-11-24 20:52:22,686 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-54
+2026-11-24 20:52:22,692 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-6
+2026-11-24 20:52:22,692 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-6
+2026-11-24 20:52:22,697 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-36
+2026-11-24 20:52:22,698 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-36
+2026-11-24 20:52:22,730 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-43
+2026-11-24 20:52:22,730 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-43
+2026-11-24 20:52:22,788 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Organizacion 2-15
+2026-11-24 20:52:22,788 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-15
+2026-11-24 20:52:22,807 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-28
+2026-11-24 20:52:22,807 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-28
+2026-11-24 20:52:22,827 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-25
+2026-11-24 20:52:22,827 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-25
+2026-11-24 20:52:22,897 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Organizacion 2-4
+2026-11-24 20:52:22,897 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-4
+2026-11-24 20:52:22,958 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Organizacion 2-6
+2026-11-24 20:52:22,958 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-6
+2026-11-24 20:52:22,996 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-38
+2026-11-24 20:52:22,996 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-38
+2026-11-24 20:52:23,124 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-65
+2026-11-24 20:52:23,124 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-65
+2026-11-24 20:52:23,243 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-39
+2026-11-24 20:52:23,243 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-39
+2026-11-24 20:52:23,293 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Organizacion 2-19
+2026-11-24 20:52:23,293 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-19
+2026-11-24 20:52:23,310 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-73
+2026-11-24 20:52:23,310 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-73
+2026-11-24 20:52:23,380 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-68
+2026-11-24 20:52:23,380 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-68
+2026-11-24 20:52:23,410 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Organizacion 2-3
+2026-11-24 20:52:23,410 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-3
+2026-11-24 20:52:23,859 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Organizacion 2-14
+2026-11-24 20:52:23,859 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-14
+2026-11-24 20:52:24,110 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-22
+2026-11-24 20:52:24,110 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-22
+2026-11-24 20:52:24,389 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Organizacion 2-1
+2026-11-24 20:52:24,389 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-1
+2026-11-24 20:52:36,945 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Organizacion 2-9
+2026-11-24 20:52:36,945 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-9
+2026-11-24 20:52:36,947 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-11-24 20:52:36,948 INFO o.a.j.s.FileServer: Close: cuentas.csv
+2026-11-24 20:52:36,958 INFO o.a.j.r.Summariser: summary +    867 in 00:00:37 =   23.5/s Avg:   828 Min:   105 Max: 43987 Err:     3 (0.35%) Active: 0 Started: 100 Finished: 100
+2026-11-24 20:52:36,958 INFO o.a.j.r.Summariser: summary =  11768 in 00:07:03 =   27.8/s Avg:   418 Min:   100 Max: 46237 Err:     3 (0.03%)
+2026-11-24 20:52:36,960 INFO o.a.j.JMeter: Generating Dashboard
+2026-11-24 20:52:36,960 INFO o.a.j.r.d.ReportGenerator: Flushing result collector before report Generation
+2026-11-24 20:52:36,993 INFO o.a.j.r.p.NormalizerSampleConsumer: Using format, 'ms', to parse timeStamp field
+2026-11-24 20:52:39,910 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.AggregateConsumer#stopProducing(): beginDate produced 0 samples
+2026-11-24 20:52:39,910 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.AggregateConsumer#stopProducing(): endDate produced 0 samples
+2026-11-24 20:52:39,923 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.ApdexSummaryConsumer#stopProducing(): apdexSummary produced 0 samples
+2026-11-24 20:52:39,923 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.RequestsSummaryConsumer#stopProducing(): requestsSummary produced 0 samples
+2026-11-24 20:52:39,973 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.StatisticsSummaryConsumer#stopProducing(): statisticsSummary produced 0 samples
+2026-11-24 20:52:39,988 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.Top5ErrorsBySamplerConsumer#stopProducing(): top5ErrorsBySampler produced 0 samples
+2026-11-24 20:52:39,988 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.ErrorsSummaryConsumer#stopProducing(): errorsSummary produced 0 samples
+2026-11-24 20:52:39,988 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer#stopProducing(): hitsPerSecond produced 0 samples
+2026-11-24 20:52:40,487 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.LatencyVSRequestGraphConsumer#stopProducing(): latencyVsRequest produced 0 samples
+2026-11-24 20:52:40,491 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.SyntheticResponseTimeDistributionGraphConsumer#stopProducing(): syntheticResponseTimeDistribution produced 0 samples
+2026-11-24 20:52:40,492 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.BytesThroughputGraphConsumer#stopProducing(): bytesThroughputOverTime produced 0 samples
+2026-11-24 20:52:40,492 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.CodesPerSecondGraphConsumer#stopProducing(): codesPerSecond produced 0 samples
+2026-11-24 20:52:40,761 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.ResponseTimeVSRequestGraphConsumer#stopProducing(): responseTimeVsRequest produced 0 samples
+2026-11-24 20:52:40,770 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.FilterConsumer#stopProducing(): startIntervalControlerFilter produced 82278 samples
+2026-11-24 20:52:40,770 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.TotalTPSGraphConsumer#stopProducing(): totalTPS produced 0 samples
+2026-11-24 20:52:40,771 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.ActiveThreadsGraphConsumer#stopProducing(): activeThreadsOverTime produced 0 samples
+2026-11-24 20:52:40,771 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.TimeVSThreadGraphConsumer#stopProducing(): timeVsThreads produced 0 samples
+2026-11-24 20:52:40,783 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.ResponseTimeDistributionGraphConsumer#stopProducing(): responseTimeDistribution produced 0 samples
+2026-11-24 20:52:40,786 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.TransactionsPerSecondGraphConsumer#stopProducing(): transactionsPerSecond produced 0 samples
+2026-11-24 20:52:40,786 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.ResponseTimePercentilesGraphConsumer#stopProducing(): responseTimePercentiles produced 0 samples
+2026-11-24 20:52:40,811 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.ResponseTimePercentilesOverTimeGraphConsumer#stopProducing(): responseTimePercentilesOverTime produced 0 samples
+2026-11-24 20:52:40,819 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.ResponseTimeOverTimeGraphConsumer#stopProducing(): responseTimesOverTime produced 0 samples
+2026-11-24 20:52:40,820 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.ConnectTimeOverTimeGraphConsumer#stopProducing(): connectTimeOverTime produced 0 samples
+2026-11-24 20:52:40,820 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.graph.impl.LatencyOverTimeGraphConsumer#stopProducing(): latenciesOverTime produced 0 samples
+2026-11-24 20:52:40,820 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.FilterConsumer#stopProducing(): nameFilter produced 176310 samples
+2026-11-24 20:52:40,820 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.FilterConsumer#stopProducing(): dateRangeFilter produced 35304 samples
+2026-11-24 20:52:40,820 INFO o.a.j.r.p.AbstractSampleConsumer: class org.apache.jmeter.report.processor.NormalizerSampleConsumer#stopProducing(): normalizer produced 11768 samples
+2026-11-24 20:52:40,823 INFO o.a.j.r.p.CsvFileSampleSource: produce(): 11768 samples produced in 3s 733 ms on channel 0
+2026-11-24 20:52:40,823 INFO o.a.j.r.d.ReportGenerator: Exporting data using exporter:'json' of className:'org.apache.jmeter.report.dashboard.JsonExporter'
+2026-11-24 20:52:41,144 INFO o.a.j.r.d.JsonExporter: Found data for consumer statisticsSummary in context
+2026-11-24 20:52:41,144 INFO o.a.j.r.d.JsonExporter: Creating statistics for overall
+2026-11-24 20:52:41,145 INFO o.a.j.r.d.JsonExporter: Creating statistics for other transactions
+2026-11-24 20:52:41,145 INFO o.a.j.r.d.JsonExporter: Checking output folder
+2026-11-24 20:52:41,148 INFO o.a.j.r.d.JsonExporter: Writing statistics JSON to c:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga\resultados\reporte\statistics.json
+2026-11-24 20:52:41,312 INFO o.a.j.r.d.ReportGenerator: Exporting data using exporter:'html' of className:'org.apache.jmeter.report.dashboard.HtmlTemplateExporter'
+2026-11-24 20:52:41,325 INFO o.a.j.r.d.HtmlTemplateExporter: Will generate dashboard in folder: c:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga\resultados\reporte
+2026-11-24 20:52:41,926 INFO o.a.j.r.d.HtmlTemplateExporter: Report will be generated in: c:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga\resultados\reporte, creating folder structure
+2026-11-24 20:52:41,937 INFO o.a.j.r.d.TemplateVisitor: Copying folder from 'C:\Users\user\tools\apache-jmeter-5.6.3\bin\report-template' to 'c:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga\resultados\reporte', got message: c:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga\resultados\reporte, found non empty folder with following content [c:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga\resultados\reporte\statistics.json], will be ignored
+2026-11-24 20:52:43,461 INFO o.a.j.JMeter: Dashboard generated

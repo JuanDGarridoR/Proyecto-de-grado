@@ -1,0 +1,37 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1795570672463,2203,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1320,242,1,1,https://vita-plus.app/api/auth/login,2201,0,1815
+1795570684769,307,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1318,242,1,1,https://vita-plus.app/api/auth/login,297,0,0
+1795570692089,322,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1317,242,1,1,https://vita-plus.app/api/auth/login,322,0,0
+1795570699432,271,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1315,242,1,1,https://vita-plus.app/api/auth/login,270,0,0
+1795570706716,318,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1317,242,1,1,https://vita-plus.app/api/auth/login,318,0,0
+1795570714053,273,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1320,242,1,1,https://vita-plus.app/api/auth/login,273,0,0
+1795570721347,292,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1316,242,1,1,https://vita-plus.app/api/auth/login,292,0,0
+1795570728652,270,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1317,242,1,1,https://vita-plus.app/api/auth/login,270,0,0
+1795570735938,527,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1321,242,1,1,https://vita-plus.app/api/auth/login,527,0,245
+1795570743482,279,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1315,242,1,1,https://vita-plus.app/api/auth/login,279,0,0
+1795570750777,419,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1319,242,1,1,https://vita-plus.app/api/auth/login,419,0,0
+1795570758215,781,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1316,242,1,1,https://vita-plus.app/api/auth/login,318,0,0
+1795570766006,487,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1326,242,1,1,https://vita-plus.app/api/auth/login,487,0,0
+1795570773507,385,LOGIN POST /api/auth/login,200,OK,LOGIN una vez por cuenta 1-1,text,true,,1317,242,1,1,https://vita-plus.app/api/auth/login,385,0,0
+1795570777119,1594,GET /api/auth/informacion,200,OK,Persona mayor 1-1,text,true,,1299,384,1,2,https://vita-plus.app/api/auth/informacion,1474,0,1207
+1795570784012,4532,GET /api/auth/informacion,200,OK,Persona mayor 1-2,text,true,,1304,384,2,3,https://vita-plus.app/api/auth/informacion,4353,0,3970
+1795570789871,1010,GET /api/persona-mayor/signos-vitales,200,OK,Persona mayor 1-2,text,true,,11065,396,3,4,https://vita-plus.app/api/persona-mayor/signos-vitales,325,0,0
+1795570791007,616,GET /api/auth/informacion,200,OK,Persona mayor 1-3,text,true,,1297,384,3,4,https://vita-plus.app/api/auth/informacion,616,0,224
+1795570781171,11309,GET /api/persona-mayor/signos-vitales,200,OK,Persona mayor 1-1,text,true,,4487,396,3,4,https://vita-plus.app/api/persona-mayor/signos-vitales,1587,0,0
+1795570792658,323,GET /api/persona-mayor/signos-vitales,200,OK,Persona mayor 1-3,text,true,,8243,396,3,4,https://vita-plus.app/api/persona-mayor/signos-vitales,322,0,0
+1795570793196,545,GET /api/actividades/disponibles,200,OK,Persona mayor 1-2,text,true,,3745,391,3,4,https://vita-plus.app/api/actividades/disponibles,544,0,0
+1795570793567,323,GET /api/actividades/disponibles,200,OK,Persona mayor 1-1,text,true,,793,391,3,4,https://vita-plus.app/api/actividades/disponibles,190,0,0
+1795570794270,653,GET /api/actividades/disponibles,200,OK,Persona mayor 1-3,text,true,,3385,391,3,4,https://vita-plus.app/api/actividades/disponibles,652,0,0
+1795570794808,653,GET /api/auth/informacion,200,OK,Persona mayor 1-2,text,true,,1304,384,3,4,https://vita-plus.app/api/auth/informacion,653,0,0
+1795570796311,436,GET /api/auth/informacion,200,OK,Persona mayor 1-3,text,true,,1297,384,4,5,https://vita-plus.app/api/auth/informacion,331,0,0
+1795570796138,1002,GET /api/auth/informacion,200,OK,Persona mayor 1-1,text,true,,1299,384,4,5,https://vita-plus.app/api/auth/informacion,249,0,0
+1795570798353,578,GET /api/persona-mayor/signos-vitales,200,OK,Persona mayor 1-1,text,true,,4487,396,4,5,https://vita-plus.app/api/persona-mayor/signos-vitales,577,0,0
+1795570797774,1873,GET /api/persona-mayor/signos-vitales,200,OK,Persona mayor 1-3,text,true,,8243,396,4,5,https://vita-plus.app/api/persona-mayor/signos-vitales,987,0,0
+1795570797564,2940,GET /api/auth/informacion,200,OK,Persona mayor 1-4,text,true,,1311,384,4,5,https://vita-plus.app/api/auth/informacion,2940,0,1830
+1795570798130,3817,GET /api/persona-mayor/signos-vitales,200,OK,Persona mayor 1-2,text,true,,11065,396,4,5,https://vita-plus.app/api/persona-mayor/signos-vitales,2164,0,0
+1795570800782,1166,GET /api/actividades/disponibles,200,OK,Persona mayor 1-1,text,true,,793,391,4,5,https://vita-plus.app/api/actividades/disponibles,1165,0,0
+1795570777261,26201,GET /api/analitica/poblacion,200,OK,Organizacion 2-1,text,true,,42054,385,1,5,https://vita-plus.app/api/analitica/poblacion,5065,0,4553
+1795570803589,553,GET /api/auth/informacion,200,OK,Persona mayor 1-1,text,true,,1299,384,4,4,https://vita-plus.app/api/auth/informacion,376,0,0
+1795570801171,2972,GET /api/actividades/disponibles,200,OK,Persona mayor 1-3,text,true,,3385,391,4,4,https://vita-plus.app/api/actividades/disponibles,2971,0,0
+1795570803223,1221,GET /api/actividades/disponibles,200,OK,Persona mayor 1-2,text,true,,3745,391,2,2,https://vita-plus.app/api/actividades/disponibles,1220,0,0
+1795570802483,2551,GET /api/persona-mayor/signos-vitales,200,OK,Persona mayor 1-4,text,true,,7671,396,1,1,https://vita-plus.app/api/persona-mayor/signos-vitales,2325,0,0

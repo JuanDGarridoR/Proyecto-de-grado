@@ -1,0 +1,113 @@
+2026-11-24 20:42:40,497 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2026-11-24 20:42:40,594 INFO o.a.j.JMeter: Loading user properties from: C:\Users\user\tools\apache-jmeter-5.6.3\bin\user.properties
+2026-11-24 20:42:40,596 INFO o.a.j.JMeter: Loading system properties from: C:\Users\user\tools\apache-jmeter-5.6.3\bin\system.properties
+2026-11-24 20:42:40,597 INFO o.a.j.JMeter: Setting JMeter property: USERS_PM=4
+2026-11-24 20:42:40,597 INFO o.a.j.JMeter: Setting JMeter property: USERS_ORG=1
+2026-11-24 20:42:40,598 INFO o.a.j.JMeter: Setting JMeter property: DURATION=30
+2026-11-24 20:42:40,631 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
+2026-11-24 20:42:40,631 INFO o.a.j.JMeter: Version 5.6.3
+2026-11-24 20:42:40,643 INFO o.a.j.JMeter: java.version=22.0.1
+2026-11-24 20:42:40,644 INFO o.a.j.JMeter: java.vm.name=Java HotSpot(TM) 64-Bit Server VM
+2026-11-24 20:42:40,644 INFO o.a.j.JMeter: os.name=Windows 10
+2026-11-24 20:42:40,644 INFO o.a.j.JMeter: os.arch=amd64
+2026-11-24 20:42:40,644 INFO o.a.j.JMeter: os.version=10.0
+2026-11-24 20:42:40,644 INFO o.a.j.JMeter: file.encoding=UTF-8
+2026-11-24 20:42:40,644 INFO o.a.j.JMeter: java.awt.headless=true
+2026-11-24 20:42:40,645 INFO o.a.j.JMeter: Max memory     =1073741824
+2026-11-24 20:42:40,645 INFO o.a.j.JMeter: Available Processors =4
+2026-11-24 20:42:40,709 INFO o.a.j.JMeter: Default Locale=English (EN)
+2026-11-24 20:42:40,710 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2026-11-24 20:42:40,710 INFO o.a.j.JMeter: JMeterHome=C:\Users\user\tools\apache-jmeter-5.6.3
+2026-11-24 20:42:40,710 INFO o.a.j.JMeter: user.dir  =c:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga
+2026-11-24 20:42:40,711 INFO o.a.j.JMeter: PWD       =C:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga
+2026-11-24 20:42:40,712 INFO o.a.j.JMeter: IP: 192.168.1.107 Name: DESKTOP-4DBT86M FullName: DESKTOP-4DBT86M
+2026-11-24 20:42:40,760 INFO o.a.j.s.FileServer: Default base='c:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga'
+2026-11-24 20:42:40,764 INFO o.a.j.s.FileServer: Set new base='c:\Users\user\Documents\GitHub\Proyecto-de-grado\pruebas-carga'
+2026-11-24 20:42:42,804 INFO o.a.j.s.SaveService: Testplan (JMX) version: 2.2. Testlog (JTL) version: 2.2
+2026-11-24 20:42:43,530 INFO o.a.j.s.SaveService: Using SaveService properties version 5.0
+2026-11-24 20:42:43,559 INFO o.a.j.s.SaveService: Using SaveService properties file encoding UTF-8
+2026-11-24 20:42:43,588 INFO o.a.j.s.SaveService: Loading file: vita-carga.jmx
+2026-11-24 20:42:44,492 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/html is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-11-24 20:42:44,492 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xhtml+xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-11-24 20:42:44,492 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-11-24 20:42:44,493 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-11-24 20:42:44,493 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/vnd.wap.wml is org.apache.jmeter.protocol.http.parser.RegexpHTMLParser
+2026-11-24 20:42:44,493 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/css is org.apache.jmeter.protocol.http.parser.CssParser
+2026-11-24 20:42:44,960 INFO o.a.j.JMeter: Creating summariser <summary>
+2026-11-24 20:42:45,111 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-11-24 20:42:45,121 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-11-24 20:42:45,121 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-11-24 20:42:45,140 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must contain the string: '.functions.'
+2026-11-24 20:42:45,140 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must not contain the string: '.gui.'
+2026-11-24 20:42:46,569 INFO o.a.j.JMeter: Running test (1795570966568)
+2026-11-24 20:42:46,573 INFO o.a.j.e.StandardJMeterEngine: Starting setUp thread groups
+2026-11-24 20:42:46,573 INFO o.a.j.e.StandardJMeterEngine: Starting setUp ThreadGroup: 1 : LOGIN una vez por cuenta 
+2026-11-24 20:42:46,573 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group LOGIN una vez por cuenta.
+2026-11-24 20:42:46,573 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-11-24 20:42:46,574 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-11-24 20:42:46,587 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-11-24 20:42:46,588 INFO o.a.j.e.StandardJMeterEngine: Waiting for all setup thread groups to exit
+2026-11-24 20:42:46,612 INFO o.a.j.t.JMeterThread: Thread started: LOGIN una vez por cuenta 1-1
+2026-11-24 20:42:46,619 INFO o.a.j.s.FileServer: Stored: cuentas.csv
+2026-11-24 20:42:53,708 INFO o.a.j.p.h.s.HTTPHCAbstractImpl: Local host = DESKTOP-4DBT86M
+2026-11-24 20:42:53,726 INFO o.a.j.p.h.s.HTTPHC4Impl: HTTP request retry count = 0
+2026-11-24 20:42:53,729 INFO o.a.j.s.SampleResult: Note: Sample TimeStamps are START times
+2026-11-24 20:42:53,729 INFO o.a.j.s.SampleResult: sampleresult.default.encoding is set to UTF-8
+2026-11-24 20:42:53,729 INFO o.a.j.s.SampleResult: sampleresult.useNanoTime=true
+2026-11-24 20:42:53,729 INFO o.a.j.s.SampleResult: sampleresult.nanoThreadSleep=5000
+2026-11-24 20:42:54,128 INFO o.a.j.p.h.s.h.LazyLayeredConnectionSocketFactory: Setting up HTTPS TrustAll Socket Factory
+2026-11-24 20:42:54,144 INFO o.a.j.u.JsseSSLManager: Using default SSL protocol: TLS
+2026-11-24 20:42:54,144 INFO o.a.j.u.JsseSSLManager: SSL session context: per-thread
+2026-11-24 20:42:54,458 INFO o.a.j.u.SSLManager: JmeterKeyStore Location:  type JKS
+2026-11-24 20:42:54,473 INFO o.a.j.u.SSLManager: KeyStore created OK
+2026-11-24 20:42:54,473 WARN o.a.j.u.SSLManager: Keystore file not found, loading empty keystore
+2026-11-24 20:43:01,455 INFO o.a.j.e.J.Guardar token por tipo: Login OK org01@vitaplus.test (ORG)
+2026-11-24 20:43:01,471 INFO o.a.j.r.Summariser: summary +      1 in 00:00:15 =    0.1/s Avg:  2021 Min:  2021 Max:  2021 Err:     0 (0.00%) Active: 1 Started: 1 Finished: 0
+2026-11-24 20:43:08,809 INFO o.a.j.e.J.Guardar token por tipo: Login OK org02@vitaplus.test (ORG)
+2026-11-24 20:43:16,122 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm001@vitaplus.test (PM)
+2026-11-24 20:43:23,400 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm002@vitaplus.test (PM)
+2026-11-24 20:43:30,708 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm003@vitaplus.test (PM)
+2026-11-24 20:43:30,711 INFO o.a.j.r.Summariser: summary +      4 in 00:00:29 =    0.1/s Avg:   297 Min:   266 Max:   322 Err:     0 (0.00%) Active: 1 Started: 1 Finished: 0
+2026-11-24 20:43:30,715 INFO o.a.j.r.Summariser: summary =      5 in 00:00:44 =    0.1/s Avg:   642 Min:   266 Max:  2021 Err:     0 (0.00%)
+2026-11-24 20:43:38,033 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm004@vitaplus.test (PM)
+2026-11-24 20:43:45,339 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm005@vitaplus.test (PM)
+2026-11-24 20:43:52,647 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm006@vitaplus.test (PM)
+2026-11-24 20:44:00,198 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm007@vitaplus.test (PM)
+2026-11-24 20:44:00,199 INFO o.a.j.r.Summariser: summary +      4 in 00:00:29 =    0.1/s Avg:   362 Min:   293 Max:   542 Err:     0 (0.00%) Active: 1 Started: 1 Finished: 0
+2026-11-24 20:44:00,200 INFO o.a.j.r.Summariser: summary =      9 in 00:01:14 =    0.1/s Avg:   517 Min:   266 Max:  2021 Err:     0 (0.00%)
+2026-11-24 20:44:07,514 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm008@vitaplus.test (PM)
+2026-11-24 20:44:14,832 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm009@vitaplus.test (PM)
+2026-11-24 20:44:22,128 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm010@vitaplus.test (PM)
+2026-11-24 20:44:29,451 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm011@vitaplus.test (PM)
+2026-11-24 20:44:36,760 INFO o.a.j.e.J.Guardar token por tipo: Login OK pm012@vitaplus.test (PM)
+2026-11-24 20:44:36,761 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread LOGIN una vez por cuenta 1-1, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:cuentas.csv detected for CSV DataSet:Cuentas ficticias configured with stopThread:true, recycle:false
+2026-11-24 20:44:36,761 INFO o.a.j.t.JMeterThread: Thread finished: LOGIN una vez por cuenta 1-1
+2026-11-24 20:44:36,763 INFO o.a.j.e.StandardJMeterEngine: All Setup Threads have ended
+2026-11-24 20:44:36,831 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Persona mayor
+2026-11-24 20:44:36,832 INFO o.a.j.e.StandardJMeterEngine: Starting 4 threads for group Persona mayor.
+2026-11-24 20:44:36,832 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-11-24 20:44:36,833 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=4 ramp-up=30 delayedStart=false
+2026-11-24 20:44:36,844 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-1
+2026-11-24 20:44:36,847 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-11-24 20:44:36,847 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 2 : Organizacion
+2026-11-24 20:44:36,847 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Organizacion.
+2026-11-24 20:44:36,848 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-11-24 20:44:36,848 INFO o.a.j.t.ThreadGroup: Starting thread group... number=2 threads=1 ramp-up=30 delayedStart=false
+2026-11-24 20:44:36,849 INFO o.a.j.t.ThreadGroup: Started thread group number 2
+2026-11-24 20:44:36,849 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-11-24 20:44:36,859 INFO o.a.j.t.JMeterThread: Thread started: Organizacion 2-1
+2026-11-24 20:44:44,345 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-2
+2026-11-24 20:44:51,840 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-3
+2026-11-24 20:44:59,341 INFO o.a.j.t.JMeterThread: Thread started: Persona mayor 1-4
+2026-11-24 20:45:01,693 INFO o.a.j.r.Summariser: summary +     36 in 00:01:01 =    0.6/s Avg:   275 Min:   116 Max:   875 Err:     0 (0.00%) Active: 5 Started: 5 Finished: 0
+2026-11-24 20:45:01,694 INFO o.a.j.r.Summariser: summary =     45 in 00:02:15 =    0.3/s Avg:   323 Min:   116 Max:  2021 Err:     0 (0.00%)
+2026-11-24 20:45:04,391 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-4
+2026-11-24 20:45:06,373 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-3
+2026-11-24 20:45:06,428 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-1
+2026-11-24 20:45:06,623 INFO o.a.j.t.JMeterThread: Thread finished: Organizacion 2-1
+2026-11-24 20:45:06,852 INFO o.a.j.t.JMeterThread: Stopping because end time detected by thread: Persona mayor 1-2
+2026-11-24 20:45:06,853 INFO o.a.j.t.JMeterThread: Thread finished: Persona mayor 1-2
+2026-11-24 20:45:06,856 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-11-24 20:45:06,857 INFO o.a.j.s.FileServer: Close: cuentas.csv
+2026-11-24 20:45:06,864 INFO o.a.j.r.Summariser: summary +     13 in 00:00:05 =    2.5/s Avg:   253 Min:   113 Max:   512 Err:     0 (0.00%) Active: 0 Started: 5 Finished: 5
+2026-11-24 20:45:06,865 INFO o.a.j.r.Summariser: summary =     58 in 00:02:20 =    0.4/s Avg:   307 Min:   113 Max:  2021 Err:     0 (0.00%)
